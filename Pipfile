@@ -1,0 +1,51 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+psycopg2-binary = "*"
+django-extensions = "*"
+coverage = "*"
+model-bakery = "*"
+flake8 = "*"
+redis = "*"
+social-auth-app-django = "*"
+sentry-sdk = "*"
+gunicorn = "*"
+django-ninja = "*"
+pydantic = {extras = ["email"], version = "*"}
+django-cors-headers = "*"
+requests = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+channels = "*"
+channels_redis = "*"
+celery = {extras = ["redis"], version = "*"}
+boto3 = "*"
+django-storages = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
+
+[scripts]
+checkmigrations = "python ./manage.py makemigrations --check --dry-run"
+checks = "sh -c 'flake8 && python ./manage.py makemigrations --check --dry-run'"
+dumpdata = "python ./manage.py dumpdata --natural-foreign --natural-primary --exclude=contenttypes --exclude=auth.Permission --indent=4 --output core/data/seed.json"
+lint = "flake8"
+loaddata = "sh -c 'python ./manage.py flush --noinput && python ./manage.py loaddata core/data/seed.json'"
+makemigrations = "python ./manage.py makemigrations"
+manage = "python ./manage.py"
+migrate = "python ./manage.py migrate"
+collectstatic = "python ./manage.py collectstatic --no-input"
+createsuperuser = "python ./manage.py createsuperuser --email $SUPERUSER_USERNAME --no-input"
+reset-db = "sh -c 'python ./manage.py reset_db --noinput && python ./manage.py migrate --noinput'"
+shell = "python ./manage.py shell"
+test = "python ./manage.py test"
+test-w-coverage = "sh -c 'coverage run manage.py test --noinput && coverage report'"
+start = "uvicorn --host 0.0.0.0 --port 80 --reload --workers 2 core.asgi:application"

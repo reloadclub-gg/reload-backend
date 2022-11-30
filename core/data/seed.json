@@ -1,0 +1,52 @@
+[
+{
+    "model": "accounts.user",
+    "fields": {
+        "password": "pbkdf2_sha256$260000$f4OwC98elSA5SI1zjKyIBy$JuVxdjF2E0qyo8PsxNwG2pU8jFxM90Ors+dPuxrY1hI=",
+        "last_login": null,
+        "is_superuser": true,
+        "email": "dev@3c.gg",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2021-10-23T16:57:47.632Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "social_django.usersocialauth",
+    "fields": {
+        "user": 1,
+        "provider": "steam",
+        "uid": "000000000000000000",
+        "extra_data": "{\"player\": {\"avatar\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg\", \"steamid\": \"00000000000000\", \"realname\": \"Admin\", \"avatarfull\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg\", \"avatarhash\": \"5795ca73736bbd7de42ab1faf4581dda81987d63\", \"profileurl\": \"https://steamcommunity.com/id/killshotesports/\", \"personaname\": \"admin\", \"timecreated\": 1626458911, \"avatarmedium\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_medium.jpg\", \"personastate\": 0, \"profilestate\": 1, \"primaryclanid\": \"103582791429521408\", \"personastateflags\": 0, \"communityvisibilitystate\": 3}, \"auth_time\": 1644645334}",
+        "created": "2022-02-12T05:55:34.847Z",
+        "modified": "2022-02-12T05:55:34.851Z"
+    }
+},
+{
+    "model": "accounts.account",
+    "fields": {
+        "user": 1,
+        "is_verified": true
+    }
+},
+{
+    "model": "accounts.invite",
+    "fields": {
+        "owned_by": 1,
+        "email": "gabriel@3c.gg",
+        "datetime_created": "2021-10-23T16:57:47.632Z",
+        "datetime_updated": "2021-10-23T16:57:47.632Z"
+    }
+},
+{
+    "model": "accounts.invite",
+    "fields": {
+        "owned_by": 1,
+        "email": "equipe@3c.gg",
+        "datetime_created": "2021-10-23T16:57:47.632Z",
+        "datetime_updated": "2021-10-23T16:57:47.632Z"
+    }
+}
+]

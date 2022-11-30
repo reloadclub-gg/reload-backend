@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - TZ=America/Sao_Paulo
+
+  redis:
+    image: redis
+    environment:
+      - TZ=America/Sao_Paulo
+
+  django:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+      - redis
+    command: uvicorn --host 0.0.0.0 --port 80 --reload --workers 2 core.asgi:application
+    restart: unless-stopped
+
+  celery:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    command: celery -A core.celery.app worker -B -l info
+    restart: unless-stopped
+
+volumes:
+  db:
+    name: gta_db
