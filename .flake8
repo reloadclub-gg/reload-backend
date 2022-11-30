@@ -1,0 +1,16 @@
+[flake8]
+ignore = D203, W504, F523
+exclude =
+    .git,
+    *migrations*,
+    .venv
+    *__init__.py
+    asgi.py
+max-complexity = 10
+max-line-length = 100
+import-order-style = appnexus
+application-import-names =
+    accounts
+    core
+application-package-names =
+    django

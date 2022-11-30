@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+deploy
+deploy.md
+gta-backend.code-workspace
+k8s
+.git
+.gitignore
+.github
+.circleci
+.kube
+.vscode
+.editorconfig
+.template.env
+README.md
