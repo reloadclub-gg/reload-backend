@@ -14,9 +14,9 @@ from .models import Auth
 
 
 class SteamAuthWebHook(View):
-    # TODO this entire View needs to be tested. I don't know how to test it right now because all
-    # authentication happens inside the other SocialAuth views. I would need to explicit override
-    # each one of them to test them, and this will cost some time.
+    """
+    View that authenticate users via OpenID with Steam.
+    """
 
     @method_decorator(login_required)
     def get(self, request):
