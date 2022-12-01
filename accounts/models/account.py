@@ -46,11 +46,11 @@ class Account(models.Model):
         return self.user.email
 
     @cached_property
-    def steam_friends(self):
+    def steam_friends(self) -> list:
         return Steam.get_player_friends(self.user.steam_user)
 
     @property
-    def friends(self):
+    def friends(self) -> list:
         steam_friends_ids = [friend.get('steamid') for friend in self.steam_friends]
 
         return [
@@ -63,11 +63,11 @@ class Account(models.Model):
         ]
 
     @property
-    def online_friends(self):
+    def online_friends(self) -> list:
         return [friend for friend in self.friends if friend.user.is_online]
 
     @property
-    def lobby(self):
+    def lobby(self) -> Lobby:
         return Lobby.get_current(self.user.id)
 
 

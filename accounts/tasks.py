@@ -13,6 +13,10 @@ User = get_user_model()
 
 @shared_task
 def watch_user_status_change(user_id: int):  # int id because tasks cant serialize models
+    """
+    Task that watches for a user status change, eg. became offline.
+    If user is in lobby, the lobby should be purged.
+    """
     user = User.objects.get(pk=user_id)
     if not user.is_online:
         if user.account.lobby:
