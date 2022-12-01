@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from redis import Redis, exceptions
 
 from django.conf import settings
@@ -22,7 +24,7 @@ class RedisClient(Redis):
             ssl=settings.REDIS_SSL
         )
 
-    def protected_handler(self, func, *watches, **kwargs):
+    def protected_handler(self, func: Callable, *watches, **kwargs):
         """
         Convenience method for executing the callable `func` as a transaction
         while watching all keys specified in `watches`. The 'func' callable
