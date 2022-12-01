@@ -32,7 +32,7 @@ def redis_client():
     """
     Open a connection with the Redis cache database.
 
-    :return: A connected ready to use redis client.
+    :return: A connected ready to use Redis client.
     """
     return redis.Redis(
         host=settings.REDIS_HOST,
@@ -80,7 +80,7 @@ def str_to_timezone(value: str) -> datetime:
     return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
 
 
-def send_mail(mail_to, subject, content):
+def send_mail(mail_to: str, subject: str, content: str):
 
     if settings.ENVIRONMENT != settings.LOCAL:
         mail.send_mail(

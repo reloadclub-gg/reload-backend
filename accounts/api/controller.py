@@ -16,6 +16,8 @@ def login(request, token: str) -> Auth:
     """
     Checks if there is any existing user for the given auth token and
     creates/update an UserLogin for that user with the request IP address.
+
+    :params request Request: The request object.
     """
     auth = Auth.load(token)
     if not auth:
@@ -36,6 +38,10 @@ def login(request, token: str) -> Auth:
 
 
 def create_fake_user(email: str) -> User:
+    """
+    USED FOR TESTS PURPOSE ONLY!
+    Creates a user that doesn't need a Steam account.
+    """
     user = User.objects.create(email=email)
     auth = Auth(user_id=user.pk)
     auth.create_token()
@@ -44,7 +50,7 @@ def create_fake_user(email: str) -> User:
     return user
 
 
-def signup(user: User, email: str, is_fake=False) -> User:
+def signup(user: User, email: str, is_fake: bool = False) -> User:
     """
     Create an account for invited users updating the invite
     in the process so it became accepted.

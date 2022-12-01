@@ -122,6 +122,9 @@ class Lobby(BaseModel):
 
     @staticmethod
     def get_current(player_id: int) -> Lobby:
+        """
+        Get the current lobby the user is.
+        """
         lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
         if not lobby_id:
             return None
@@ -132,7 +135,6 @@ class Lobby(BaseModel):
         """
         Create a lobby for a given user.
         """
-
         filter = User.objects.filter(pk=owner_id)
         if not filter.exists():
             raise LobbyException('User not found caught on lobby creation.')
@@ -154,7 +156,15 @@ class Lobby(BaseModel):
     @staticmethod
     def move(player_id: int, to_lobby_id: int, remove: bool = False):
         """
-        Move players between lobbies.
+        This method move players around between lobbies.
+        If `to_lobby_id` == `player.lobby.id`, then this lobby
+        should be empty, meaning that we need to remove every
+        other player from it.
+
+        If `remove` is True, it means that we need to purge this
+        lobby, removing it from Redis cache. This usually happen
+        when the owner logs out. Before lobby deletion, we move
+        every other player (if there is any) to another lobby.
         """
 
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
