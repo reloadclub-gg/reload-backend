@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from functools import wraps
 
 from ninja.errors import HttpError
@@ -11,14 +12,13 @@ User = get_user_model()
 
 
 class AuthBearer(HttpBearer):
-    def authenticate(self, request, token):
+    def authenticate(self, request, token: str):
         """
         This is middleware to authenticate users. Is called everytime the client
         makes a new request. All logic goes into the `controller.login` method.
 
         :params request Request: The request object.
-        :params token str: The auth token sent by the client.
-        :return: The login method result.
+        :return: The login method result (Auth model or None).
         """
         return login(request, token)
 
@@ -37,7 +37,7 @@ def is_verified(user: User) -> bool:
     return has_account(user) and user.account.is_verified
 
 
-def verified_required(f):
+def verified_required(f: Callable) -> Callable:
     """
     Authorization decorator for routes that require a verified account.
     The `is_verified` field set as `True` means the user has confirmed

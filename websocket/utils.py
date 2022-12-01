@@ -7,11 +7,19 @@ channel_layer = get_channel_layer()
 
 
 async def send_and_close(*args, **kwargs):
+    """
+    Helper method to send data and close connection right after data sent.
+    This prevents websocket layers from hanging forever.
+    """
     await channel_layer.send(*args, **kwargs)
     await channel_layer.close_pools()
 
 
 async def ws_send(action, payload, groups=['global']):
+    """
+    Helper method that wraps `send_and_close` and
+    prepare data to be sent over websockets.
+    """
     meta = {
         'action': action,
         'timestamp': str(timezone.now())

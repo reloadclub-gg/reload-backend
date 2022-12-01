@@ -14,7 +14,7 @@ class WSAuthConfig:
     CHECK_OFFLINE_COUNTDOWN: int = 15
 
 
-def authenticate(scope) -> User:
+def authenticate(scope: dict) -> User:
     """
     This is middleware to authenticate users on each websocket new connection.
     It checks if there is any existing user for the given auth token and increment

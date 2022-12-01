@@ -28,13 +28,11 @@ class JsonAuthWebsocketConsumer(AsyncJsonWebsocketConsumer):
     async def send_payload(self, event):
         await self.send_json({'meta': event.get('meta'), 'payload': event.get('payload')})
 
-    async def disconnect(self, close_code):
+    async def disconnect(self, close_code: int):
         """
         Event called when the ws connection is closed.
         We decrement the user session on Redis, so each connection represents
         one session with a unique token in cache.
-
-        :params scope dict: The websocket connection context.
         """
         await self.channel_layer.group_discard(
             self.group_name,
