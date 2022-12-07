@@ -103,7 +103,7 @@ def change_user_email(user: User, email: str) -> User:
     user.email = email
     user.save()
 
-    user.account.is_verified
+    user.account.is_verified = False
     user.account.save()
 
     return user
