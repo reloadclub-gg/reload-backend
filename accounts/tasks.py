@@ -12,8 +12,11 @@ User = get_user_model()
 
 
 @shared_task
-def watch_user_status_change(user_id: int):  # int id because tasks cant serialize models
+def watch_user_status_change(
+    user_id: int,
+):  # int id because tasks cant serialize models
     user = User.objects.get(pk=user_id)
+
     if not user.is_online:
         if user.account.lobby:
             user.account.lobby.move(user.id, user.id, remove=True)

@@ -18,10 +18,12 @@ def login(request, token: str) -> Auth:
     creates/update an UserLogin for that user with the request IP address.
     """
     auth = Auth.load(token)
+
     if not auth:
         return
 
     user = User.objects.filter(pk=auth.user_id, is_active=True)
+
     if user.exists():
         user = user[0]
         UserLogin.objects.update_or_create(
@@ -32,6 +34,7 @@ def login(request, token: str) -> Auth:
 
         user.refresh_from_db()
         request.user = user
+
         return auth
 
 
@@ -53,9 +56,7 @@ def signup(user: User, email: str, is_fake=False) -> User:
     if hasattr(user, 'account'):
         raise HttpError(403, 'User already has an account')
 
-    invites = Invite.objects.filter(
-        email=email,
-        datetime_accepted__isnull=True)
+    invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
     if not is_fake and not invites.exists():
         raise HttpError(403, 'Must be invited')
@@ -66,9 +67,7 @@ def signup(user: User, email: str, is_fake=False) -> User:
     user.save()
     account = Account.objects.create(user=user)
     utils.send_verify_account_mail(
-        user.email,
-        user.steam_user.username,
-        account.verification_token
+        user.email, user.steam_user.username, account.verification_token
     )
     return user
 
@@ -78,10 +77,8 @@ def verify_account(user: User, verification_token: str) -> User:
     Mark an user account as is_verified if isn't already.
     """
     get_object_or_404(
-        Account,
-        user=user,
-        verification_token=verification_token,
-        is_verified=False)
+        Account, user=user, verification_token=verification_token, is_verified=False
+    )
 
     user.account.is_verified = True
     user.account.save()
@@ -97,3 +94,16 @@ def inactivate(user: User) -> None:
     """
     user.is_active = False
     user.save()
+
+
+def change_user_email(user: User, email: str) -> User:
+    """
+    Change user email and inactive user
+    """
+    user.email = email
+    user.save()
+
+    user.account.is_verified
+    user.account.save()
+
+    return user
