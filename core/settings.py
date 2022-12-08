@@ -1,11 +1,12 @@
 import os
 import sys
 
+from decouple import config
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_KEY = os.getenv('SECRET_KEY', 'UNSAFE_SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='UNSAFE_SECRET_KEY')
 
 PRODUCTION = 'production'
 STAGING = 'staging'
@@ -16,23 +17,24 @@ TARGETS = [
     LOCAL
 ]
 
-ENVIRONMENT = os.getenv('ENVIRONMENT', LOCAL)
+ENVIRONMENT = config('ENVIRONMENT', default=LOCAL)
 assert ENVIRONMENT in TARGETS
-DEBUG = os.getenv('DEBUG', '0') == '1' or ENVIRONMENT == LOCAL
+DEBUG = config('DEBUG', default=False, cast=bool) or ENVIRONMENT == LOCAL
 TEST_MODE = sys.argv[1:2] == ['test']
 
 ADMINS = [('Gabriel Gularte', 'ggularte@3c.gg')]
-FRONT_END_URL = os.getenv('FRONT_END_URL', 'http://localhost:3000')
-HOST_URL = os.getenv('HOST_URL', 'localhost')
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', HOST_URL).split(',')
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', FRONT_END_URL).split(',')
+FRONT_END_URL = config('FRONT_END_URL', default='http://localhost:3000')
+HOST_URL = config('HOST_URL', default='localhost')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=HOST_URL).split(',')
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default=FRONT_END_URL).split(',')
 
-SECURE_SSL_REDIRECT = os.getenv('HTTPS', '0') == '1'
-SESSION_COOKIE_SECURE = os.getenv('HTTPS', '0') == '1'
-CSRF_COOKIE_SECURE = os.getenv('HTTPS', '0') == '1'
+HTTPS = config('HTTPS', default=False, cast=bool)
+SECURE_SSL_REDIRECT = HTTPS
+SESSION_COOKIE_SECURE = HTTPS
+CSRF_COOKIE_SECURE = HTTPS
 SECURE_PROXY_SSL_HEADER = (
     'HTTP_X_FORWARDED_PROTO',
-    'https' if os.getenv('HTTPS', '0') == '1' else 'http'
+    'https' if HTTPS else 'http'
 )
 
 INSTALLED_APPS = [
@@ -95,15 +97,15 @@ ASGI_APPLICATION = 'core.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME', 'postgres'),
-        'USER': os.getenv('DATABASE_USER', 'postgres'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DATABASE_HOST', 'db'),
-        'PORT': os.getenv('DATABASE_PORT', 5432),
+        'NAME': config('DATABASE_NAME', default='postgres'),
+        'USER': config('DATABASE_USER', default='postgres'),
+        'PASSWORD': config('DATABASE_PASSWORD', default='postgres'),
+        'HOST': config('DATABASE_HOST', default='db'),
+        'PORT': config('DATABASE_PORT', default=5432, cast=int),
     }
 }
 
-if not os.getenv('DATABASE_IGNORE_SSL'):
+if config('DATABASE_SSL', default=False, cast=bool):
     DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
 
@@ -178,31 +180,31 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AWS_LOCATION = os.getenv('AWS_LOCATION')
+AWS_LOCATION = config('AWS_LOCATION', default=None)
 
 if AWS_LOCATION:
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
     AWS_S3_OBJECT_PARAMS = {
-        'CacheControl': os.getenv('AWS_S3_OBJECT_PARAMS__CACHE_CONTROL', 'max-age=86400'),
-        'ACL': os.getenv('AWS_S3_OBJECT_PARAMS__ACL', 'public-read'),
+        'CacheControl': config('AWS_S3_OBJECT_PARAMS__CACHE_CONTROL', default='max-age=86400'),
+        'ACL': config('AWS_S3_OBJECT_PARAMS__ACL', default='public-read'),
     }
     DEFAULT_FILE_STORAGE = 'core.cdn.MediaRootS3BotoStorage'
     STATICFILES_STORAGE = 'core.cdn.StaticRootS3BotoStorage'
 
 # Email Settings
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.mailtrap.io')
-EMAIL_PORT = os.getenv('EMAIL_PORT', 2525)
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', '0') == '1'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'e31ca571bd0f1b')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'a69be0ba200ecf')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.mailtrap.io')
+EMAIL_PORT = config('EMAIL_PORT', default=2525, cast=int)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='e31ca571bd0f1b')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='a69be0ba200ecf')
 DEFAULT_FROM_EMAIL = 'Equipe GTA MM <equipe@3c.gg>'
 
 
 # Steam Settings
-STEAM_API_KEY = os.getenv('STEAM_API_KEY')
+STEAM_API_KEY = config('STEAM_API_KEY', default=None)
 
 
 # Auth Settings
@@ -222,12 +224,12 @@ FRONT_END_INACTIVE_URL = FRONT_END_URL + '/conta-inativa/'
 FRONT_END_VERIFY_URL = FRONT_END_URL + '/verificar/'
 
 # Cache Settings
-REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
-REDIS_PORT = os.getenv('REDIS_PORT', 6379)
-REDIS_USERNAME = os.getenv('REDIS_USERNAME', 'default')
-REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', '')
-REDIS_APP_DB = os.getenv('REDIS_APP_DB', 0)
-REDIS_SSL = os.getenv('REDIS_SSL', '0') == '1'
+REDIS_HOST = config('REDIS_HOST', default='redis')
+REDIS_PORT = config('REDIS_PORT', default=6379, cast=int)
+REDIS_USERNAME = config('REDIS_USERNAME', default='default')
+REDIS_PASSWORD = config('REDIS_PASSWORD', default='')
+REDIS_APP_DB = config('REDIS_APP_DB', default=0, cast=int)
+REDIS_SSL = config('REDIS_SSL', default=False, cast=bool)
 
 
 # Sentry Settings
@@ -243,7 +245,7 @@ if os.getenv('SENTRY_DSN'):
 
 
 # Channels Settings
-CHANNEL_REDIS_DB = 10
+CHANNEL_REDIS_DB = config('CELERY_REDIS_DB', default=10, cast=int)
 CHANNEL_REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 CHANNEL_REDIS_CONN_STR = '{}://{}:{}@{}:{}/{}'.format(
     CHANNEL_REDIS_CONN_PROTOCOL,
@@ -264,7 +266,7 @@ CHANNEL_LAYERS = {
 
 # Celery Settings
 CELERY_TIMEZONE = 'America/Sao_Paulo'
-CELERY_REDIS_DB = os.getenv('CELERY_REDIS_DB', 11)
+CELERY_REDIS_DB = config('CELERY_REDIS_DB', default=11, cast=int)
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{CELERY_REDIS_DB}'
 
 # Websocket Application Settings
