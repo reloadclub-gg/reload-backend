@@ -24,6 +24,7 @@ channels_redis = "*"
 celery = {extras = ["redis"], version = "*"}
 boto3 = "*"
 django-storages = "*"
+python-decouple = "*"
 
 [dev-packages]
 
