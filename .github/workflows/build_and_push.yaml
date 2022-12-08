@@ -5,8 +5,6 @@ on:
   workflow_dispatch:
   push:
     branches: [staging]
-  pull_request:
-    branches: [staging]
 
 jobs:
   lint_and_test_job:
