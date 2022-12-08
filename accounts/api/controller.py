@@ -59,9 +59,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     if hasattr(user, 'account'):
         raise HttpError(403, 'User already has an account')
 
-    invites = Invite.objects.filter(
-        email=email,
-        datetime_accepted__isnull=True)
+    invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
     if not is_fake and not invites.exists():
         raise HttpError(403, 'Must be invited')
@@ -72,9 +70,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     user.save()
     account = Account.objects.create(user=user)
     utils.send_verify_account_mail(
-        user.email,
-        user.steam_user.username,
-        account.verification_token
+        user.email, user.steam_user.username, account.verification_token
     )
     return user
 
@@ -84,10 +80,8 @@ def verify_account(user: User, verification_token: str) -> User:
     Mark an user account as is_verified if isn't already.
     """
     get_object_or_404(
-        Account,
-        user=user,
-        verification_token=verification_token,
-        is_verified=False)
+        Account, user=user, verification_token=verification_token, is_verified=False
+    )
 
     user.account.is_verified = True
     user.account.save()
@@ -103,3 +97,16 @@ def inactivate(user: User) -> None:
     """
     user.is_active = False
     user.save()
+
+
+def change_user_email(user: User, email: str) -> User:
+    """
+    Change user email and inactive user
+    """
+    user.email = email
+    user.save()
+
+    user.account.is_verified = False
+    user.account.save()
+
+    return user
