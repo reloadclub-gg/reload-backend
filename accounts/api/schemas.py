@@ -173,3 +173,14 @@ class UserUpdateSchema(Schema):
         if Account.objects.filter(verification_token=v).exists():
             raise ValueError('field must be valid')
         return v
+
+
+class UpdateUserEmailSchema(Schema):
+    email: pydantic.EmailStr
+
+    @pydantic.validator('email')
+    def email_must_be_unique(cls, v):
+        if User.objects.filter(email=v).exists():
+            raise ValueError('field must be unique')
+
+        return v
