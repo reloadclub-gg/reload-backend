@@ -103,3 +103,16 @@ def inactivate(user: User) -> None:
     """
     user.is_active = False
     user.save()
+
+
+def change_user_email(user: User, email: str) -> User:
+    """
+    Change user email and inactive user
+    """
+    user.email = email
+    user.save()
+
+    user.account.is_verified = False
+    user.account.save()
+
+    return user

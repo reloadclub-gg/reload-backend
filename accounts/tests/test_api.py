@@ -79,6 +79,9 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.inactivate(self.user)
         self.assertFalse(self.user.is_active)
 
+    def test_change_user_email(self):
+        controller.change_user_email(self.user, 'new@email.com')
+
 
 class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
 
@@ -255,3 +258,41 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         error_msg = r.json().get('detail')[0].get('msg')
         self.assertEqual(r.status_code, 422)
         self.assertEqual(error_msg, 'field must be valid')
+
+    def test_change_user_email(self):
+        baker.make(Account, user=self.user)
+        self.user.auth.create_token()
+        payload = {'email': 'new@email.com'}
+        response = self.api.call(
+            'post', '/change-user-email', data=payload, token=self.user.auth.token
+        )
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.user.email, 'new@email.com')
+        self.assertFalse(self.user.account.is_verified)
+
+    def test_change_user_email_with_same_email(self):
+        baker.make(Account, user=self.user)
+        self.user.auth.create_token()
+        payload = {'email': self.user.email}
+        response = self.api.call(
+            'post', '/change-user-email', data=payload, token=self.user.auth.token
+        )
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(response.status_code, 422)
+        self.assertDictEqual(
+            response.json(),
+            {
+                'detail': [
+                    {
+                        'loc': ['body', 'payload', 'email'],
+                        'msg': 'field must be unique',
+                        'type': 'value_error',
+                    }
+                ]
+            },
+        )

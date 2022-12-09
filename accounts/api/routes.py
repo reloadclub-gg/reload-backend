@@ -12,6 +12,7 @@ from .schemas import (
     UserSchema,
     SignUpSchema,
     VerifyUserEmailSchema,
+    UpdateUserEmailSchema,
 )
 
 User = get_user_model()
@@ -55,3 +56,10 @@ def account_verification(request, payload: VerifyUserEmailSchema):
 @router.get('auth/', auth=AuthBearer(), response=UserSchema)
 def user_detail(request):
     return request.user
+
+
+@router.post(
+    'change-user-email/', auth=AuthBearer(), response={200: UserSchema, 422: UserSchema}
+)
+def change_user_email(request, payload: UpdateUserEmailSchema):
+    return controller.change_user_email(request.user, payload.email)
