@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'storages',
     'accounts.apps.AccountsConfig',
     'matchmaking.apps.MatchmakingConfig',
+    'appsettings.apps.AppSettingsConfig'
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
