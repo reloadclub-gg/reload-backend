@@ -31,9 +31,9 @@ class SteamAuthWebHook(View):
         # so user can only have only one association
         UserSocialAuth.objects.filter(
             id__in=list(
-                UserSocialAuth.objects.filter(
-                    user_id=request.user.pk
-                ).values_list('pk', flat=True)[1:]
+                UserSocialAuth.objects.filter(user_id=request.user.pk).values_list(
+                    'pk', flat=True
+                )[1:]
             )
         ).delete()
 

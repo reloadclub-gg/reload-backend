@@ -115,10 +115,12 @@ class Lobby(BaseModel):
         """
         The overall is the highest level among the players levels.
         """
-        return max([
-            user.account.level for user
-            in User.objects.filter(id__in=self.players_ids)
-        ])
+        return max(
+            [
+                user.account.level
+                for user in User.objects.filter(id__in=self.players_ids)
+            ]
+        )
 
     @staticmethod
     def get_current(player_id: int) -> Lobby:
@@ -141,7 +143,9 @@ class Lobby(BaseModel):
 
         user = filter[0]
         if not hasattr(user, 'account') or not user.account.is_verified:
-            raise LobbyException('User don\'t have a verified account caught on lobby creation.')
+            raise LobbyException(
+                'User don\'t have a verified account caught on lobby creation.'
+            )
 
         if not user.is_online:
             raise LobbyException('Offline user caught on lobby creation.')
@@ -182,8 +186,13 @@ class Lobby(BaseModel):
 
             if not remove:
                 joining_player = filter[0]
-                if not hasattr(joining_player, 'account') or not joining_player.account.is_verified:
-                    raise LobbyException('User don\'t have a verified account caught on lobby move.')
+                if (
+                    not hasattr(joining_player, 'account')
+                    or not joining_player.account.is_verified
+                ):
+                    raise LobbyException(
+                        'User don\'t have a verified account caught on lobby move.'
+                    )
 
                 if not joining_player.is_online:
                     raise LobbyException('Offline user caught on lobby move.')
@@ -192,7 +201,9 @@ class Lobby(BaseModel):
                     raise LobbyException('Lobby is queued caught on lobby move.')
 
                 is_owner = to_lobby.owner_id == player_id
-                can_join = to_lobby.is_public or player_id in to_lobby.invites or is_owner
+                can_join = (
+                    to_lobby.is_public or player_id in to_lobby.invites or is_owner
+                )
 
                 if not to_lobby.seats:
                     raise LobbyException('Lobby is full caught on lobby move.')
@@ -224,7 +235,6 @@ class Lobby(BaseModel):
                         new_lobby.owner_id,
                     )
                     pipe.srem(f'{new_lobby.cache_key}:invites', other_player_id)
-
 
             if remove:
                 pipe.delete(to_lobby.cache_key)
@@ -275,7 +285,8 @@ class Lobby(BaseModel):
                 invited = filter[0]
                 if not hasattr(invited, 'account') or not invited.account.is_verified:
                     raise LobbyException(
-                        'User don\'t have a verified account caught on lobby invite.')
+                        'User don\'t have a verified account caught on lobby invite.'
+                    )
 
                 if not invited.is_online:
                     raise LobbyException('Offline user caught on lobby invite.')

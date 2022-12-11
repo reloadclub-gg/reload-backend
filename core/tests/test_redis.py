@@ -9,7 +9,6 @@ cache = RedisClient()
 
 
 class TestWatchError(TestCase):
-
     def setUp(self) -> None:
         cache.set('__mm:lobby:1', '1')
         cache.set('__mm:lobby:1:queue', '2022-04-28T18:21:17.852892+00:00')
@@ -31,14 +30,18 @@ class TestWatchError(TestCase):
             pipe.set('__mm:lobby:1:queue', timezone.now().isoformat())
             thread.join()
 
-        with self.assertRaisesRegex(Exception, 'Concurrency reached maximum of 1 retries.'):
+        with self.assertRaisesRegex(
+            Exception, 'Concurrency reached maximum of 1 retries.'
+        ):
             cache.protected_handler(
                 transaction_operations,
                 '__mm:lobby:1:players',
                 max_retries=1,
             )
 
-        self.assertEqual('2022-04-28T18:21:17.852892+00:00', cache.get('__mm:lobby:1:queue'))
+        self.assertEqual(
+            '2022-04-28T18:21:17.852892+00:00', cache.get('__mm:lobby:1:queue')
+        )
 
     def test_multiple_watching_key(self):
         def transaction_operations(pipe, _):
@@ -47,7 +50,9 @@ class TestWatchError(TestCase):
             pipe.set('__mm:lobby:1:queue', timezone.now().isoformat())
             thread.join()
 
-        with self.assertRaisesRegex(Exception, 'Concurrency reached maximum of 1 retries.'):
+        with self.assertRaisesRegex(
+            Exception, 'Concurrency reached maximum of 1 retries.'
+        ):
             cache.protected_handler(
                 transaction_operations,
                 '__mm:lobby:1:players',
@@ -55,4 +60,6 @@ class TestWatchError(TestCase):
                 max_retries=1,
             )
 
-        self.assertEqual('2022-04-28T18:21:17.852892+00:00', cache.get('__mm:lobby:1:queue'))
+        self.assertEqual(
+            '2022-04-28T18:21:17.852892+00:00', cache.get('__mm:lobby:1:queue')
+        )

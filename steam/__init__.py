@@ -10,6 +10,7 @@ class SteamClient:
     """
     This class should contain all methods that fetch external data from Steam.
     """
+
     PLAYER_API_URL = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002'
     FRIENDS_API_URL = 'http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?relationship=friend'
 
@@ -32,6 +33,7 @@ class Steam:
     """
     This should contain all code related to any Steam proccess.
     """
+
     AVATARS_URL = 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars'
     DEFAULT_AVATAR_URI = f'{AVATARS_URL}/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb'
 
@@ -62,8 +64,8 @@ class Steam:
         # If testing or debugging, everyone is friend of everyone
         if settings.TEST_MODE or settings.DEBUG:
             return [
-                {'steamid': user.steam_user.steamid} for user in
-                User.objects.filter(is_staff=False)
+                {'steamid': user.steam_user.steamid}
+                for user in User.objects.filter(is_staff=False)
                 if hasattr(user, 'account') and user.account.is_verified
             ]
 

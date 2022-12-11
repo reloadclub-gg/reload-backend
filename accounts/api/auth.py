@@ -43,6 +43,7 @@ def verified_required(f: Callable) -> Callable:
     The `is_verified` field set as `True` means the user has confirmed
     that he owns the email he entered on signup.
     """
+
     @wraps(f)
     def wrapper(*args, **kwds):
         request = args[0]

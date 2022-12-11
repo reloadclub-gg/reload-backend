@@ -7,7 +7,6 @@ from . import Steam
 
 
 class SteamTestCase(UserOneMixin, TestCase):
-
     def test_build_avatar_url(self):
         # TODO maybe we should test regex
         avatar = Steam.build_avatar_url(hash='12345', size=None)

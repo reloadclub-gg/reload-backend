@@ -21,7 +21,7 @@ class RedisClient(Redis):
             db=settings.REDIS_APP_DB,
             charset='utf-8',
             decode_responses=True,
-            ssl=settings.REDIS_SSL
+            ssl=settings.REDIS_SSL,
         )
 
     def protected_handler(self, func: Callable, *watches, **kwargs):
@@ -47,4 +47,6 @@ class RedisClient(Redis):
                 except exceptions.WatchError:
                     pass
             else:
-                raise self.RetryException(f'Concurrency reached maximum of {max_retries} retries.')
+                raise self.RetryException(
+                    f'Concurrency reached maximum of {max_retries} retries.'
+                )
