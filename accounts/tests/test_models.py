@@ -14,13 +14,10 @@ from .. import utils
 
 
 class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
-
     def __create_friend(self):
         user = baker.make(models.User)
         baker.make(
-            UserSocialAuth,
-            user=user,
-            extra_data=utils.generate_steam_extra_data()
+            UserSocialAuth, user=user, extra_data=utils.generate_steam_extra_data()
         )
         return user
 
@@ -42,19 +39,23 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         f2 = self.__create_friend()
         baker.make(models.Account, user=f2)
 
-        mock_friends.return_value = [{
-            'steamid': f1.steam_user.steamid,
-            'relationship': 'friend',
-            'friend_since': 1635963090
-        }, {
-            'steamid': f2.steam_user.steamid,
-            'relationship': 'friend',
-            'friend_since': 1637350627
-        }, {
-            'steamid': '12345678901234',
-            'relationship': 'friend',
-            'friend_since': 1637350627
-        }]
+        mock_friends.return_value = [
+            {
+                'steamid': f1.steam_user.steamid,
+                'relationship': 'friend',
+                'friend_since': 1635963090,
+            },
+            {
+                'steamid': f2.steam_user.steamid,
+                'relationship': 'friend',
+                'friend_since': 1637350627,
+            },
+            {
+                'steamid': '12345678901234',
+                'relationship': 'friend',
+                'friend_since': 1637350627,
+            },
+        ]
 
         baker.make(models.Account, user=self.user)
         self.assertEqual(len(self.user.account.friends), 1)
@@ -68,19 +69,23 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         f2 = self.__create_friend()
         baker.make(models.Account, user=f2)
 
-        mock_friends.return_value = [{
-            'steamid': f1.steam_user.steamid,
-            'relationship': 'friend',
-            'friend_since': 1635963090
-        }, {
-            'steamid': f2.steam_user.steamid,
-            'relationship': 'friend',
-            'friend_since': 1637350627
-        }, {
-            'steamid': '12345678901234',
-            'relationship': 'friend',
-            'friend_since': 1637350627
-        }]
+        mock_friends.return_value = [
+            {
+                'steamid': f1.steam_user.steamid,
+                'relationship': 'friend',
+                'friend_since': 1635963090,
+            },
+            {
+                'steamid': f2.steam_user.steamid,
+                'relationship': 'friend',
+                'friend_since': 1637350627,
+            },
+            {
+                'steamid': '12345678901234',
+                'relationship': 'friend',
+                'friend_since': 1637350627,
+            },
+        ]
 
         baker.make(models.Account, user=self.user)
         f1.auth.add_session()
@@ -88,12 +93,12 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
 
 
 class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
-
     def test_invite_create_limit_reached(self):
         baker.make(
             models.Invite,
             owned_by=self.account,
-            _quantity=models.Invite.MAX_INVITES_PER_ACCOUNT)
+            _quantity=models.Invite.MAX_INVITES_PER_ACCOUNT,
+        )
 
         invite = models.Invite(email='extra@email.com', owned_by=self.account)
         self.assertRaises(ValidationError, invite.clean)
@@ -118,7 +123,6 @@ class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
 
 
 class AccountsUserModelTestCase(mixins.AccountOneMixin, TestCase):
-
     def test_user_steam_user(self):
         user = baker.make(models.User)
         self.assertIsNone(user.steam_user)
@@ -138,7 +142,6 @@ class AccountsUserModelTestCase(mixins.AccountOneMixin, TestCase):
 
 
 class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):
-
     def test_token_init(self):
         auth = models.Auth(user_id=self.user.id)
         auth.create_token()

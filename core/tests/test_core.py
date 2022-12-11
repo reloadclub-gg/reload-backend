@@ -2,7 +2,6 @@ from . import APIClient, TestCase, cache
 
 
 class CoreTestCaseTestCase(TestCase):
-
     def test_test_case_flush_cache_on_tear_down(self):
         cache.set('one', 1)
         cache.set('two', 3)
@@ -14,7 +13,6 @@ class CoreTestCaseTestCase(TestCase):
 
 
 class CoreApiClientTestCase(TestCase):
-
     def test_build_path(self):
         base_path = '/api/accounts'
         expected_path = '/api/accounts/any/'
@@ -43,5 +41,7 @@ class CoreApiClientTestCase(TestCase):
             client.call('inexistent', 'any')
 
         call = client.generic('get', '', token='token')
-        self.assertEqual(call.headers.get('Content-Type'), 'application/json; charset=utf-8')
+        self.assertEqual(
+            call.headers.get('Content-Type'), 'application/json; charset=utf-8'
+        )
         self.assertEqual(call.request.get('token'), 'token')

@@ -9,7 +9,6 @@ from . import auth, utils
 
 
 class WSAuthTestCase(AccountOneMixin, TestCase):
-
     def setUp(self) -> None:
         self.user.account.is_verified = True
         self.user.account.save()
@@ -41,7 +40,6 @@ class WSAuthTestCase(AccountOneMixin, TestCase):
 
 
 class WSCoreTestCase(Random3HundredsAccountsMixin, TestCase):
-
     def setUp(self) -> None:
         self.user = self.random_verified()
         self.user2 = self.random_verified(exclude=[self.user.id])
@@ -83,7 +81,6 @@ class WSCoreTestCase(Random3HundredsAccountsMixin, TestCase):
 
 
 class WSUtilsTestCase(AccountOneMixin, TestCase):
-
     async def test_ws_send(self):
         channel_layer = get_channel_layer()
         channel_name_1 = await channel_layer.new_channel()
@@ -96,7 +93,9 @@ class WSUtilsTestCase(AccountOneMixin, TestCase):
         )
 
         async def listen1():
-            message = await channel_layer.receive(f'{settings.GROUP_NAME_PREFIX}.{channel_name_1}')
+            message = await channel_layer.receive(
+                f'{settings.GROUP_NAME_PREFIX}.{channel_name_1}'
+            )
             assert message['type'] == 'send_payload'
             assert message['payload'] == {'content': 'test'}
             assert message['meta']['action'] == 'ws_Test'
@@ -104,7 +103,9 @@ class WSUtilsTestCase(AccountOneMixin, TestCase):
             await channel_layer.close_pools()
 
         async def listen2():
-            message = await channel_layer.receive(f'{settings.GROUP_NAME_PREFIX}.{channel_name_2}')
+            message = await channel_layer.receive(
+                f'{settings.GROUP_NAME_PREFIX}.{channel_name_2}'
+            )
             assert message['type'] == 'send_payload'
             assert message['payload'] == {'content': 'test'}
             assert message['meta']['action'] == 'ws_Test'

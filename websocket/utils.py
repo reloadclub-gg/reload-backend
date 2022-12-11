@@ -20,10 +20,7 @@ async def ws_send(action, payload, groups=['global']):
     Helper method that wraps `send_and_close` and
     prepare data to be sent over websockets.
     """
-    meta = {
-        'action': action,
-        'timestamp': str(timezone.now())
-    }
+    meta = {'action': action, 'timestamp': str(timezone.now())}
 
     for group in groups:
         group_name = f'{settings.GROUP_NAME_PREFIX}.{group}'

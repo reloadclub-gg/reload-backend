@@ -7,7 +7,6 @@ from .. import tasks
 
 
 class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
-
     @mock.patch('accounts.tasks.user_status_change')
     def test_watch_user_status_change_offline(self, mock_user_status_change):
 
