@@ -10,7 +10,9 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 
 from websocket import routing
 
-application = ProtocolTypeRouter({
-    'http': get_asgi_application(),
-    'websocket': URLRouter(routing.websocket_urlpatterns)
-})
+application = ProtocolTypeRouter(
+    {
+        'http': get_asgi_application(),
+        'websocket': URLRouter(routing.websocket_urlpatterns),
+    }
+)

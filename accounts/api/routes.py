@@ -44,11 +44,7 @@ def cancel_account(request):
     return controller.inactivate(request.user)
 
 
-@router.post(
-    'verify/',
-    auth=AuthBearer(),
-    response={200: UserSchema, 422: UserSchema}
-)
+@router.post('verify/', auth=AuthBearer(), response={200: UserSchema, 422: UserSchema})
 def account_verification(request, payload: VerifyUserEmailSchema):
     return controller.verify_account(request.user, payload.verification_token)
 

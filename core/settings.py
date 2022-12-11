@@ -11,11 +11,7 @@ SECRET_KEY = config('SECRET_KEY', default='UNSAFE_SECRET_KEY')
 PRODUCTION = 'production'
 STAGING = 'staging'
 LOCAL = 'local'
-TARGETS = [
-    PRODUCTION,
-    STAGING,
-    LOCAL
-]
+TARGETS = [PRODUCTION, STAGING, LOCAL]
 
 ENVIRONMENT = config('ENVIRONMENT', default=LOCAL)
 assert ENVIRONMENT in TARGETS
@@ -32,10 +28,7 @@ HTTPS = config('HTTPS', default=False, cast=bool)
 SECURE_SSL_REDIRECT = HTTPS
 SESSION_COOKIE_SECURE = HTTPS
 CSRF_COOKIE_SECURE = HTTPS
-SECURE_PROXY_SSL_HEADER = (
-    'HTTP_X_FORWARDED_PROTO',
-    'https' if HTTPS else 'http'
-)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https' if HTTPS else 'http')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -45,14 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
-
     'django_extensions',
     'social_django',
     'ninja',
     'corsheaders',
     'channels',
     'storages',
-
     'accounts.apps.AccountsConfig',
     'matchmaking.apps.MatchmakingConfig',
 ]
@@ -150,17 +141,15 @@ if ENVIRONMENT != LOCAL:
                 'level': 'INFO',
                 'class': 'logging.handlers.SysLogHandler',
                 'formatter': 'simple',
-                'address': ('logs3.papertrailapp.com', 28882)
+                'address': ('logs3.papertrailapp.com', 28882),
             },
         },
-
         'formatters': {
             'simple': {
                 'format': f'%(asctime)s {HOST_URL} {ENVIRONMENT}: %(message)s',
                 'datefmt': '%Y-%m-%dT%H:%M:%S',
             },
         },
-
         'loggers': {
             'django': {
                 'handlers': ['SysLog'],
@@ -188,7 +177,9 @@ if AWS_LOCATION:
     AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
     AWS_S3_OBJECT_PARAMS = {
-        'CacheControl': config('AWS_S3_OBJECT_PARAMS__CACHE_CONTROL', default='max-age=86400'),
+        'CacheControl': config(
+            'AWS_S3_OBJECT_PARAMS__CACHE_CONTROL', default='max-age=86400'
+        ),
         'ACL': config('AWS_S3_OBJECT_PARAMS__ACL', default='public-read'),
     }
     DEFAULT_FILE_STORAGE = 'core.cdn.MediaRootS3BotoStorage'
@@ -240,7 +231,7 @@ if os.getenv('SENTRY_DSN'):
             DjangoIntegration(),
         ],
         traces_sample_rate=os.getenv('SENTRY_SAMPLE_RATE', 0.1),
-        send_default_pii=True
+        send_default_pii=True,
     )
 
 
@@ -258,9 +249,7 @@ CHANNEL_REDIS_CONN_STR = '{}://{}:{}@{}:{}/{}'.format(
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [CHANNEL_REDIS_CONN_STR]
-        },
+        'CONFIG': {'hosts': [CHANNEL_REDIS_CONN_STR]},
     },
 }
 

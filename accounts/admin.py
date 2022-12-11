@@ -6,11 +6,7 @@ from django.contrib.auth.models import Group
 from social_django.models import UserSocialAuth, Association, Nonce
 
 from core import admin_mixins
-from .models import (
-    Account,
-    User,
-    UserLogin,
-    Invite)
+from .models import Account, User, UserLogin, Invite
 
 admin.site.unregister(Group)
 if settings.ENVIRONMENT == 'production':
@@ -27,12 +23,22 @@ class UserAdmin(admin_mixins.ReadOnlyModelAdminMixin, DjangoUserAdmin):
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
     )
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2'),
-        }),
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': ('email', 'password1', 'password2'),
+            },
+        ),
     )
-    list_display = ('id', 'email', 'date_joined', 'last_login', 'is_active', 'is_online')
+    list_display = (
+        'id',
+        'email',
+        'date_joined',
+        'last_login',
+        'is_active',
+        'is_online',
+    )
     search_fields = ('email', 'date_joined')
     ordering = ('email', 'date_joined', 'last_login')
     list_filter = ('is_active', 'is_staff')
@@ -58,7 +64,8 @@ class AccountAdmin(admin_mixins.ReadOnlyModelAdminMixin):
         'level_points',
         'username',
         'steamid',
-        'is_verified',)
+        'is_verified',
+    )
     search_fields = ('user__email',)
     ordering = ('user__date_joined',)
     list_filter = ('is_verified',)
@@ -78,6 +85,7 @@ class InviteAdmin(admin.ModelAdmin):
         'owned_by',
         'datetime_created',
         'datetime_updated',
-        'datetime_accepted')
+        'datetime_accepted',
+    )
     search_fields = ('email', 'owned_by__user__email')
     ordering = ('datetime_created',)

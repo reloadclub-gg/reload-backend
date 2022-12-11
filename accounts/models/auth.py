@@ -12,6 +12,7 @@ class AuthConfig:
     Config class for the Auth model. Rather this configs to be here instead of
     in Django settings because those settings are specific to the Auth model.
     """
+
     TOKEN_SIZE: int = 128
     CACHE_TTL_TOKEN: int = 3600 * 24 * 3
     CACHE_TTL_SESSIONS: int = 10
@@ -34,6 +35,7 @@ class Auth(BaseModel):
     User sessions count. If there isn't a session for a user, it means an offline user.
     When this counter reaches 0, it got a TTL defined by the model config.
     """
+
     user_id: int
     token: str = None
     token_cache_key: str = None

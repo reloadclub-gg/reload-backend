@@ -10,6 +10,7 @@ class JsonAuthWebsocketConsumer(AsyncJsonWebsocketConsumer):
     """
     Base application consumer for all websockets connections.
     """
+
     async def connect(self):
         """
         Event called when the ws connection is open.
@@ -26,7 +27,9 @@ class JsonAuthWebsocketConsumer(AsyncJsonWebsocketConsumer):
         await self.accept()
 
     async def send_payload(self, event):
-        await self.send_json({'meta': event.get('meta'), 'payload': event.get('payload')})
+        await self.send_json(
+            {'meta': event.get('meta'), 'payload': event.get('payload')}
+        )
 
     async def disconnect(self, close_code: int):
         """
@@ -34,10 +37,7 @@ class JsonAuthWebsocketConsumer(AsyncJsonWebsocketConsumer):
         We decrement the user session on Redis, so each connection represents
         one session with a unique token in cache.
         """
-        await self.channel_layer.group_discard(
-            self.group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
         if self.user:
             await sync_to_async(auth.disconnect)(self.user)

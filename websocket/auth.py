@@ -29,9 +29,9 @@ def authenticate(scope: dict) -> User:
 
     def is_active_and_verified(user):
         return (
-            user.exists() and
-            hasattr(user[0], 'account') and
-            user[0].account.is_verified()
+            user.exists()
+            and hasattr(user[0], 'account')
+            and user[0].account.is_verified()
         )
 
     user = User.objects.filter(id=auth.user_id, is_active=True)
