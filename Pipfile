@@ -25,6 +25,7 @@ celery = {extras = ["redis"], version = "*"}
 boto3 = "*"
 django-storages = "*"
 python-decouple = "*"
+black = "*"
 
 [dev-packages]
 
