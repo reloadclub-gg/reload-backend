@@ -88,4 +88,5 @@ def send_mail(mail_to: str, subject: str, content: str):
             strip_tags(content),
             settings.DEFAULT_FROM_EMAIL,
             mail_to,
-            html_message=content)
+            html_message=content,
+        )

@@ -26,13 +26,10 @@ class UserSchema(Schema):
 
 class RequestSchema(Schema):
     user: UserSchema = None
-    META: dict = {
-        'HTTP_X_FORWARDED_FOR': '111.111.111.111'
-    }
+    META: dict = {'HTTP_X_FORWARDED_FOR': '111.111.111.111'}
 
 
 class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
-
     def test_login(self):
         auth = Auth(user_id=self.user.id, force_token_create=True)
         controller.login(RequestSchema(), auth.token)
@@ -84,18 +81,13 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
 
 
 class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
-
     def setUp(self):
         self.api = APIClient('/api/accounts')
         return super().setUp()
 
     def test_fake_signup_existent_user(self):
         with self.settings(DEBUG=True):
-            r = self.api.call(
-                'post',
-                '/fake-signup',
-                data={'email': self.user.email}
-            )
+            r = self.api.call('post', '/fake-signup', data={'email': self.user.email})
             user = User.objects.get(pk=r.json().get('id'))
             self.assertIsNotNone(user)
             self.assertEqual(user.email, self.user.email)
@@ -103,19 +95,13 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
     def test_fake_signup(self):
         with self.settings(DEBUG=True):
             r = self.api.call(
-                'post',
-                '/fake-signup',
-                data={'email': 'test_user@email.com'}
+                'post', '/fake-signup', data={'email': 'test_user@email.com'}
             )
             user = User.objects.get(pk=r.json().get('id'))
             self.assertIsNotNone(user)
             self.assertEqual(user.email, 'test_user@email.com')
 
-        r = self.api.call(
-            'post',
-            '/fake-signup',
-            data={'email': 'test_user@email.com'}
-        )
+        r = self.api.call('post', '/fake-signup', data={'email': 'test_user@email.com'})
         self.assertEqual(r.status_code, 404)
 
     def test_signup(self):
@@ -129,7 +115,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
             'post',
             '/',
             data={'email': invite.email, 'terms': True, 'policy': True},
-            token=invited_user.auth.token
+            token=invited_user.auth.token,
         )
         invited_user.refresh_from_db()
         self.assertEqual(r.status_code, 201)
@@ -148,7 +134,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
             'post',
             '/',
             data={'email': invite.email, 'terms': False, 'policy': False},
-            token=invited_user.auth.token
+            token=invited_user.auth.token,
         )
         self.assertEqual(r.status_code, 422)
 
@@ -156,15 +142,12 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
             'post',
             '/',
             data={'email': invite.email, 'terms': True, 'policy': False},
-            token=invited_user.auth.token
+            token=invited_user.auth.token,
         )
         self.assertEqual(r.status_code, 422)
 
         r = self.api.call(
-            'post',
-            '/',
-            data={'email': invite.email},
-            token=invited_user.auth.token
+            'post', '/', data={'email': invite.email}, token=invited_user.auth.token
         )
         self.assertEqual(r.status_code, 422)
 
@@ -177,7 +160,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
             'post',
             '/',
             data={'email': 'noninvited@email.com', 'terms': True, 'policy': True},
-            token=invited_user.auth.token
+            token=invited_user.auth.token,
         )
         self.assertEqual(r.status_code, 403)
         self.assertEqual(r.json().get('detail'), 'Must be invited')
@@ -189,7 +172,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
             'post',
             '/',
             data={'email': 'noninvited@email.com', 'terms': True, 'policy': True},
-            token=self.user.auth.token
+            token=self.user.auth.token,
         )
         self.assertEqual(r.status_code, 403)
         self.assertEqual(r.json().get('detail'), 'User already has an account')
@@ -205,7 +188,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
             'post',
             '/',
             data={'email': invite.email, 'terms': True, 'policy': True},
-            token=invited_user.auth.token
+            token=invited_user.auth.token,
         )
         invited_user.refresh_from_db()
         self.assertEqual(r.status_code, 201)

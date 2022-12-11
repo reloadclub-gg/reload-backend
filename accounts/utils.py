@@ -7,7 +7,9 @@ from django.template.loader import render_to_string
 from core.utils import generate_random_string, send_mail
 
 
-def generate_steam_extra_data(public_profile: bool = True, username: bool = None) -> dict:
+def generate_steam_extra_data(
+    public_profile: bool = True, username: bool = None
+) -> dict:
     """
     Generate fake Steam data.
     """
@@ -19,12 +21,14 @@ def generate_steam_extra_data(public_profile: bool = True, username: bool = None
         'player': {
             'steamid': steamid,
             'personaname': personaname,
-            'communityvisibilitystate': communityvisibilitystate
+            'communityvisibilitystate': communityvisibilitystate,
         }
     }
 
 
-def create_social_auth(user, public_profile: bool = True, username: bool = None) -> UserSocialAuth:
+def create_social_auth(
+    user, public_profile: bool = True, username: bool = None
+) -> UserSocialAuth:
     """
     Add a fake UserSocialAuth entry using the `generate_steam_extra_data` method
     to generate fake Steam data.
@@ -34,7 +38,9 @@ def create_social_auth(user, public_profile: bool = True, username: bool = None)
     return baker.make(
         UserSocialAuth,
         user=user,
-        extra_data=generate_steam_extra_data(public_profile=public_profile, username=username)
+        extra_data=generate_steam_extra_data(
+            public_profile=public_profile, username=username
+        ),
     )
 
 
@@ -47,8 +53,8 @@ def send_verify_account_mail(mail_to: str, username: str, token: str):
         {
             'username': username,
             'token': token,
-            'url': settings.FRONT_END_VERIFY_URL.format(token)
-        }
+            'url': settings.FRONT_END_VERIFY_URL.format(token),
+        },
     )
 
     send_mail([mail_to], 'GTA MM - Bem vindo!', html_content)

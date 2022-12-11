@@ -5,7 +5,6 @@ from . import mixins
 
 
 class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
-
     def setUp(self) -> None:
         super().setUp()
         self.online_verified_user_1.auth.add_session()
@@ -225,13 +224,16 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
 
         Lobby.move(self.online_verified_user_1.id, lobby_1.id, remove=True)
 
-        self.assertEqual(cache.exists(
-            lobby_1.cache_key,
-            f'{lobby_1.cache_key}:players',
-            f'{lobby_1.cache_key}:queue',
-            f'{lobby_1.cache_key}:is_public',
-            f'{lobby_1.cache_key}:invites',
-        ), 0)
+        self.assertEqual(
+            cache.exists(
+                lobby_1.cache_key,
+                f'{lobby_1.cache_key}:players',
+                f'{lobby_1.cache_key}:queue',
+                f'{lobby_1.cache_key}:is_public',
+                f'{lobby_1.cache_key}:invites',
+            ),
+            0,
+        )
         self.assertCountEqual(
             new_lobby.players_ids,
             [

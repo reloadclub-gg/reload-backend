@@ -15,6 +15,7 @@ class TeamException(Exception):
     """
     Custom Team exception class.
     """
+
     pass
 
 
@@ -22,6 +23,7 @@ class TeamConfig:
     """
     Config class for the Team model.
     """
+
     CACHE_PREFIX: str = '__mm:team:'
     ID_SIZE: int = 16
     ERRORS = {
@@ -39,6 +41,7 @@ class Team(BaseModel):
     [set] __mm:team:[team_id] <lobby_ids>
     Stores a team.
     """
+
     lobbies_ids: list
     id: str = None
     cache_key: str = None

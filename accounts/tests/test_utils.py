@@ -7,7 +7,6 @@ User = get_user_model()
 
 
 class AccountsTestUtilsTestCase(TestCase):
-
     def test_create_social_auth(self):
         user = User.objects.create(email='tester@email.com')
         social_auth = utils.create_social_auth(user)
@@ -15,8 +14,7 @@ class AccountsTestUtilsTestCase(TestCase):
         self.assertIsNotNone(social_auth)
         self.assertIsNotNone(user.steam_user.steamid)
         self.assertEqual(
-            social_auth.extra_data.get('player').get('steamid'),
-            user.steam_user.steamid
+            social_auth.extra_data.get('player').get('steamid'), user.steam_user.steamid
         )
 
     def test_generate_steam_extra_data(self):

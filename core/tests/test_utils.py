@@ -5,19 +5,14 @@ from .. import utils
 
 
 class RequestSchema1(Schema):
-    META: dict = {
-        'HTTP_X_FORWARDED_FOR': '111.111.111.111'
-    }
+    META: dict = {'HTTP_X_FORWARDED_FOR': '111.111.111.111'}
 
 
 class RequestSchema2(Schema):
-    META: dict = {
-        'REMOTE_ADDR': '222.222.222.222'
-    }
+    META: dict = {'REMOTE_ADDR': '222.222.222.222'}
 
 
 class CoreUtilsTestCase(TestCase):
-
     def test_generate_random_string_length(self):
         str = utils.generate_random_string()
         self.assertEqual(len(str), 6)

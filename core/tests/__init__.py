@@ -12,7 +12,6 @@ class TestCase(DjangoTestCase):
 
 
 class APIClient(Client):
-
     def __init__(self, base_path, *args, **kwargs):
         self.base_path = base_path
         kwargs['raise_request_exception'] = True
@@ -27,10 +26,11 @@ class APIClient(Client):
     def call(self, method, path, data=None, token=None):
         if hasattr(self, method):
             req_method = getattr(self, method)
-            return req_method(path, data=data, content_type='application/json', token=token)
+            return req_method(
+                path, data=data, content_type='application/json', token=token
+            )
 
         raise AttributeError(f"{method} isn't a valid method.")
-
 
     def generic(
         self,
@@ -39,7 +39,7 @@ class APIClient(Client):
         data="",
         content_type="application/json",
         secure=False,
-        **extra
+        **extra,
     ):
         token = extra.get('token')
         path = self.build_path(path)
@@ -51,5 +51,5 @@ class APIClient(Client):
             content_type,
             secure,
             HTTP_AUTHORIZATION=f'Bearer {token}',
-            **extra
+            **extra,
         )
