@@ -15,7 +15,12 @@ class AppSettingsTestCase(TestCase):
         self.assertIsNone(obj.description)
 
     def test_obj(self):
-        obj = baker.make('appsettings.AppSettings', name='name', value='value',description='description')
+        obj = baker.make(
+            'appsettings.AppSettings',
+            name='name',
+            value='value',
+            description='description',
+        )
 
         self.assertEqual(obj.name, 'name')
         self.assertEqual(obj.value, 'value')
