@@ -18,5 +18,6 @@ kubectl create secret generic api-$ENVIRONMENT-env --from-env-file=.env.$ENVIRON
 kubectl apply -f k8s/apps/api.yaml
 kubectl rollout restart deployment/api-deployment
 kubectl rollout status deployment/api-deployment
+sleep 3
 kubectl exec -it $(kubectl get pod -l=app=api-deployment -o jsonpath="{.items[0].metadata.name}") -- pipenv run migrate
 kubectl exec -it $(kubectl get pod -l=app=api-deployment -o jsonpath="{.items[0].metadata.name}") -- pipenv run collectstatic --no-input
