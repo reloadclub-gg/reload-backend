@@ -26,3 +26,8 @@ def lobby_remove(request, lobby_id: int, user_id: int):
     return controller.lobby_remove(
         request_user_id=request.user.id, lobby_id=lobby_id, user_id=user_id
     )
+
+
+@router.patch('lobby/invite/{player_id}/', auth=AuthBearer())
+def lobby_invite(request, player_id: int):
+    return request.user.account.lobby.invite(player_id)
