@@ -13,3 +13,8 @@ def lobby_leave(request):
 @router.patch('lobby/set-public/', auth=AuthBearer())
 def lobby_set_public(request):
     return request.user.account.lobby.set_public()
+
+
+@router.patch('lobby/set-private/', auth=AuthBearer())
+def lobby_set_private(request):
+    return request.user.account.lobby.set_private()

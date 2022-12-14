@@ -39,3 +39,15 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(lobby.is_public)
+
+    def test_lobby_set_private(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby.set_public()
+        self.assertTrue(lobby.is_public)
+
+        response = self.api.call(
+            'patch', '/lobby/set-private', token=self.online_verified_user_1.auth.token
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(lobby.is_public)
