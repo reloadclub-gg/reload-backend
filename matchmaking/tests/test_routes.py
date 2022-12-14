@@ -10,6 +10,7 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         self.online_verified_user_1.auth.add_session()
         self.online_verified_user_1.auth.create_token()
         self.online_verified_user_2.auth.add_session()
+        self.online_verified_user_3.auth.add_session()
 
     def test_lobby_leave(self):
         lobby_1 = Lobby.create(self.online_verified_user_1.id)
@@ -51,3 +52,30 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(lobby.is_public)
+
+    def test_lobby_remove(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+        lobby_3 = Lobby.create(self.online_verified_user_3.id)
+        lobby_1.invite(lobby_2.id)
+        lobby_1.invite(lobby_3.id)
+        Lobby.move(lobby_2.id, self.online_verified_user_1.id)
+        Lobby.move(lobby_3.id, self.online_verified_user_1.id)
+
+        self.assertEqual(lobby_1.players_count, 3)
+
+        response = self.api.call(
+            'patch', '/lobby/remove', token=self.online_verified_user_1.auth.token
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(lobby_1.players_count, 0)
+
+    def test_lobby_remove_with_only_one_player(self):
+        Lobby.create(self.online_verified_user_1.id)
+        response = self.api.call(
+            'patch', '/lobby/remove', token=self.online_verified_user_1.auth.token
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(response.json(), {'detail': 'Only you are in the lobby'})
