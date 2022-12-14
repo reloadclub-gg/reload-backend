@@ -258,8 +258,9 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
         lobby_1.set_private()
         self.assertFalse(lobby_1.is_public)
 
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
         with self.assertRaisesMessage(
             LobbyException, 'User not invited caught on lobby move'
         ):
-            lobby_2 = Lobby.create(self.online_verified_user_2.id)
             lobby_1.move(lobby_2.id, self.online_verified_user_1.id)
