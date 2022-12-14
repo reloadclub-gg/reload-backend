@@ -22,7 +22,7 @@ class LobbyLeaveTestCase(mixins.SomePlayersMixin, TestCase):
         self.assertEqual(lobby_2.players_count, 2)
 
         response = self.api.call(
-            'get', '/lobby/leave', token=self.online_verified_user_1.auth.token
+            'patch', '/lobby/leave', token=self.online_verified_user_1.auth.token
         )
 
         self.assertEqual(response.status_code, 200)

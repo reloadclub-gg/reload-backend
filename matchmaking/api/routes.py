@@ -5,6 +5,6 @@ from ..models import Lobby
 router = Router(tags=['mm'])
 
 
-@router.get('lobby/leave/', auth=AuthBearer())
+@router.patch('lobby/leave/', auth=AuthBearer())
 def lobby_leave(request):
     return Lobby.move(request.user.id)
