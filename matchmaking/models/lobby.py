@@ -70,7 +70,7 @@ class Lobby(BaseModel):
         Public (1) -> any online user, with a valid account can join.
         Private (0) -> only invited online users, with a valid account can join.
         """
-        return cache.get(f'{self.cache_key}:is_public') == '1'
+        return cache.get(f'{self.cache_key}:public') == '1'
 
     @property
     def invites(self) -> list:
