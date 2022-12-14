@@ -241,3 +241,15 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
                 self.online_verified_user_4.id,
             ],
         )
+
+    def test_lobby_set_public(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby.set_public()
+        self.assertTrue(lobby.is_public)
+
+    def test_lobby_set_private(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby.set_public()
+        self.assertTrue(lobby.is_public)
+        lobby.set_private()
+        self.assertFalse(lobby.is_public)
