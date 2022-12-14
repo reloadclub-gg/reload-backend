@@ -158,7 +158,7 @@ class Lobby(BaseModel):
 
     # flake8: noqa: C901
     @staticmethod
-    def move(player_id: int, to_lobby_id: int, remove: bool = False):
+    def move(player_id: int, to_lobby_id: int = None, remove: bool = False):
         """
         This method move players around between lobbies.
         If `to_lobby_id` == `player.lobby.id`, then this lobby
@@ -173,7 +173,9 @@ class Lobby(BaseModel):
 
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
         from_lobby = Lobby(owner_id=from_lobby_id)
-        to_lobby = Lobby(owner_id=to_lobby_id)
+        to_lobby = (
+            Lobby(owner_id=to_lobby_id) if to_lobby_id else Lobby(owner_id=player_id)
+        )
 
         def transaction_pre(pipe):
             if not pipe.get(from_lobby.cache_key) or not pipe.get(to_lobby.cache_key):
