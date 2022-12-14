@@ -1,10 +1,10 @@
 from ninja import Router
-from .auth import AuthBearer
+from accounts.api.auth import AuthBearer
+from ..models import Lobby
 
-router = Router(tags=['lobby'])
+router = Router(tags=['mm'])
 
 
-@router.get('exit/', auth=AuthBearer())
-def exit(request):
-    user = request.user
-    return user.account.lobby.move(user.id, user.id, remove=True)
+@router.get('lobby/leave/', auth=AuthBearer())
+def lobby_leave(request):
+    return Lobby.move(request.user.id)
