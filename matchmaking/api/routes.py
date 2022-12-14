@@ -18,3 +18,8 @@ def lobby_set_public(request):
 @router.patch('lobby/set-private/', auth=AuthBearer())
 def lobby_set_private(request):
     return request.user.account.lobby.set_private()
+
+
+@router.patch('lobby/invite/{player_id}/', auth=AuthBearer())
+def lobby_invite(request, player_id: int):
+    return request.user.account.lobby.invite(player_id)

@@ -51,3 +51,18 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(lobby.is_public)
+
+    def test_lobby_invite(self):
+        Lobby.create(self.online_verified_user_1.id)
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/invite/{self.online_verified_user_2.id}',
+            token=self.online_verified_user_1.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            self.online_verified_user_1.account.lobby.invites,
+            [self.online_verified_user_2.id],
+        )
