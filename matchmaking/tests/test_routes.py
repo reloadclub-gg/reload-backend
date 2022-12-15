@@ -12,6 +12,7 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         self.online_verified_user_2.auth.add_session()
         self.online_verified_user_3.auth.add_session()
         self.online_verified_user_3.auth.create_token()
+        self.online_verified_user_2.auth.create_token()
 
     def test_lobby_leave(self):
         lobby_1 = Lobby.create(self.online_verified_user_1.id)
@@ -171,3 +172,21 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertDictEqual(response.json(), {'detail': 'User already in lobby'})
+
+    def test_lobby_accept_invite(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby.invite(self.online_verified_user_2.id)
+
+        Lobby.create(self.online_verified_user_2.id)
+
+        self.assertListEqual(lobby.invites, [self.online_verified_user_2.id])
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/accept-invite/{lobby.id}/',
+            token=self.online_verified_user_2.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(lobby.players_count, 2)
+        self.assertListEqual(lobby.invites, [])
