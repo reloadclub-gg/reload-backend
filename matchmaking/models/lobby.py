@@ -27,13 +27,20 @@ class Lobby(BaseModel):
     [key] __mm:lobby:[player_id]:is_public <0|1>
     [set] __mm:lobby:[player_id]:invites <(player_id,...)>
     [key] __mm:lobby:[player_id]:queue <datetime>
+    [key] __mm:lobby:[player_id]:type <competitive|custom>
+    [key] __mm:lobby:[player_id]:mode <1|5|20>
     """
 
-    owner_id: int
-
     class Config:
-        CACHE_PREFIX = '__mm:lobby'
-        MAX_PLAYERS = 5
+        CACHE_PREFIX: str = '__mm:lobby'
+        MAX_PLAYERS: int = 5
+        TYPES: list = ['competitive', 'custom']
+        MODES = {
+            TYPES[0]: {'modes': [1, 5], 'default': 5},
+            TYPES[1]: {'modes': [20], 'default': 20},
+        }
+
+    owner_id: int
 
     @property
     def cache_key(self):
@@ -122,6 +129,30 @@ class Lobby(BaseModel):
             ]
         )
 
+    @property
+    def lobby_type(self) -> str:
+        """
+        Returns the lobby type which can be one of Config.TYPES.
+        """
+        return cache.get(f'{self.cache_key}:type')
+
+    @property
+    def mode(self) -> int:
+        """
+        Returns which competitive mode the lobby is on
+        from Config.COMPETITIVE_MODES.
+        """
+        return int(cache.get(f'{self.cache_key}:mode'))
+
+    @property
+    def max_players(self) -> int:
+        """
+        Returns how many players are allowed to take seat
+        on this lobby. The returned value is the same return of
+        the mode property.
+        """
+        return self.mode
+
     @staticmethod
     def get_current(player_id: int) -> Lobby:
         """
@@ -133,7 +164,7 @@ class Lobby(BaseModel):
         return Lobby(owner_id=lobby_id)
 
     @staticmethod
-    def create(owner_id: int) -> Lobby:
+    def create(owner_id: int, lobby_type: str = None, mode: int = None) -> Lobby:
         """
         Create a lobby for a given user.
         """
@@ -150,8 +181,30 @@ class Lobby(BaseModel):
         if not user.is_online:
             raise LobbyException('Offline user caught on lobby creation.')
 
+        if lobby_type is not None and lobby_type not in Lobby.Config.TYPES:
+            avail_types = ','.join(Lobby.Config.TYPES)
+            raise LobbyException(
+                f'Type unknown, should be one of the following: {avail_types}'
+            )
+
+        if not lobby_type:
+            lobby_type = Lobby.Config.TYPES[0]
+
+        if mode is not None and mode not in Lobby.Config.MODES[lobby_type].get('modes'):
+            avail_modes = ','.join(
+                str(x) for x in Lobby.Config.MODES.get(lobby_type).get('modes')
+            )
+            raise LobbyException(
+                f'Mode unknown, should be one of the following: {avail_modes}'
+            )
+
+        if not mode:
+            mode = Lobby.Config.MODES.get(lobby_type).get('default')
+
         lobby = Lobby(owner_id=owner_id)
         cache.set(lobby.cache_key, owner_id)
+        cache.set(f'{lobby.cache_key}:type', lobby_type)
+        cache.set(f'{lobby.cache_key}:mode', mode)
         cache.sadd(f'{lobby.cache_key}:players', owner_id)
 
         return lobby

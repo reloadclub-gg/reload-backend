@@ -30,6 +30,44 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
         )
         self.assertEqual(current_lobby_id, str(self.online_verified_user_1.id))
         self.assertEqual(lobby.players_ids, [self.online_verified_user_1.id])
+        self.assertEqual(lobby.lobby_type, Lobby.Config.TYPES[0])
+        self.assertEqual(
+            lobby.mode, Lobby.Config.MODES.get(Lobby.Config.TYPES[0]).get('default')
+        )
+
+    def test_create_type(self):
+        lobby = Lobby.create(self.online_verified_user_1.id, lobby_type='custom')
+        current_lobby_id = cache.get(lobby.cache_key)
+        self.assertIsNotNone(current_lobby_id)
+        self.assertEqual(lobby.lobby_type, 'custom')
+
+    def test_create_type_unknown(self):
+        with self.assertRaisesRegex(LobbyException, 'Type unknown'):
+            Lobby.create(self.online_verified_user_1.id, lobby_type='unknown')
+
+    def test_create_mode(self):
+        lobby = Lobby.create(self.online_verified_user_1.id, mode=1)
+        current_lobby_id = cache.get(lobby.cache_key)
+        self.assertIsNotNone(current_lobby_id)
+        self.assertEqual(lobby.mode, 1)
+
+    def test_create_mode_and_type(self):
+        lobby = Lobby.create(
+            self.online_verified_user_1.id, lobby_type='custom', mode=20
+        )
+        current_lobby_id = cache.get(lobby.cache_key)
+        self.assertIsNotNone(current_lobby_id)
+        self.assertEqual(lobby.mode, 20)
+
+    def test_create_mode_unknown(self):
+        with self.assertRaisesRegex(LobbyException, 'Mode unknown'):
+            Lobby.create(self.online_verified_user_1.id, mode=7)
+
+    def test_create_type_and_mode_not_compliant(self):
+        with self.assertRaisesRegex(LobbyException, 'Mode unknown'):
+            Lobby.create(
+                self.online_verified_user_1.id, lobby_type='competitive', mode=20
+            )
 
     def test_create_user_not_found(self):
         with self.assertRaisesRegex(LobbyException, 'not found'):
@@ -264,3 +302,19 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
             LobbyException, 'User not invited caught on lobby move'
         ):
             lobby_1.move(lobby_2.id, self.online_verified_user_1.id)
+
+    def test_max_players(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        self.assertEqual(
+            lobby.max_players, Lobby.Config.MODES.get(lobby.lobby_type).get('default')
+        )
+
+        lobby = Lobby.create(self.online_verified_user_1.id, lobby_type='custom')
+        self.assertEqual(
+            lobby.max_players, Lobby.Config.MODES.get(lobby.lobby_type).get('default')
+        )
+
+        lobby = Lobby.create(
+            self.online_verified_user_1.id, lobby_type='competitive', mode=1
+        )
+        self.assertEqual(lobby.max_players, 1)
