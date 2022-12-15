@@ -7,7 +7,7 @@ router = Router(tags=['mm'])
 
 @router.patch('lobby/leave/', auth=AuthBearer())
 def lobby_leave(request):
-    return Lobby.move(request.user.id)
+    return Lobby.move(request.user.id, to_lobby_id=request.user.id)
 
 
 @router.patch('lobby/set-public/', auth=AuthBearer())
