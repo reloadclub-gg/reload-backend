@@ -318,3 +318,34 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
             self.online_verified_user_1.id, lobby_type='competitive', mode=1
         )
         self.assertEqual(lobby.max_players, 1)
+
+    def test_set_type(self):
+        lobby = Lobby.create(self.online_verified_user_1.id, lobby_type='custom')
+        self.assertEqual(lobby.lobby_type, 'custom')
+        lobby.set_type('competitive')
+        self.assertEqual(lobby.lobby_type, 'competitive')
+
+    def test_set_type_unknown(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        self.assertEqual(lobby.lobby_type, lobby.Config.TYPES[0])
+
+        with self.assertRaisesRegex(LobbyException, 'Type unknown'):
+            lobby.set_type('unknown')
+
+        self.assertEqual(lobby.lobby_type, lobby.Config.TYPES[0])
+
+    def test_set_mode(self):
+        lobby = Lobby.create(self.online_verified_user_1.id, mode=1)
+        self.assertEqual(lobby.mode, 1)
+
+        lobby.set_mode(5)
+        self.assertEqual(lobby.mode, 5)
+
+    def test_set_mode_unknown(self):
+        lobby = Lobby.create(self.online_verified_user_1.id, mode=1)
+        self.assertEqual(lobby.mode, 1)
+
+        with self.assertRaisesRegex(LobbyException, 'Mode unknown'):
+            lobby.set_mode(20)
+
+        self.assertEqual(lobby.mode, 1)

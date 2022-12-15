@@ -395,3 +395,39 @@ class Lobby(BaseModel):
             raise LobbyException('Lobby is queued caught on set lobby private.')
 
         cache.set(f'{self.cache_key}:public', 0)
+
+    def set_type(self, lobby_type: str):
+        """
+        Sets the lobby type, which can be any value from Config.TYPES.
+        If no type is received or type isn't on Config.TYPES,
+        then defaults to Config.TYPES[0].
+        """
+        if self.queue:
+            raise LobbyException('Lobby is queued caught on set lobby type.')
+
+        if lobby_type not in self.Config.TYPES:
+            avail_types = ','.join(Lobby.Config.TYPES)
+            raise LobbyException(
+                f'Type unknown, should be one of the following: {avail_types}'
+            )
+
+        cache.set(f'{self.cache_key}:type', lobby_type)
+
+    def set_mode(self, mode):
+        """
+        Sets the lobby mode, which can be any value from Config.MODES.
+        If no mode is received or type isn't on Config.MODES,
+        then defaults to Config.COMP_DEFAULT_MODE.
+        """
+        if self.queue:
+            raise LobbyException('Lobby is queued caught on set lobby mode.')
+
+        if mode not in self.Config.MODES[self.lobby_type].get('modes'):
+            avail_modes = ','.join(
+                str(x) for x in Lobby.Config.MODES.get(self.lobby_type).get('modes')
+            )
+            raise LobbyException(
+                f'Mode unknown, should be one of the following: {avail_modes}'
+            )
+
+        cache.set(f'{self.cache_key}:mode', mode)
