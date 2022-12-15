@@ -33,7 +33,6 @@ class Lobby(BaseModel):
 
     class Config:
         CACHE_PREFIX: str = '__mm:lobby'
-        MAX_PLAYERS: int = 5
         TYPES: list = ['competitive', 'custom']
         MODES = {
             TYPES[0]: {'modes': [1, 5], 'default': 5},
@@ -115,7 +114,7 @@ class Lobby(BaseModel):
         """
         Return how many seats are available for this lobby.
         """
-        return self.Config.MAX_PLAYERS - self.players_count
+        return self.max_players - self.players_count
 
     @property
     def overall(self) -> int:
