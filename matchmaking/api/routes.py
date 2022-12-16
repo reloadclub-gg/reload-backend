@@ -1,7 +1,7 @@
 from ninja import Router
-from ninja.errors import HttpError
 from accounts.api.auth import AuthBearer
 from ..models import Lobby
+from . import controller
 
 router = Router(tags=['mm'])
 
@@ -21,9 +21,8 @@ def lobby_set_private(request):
     return request.user.account.lobby.set_private()
 
 
-@router.patch('lobby/remove/', auth=AuthBearer())
-def lobby_remove(request):
-    if request.user.account.lobby.players_count == 1:
-        raise HttpError(400, 'Only you are in the lobby')
-
-    return request.user.account.lobby.move(request.user.id, remove=True)
+@router.patch('lobby/{lobby_id}/remove-player/{user_id}/', auth=AuthBearer())
+def lobby_remove(request, lobby_id: int, user_id: int):
+    return controller.lobby_remove(
+        request_user_id=request.user.id, lobby_id=lobby_id, user_id=user_id
+    )
