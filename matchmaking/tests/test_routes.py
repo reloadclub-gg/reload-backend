@@ -73,7 +73,7 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         self.assertEqual(lobby_1.players_count, 1)
         self.assertEqual(lobby_2.players_count, 1)
 
-    def test_lobby_remove_users_is_not_in_this_lobby(self):
+    def test_remove_user_outside_lobby(self):
         Lobby.create(self.online_verified_user_1.id)
         Lobby.create(self.online_verified_user_2.id)
         lobby = Lobby.create(self.online_verified_user_3.id)
@@ -89,7 +89,7 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
             response.json(), {'detail': 'User must be in lobby to perform this action'}
         )
 
-    def test_lobby_remove_user_is_not_owner_this_lobby(self):
+    def test_remove_user_by_non_owner(self):
         lobby_1 = Lobby.create(self.online_verified_user_1.id)
         lobby_2 = Lobby.create(self.online_verified_user_2.id)
         lobby_3 = Lobby.create(self.online_verified_user_3.id)
