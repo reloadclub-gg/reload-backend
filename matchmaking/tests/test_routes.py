@@ -85,7 +85,9 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(response.json(), {'detail': 'users is not in this lobby'})
+        self.assertDictEqual(
+            response.json(), {'detail': 'User must be in lobby to perform this action'}
+        )
 
     def test_lobby_remove_user_is_not_owner_this_lobby(self):
         lobby_1 = Lobby.create(self.online_verified_user_1.id)
@@ -106,5 +108,5 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertDictEqual(
-            response.json(), {'detail': 'user is not owner this lobby'}
+            response.json(), {'detail': 'User must be owner to perform this action'}
         )
