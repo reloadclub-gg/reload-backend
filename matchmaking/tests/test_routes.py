@@ -110,3 +110,64 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         self.assertDictEqual(
             response.json(), {'detail': 'User must be owner to perform this action'}
         )
+
+    def test_lobby_invite(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+
+        response = self.api.call(
+            'post',
+            f'lobby/{lobby.id}/invite-player/{self.online_verified_user_2.id}/',
+            token=self.online_verified_user_1.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            self.online_verified_user_1.account.lobby.invites,
+            [self.online_verified_user_2.id],
+        )
+
+    def test_lobby_invite_user_by_non_owner(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        response = self.api.call(
+            'post',
+            f'lobby/{lobby_2.id}/invite-player/{lobby_1.id}/',
+            token=self.online_verified_user_1.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(
+            response.json(), {'detail': 'User must be owner to perfom this action'}
+        )
+
+    def test_lobby_invite_user_already_been_invited(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+        lobby_1.invite(lobby_2.id)
+
+        response = self.api.call(
+            'post',
+            f'lobby/{lobby_1.id}/invite-player/{lobby_2.id}/',
+            token=self.online_verified_user_1.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(
+            response.json(), {'detail': 'Player id has already been invited'}
+        )
+
+    def test_lobby_invite_user_already_in_lobby(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+        lobby_1.invite(lobby_2.id)
+        lobby_1.move(lobby_2.id, lobby_1.id)
+
+        response = self.api.call(
+            'post',
+            f'lobby/{lobby_1.id}/invite-player/{lobby_2.id}/',
+            token=self.online_verified_user_1.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(response.json(), {'detail': 'User already in lobby'})
