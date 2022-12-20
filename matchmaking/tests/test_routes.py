@@ -205,5 +205,5 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertDictEqual(
-            response.json(), {'detail': 'Player id has no been invited'}
+            response.json(), {'detail': 'Player id has not been invited'}
         )
