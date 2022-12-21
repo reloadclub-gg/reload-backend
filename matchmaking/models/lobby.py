@@ -355,45 +355,18 @@ class Lobby(BaseModel):
 
     def delete_invite(self, player_id):
         """
-        Lobby player invited can refuse o invite
-        these rules:
-        - Lobby player invited;
-        - Invited user should exist, be online and have a verified account;
+        Method to delete an existing invite
+        Invite should exist on lobby invites list
         """
-        if not self.seats:
-            raise LobbyException('Lobby is full caught on lobby invite.')
-
-        if self.queue:
-            raise LobbyException('Lobby is queued caught on lobby invite.')
 
         def transaction_pre(pipe):
             return pipe.sismember(f'{self.cache_key}:invites', player_id)
 
-        def transaction_operations(pipe, pre_result):
-            already_invited = pre_result
-
-            if already_invited:
-                filter = User.objects.filter(pk=player_id)
-
-                if not filter.exists():
-                    raise LobbyException('User not found caught on lobby invite.')
-
-                invited = filter[0]
-
-                if not hasattr(invited, 'account') or not invited.account.is_verified:
-                    raise LobbyException(
-                        'User don\'t have a verified account caught on lobby invite.'
-                    )
-
-                if not invited.is_online:
-                    raise LobbyException('Offline user caught on lobby invite.')
-
-                pipe.srem(f'{self.cache_key}:invites', player_id)
+        def transaction_operations(pipe, _):
+            pipe.srem(f'{self.cache_key}:invites', player_id)
 
         cache.protected_handler(
             transaction_operations,
-            f'{self.cache_key}:players',
-            f'{self.cache_key}:queue',
             f'{self.cache_key}:invites',
             pre_func=transaction_pre,
         )
