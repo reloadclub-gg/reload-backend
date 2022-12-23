@@ -359,17 +359,15 @@ class Lobby(BaseModel):
         Invite should exist on lobby invites list
         """
 
-        def transaction_pre(pipe):
-            return pipe.sismember(f'{self.cache_key}:invites', player_id)
-
         def transaction_operations(pipe, _):
+            invite = pipe.sismember(f'{self.cache_key}:invites', player_id)
+
+            if not invite:
+                return
+
             pipe.srem(f'{self.cache_key}:invites', player_id)
 
-        cache.protected_handler(
-            transaction_operations,
-            f'{self.cache_key}:invites',
-            pre_func=transaction_pre,
-        )
+        cache.protected_handler(transaction_operations, f'{self.cache_key}:invites')
 
     def start_queue(self):
         """
