@@ -207,3 +207,38 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         self.assertDictEqual(
             response.json(), {'detail': 'Player id has not been invited'}
         )
+
+    def test_lobby_refuse_invite(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby.invite(self.online_verified_user_2.id)
+
+        Lobby.create(self.online_verified_user_2.id)
+
+        self.assertListEqual(lobby.invites, [self.online_verified_user_2.id])
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/{lobby.id}/refuse-invite/',
+            token=self.online_verified_user_2.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(lobby.players_count, 1)
+        self.assertListEqual(lobby.invites, [])
+
+    def test_lobby_refuse_invite_has_no_invited(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        Lobby.create(self.online_verified_user_2.id)
+
+        self.assertListEqual(lobby.invites, [])
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/{lobby.id}/refuse-invite/',
+            token=self.online_verified_user_2.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(
+            response.json(), {'detail': 'Player id has not been invited'}
+        )
