@@ -353,6 +353,22 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
         )
 
+    def delete_invite(self, player_id):
+        """
+        Method to delete an existing invite
+        Invite should exist on lobby invites list
+        Should return False if the requested player_id isn't in the lobby invites list
+        """
+        invite = cache.sismember(f'{self.cache_key}:invites', player_id)
+
+        if not invite:
+            return False
+
+        def transaction_operations(pipe, _):
+            pipe.srem(f'{self.cache_key}:invites', player_id)
+
+        cache.protected_handler(transaction_operations, f'{self.cache_key}:invites')
+
     def start_queue(self):
         """
         Add lobby to the queue.

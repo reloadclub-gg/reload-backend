@@ -349,3 +349,20 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
             lobby.set_mode(20)
 
         self.assertEqual(lobby.mode, 1)
+
+    def test_delete_invite(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+        lobby_1.invite(lobby_2.id)
+
+        self.assertListEqual(lobby_1.invites, [lobby_2.id])
+
+        lobby_1.delete_invite(lobby_2.id)
+
+        self.assertListEqual(lobby_1.invites, [])
+
+    def test_delete_invite_must_be_invited(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        self.assertFalse(lobby_1.delete_invite(lobby_2.id))
