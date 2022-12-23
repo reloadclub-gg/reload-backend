@@ -42,11 +42,9 @@ def lobby_accept_invite(user: User, lobby_id: int):
     if user.id not in lobby.invites:
         raise HttpError(400, 'Player id has not been invited')
 
-    lobby.move(user.id, lobby_id)
-
     if user.id in lobby.players_ids:
-        ...
-        # TODO: deletar invite
-        # lobby.delete_invite(user.id)
+        lobby.delete_invite(user.id)
+    else:
+        lobby.move(user.id, lobby_id)
 
     return lobby
