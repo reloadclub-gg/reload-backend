@@ -360,3 +360,9 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
         lobby_1.delete_invite(lobby_2.id)
 
         self.assertListEqual(lobby_1.invites, [])
+
+    def test_delete_invite_must_be_invited(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        self.assertFalse(lobby_1.delete_invite(lobby_2.id))

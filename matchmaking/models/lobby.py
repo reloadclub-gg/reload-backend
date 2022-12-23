@@ -357,14 +357,14 @@ class Lobby(BaseModel):
         """
         Method to delete an existing invite
         Invite should exist on lobby invites list
+        Should return False if the requested player_id isn't in the lobby invites list
         """
+        invite = cache.sismember(f'{self.cache_key}:invites', player_id)
+
+        if not invite:
+            return False
 
         def transaction_operations(pipe, _):
-            invite = pipe.sismember(f'{self.cache_key}:invites', player_id)
-
-            if not invite:
-                return
-
             pipe.srem(f'{self.cache_key}:invites', player_id)
 
         cache.protected_handler(transaction_operations, f'{self.cache_key}:invites')
