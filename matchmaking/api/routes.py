@@ -33,3 +33,8 @@ def lobby_invite(request, lobby_id: int, player_id: int):
     return controller.lobby_invite(
         user=request.user, lobby_id=lobby_id, player_id=player_id
     )
+
+
+@router.patch('lobby/{lobby_id}/accept-invite/', auth=AuthBearer())
+def lobby_accept_invite(request, lobby_id: int):
+    return controller.lobby_accept_invite(request.user, lobby_id)
