@@ -59,3 +59,17 @@ def lobby_refuse_invite(user: User, lobby_id: int):
     lobby.delete_invite(user.id)
 
     return lobby
+
+
+def lobby_change_type_and_mode(
+    user: User, lobby_id: int, lobby_type: str, lobby_mode: int
+):
+    lobby = Lobby(owner_id=lobby_id)
+
+    if user.account.lobby.id != lobby.owner_id:
+        raise HttpError(400, 'User must be owner to perfom this action')
+
+    lobby.set_type(lobby_type)
+    lobby.set_mode(lobby_mode)
+
+    return lobby

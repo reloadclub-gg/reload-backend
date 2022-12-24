@@ -1,3 +1,4 @@
+from ninja.errors import HttpError
 from core.tests import TestCase
 from . import mixins
 from ..api import controller
@@ -58,3 +59,30 @@ class LobbyControllerTestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertListEqual(lobby_1.invites, [])
         self.assertEqual(lobby_1.players_count, 1)
+
+    def test_lobby_change_type_and_mode(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+
+        self.assertEqual(lobby.mode, 5)
+        self.assertEqual(lobby.lobby_type, 'competitive')
+
+        controller.lobby_change_type_and_mode(
+            self.online_verified_user_1, lobby.id, 'custom', 20
+        )
+
+        self.assertEqual(lobby.mode, 20)
+        self.assertEqual(lobby.lobby_type, 'custom')
+
+    def test_lobby_change_type_and_mode_by_non_owner(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        Lobby.create(self.online_verified_user_2.id)
+
+        self.assertEqual(lobby.mode, 5)
+        self.assertEqual(lobby.lobby_type, 'competitive')
+
+        with self.assertRaisesMessage(
+            HttpError, 'User must be owner to perfom this action'
+        ):
+            controller.lobby_change_type_and_mode(
+                self.online_verified_user_2, lobby.id, 'custom', 20
+            )
