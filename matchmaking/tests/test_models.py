@@ -476,6 +476,9 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
                 self.online_verified_user_6.id,
             ],
         )
+        self.assertEqual(
+            self.online_verified_user_4.account.lobby.id, self.online_verified_user_4.id
+        )
 
     def test_set_mode_players_id_to_remove_with_owner_id(self):
         lobby_1 = Lobby.create(
