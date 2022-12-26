@@ -366,3 +366,156 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
         lobby_2 = Lobby.create(self.online_verified_user_2.id)
 
         self.assertFalse(lobby_1.delete_invite(lobby_2.id))
+
+    def test_set_mode_20x20_to_5x5(self):
+        lobby_1 = Lobby.create(
+            self.online_verified_user_1.id, lobby_type=Lobby.Config.TYPES[1], mode=20
+        )
+
+        Lobby.create(self.online_verified_user_2.id)
+        Lobby.create(self.online_verified_user_3.id)
+        Lobby.create(self.online_verified_user_4.id)
+        Lobby.create(self.online_verified_user_5.id)
+        Lobby.create(self.online_verified_user_6.id)
+
+        lobby_1.invite(self.online_verified_user_2.id)
+        Lobby.move(self.online_verified_user_2.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_3.id)
+        Lobby.move(self.online_verified_user_3.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_4.id)
+        Lobby.move(self.online_verified_user_4.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_5.id)
+        Lobby.move(self.online_verified_user_5.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_6.id)
+        Lobby.move(self.online_verified_user_6.id, lobby_1.id)
+
+        self.assertEqual(lobby_1.mode, 20)
+        self.assertEqual(lobby_1.players_count, 6)
+
+        lobby_1.set_type('competitive')
+        lobby_1.set_mode(5)
+
+        self.assertEqual(lobby_1.mode, 5)
+        self.assertEqual(lobby_1.players_count, 5)
+
+    def test_set_mode_5x5_to_1x1(self):
+        lobby_1 = Lobby.create(
+            self.online_verified_user_1.id, lobby_type=Lobby.Config.TYPES[0], mode=5
+        )
+
+        Lobby.create(self.online_verified_user_2.id)
+        Lobby.create(self.online_verified_user_3.id)
+        Lobby.create(self.online_verified_user_4.id)
+        Lobby.create(self.online_verified_user_5.id)
+
+        lobby_1.invite(self.online_verified_user_2.id)
+        Lobby.move(self.online_verified_user_2.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_3.id)
+        Lobby.move(self.online_verified_user_3.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_4.id)
+        Lobby.move(self.online_verified_user_4.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_5.id)
+        Lobby.move(self.online_verified_user_5.id, lobby_1.id)
+
+        self.assertEqual(lobby_1.mode, 5)
+        self.assertEqual(lobby_1.players_count, 5)
+
+        lobby_1.set_mode(1)
+
+        self.assertEqual(lobby_1.mode, 1)
+        self.assertEqual(lobby_1.players_count, 1)
+
+    def test_set_mode_players_id_to_remove(self):
+        lobby_1 = Lobby.create(
+            self.online_verified_user_1.id, lobby_type=Lobby.Config.TYPES[1], mode=20
+        )
+
+        Lobby.create(self.online_verified_user_2.id)
+        Lobby.create(self.online_verified_user_3.id)
+        Lobby.create(self.online_verified_user_4.id)
+        Lobby.create(self.online_verified_user_5.id)
+        Lobby.create(self.online_verified_user_6.id)
+
+        lobby_1.invite(self.online_verified_user_2.id)
+        Lobby.move(self.online_verified_user_2.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_3.id)
+        Lobby.move(self.online_verified_user_3.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_4.id)
+        Lobby.move(self.online_verified_user_4.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_5.id)
+        Lobby.move(self.online_verified_user_5.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_6.id)
+        Lobby.move(self.online_verified_user_6.id, lobby_1.id)
+
+        self.assertEqual(lobby_1.mode, 20)
+        self.assertEqual(lobby_1.players_count, 6)
+        self.assertListEqual(
+            sorted(lobby_1.players_ids),
+            [
+                self.online_verified_user_1.id,
+                self.online_verified_user_2.id,
+                self.online_verified_user_3.id,
+                self.online_verified_user_4.id,
+                self.online_verified_user_5.id,
+                self.online_verified_user_6.id,
+            ],
+        )
+
+        lobby_1.set_type('competitive')
+        lobby_1.set_mode(5, [self.online_verified_user_4.id])
+
+        self.assertEqual(lobby_1.mode, 5)
+        self.assertEqual(lobby_1.players_count, 5)
+        self.assertListEqual(
+            sorted(lobby_1.players_ids),
+            [
+                self.online_verified_user_1.id,
+                self.online_verified_user_2.id,
+                self.online_verified_user_3.id,
+                self.online_verified_user_5.id,
+                self.online_verified_user_6.id,
+            ],
+        )
+        self.assertEqual(
+            self.online_verified_user_4.account.lobby.id, self.online_verified_user_4.id
+        )
+
+    def test_set_mode_players_id_to_remove_with_owner_id(self):
+        lobby_1 = Lobby.create(
+            self.online_verified_user_1.id, lobby_type=Lobby.Config.TYPES[1], mode=20
+        )
+
+        Lobby.create(self.online_verified_user_2.id)
+        Lobby.create(self.online_verified_user_3.id)
+        Lobby.create(self.online_verified_user_4.id)
+        Lobby.create(self.online_verified_user_5.id)
+        Lobby.create(self.online_verified_user_6.id)
+
+        lobby_1.invite(self.online_verified_user_2.id)
+        Lobby.move(self.online_verified_user_2.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_3.id)
+        Lobby.move(self.online_verified_user_3.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_4.id)
+        Lobby.move(self.online_verified_user_4.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_5.id)
+        Lobby.move(self.online_verified_user_5.id, lobby_1.id)
+        lobby_1.invite(self.online_verified_user_6.id)
+        Lobby.move(self.online_verified_user_6.id, lobby_1.id)
+
+        self.assertEqual(lobby_1.mode, 20)
+        self.assertEqual(lobby_1.players_count, 6)
+        self.assertListEqual(
+            sorted(lobby_1.players_ids),
+            [
+                self.online_verified_user_1.id,
+                self.online_verified_user_2.id,
+                self.online_verified_user_3.id,
+                self.online_verified_user_4.id,
+                self.online_verified_user_5.id,
+                self.online_verified_user_6.id,
+            ],
+        )
+
+        lobby_1.set_type('competitive')
+        with self.assertRaisesMessage(LobbyException, 'owner_id cannot be removed'):
+            lobby_1.set_mode(5, [self.online_verified_user_1.id])
