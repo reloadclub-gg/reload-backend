@@ -1,6 +1,6 @@
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
-from ..models import Lobby
+from ..models import Lobby, LobbyException
 
 User = get_user_model()
 
@@ -57,5 +57,22 @@ def lobby_refuse_invite(user: User, lobby_id: int):
         raise HttpError(400, 'Player id has not been invited')
 
     lobby.delete_invite(user.id)
+
+    return lobby
+
+
+def lobby_change_type_and_mode(
+    user: User, lobby_id: int, lobby_type: str, lobby_mode: int
+):
+    lobby = Lobby(owner_id=lobby_id)
+
+    if user.account.lobby.id != lobby.owner_id:
+        raise HttpError(400, 'User must be owner to perfom this action')
+
+    try:
+        lobby.set_type(lobby_type)
+        lobby.set_mode(lobby_mode)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
 
     return lobby

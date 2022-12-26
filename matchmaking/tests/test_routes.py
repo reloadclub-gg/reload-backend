@@ -242,3 +242,45 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         self.assertDictEqual(
             response.json(), {'detail': 'Player id has not been invited'}
         )
+
+    def test_lobby_change_type_and_mode(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+
+        self.assertEqual(lobby.mode, 5)
+        self.assertEqual(lobby.lobby_type, 'competitive')
+
+        lobby_id = lobby.id
+        lobby_type = 'custom'
+        lobby_mode = 20
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/{lobby_id}/change-type/{lobby_type}/change-mode/{lobby_mode}/',
+            token=self.online_verified_user_1.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(lobby.mode, 20)
+        self.assertEqual(lobby.lobby_type, 'custom')
+
+    def test_lobby_change_type_and_mode_by_non_owner(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        Lobby.create(self.online_verified_user_2.id)
+
+        self.assertEqual(lobby.mode, 5)
+        self.assertEqual(lobby.lobby_type, 'competitive')
+
+        lobby_id = lobby.id
+        lobby_type = 'custom'
+        lobby_mode = 20
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/{lobby_id}/change-type/{lobby_type}/change-mode/{lobby_mode}/',
+            token=self.online_verified_user_2.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(
+            response.json(), {'detail': 'User must be owner to perfom this action'}
+        )

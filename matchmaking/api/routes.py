@@ -43,3 +43,15 @@ def lobby_accept_invite(request, lobby_id: int):
 @router.patch('lobby/{lobby_id}/refuse-invite/', auth=AuthBearer())
 def lobby_refuse_invite(request, lobby_id: int):
     return controller.lobby_refuse_invite(request.user, lobby_id)
+
+
+@router.patch(
+    'lobby/{lobby_id}/change-type/{lobby_type}/change-mode/{lobby_mode}/',
+    auth=AuthBearer(),
+)
+def lobby_change_type_and_mode(
+    request, lobby_id: int, lobby_type: str, lobby_mode: int
+):
+    return controller.lobby_change_type_and_mode(
+        request.user, lobby_id, lobby_type, lobby_mode
+    )
