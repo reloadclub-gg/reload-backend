@@ -1,6 +1,6 @@
 from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
-from ..models import Lobby
+from ..models import Lobby, LobbyException
 
 User = get_user_model()
 
@@ -69,7 +69,10 @@ def lobby_change_type_and_mode(
     if user.account.lobby.id != lobby.owner_id:
         raise HttpError(400, 'User must be owner to perfom this action')
 
-    lobby.set_type(lobby_type)
-    lobby.set_mode(lobby_mode)
+    try:
+        lobby.set_type(lobby_type)
+        lobby.set_mode(lobby_mode)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
 
     return lobby

@@ -1,3 +1,5 @@
+from unittest import mock
+from datetime import datetime
 from ninja.errors import HttpError
 from core.tests import TestCase
 from . import mixins
@@ -85,4 +87,21 @@ class LobbyControllerTestCase(mixins.SomePlayersMixin, TestCase):
         ):
             controller.lobby_change_type_and_mode(
                 self.online_verified_user_2, lobby.id, 'custom', 20
+            )
+
+    @mock.patch(
+        'matchmaking.models.Lobby.queue',
+        return_value=datetime.now(),
+    )
+    def test_lobby_change_type_and_mode_with_set_type_exception(self, _mock):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+
+        self.assertEqual(lobby.mode, 5)
+        self.assertEqual(lobby.lobby_type, 'competitive')
+
+        with self.assertRaisesMessage(
+            HttpError, 'Lobby is queued caught on set lobby type.'
+        ):
+            controller.lobby_change_type_and_mode(
+                self.online_verified_user_1, lobby.id, 'custom', 20
             )
