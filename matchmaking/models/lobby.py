@@ -455,7 +455,7 @@ class Lobby(BaseModel):
                     choice = random.choice(players_ids)
                     players_ids.remove(choice)
                     self.move(choice, choice)
-            elif players_id_to_remove:
+            else:
                 for player_id in players_id_to_remove:
                     players_ids.remove(player_id)
                     self.move(player_id, player_id)
