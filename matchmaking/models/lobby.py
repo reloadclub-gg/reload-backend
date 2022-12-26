@@ -447,18 +447,17 @@ class Lobby(BaseModel):
 
         players_ids = self.non_owners_ids
 
-        if self.players_count > mode and not players_id_to_remove:
-            for _ in range(self.players_count - mode):
-                choice = random.choice(players_ids)
-                players_ids.remove(choice)
-                self.move(choice, choice)
-
-        elif self.owner_id in players_id_to_remove:
-            raise LobbyException('owner_id cannot be removed')
-
-        elif players_id_to_remove:
-            for player_id in players_id_to_remove:
-                players_ids.remove(player_id)
-                self.move(player_id, player_id)
+        if self.players_count > mode:
+            if self.owner_id in players_id_to_remove:
+                raise LobbyException('owner_id cannot be removed')
+            elif not players_id_to_remove:
+                for _ in range(self.players_count - mode):
+                    choice = random.choice(players_ids)
+                    players_ids.remove(choice)
+                    self.move(choice, choice)
+            elif players_id_to_remove:
+                for player_id in players_id_to_remove:
+                    players_ids.remove(player_id)
+                    self.move(player_id, player_id)
 
         cache.set(f'{self.cache_key}:mode', mode)
