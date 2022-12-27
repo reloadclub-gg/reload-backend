@@ -1,0 +1,23 @@
+[run]
+source = .
+
+omit =
+    *admin.py
+    *settings.py
+    *tests/*
+    *migrations/*
+    *urls.py
+    *wsgi.py
+    *manage.py
+    *apps.py
+    *env*
+    *cdn.py
+    *asgi.py
+    *celery.py
+    websocket/routing.py
+
+
+[report]
+precision = 2
+show_missing = True
+skip_empty = True
