@@ -365,7 +365,10 @@ class LobbyModelTestCase(mixins.SomePlayersMixin, TestCase):
         lobby_1 = Lobby.create(self.online_verified_user_1.id)
         lobby_2 = Lobby.create(self.online_verified_user_2.id)
 
-        self.assertFalse(lobby_1.delete_invite(lobby_2.id))
+        with self.assertRaisesMessage(
+            LobbyException, 'Inexsistent invite caught on invite deletion'
+        ):
+            lobby_1.delete_invite(lobby_2.id)
 
     def test_set_mode_20x20_to_5x5(self):
         lobby_1 = Lobby.create(
