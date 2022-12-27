@@ -1,4 +1,5 @@
 from __future__ import annotations
+import random
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -27,13 +28,19 @@ class Lobby(BaseModel):
     [key] __mm:lobby:[player_id]:is_public <0|1>
     [set] __mm:lobby:[player_id]:invites <(player_id,...)>
     [key] __mm:lobby:[player_id]:queue <datetime>
+    [key] __mm:lobby:[player_id]:type <competitive|custom>
+    [key] __mm:lobby:[player_id]:mode <1|5|20>
     """
 
-    owner_id: int
-
     class Config:
-        CACHE_PREFIX = '__mm:lobby'
-        MAX_PLAYERS = 5
+        CACHE_PREFIX: str = '__mm:lobby'
+        TYPES: list = ['competitive', 'custom']
+        MODES = {
+            TYPES[0]: {'modes': [1, 5], 'default': 5},
+            TYPES[1]: {'modes': [20], 'default': 20},
+        }
+
+    owner_id: int
 
     @property
     def cache_key(self):
@@ -70,7 +77,7 @@ class Lobby(BaseModel):
         Public (1) -> any online user, with a valid account can join.
         Private (0) -> only invited online users, with a valid account can join.
         """
-        return cache.get(f'{self.cache_key}:is_public') == '1'
+        return cache.get(f'{self.cache_key}:public') == '1'
 
     @property
     def invites(self) -> list:
@@ -108,7 +115,7 @@ class Lobby(BaseModel):
         """
         Return how many seats are available for this lobby.
         """
-        return self.Config.MAX_PLAYERS - self.players_count
+        return self.max_players - self.players_count
 
     @property
     def overall(self) -> int:
@@ -122,6 +129,30 @@ class Lobby(BaseModel):
             ]
         )
 
+    @property
+    def lobby_type(self) -> str:
+        """
+        Returns the lobby type which can be one of Config.TYPES.
+        """
+        return cache.get(f'{self.cache_key}:type')
+
+    @property
+    def mode(self) -> int:
+        """
+        Returns which competitive mode the lobby is on
+        from Config.COMPETITIVE_MODES.
+        """
+        return int(cache.get(f'{self.cache_key}:mode'))
+
+    @property
+    def max_players(self) -> int:
+        """
+        Returns how many players are allowed to take seat
+        on this lobby. The returned value is the same return of
+        the mode property.
+        """
+        return self.mode
+
     @staticmethod
     def get_current(player_id: int) -> Lobby:
         """
@@ -133,7 +164,7 @@ class Lobby(BaseModel):
         return Lobby(owner_id=lobby_id)
 
     @staticmethod
-    def create(owner_id: int) -> Lobby:
+    def create(owner_id: int, lobby_type: str = None, mode: int = None) -> Lobby:
         """
         Create a lobby for a given user.
         """
@@ -150,8 +181,30 @@ class Lobby(BaseModel):
         if not user.is_online:
             raise LobbyException('Offline user caught on lobby creation.')
 
+        if lobby_type is not None and lobby_type not in Lobby.Config.TYPES:
+            avail_types = ','.join(Lobby.Config.TYPES)
+            raise LobbyException(
+                f'Type unknown, should be one of the following: {avail_types}'
+            )
+
+        if not lobby_type:
+            lobby_type = Lobby.Config.TYPES[0]
+
+        if mode is not None and mode not in Lobby.Config.MODES[lobby_type].get('modes'):
+            avail_modes = ','.join(
+                str(x) for x in Lobby.Config.MODES.get(lobby_type).get('modes')
+            )
+            raise LobbyException(
+                f'Mode unknown, should be one of the following: {avail_modes}'
+            )
+
+        if not mode:
+            mode = Lobby.Config.MODES.get(lobby_type).get('default')
+
         lobby = Lobby(owner_id=owner_id)
         cache.set(lobby.cache_key, owner_id)
+        cache.set(f'{lobby.cache_key}:type', lobby_type)
+        cache.set(f'{lobby.cache_key}:mode', mode)
         cache.sadd(f'{lobby.cache_key}:players', owner_id)
 
         return lobby
@@ -161,7 +214,7 @@ class Lobby(BaseModel):
     def move(player_id: int, to_lobby_id: int, remove: bool = False):
         """
         This method move players around between lobbies.
-        If `to_lobby_id` == `player.lobby.id`, then this lobby
+        If `to_lobby_id` == `player_id`, then this lobby
         should be empty, meaning that we need to remove every
         other player from it.
 
@@ -301,6 +354,22 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
         )
 
+    def delete_invite(self, player_id):
+        """
+        Method to delete an existing invite
+        Invite should exist on lobby invites list
+        Should return False if the requested player_id isn't in the lobby invites list
+        """
+        invite = cache.sismember(f'{self.cache_key}:invites', player_id)
+
+        if not invite:
+            return False
+
+        def transaction_operations(pipe, _):
+            pipe.srem(f'{self.cache_key}:invites', player_id)
+
+        cache.protected_handler(transaction_operations, f'{self.cache_key}:invites')
+
     def start_queue(self):
         """
         Add lobby to the queue.
@@ -340,3 +409,55 @@ class Lobby(BaseModel):
             raise LobbyException('Lobby is queued caught on set lobby private.')
 
         cache.set(f'{self.cache_key}:public', 0)
+
+    def set_type(self, lobby_type: str):
+        """
+        Sets the lobby type, which can be any value from Config.TYPES.
+        If no type is received or type isn't on Config.TYPES,
+        then defaults to Config.TYPES[0].
+        """
+        if self.queue:
+            raise LobbyException('Lobby is queued caught on set lobby type.')
+
+        if lobby_type not in self.Config.TYPES:
+            avail_types = ','.join(Lobby.Config.TYPES)
+            raise LobbyException(
+                f'Type unknown, should be one of the following: {avail_types}'
+            )
+
+        cache.set(f'{self.cache_key}:type', lobby_type)
+
+    def set_mode(self, mode, players_id_to_remove=[]):
+        """
+        Sets the lobby mode, which can be any value from Config.MODES.
+        If no mode is received or type isn't on Config.MODES,
+        then defaults to Config.COMP_DEFAULT_MODE.
+        """
+        if self.queue:
+            raise LobbyException('Lobby is queued caught on set lobby mode.')
+
+        if mode not in self.Config.MODES[self.lobby_type].get('modes'):
+            avail_modes = ','.join(
+                str(x) for x in Lobby.Config.MODES.get(self.lobby_type).get('modes')
+            )
+
+            raise LobbyException(
+                f'Mode unknown, should be one of the following: {avail_modes}'
+            )
+
+        players_ids = self.non_owners_ids
+
+        if self.players_count > mode:
+            if self.owner_id in players_id_to_remove:
+                raise LobbyException('owner_id cannot be removed')
+            elif not players_id_to_remove:
+                for _ in range(self.players_count - mode):
+                    choice = random.choice(players_ids)
+                    players_ids.remove(choice)
+                    self.move(choice, choice)
+            else:
+                for player_id in players_id_to_remove:
+                    players_ids.remove(player_id)
+                    self.move(player_id, player_id)
+
+        cache.set(f'{self.cache_key}:mode', mode)

@@ -279,3 +279,39 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
                 ]
             },
         )
+
+    def test_validator_check_invite_required(self):
+        account = baker.make(Account, user=self.user)
+        invite = baker.make(Invite, owned_by=account, email='any@email.com')
+        invited_user = baker.make(User, email='')
+        utils.create_social_auth(invited_user)
+        invited_user.auth.create_token()
+
+        response = self.api.call(
+            'post',
+            '/',
+            data={'email': invite.email, 'terms': True, 'policy': True},
+            token=invited_user.auth.token,
+        )
+        invited_user.refresh_from_db()
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(invited_user.email, invite.email)
+        self.assertIsNotNone(invited_user.account)
+        self.assertFalse(invited_user.account.is_verified)
+
+    def test_validator_check_invite_required_with_raise(self):
+        invited_user = baker.make(User, email='')
+        utils.create_social_auth(invited_user)
+        invited_user.auth.create_token()
+
+        response = self.api.call(
+            'post',
+            '/',
+            data={'email': 'any@email.com', 'terms': True, 'policy': True},
+            token=invited_user.auth.token,
+        )
+        invited_user.refresh_from_db()
+
+        self.assertEqual(response.status_code, 403)
+        self.assertDictEqual(response.json(), {'detail': 'Must be invited'})

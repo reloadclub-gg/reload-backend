@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from core.utils import get_ip_address
 from websocket.controller import friendlist_add
+from appsettings.services import check_invite_required
 from ..models import Account, Invite, Auth, UserLogin
 from .. import utils
 
@@ -61,7 +62,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
 
     invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
-    if not is_fake and not invites.exists():
+    if not is_fake and (check_invite_required() and not invites.exists()):
         raise HttpError(403, 'Must be invited')
 
     invites.update(datetime_accepted=timezone.now())
