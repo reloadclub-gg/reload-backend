@@ -41,8 +41,8 @@ def owner_required(f: Callable) -> Callable:
 
 def participant_required(f: Callable) -> Callable:
     """
-    Decorator for routes that require a lobby owner.
-    The `is_lobby_owner` field set as `True` means the user is owner
+    Decorator for routes that require a lobby participant.
+    The `is_lobby_participant` field set as `True` means the user is participant
     """
 
     @wraps(f)
