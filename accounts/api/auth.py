@@ -37,13 +37,6 @@ def is_verified(user: User) -> bool:
     return has_account(user) and user.account.is_verified
 
 
-def is_not_verified(user: User) -> bool:
-    """
-    Return weather the received user has an account and is not verified.
-    """
-    return has_account(user) and not user.account.is_verified
-
-
 def verified_required(f: Callable) -> Callable:
     """
     Authorization decorator for routes that require a verified account.
@@ -72,7 +65,7 @@ def verified_exempt(f: Callable) -> Callable:
     def wrapper(*args, **kwds):
         request = args[0]
 
-        if is_not_verified(request.user):
+        if not is_verified(request.user):
             return f(*args, **kwds)
 
         raise HttpError(401, 'Unauthorized')
