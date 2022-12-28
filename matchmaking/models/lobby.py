@@ -363,7 +363,7 @@ class Lobby(BaseModel):
         invite = cache.sismember(f'{self.cache_key}:invites', player_id)
 
         if not invite:
-            raise LobbyException('Inexsistent invite caught on invite deletion')
+            raise LobbyException('Inexistent invite caught on invite deletion')
 
         def transaction_operations(pipe, _):
             pipe.srem(f'{self.cache_key}:invites', player_id)
