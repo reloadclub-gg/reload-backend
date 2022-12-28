@@ -322,7 +322,6 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
     def test_validator_check_invite_required_with_raise(self):
         invited_user = baker.make(User, email='')
         utils.create_social_auth(invited_user)
-        # baker.make(Account, user=invited_user, is_verified=True)
         invited_user.auth.create_token()
 
         response = self.api.call(
