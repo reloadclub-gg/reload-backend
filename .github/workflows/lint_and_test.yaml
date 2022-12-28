@@ -62,8 +62,8 @@ jobs:
 
     - name: Lint
       run: |
-        pipenv run python -m flake8
+        pipenv run lint
 
     - name: Run tests
       run: |
-        pipenv run coverage run manage.py test --noinput
+        pipenv run test-w-coverage
