@@ -1,7 +1,3 @@
-from collections.abc import Callable
-from functools import wraps
-
-from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 
 

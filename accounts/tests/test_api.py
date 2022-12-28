@@ -29,10 +29,26 @@ class RequestSchema(Schema):
     META: dict = {'HTTP_X_FORWARDED_FOR': '111.111.111.111'}
 
 
+class RequestExemptSchema(RequestSchema):
+    verified_exempt: bool = True
+
+
 class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
-    def test_login(self):
+    def test_login_is_verified(self):
+        self.user.account.is_verified = True
+        self.user.account.save()
         auth = Auth(user_id=self.user.id, force_token_create=True)
         controller.login(RequestSchema(), auth.token)
+        self.user.refresh_from_db()
+        logins = UserLogin.objects.filter(user=self.user)
+        self.assertTrue(logins.exists())
+        self.assertEqual(logins[0].ip_address, '111.111.111.111')
+
+    def test_login_isnt_verified(self):
+        self.user.account.is_verified = False
+        self.user.account.save()
+        auth = Auth(user_id=self.user.id, force_token_create=True)
+        controller.login(RequestExemptSchema(), auth.token)
         self.user.refresh_from_db()
         logins = UserLogin.objects.filter(user=self.user)
         self.assertTrue(logins.exists())
@@ -198,12 +214,14 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
 
     def test_user_detail(self):
         self.user.auth.create_token()
+        baker.make(Account, user=self.user, is_verified=True)
         r = self.api.get('/auth', token=self.user.auth.token)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.user.email, r.json().get('email'))
 
     def test_cancel_account(self):
         self.user.auth.create_token()
+        baker.make(Account, user=self.user, is_verified=True)
         r = self.api.delete('/', token=self.user.auth.token)
         self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
@@ -244,7 +262,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(error_msg, 'field must be valid')
 
     def test_change_user_email(self):
-        baker.make(Account, user=self.user)
+        baker.make(Account, user=self.user, is_verified=True)
         self.user.auth.create_token()
         payload = {'email': 'new@email.com'}
         response = self.api.call(
@@ -258,7 +276,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         self.assertFalse(self.user.account.is_verified)
 
     def test_change_user_email_with_same_email(self):
-        baker.make(Account, user=self.user)
+        baker.make(Account, user=self.user, is_verified=True)
         self.user.auth.create_token()
         payload = {'email': self.user.email}
         response = self.api.call(

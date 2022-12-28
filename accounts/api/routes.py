@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from . import controller
-from .authentication import AuthBearer
+from .authentication import VerifiedRequiredAuth, VerifiedExemptAuth
 from .schemas import (
     FakeSignUpSchema,
     FakeUserSchema,
@@ -19,7 +19,7 @@ User = get_user_model()
 router = Router(tags=["accounts"])
 
 
-@router.post('/', auth=AuthBearer(), response={201: UserSchema})
+@router.post('/', auth=VerifiedExemptAuth(), response={201: UserSchema})
 def signup(request, payload: SignUpSchema):
     return controller.signup(request.user, payload.email)
 
@@ -39,23 +39,27 @@ def fake_signup(request, payload: FakeSignUpSchema):
     return user[0]
 
 
-@router.delete('/', auth=AuthBearer())
+@router.delete('/', auth=VerifiedRequiredAuth())
 def cancel_account(request):
     return controller.inactivate(request.user)
 
 
-@router.post('verify/', auth=AuthBearer(), response={200: UserSchema, 422: UserSchema})
+@router.post(
+    'verify/', auth=VerifiedExemptAuth(), response={200: UserSchema, 422: UserSchema}
+)
 def account_verification(request, payload: VerifyUserEmailSchema):
     return controller.verify_account(request.user, payload.verification_token)
 
 
-@router.get('auth/', auth=AuthBearer(), response=UserSchema)
+@router.get('auth/', auth=VerifiedRequiredAuth(), response=UserSchema)
 def user_detail(request):
     return request.user
 
 
 @router.post(
-    'change-user-email/', auth=AuthBearer(), response={200: UserSchema, 422: UserSchema}
+    'change-user-email/',
+    auth=VerifiedRequiredAuth(),
+    response={200: UserSchema, 422: UserSchema},
 )
 def change_user_email(request, payload: UpdateUserEmailSchema):
     return controller.change_user_email(request.user, payload.email)
