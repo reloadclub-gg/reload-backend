@@ -1,6 +1,6 @@
 from core.tests import TestCase
 from matchmaking.tests.mixins import SomePlayersMixin
-from ..api.auth import is_verified
+from ..api.authorization import is_verified
 
 
 class AuthorizationTestCase(SomePlayersMixin, TestCase):

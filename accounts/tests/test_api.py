@@ -232,6 +232,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         self.user.auth.create_token()
         payload = {'verification_token': self.user.account.verification_token}
         r = self.api.call('post', '/verify', data=payload, token=self.user.auth.token)
+
         self.assertEqual(r.status_code, 404)
 
     def test_account_verification_invalid_token(self):
@@ -303,6 +304,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
     def test_validator_check_invite_required_with_raise(self):
         invited_user = baker.make(User, email='')
         utils.create_social_auth(invited_user)
+        # baker.make(Account, user=invited_user, is_verified=True)
         invited_user.auth.create_token()
 
         response = self.api.call(

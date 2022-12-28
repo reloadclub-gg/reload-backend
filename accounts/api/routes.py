@@ -5,7 +5,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from . import controller
-from .auth import AuthBearer
+from .authentication import AuthBearer
+from .authorization import verified_exempt
 from .schemas import (
     FakeSignUpSchema,
     FakeUserSchema,
@@ -19,11 +20,13 @@ User = get_user_model()
 router = Router(tags=["accounts"])
 
 
+@verified_exempt
 @router.post('/', auth=AuthBearer(), response={201: UserSchema})
 def signup(request, payload: SignUpSchema):
     return controller.signup(request.user, payload.email)
 
 
+@verified_exempt
 @router.post('fake-signup/', response={201: FakeUserSchema})
 def fake_signup(request, payload: FakeSignUpSchema):
     if not settings.DEBUG:
@@ -44,6 +47,7 @@ def cancel_account(request):
     return controller.inactivate(request.user)
 
 
+@verified_exempt
 @router.post('verify/', auth=AuthBearer(), response={200: UserSchema, 422: UserSchema})
 def account_verification(request, payload: VerifyUserEmailSchema):
     return controller.verify_account(request.user, payload.verification_token)

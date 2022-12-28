@@ -1,5 +1,5 @@
 from ninja import Router
-from accounts.api.auth import AuthBearer
+from accounts.api.authentication import AuthBearer
 from ..models import Lobby
 from . import controller
 

@@ -9,6 +9,7 @@ from websocket.controller import friendlist_add
 from appsettings.services import check_invite_required
 from ..models import Account, Invite, Auth, UserLogin
 from .. import utils
+from .authorization import is_verified
 
 User = get_user_model()
 
@@ -24,9 +25,10 @@ def login(request, token: str) -> Auth:
     if not auth:
         return
 
-    user = User.objects.filter(pk=auth.user_id, is_active=True)
-    if user.exists():
-        user = user[0]
+    user = User.objects.filter(pk=auth.user_id, is_active=True).first()
+
+    if user and is_verified(user):
+        # if user:
         UserLogin.objects.update_or_create(
             user=user,
             ip_address=get_ip_address(request),
@@ -35,6 +37,7 @@ def login(request, token: str) -> Auth:
 
         user.refresh_from_db()
         request.user = user
+
         return auth
 
 
