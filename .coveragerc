@@ -2,15 +2,15 @@
 source = .
 
 omit =
+    */migrations/*
+    */tests/*
     *admin.py
     *settings.py
-    *tests/*
-    *migrations/*
+    *tests.py
     *urls.py
     *wsgi.py
     *manage.py
     *apps.py
-    *env*
     *cdn.py
     *asgi.py
     *celery.py
