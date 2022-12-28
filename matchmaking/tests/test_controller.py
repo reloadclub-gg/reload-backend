@@ -100,7 +100,7 @@ class LobbyControllerTestCase(mixins.SomePlayersMixin, TestCase):
         self.assertEqual(lobby.lobby_type, 'competitive')
 
         with self.assertRaisesMessage(
-            HttpError, 'Lobby is queued caught on set lobby type.'
+            HttpError, 'Lobby is queued caught on set lobby type'
         ):
             controller.lobby_change_type_and_mode(
                 self.online_verified_user_1, lobby.id, 'custom', 20
