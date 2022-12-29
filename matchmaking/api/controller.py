@@ -60,8 +60,6 @@ def lobby_refuse_invite(user: User, lobby_id: int):
 
     return lobby
 
-    return lobby
-
 
 def lobby_change_type_and_mode(
     user: User, lobby_id: int, lobby_type: str, lobby_mode: int
