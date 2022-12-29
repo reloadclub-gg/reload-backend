@@ -205,7 +205,7 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertDictEqual(
-            response.json(), {'detail': 'Player id has not been invited'}
+            response.json(), {'detail': 'User not invited caught on lobby move'}
         )
 
     def test_lobby_refuse_invite(self):
@@ -240,7 +240,7 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertDictEqual(
-            response.json(), {'detail': 'Player id has not been invited'}
+            response.json(), {'detail': 'Inexistent invite caught on invite deletion'}
         )
 
     def test_lobby_change_type_and_mode(self):

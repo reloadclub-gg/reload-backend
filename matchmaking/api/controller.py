@@ -39,13 +39,13 @@ def lobby_invite(user: User, lobby_id: int, player_id: int) -> Lobby:
 def lobby_accept_invite(user: User, lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
 
-    if user.id not in lobby.invites:
-        raise HttpError(400, 'Player id has not been invited')
-
     if user.id in lobby.players_ids:
         lobby.delete_invite(user.id)
     else:
-        lobby.move(user.id, lobby_id)
+        try:
+            lobby.move(user.id, lobby_id)
+        except LobbyException as exc:
+            raise HttpError(400, str(exc))
 
     return lobby
 
@@ -53,10 +53,10 @@ def lobby_accept_invite(user: User, lobby_id: int):
 def lobby_refuse_invite(user: User, lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
 
-    if user.id not in lobby.invites:
-        raise HttpError(400, 'Player id has not been invited')
-
-    lobby.delete_invite(user.id)
+    try:
+        lobby.delete_invite(user.id)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
 
     return lobby
 
