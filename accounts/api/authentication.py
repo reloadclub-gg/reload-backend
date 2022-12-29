@@ -30,4 +30,5 @@ class VerifiedExemptAuth(HttpBearer):
 
     def authenticate(self, request, token: str):
         request.verified_exempt = True
+
         return login(request, token)
