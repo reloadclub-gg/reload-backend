@@ -94,3 +94,12 @@ def set_public(user: User, lobby: Lobby):
     lobby.set_public()
 
     return lobby
+
+
+def set_private(user: User, lobby: Lobby):
+    if lobby.owner_id != user.id:
+        raise HttpError(400, 'User must be owner to perfom this action')
+
+    lobby.set_private()
+
+    return lobby
