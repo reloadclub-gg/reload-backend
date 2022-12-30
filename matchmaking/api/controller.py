@@ -76,3 +76,14 @@ def lobby_change_type_and_mode(
         raise HttpError(400, str(exc))
 
     return lobby
+
+
+def lobby_enter(user: User, lobby_id: int):
+    lobby = Lobby(owner_id=lobby_id)
+
+    if not lobby.is_public:
+        raise HttpError(400, "Lobby isn't public")
+
+    Lobby.move(user.id, lobby_id)
+
+    return lobby

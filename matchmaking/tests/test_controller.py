@@ -105,3 +105,26 @@ class LobbyControllerTestCase(mixins.SomePlayersMixin, TestCase):
             controller.lobby_change_type_and_mode(
                 self.online_verified_user_1, lobby.id, 'custom', 20
             )
+
+    def test_lobby_enter(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_1.set_public()
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(lobby_2.players_count, 1)
+
+        controller.lobby_enter(self.online_verified_user_2, lobby_1.id)
+
+        self.assertEqual(lobby_1.players_count, 2)
+        self.assertEqual(lobby_2.players_count, 0)
+
+    def test_lobby_enter_isnt_public(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(lobby_2.players_count, 1)
+
+        with self.assertRaisesMessage(HttpError, "Lobby isn't public"):
+            controller.lobby_enter(self.online_verified_user_2, lobby_1.id)
