@@ -284,3 +284,37 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         self.assertDictEqual(
             response.json(), {'detail': 'User must be owner to perfom this action'}
         )
+
+    def test_lobby_enter(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_1.set_public()
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(lobby_2.players_count, 1)
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/{lobby_1.id}/enter/',
+            token=self.online_verified_user_2.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(lobby_1.players_count, 2)
+        self.assertEqual(lobby_2.players_count, 0)
+
+    def test_lobby_enter_isnt_public(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(lobby_2.players_count, 1)
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/{lobby_1.id}/enter/',
+            token=self.online_verified_user_2.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(response.json(), {'detail': "Lobby isn't public"})
