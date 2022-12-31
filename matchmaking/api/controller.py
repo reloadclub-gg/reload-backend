@@ -78,7 +78,6 @@ def lobby_change_type_and_mode(
     return lobby
 
 
-<<<<<<< HEAD
 def lobby_enter(user: User, lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
 
@@ -87,13 +86,11 @@ def lobby_enter(user: User, lobby_id: int):
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    return lobby
 
-def set_public(user: User, lobby: Lobby):
-    if lobby.owner_id != user.id:
-=======
+
 def set_public(user: User):
     if user.account.lobby.owner_id != user.id:
->>>>>>> Change signature methods controller set_public and set_privte
         raise HttpError(400, 'User must be owner to perfom this action')
 
     user.account.lobby.set_public()
