@@ -55,3 +55,8 @@ def lobby_change_type_and_mode(
     return controller.lobby_change_type_and_mode(
         request.user, lobby_id, lobby_type, lobby_mode
     )
+
+
+@router.patch('lobby/{lobby_id}/enter/', auth=VerifiedRequiredAuth())
+def lobby_enter(request, lobby_id: int):
+    return controller.lobby_enter(request.user, lobby_id)

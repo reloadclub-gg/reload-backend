@@ -76,3 +76,14 @@ def lobby_change_type_and_mode(
         raise HttpError(400, str(exc))
 
     return lobby
+
+
+def lobby_enter(user: User, lobby_id: int):
+    lobby = Lobby(owner_id=lobby_id)
+
+    try:
+        Lobby.move(user.id, lobby_id)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
+
+    return lobby
