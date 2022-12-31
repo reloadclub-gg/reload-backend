@@ -317,4 +317,6 @@ class LobbyAPITestCase(mixins.SomePlayersMixin, TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(response.json(), {'detail': "Lobby isn't public"})
+        self.assertDictEqual(
+            response.json(), {'detail': 'User not invited caught on lobby move'}
+        )

@@ -126,5 +126,7 @@ class LobbyControllerTestCase(mixins.SomePlayersMixin, TestCase):
         self.assertEqual(lobby_1.players_count, 1)
         self.assertEqual(lobby_2.players_count, 1)
 
-        with self.assertRaisesMessage(HttpError, "Lobby isn't public"):
+        with self.assertRaisesMessage(
+            HttpError, 'User not invited caught on lobby move'
+        ):
             controller.lobby_enter(self.online_verified_user_2, lobby_1.id)
