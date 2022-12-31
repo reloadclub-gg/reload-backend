@@ -130,3 +130,39 @@ class LobbyControllerTestCase(mixins.SomePlayersMixin, TestCase):
             HttpError, 'User not invited caught on lobby move'
         ):
             controller.lobby_enter(self.online_verified_user_2, lobby_1.id)
+
+    def test_set_public(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby_returned = controller.set_public(self.online_verified_user_1)
+
+        self.assertEqual(lobby_returned, lobby)
+        self.assertTrue(lobby.is_public)
+
+    def test_set_public_non_owner(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+        lobby_1.invite(lobby_2.id)
+        Lobby.move(lobby_2.id, lobby_1.id)
+
+        with self.assertRaisesMessage(
+            HttpError, 'User must be owner to perfom this action'
+        ):
+            controller.set_public(self.online_verified_user_2)
+
+    def test_set_private(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby_returned = controller.set_private(self.online_verified_user_1)
+
+        self.assertEqual(lobby_returned, lobby)
+        self.assertFalse(lobby.is_public)
+
+    def test_set_private_non_owner(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+        lobby_1.invite(lobby_2.id)
+        Lobby.move(lobby_2.id, lobby_1.id)
+
+        with self.assertRaisesMessage(
+            HttpError, 'User must be owner to perfom this action'
+        ):
+            controller.set_private(self.online_verified_user_2)

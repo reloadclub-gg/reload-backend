@@ -13,12 +13,12 @@ def lobby_leave(request):
 
 @router.patch('lobby/set-public/', auth=VerifiedRequiredAuth())
 def lobby_set_public(request):
-    return request.user.account.lobby.set_public()
+    return controller.set_public(request.user)
 
 
 @router.patch('lobby/set-private/', auth=VerifiedRequiredAuth())
 def lobby_set_private(request):
-    return request.user.account.lobby.set_private()
+    return controller.set_private(request.user)
 
 
 @router.patch('lobby/{lobby_id}/remove-player/{user_id}/', auth=VerifiedRequiredAuth())
