@@ -100,6 +100,18 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
     def test_change_user_email(self):
         controller.change_user_email(self.user, 'new@email.com')
 
+    def test_logout(self):
+        # TODO
+        pass
+
+    def test_logout_lobby(self):
+        # TODO
+        pass
+
+    def test_logout_other_lobby(self):
+        # TODO
+        pass
+
 
 class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
     def setUp(self):
