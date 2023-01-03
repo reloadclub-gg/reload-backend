@@ -101,16 +101,47 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.change_user_email(self.user, 'new@email.com')
 
     def test_logout(self):
-        # TODO
-        pass
+        self.user.auth.add_session()
+        self.user.account.is_verified = True
+        self.user.account.save()
+        Lobby.create(self.user.id)
+
+        self.assertEqual(self.user.account.lobby.id, self.user.id)
+
+        user_offline = controller.logout(self.user)
+
+        self.assertIsNone(user_offline.account.lobby)
+        self.assertFalse(user_offline.is_online)
 
     def test_logout_lobby(self):
         # TODO
         pass
 
     def test_logout_other_lobby(self):
-        # TODO
-        pass
+        self.user.auth.add_session()
+        self.user.account.is_verified = True
+        self.user.account.save()
+        lobby_1 = Lobby.create(self.user.id)
+
+        another_user = User.objects.create_user(
+            "hulk@avengers.com",
+            "hulkbuster",
+        )
+        utils.create_social_auth(another_user)
+        baker.make(Account, user=another_user)
+        another_user.auth.add_session()
+        another_user.account.is_verified = True
+        another_user.account.save()
+        lobby_2 = Lobby.create(another_user.id)
+        lobby_2.invite(lobby_1.id)
+        Lobby.move(lobby_1.id, lobby_2.id)
+
+        self.assertEqual(self.user.account.lobby.id, lobby_2.id)
+
+        user_offline = controller.logout(self.user)
+
+        self.assertIsNone(user_offline.account.lobby)
+        self.assertFalse(user_offline.is_online)
 
 
 class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
