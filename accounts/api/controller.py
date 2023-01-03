@@ -117,6 +117,8 @@ def inactivate(user: User) -> None:
     user.is_active = False
     user.save()
 
+    logout(user)
+
 
 def change_user_email(user: User, email: str) -> User:
     """
