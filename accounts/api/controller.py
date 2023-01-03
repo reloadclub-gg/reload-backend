@@ -42,9 +42,9 @@ def login(request, token: str) -> Auth:
 
 
 def logout(user: User) -> User:
-    if user.account.lobby.players_count > 1:
-        user.account.lobby.move(user.id, user.id, remove=True)
-        lobby_player_leave(user)
+    lobby = user.account.lobby
+    lobby.move(user.id, user.id, remove=True)
+    lobby_player_leave(user, lobby)
 
     user.auth.expire_session(seconds=0)
     user.save()
