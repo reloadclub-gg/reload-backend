@@ -105,3 +105,64 @@ class LobbyControllerTestCase(mixins.SomePlayersMixin, TestCase):
             controller.lobby_change_type_and_mode(
                 self.online_verified_user_1, lobby.id, 'custom', 20
             )
+
+    def test_lobby_enter(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_1.set_public()
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(lobby_2.players_count, 1)
+
+        controller.lobby_enter(self.online_verified_user_2, lobby_1.id)
+
+        self.assertEqual(lobby_1.players_count, 2)
+        self.assertEqual(lobby_2.players_count, 0)
+
+    def test_lobby_enter_isnt_public(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+
+        self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(lobby_2.players_count, 1)
+
+        with self.assertRaisesMessage(
+            HttpError, 'User not invited caught on lobby move'
+        ):
+            controller.lobby_enter(self.online_verified_user_2, lobby_1.id)
+
+    def test_set_public(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby_returned = controller.set_public(self.online_verified_user_1)
+
+        self.assertEqual(lobby_returned, lobby)
+        self.assertTrue(lobby.is_public)
+
+    def test_set_public_non_owner(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+        lobby_1.invite(lobby_2.id)
+        Lobby.move(lobby_2.id, lobby_1.id)
+
+        with self.assertRaisesMessage(
+            HttpError, 'User must be owner to perfom this action'
+        ):
+            controller.set_public(self.online_verified_user_2)
+
+    def test_set_private(self):
+        lobby = Lobby.create(self.online_verified_user_1.id)
+        lobby_returned = controller.set_private(self.online_verified_user_1)
+
+        self.assertEqual(lobby_returned, lobby)
+        self.assertFalse(lobby.is_public)
+
+    def test_set_private_non_owner(self):
+        lobby_1 = Lobby.create(self.online_verified_user_1.id)
+        lobby_2 = Lobby.create(self.online_verified_user_2.id)
+        lobby_1.invite(lobby_2.id)
+        Lobby.move(lobby_2.id, lobby_1.id)
+
+        with self.assertRaisesMessage(
+            HttpError, 'User must be owner to perfom this action'
+        ):
+            controller.set_private(self.online_verified_user_2)

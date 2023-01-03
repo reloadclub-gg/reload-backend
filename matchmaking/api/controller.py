@@ -76,3 +76,32 @@ def lobby_change_type_and_mode(
         raise HttpError(400, str(exc))
 
     return lobby
+
+
+def lobby_enter(user: User, lobby_id: int):
+    lobby = Lobby(owner_id=lobby_id)
+
+    try:
+        Lobby.move(user.id, lobby_id)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
+
+    return lobby
+
+
+def set_public(user: User):
+    if user.account.lobby.owner_id != user.id:
+        raise HttpError(400, 'User must be owner to perfom this action')
+
+    user.account.lobby.set_public()
+
+    return user.account.lobby
+
+
+def set_private(user: User):
+    if user.account.lobby.owner_id != user.id:
+        raise HttpError(400, 'User must be owner to perfom this action')
+
+    user.account.lobby.set_private()
+
+    return user.account.lobby
