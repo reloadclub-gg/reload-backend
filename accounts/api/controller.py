@@ -42,12 +42,12 @@ def login(request, token: str) -> Auth:
 
 
 def logout(user: User) -> User:
-    user.auth.expire_session(seconds=0)
-    user.save()
-
     if user.account.lobby.players_count > 1:
         user.account.lobby.move(user.id, user.id, remove=True)
         lobby_player_leave(user)
+
+    user.auth.expire_session(seconds=0)
+    user.save()
 
     user_status_change(user)
 
@@ -112,10 +112,10 @@ def inactivate(user: User) -> None:
     Mark an user as inactive.
     Inactive users shouldn't be able to access any endpoint that requires authentication.
     """
+    logout(user)
+
     user.is_active = False
     user.save()
-
-    logout(user)
 
 
 def change_user_email(user: User, email: str) -> User:
