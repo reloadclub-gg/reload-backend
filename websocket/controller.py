@@ -3,6 +3,7 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema
+from matchmaking.models import Lobby
 from .utils import ws_send
 
 User = get_user_model()
@@ -29,11 +30,14 @@ def friendlist_add(friend: User):
     async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=online_friends_ids)
 
 
-def lobby_player_leave(user: User):
+def lobby_player_leave(user: User, lobby: Lobby = None):
     """
     Event called when a player leaves a lobby.
     This should notify the others players on lobby that the user has left.
     """
-    lobby_players_ids = [id for id in user.account.lobby.players_ids if id != user.id]
+    if not lobby:
+        lobby = user.account.lobby
+
+    lobby_players_ids = [id for id in lobby.players_ids if id != user.id]
     payload = FriendAccountSchema.from_orm(user.account).dict()
     async_to_sync(ws_send)('ws_lobbyPlayerLeave', payload, groups=lobby_players_ids)
