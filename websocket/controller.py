@@ -27,3 +27,9 @@ def friendlist_add(friend: User):
     online_friends_ids = [account.user.id for account in friend.account.online_friends]
     payload = FriendAccountSchema.from_orm(friend.account).dict()
     async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=online_friends_ids)
+
+
+def lobby_player_leave(user: User):
+    lobby_players_ids = [id for id in user.account.lobby.players_ids if id != user.id]
+    payload = FriendAccountSchema.from_orm(user.account).dict()
+    async_to_sync(ws_send)('ws_lobbyPlayerLeave', payload, groups=lobby_players_ids)
