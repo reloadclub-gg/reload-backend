@@ -5,6 +5,7 @@ from accounts.tasks import watch_user_status_change
 from core.utils import get_url_param
 from core.redis import RedisClient
 from .controller import user_status_change
+from matchmaking.models import Lobby
 
 User = get_user_model()
 cache = RedisClient()
@@ -49,6 +50,7 @@ def authenticate(scope: dict) -> User:
 
     if notify_became_online:
         user_status_change(user)
+        Lobby.create(user.id)
 
     return user
 
