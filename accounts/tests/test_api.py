@@ -5,6 +5,7 @@ from ninja.errors import HttpError
 from django.http.response import Http404
 
 from core.tests import APIClient, TestCase
+from matchmaking.models import Lobby
 from . import mixins
 from ..api import controller
 from ..models import Account, Auth, Invite, User, UserLogin
@@ -89,6 +90,10 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
             controller.verify_account(self.user, self.user.account.verification_token)
 
     def test_inactivate(self):
+        self.user.auth.add_session()
+        self.user.account.is_verified = True
+        self.user.account.save()
+        Lobby.create(self.user.id)
         controller.inactivate(self.user)
         self.assertFalse(self.user.is_active)
 
@@ -221,7 +226,9 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
 
     def test_cancel_account(self):
         self.user.auth.create_token()
+        self.user.auth.add_session()
         baker.make(Account, user=self.user, is_verified=True)
+        Lobby.create(self.user.id)
         r = self.api.delete('/', token=self.user.auth.token)
         self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
