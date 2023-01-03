@@ -18,7 +18,6 @@ class JsonAuthWebsocketConsumer(AsyncJsonWebsocketConsumer):
         """
 
         self.user = await sync_to_async(auth.authenticate)(self.scope)
-        print(self.user)
         if not self.user:
             return await self.close()
 
