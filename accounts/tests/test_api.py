@@ -5,6 +5,7 @@ from ninja.errors import HttpError
 from django.http.response import Http404
 
 from core.tests import APIClient, TestCase
+from matchmaking.models import Lobby
 from . import mixins
 from ..api import controller
 from ..models import Account, Auth, Invite, User, UserLogin
@@ -89,11 +90,58 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
             controller.verify_account(self.user, self.user.account.verification_token)
 
     def test_inactivate(self):
+        self.user.auth.add_session()
+        self.user.account.is_verified = True
+        self.user.account.save()
+        Lobby.create(self.user.id)
         controller.inactivate(self.user)
         self.assertFalse(self.user.is_active)
 
     def test_change_user_email(self):
         controller.change_user_email(self.user, 'new@email.com')
+
+    def test_logout(self):
+        self.user.auth.add_session()
+        self.user.account.is_verified = True
+        self.user.account.save()
+        Lobby.create(self.user.id)
+
+        self.assertEqual(self.user.account.lobby.id, self.user.id)
+
+        user_offline = controller.logout(self.user)
+
+        self.assertIsNone(user_offline.account.lobby)
+        self.assertFalse(user_offline.is_online)
+
+    def test_logout_lobby(self):
+        # TODO
+        pass
+
+    def test_logout_other_lobby(self):
+        self.user.auth.add_session()
+        self.user.account.is_verified = True
+        self.user.account.save()
+        lobby_1 = Lobby.create(self.user.id)
+
+        another_user = User.objects.create_user(
+            "hulk@avengers.com",
+            "hulkbuster",
+        )
+        utils.create_social_auth(another_user)
+        baker.make(Account, user=another_user)
+        another_user.auth.add_session()
+        another_user.account.is_verified = True
+        another_user.account.save()
+        lobby_2 = Lobby.create(another_user.id)
+        lobby_2.invite(lobby_1.id)
+        Lobby.move(lobby_1.id, lobby_2.id)
+
+        self.assertEqual(self.user.account.lobby.id, lobby_2.id)
+
+        user_offline = controller.logout(self.user)
+
+        self.assertIsNone(user_offline.account.lobby)
+        self.assertFalse(user_offline.is_online)
 
 
 class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
@@ -221,7 +269,9 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
 
     def test_cancel_account(self):
         self.user.auth.create_token()
+        self.user.auth.add_session()
         baker.make(Account, user=self.user, is_verified=True)
+        Lobby.create(self.user.id)
         r = self.api.delete('/', token=self.user.auth.token)
         self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
