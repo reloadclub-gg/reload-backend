@@ -133,7 +133,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         another_user.account.is_verified = True
         another_user.account.save()
         lobby_2 = Lobby.create(another_user.id)
-        lobby_2.invite(lobby_1.id)
+        lobby_2.invite(another_user.id, lobby_1.id)
         Lobby.move(lobby_1.id, lobby_2.id)
 
         self.assertEqual(self.user.account.lobby.id, lobby_2.id)
