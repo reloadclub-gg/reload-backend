@@ -22,25 +22,19 @@ def lobby_remove(request_user_id: int, lobby_id: int, user_id: int) -> Lobby:
 def lobby_invite(user: User, lobby_id: int, player_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
-    if user.account.lobby.id != lobby.id:
-        raise HttpError(400, 'User must be owner to perfom this action')
-
-    if player_id in lobby.invites:
-        raise HttpError(400, 'Player id has already been invited')
-
-    if player_id in lobby.players_ids:
-        raise HttpError(400, 'User already in lobby')
-
-    lobby.invite(player_id)
+    try:
+        lobby.invite(user.id, player_id)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
 
     return lobby
 
 
-def lobby_accept_invite(user: User, lobby_id: int):
+def lobby_accept_invite(user: User, lobby_id: int, invite_id: str):
     lobby = Lobby(owner_id=lobby_id)
 
     if user.id in lobby.players_ids:
-        lobby.delete_invite(user.id)
+        lobby.delete_invite(invite_id)
     else:
         try:
             lobby.move(user.id, lobby_id)
@@ -50,11 +44,11 @@ def lobby_accept_invite(user: User, lobby_id: int):
     return lobby
 
 
-def lobby_refuse_invite(user: User, lobby_id: int):
+def lobby_refuse_invite(lobby_id: int, invite_id: str):
     lobby = Lobby(owner_id=lobby_id)
 
     try:
-        lobby.delete_invite(user.id)
+        lobby.delete_invite(invite_id)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
