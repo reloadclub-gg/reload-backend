@@ -26,7 +26,7 @@ class Lobby(BaseModel):
     [key] __mm:lobby:[player_id] <current_lobby_id>
     [set] __mm:lobby:[player_id]:players <(player_id,...)>
     [key] __mm:lobby:[player_id]:is_public <0|1>
-    [set] __mm:lobby:[player_id]:invites <(player_id,...)>
+    [set] __mm:lobby:[player_id]:invites <(from_player_id:to_player_id,...)>
     [key] __mm:lobby:[player_id]:queue <datetime>
     [key] __mm:lobby:[player_id]:type <competitive|custom>
     [key] __mm:lobby:[player_id]:mode <1|5|20>
@@ -84,7 +84,14 @@ class Lobby(BaseModel):
         """
         Retrieve all unaccepted invites.
         """
-        return list(map(int, cache.smembers(f'{self.cache_key}:invites')))
+        return list(cache.smembers(f'{self.cache_key}:invites'))
+
+    @property
+    def invited_players_ids(self) -> list:
+        """
+        Retrieve all invited player_id's.
+        """
+        return list(map(int, [invite.split(':')[1] for invite in self.invites]))
 
     @property
     def queue(self) -> datetime:
@@ -255,7 +262,9 @@ class Lobby(BaseModel):
 
                 is_owner = to_lobby.owner_id == player_id
                 can_join = (
-                    to_lobby.is_public or player_id in to_lobby.invites or is_owner
+                    to_lobby.is_public
+                    or player_id in to_lobby.invited_players_ids
+                    or is_owner
                 )
 
                 if not to_lobby.seats:
@@ -268,7 +277,9 @@ class Lobby(BaseModel):
                 pipe.srem(f'{from_lobby.cache_key}:players', player_id)
                 pipe.sadd(f'{to_lobby.cache_key}:players', player_id)
                 pipe.set(f'{Lobby.Config.CACHE_PREFIX}:{player_id}', to_lobby.owner_id)
-                pipe.srem(f'{to_lobby.cache_key}:invites', player_id)
+                invite = to_lobby.get_invite_by_to_player_id(player_id)
+                if invite:
+                    pipe.srem(f'{to_lobby.cache_key}:invites', invite)
 
             if len(from_lobby.non_owners_ids) > 0 and from_lobby.owner_id == player_id:
                 new_owner_id = min(from_lobby.non_owners_ids)
@@ -287,7 +298,9 @@ class Lobby(BaseModel):
                         f'{Lobby.Config.CACHE_PREFIX}:{other_player_id}',
                         new_lobby.owner_id,
                     )
-                    pipe.srem(f'{new_lobby.cache_key}:invites', other_player_id)
+                    invite = new_lobby.get_invite_by_to_player_id(other_player_id)
+                    if invite:
+                        pipe.srem(f'{new_lobby.cache_key}:invites', invite)
 
             if remove:
                 pipe.delete(to_lobby.cache_key)
@@ -307,11 +320,12 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
         )
 
-    def invite(self, player_id: int):
+    def invite(self, from_player_id: int, to_player_id: int):
         """
         Lobby players can invite others players to join them in the lobby following
         these rules:
         - Lobby should not be full;
+        - Player should not been invited yet;
         - Invited user should exist, be online and have a verified account;
         """
 
@@ -322,29 +336,38 @@ class Lobby(BaseModel):
             raise LobbyException('Lobby is queued caught on lobby invite')
 
         def transaction_pre(pipe):
-            already_player = pipe.sismember(f'{self.cache_key}:players', player_id)
-            already_invited = pipe.sismember(f'{self.cache_key}:invites', player_id)
-            return (already_player, already_invited)
+            can_invite = pipe.sismember(f'{self.cache_key}:players', from_player_id)
+            already_player = pipe.sismember(f'{self.cache_key}:players', to_player_id)
+            already_invited = to_player_id in self.invited_players_ids
+            return (can_invite, already_player, already_invited)
 
         def transaction_operations(pipe, pre_result):
 
-            already_player, already_invited = pre_result
-            if not already_player and not already_invited:
+            can_invite, already_player, already_invited = pre_result
 
-                filter = User.objects.filter(pk=player_id)
-                if not filter.exists():
-                    raise LobbyException('User not found caught on lobby invite')
+            if not can_invite:
+                raise LobbyException('User cannot invite caught on lobby invite')
 
-                invited = filter[0]
-                if not hasattr(invited, 'account') or not invited.account.is_verified:
-                    raise LobbyException(
-                        'User don\'t have a verified account caught on lobby invite'
-                    )
+            if already_player:
+                raise LobbyException('User already on lobby caught on lobby invite')
 
-                if not invited.is_online:
-                    raise LobbyException('Offline user caught on lobby invite')
+            if already_invited:
+                raise LobbyException('User already invited caught on lobby invite')
 
-                pipe.sadd(f'{self.cache_key}:invites', player_id)
+            filter = User.objects.filter(pk=to_player_id)
+            if not filter.exists():
+                raise LobbyException('User not found caught on lobby invite')
+
+            invited = filter[0]
+            if not hasattr(invited, 'account') or not invited.account.is_verified:
+                raise LobbyException(
+                    'User don\'t have a verified account caught on lobby invite'
+                )
+
+            if not invited.is_online:
+                raise LobbyException('Offline user caught on lobby invite')
+
+            pipe.sadd(f'{self.cache_key}:invites', f'{from_player_id}:{to_player_id}')
 
         cache.protected_handler(
             transaction_operations,
@@ -354,19 +377,27 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
         )
 
-    def delete_invite(self, player_id):
+    def get_invite_by_to_player_id(self, to_player_id: int) -> str:
+        result = None
+        for invite_id in self.invites:
+            if to_player_id == int(invite_id.split(':')[1]):
+                result = invite_id
+
+        return result
+
+    def delete_invite(self, invite_id):
         """
         Method to delete an existing invite
         Invite should exist on lobby invites list
-        Should return False if the requested player_id isn't in the lobby invites list
+        Should return False if the requested invite_id isn't in the lobby invites list
         """
-        invite = cache.sismember(f'{self.cache_key}:invites', player_id)
+        invite = cache.sismember(f'{self.cache_key}:invites', invite_id)
 
         if not invite:
             raise LobbyException('Inexistent invite caught on invite deletion')
 
         def transaction_operations(pipe, _):
-            pipe.srem(f'{self.cache_key}:invites', player_id)
+            pipe.srem(f'{self.cache_key}:invites', invite_id)
 
         cache.protected_handler(transaction_operations, f'{self.cache_key}:invites')
 
