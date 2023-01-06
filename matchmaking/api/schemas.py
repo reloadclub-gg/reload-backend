@@ -1,5 +1,5 @@
-from typing import List, Optional
-from ninja import ModelSchema, Schema
+from typing import Optional
+from ninja import Schema
 from ..models import Lobby
 
 
