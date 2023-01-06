@@ -302,6 +302,10 @@ class Lobby(BaseModel):
                     if invite:
                         pipe.srem(f'{new_lobby.cache_key}:invites', invite)
 
+            invites_from_player = from_lobby.get_invites_by_from_player_id(player_id)
+            for invite in invites_from_player:
+                from_lobby.delete_invite(invite)
+
             if remove:
                 pipe.delete(to_lobby.cache_key)
                 pipe.delete(f'{to_lobby.cache_key}:players')
@@ -384,6 +388,13 @@ class Lobby(BaseModel):
                 result = invite_id
 
         return result
+
+    def get_invites_by_from_player_id(self, from_player_id: int) -> str:
+        return [
+            invite
+            for invite in self.invites
+            if from_player_id == int(invite.split(':')[0])
+        ]
 
     def delete_invite(self, invite_id):
         """
