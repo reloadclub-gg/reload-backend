@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema
 from matchmaking.models import Lobby
+from matchmaking.api.schemas import LobbySchema
 from .utils import ws_send
 
 User = get_user_model()
@@ -39,5 +40,5 @@ def lobby_player_leave(user: User, lobby: Lobby = None):
         lobby = user.account.lobby
 
     lobby_players_ids = [id for id in lobby.players_ids if id != user.id]
-    payload = FriendAccountSchema.from_orm(user.account).dict()
+    payload = LobbySchema.from_orm(lobby).dict()
     async_to_sync(ws_send)('ws_lobbyPlayerLeave', payload, groups=lobby_players_ids)

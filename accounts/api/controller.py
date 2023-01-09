@@ -129,4 +129,10 @@ def change_user_email(user: User, email: str) -> User:
     user.account.is_verified = False
     user.account.save()
 
+    user_status_change(user)
+    lobby = user.account.lobby
+    lobby.move(user.id, user.id, remove=True)
+    if lobby.players_count > 0:
+        lobby_player_leave(user, lobby)
+
     return user
