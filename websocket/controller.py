@@ -3,8 +3,8 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema
-from matchmaking.models import Lobby, LobbyInvite
-from matchmaking.api.schemas import LobbySchema, InviteSchema
+from matchmaking.models import Lobby
+from matchmaking.api.schemas import LobbySchema
 from .utils import ws_send
 
 User = get_user_model()
@@ -42,11 +42,3 @@ def lobby_player_leave(user: User, lobby: Lobby = None):
     lobby_players_ids = [id for id in lobby.players_ids if id != user.id]
     payload = LobbySchema.from_orm(lobby).dict()
     async_to_sync(ws_send)('ws_lobbyPlayerLeave', payload, groups=lobby_players_ids)
-
-
-def lobby_player_invite(invite: LobbyInvite):
-    """
-    Event called when a player invites other to lobby.
-    """
-    payload = InviteSchema.from_orm(invite).dict()
-    async_to_sync(ws_send)('ws_newInvite', payload, groups=[invite.to_id])

@@ -1,8 +1,7 @@
 from core.tests import TestCase
-
+from . import mixins
 from ..api import schemas
 from ..models import Lobby
-from . import mixins
 
 
 class LobbySchemaTestCase(mixins.VerifiedPlayersMixin, TestCase):

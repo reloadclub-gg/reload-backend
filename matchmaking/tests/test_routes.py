@@ -153,7 +153,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
             token=self.user_1.auth.token,
         )
 
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             self.user_1.account.lobby.invites,
             [f'{self.user_1.id}:{self.user_2.id}'],

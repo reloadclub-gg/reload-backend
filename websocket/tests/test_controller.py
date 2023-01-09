@@ -1,8 +1,8 @@
 from unittest import mock
 
-from core.tests import TestCase
 from matchmaking.models import Lobby
 from matchmaking.tests.mixins import VerifiedPlayersMixin
+from core.tests import TestCase
 from websocket import controller
 
 
@@ -118,17 +118,3 @@ class WSControllerTestCase(VerifiedPlayersMixin, TestCase):
         mocker.return_value = True
         controller.lobby_player_leave(self.user_1, self.user_1.account.lobby)
         mocker.assert_not_awaited()
-
-    @mock.patch('websocket.utils.send_and_close')
-    def test_lobby_player_invite(self, mocker):
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-
-        lobby = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        invite = lobby.invite(self.user_1.id, self.user_2.id)
-
-        mocker.return_value = True
-        controller.lobby_player_invite(invite)
-        mocker.assert_awaited()
-        self.assertEqual(mocker.await_count, 1)

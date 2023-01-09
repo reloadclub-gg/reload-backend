@@ -1,9 +1,6 @@
 from ninja.errors import HttpError
-
 from django.contrib.auth import get_user_model
-
 from ..models import Lobby, LobbyException
-from websocket import controller
 
 User = get_user_model()
 
@@ -26,12 +23,11 @@ def lobby_invite(user: User, lobby_id: int, player_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
-        invite = lobby.invite(user.id, player_id)
-        controller.lobby_player_invite(invite)
+        lobby.invite(user.id, player_id)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    return invite
+    return lobby
 
 
 def lobby_accept_invite(user: User, lobby_id: int, invite_id: str):
