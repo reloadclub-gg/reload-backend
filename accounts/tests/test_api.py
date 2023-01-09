@@ -98,6 +98,10 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertFalse(self.user.is_active)
 
     def test_change_user_email(self):
+        self.user.account.is_verified = True
+        self.user.account.save()
+        self.user.auth.add_session()
+        Lobby.create(self.user.id)
         controller.change_user_email(self.user, 'new@email.com')
 
     def test_logout(self):
@@ -313,7 +317,11 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
 
     def test_change_user_email(self):
         baker.make(Account, user=self.user, is_verified=True)
+        self.user.account.is_verified = True
+        self.user.account.save()
         self.user.auth.create_token()
+        self.user.auth.add_session()
+        Lobby.create(self.user.id)
         payload = {'email': 'new@email.com'}
         response = self.api.call(
             'post', '/change-user-email', data=payload, token=self.user.auth.token
