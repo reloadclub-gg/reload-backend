@@ -33,7 +33,6 @@ class LobbySchemaTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
     def test_lobby_schema_with_two_player_as_dict(self):
         lobby_1 = Lobby.create(self.user_1.id)
-        lobby_2 = Lobby.create(self.user_2.id)
         lobby_1.invite(self.user_1.id, self.user_2.id)
         Lobby.move(self.user_2.id, lobby_1.id)
         payload = schemas.LobbySchema.from_orm(lobby_1).dict()
