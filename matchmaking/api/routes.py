@@ -35,14 +35,18 @@ def lobby_invite(request, lobby_id: int, player_id: int):
     )
 
 
-@router.patch('lobby/{lobby_id}/accept-invite/', auth=VerifiedRequiredAuth())
-def lobby_accept_invite(request, lobby_id: int):
-    return controller.lobby_accept_invite(request.user, lobby_id)
+@router.patch(
+    'lobby/{lobby_id}/accept-invite/{invite_id}/', auth=VerifiedRequiredAuth()
+)
+def lobby_accept_invite(request, lobby_id: int, invite_id: str):
+    return controller.lobby_accept_invite(request.user, lobby_id, invite_id)
 
 
-@router.patch('lobby/{lobby_id}/refuse-invite/', auth=VerifiedRequiredAuth())
-def lobby_refuse_invite(request, lobby_id: int):
-    return controller.lobby_refuse_invite(request.user, lobby_id)
+@router.patch(
+    'lobby/{lobby_id}/refuse-invite/{invite_id}/', auth=VerifiedRequiredAuth()
+)
+def lobby_refuse_invite(request, lobby_id: int, invite_id: str):
+    return controller.lobby_refuse_invite(lobby_id, invite_id)
 
 
 @router.patch(
