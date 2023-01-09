@@ -1,15 +1,16 @@
 from ninja import Router
+
 from accounts.api.authentication import VerifiedRequiredAuth
-from ..models import Lobby
+from accounts.api.schemas import UserSchema
 from . import controller
 from .schemas import InviteSchema
 
 router = Router(tags=['mm'])
 
 
-@router.patch('lobby/leave/', auth=VerifiedRequiredAuth())
+@router.patch('lobby/leave/', auth=VerifiedRequiredAuth(), response={200: UserSchema})
 def lobby_leave(request):
-    return Lobby.move(request.user.id, to_lobby_id=request.user.id)
+    return controller.lobby_leave(request.user)
 
 
 @router.patch('lobby/set-public/', auth=VerifiedRequiredAuth())

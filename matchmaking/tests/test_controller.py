@@ -160,3 +160,18 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
             HttpError, 'User must be owner to perfom this action'
         ):
             controller.set_private(self.user_2)
+
+    def test_lobby_leave(self):
+        lobby_1 = Lobby.create(self.user_1.id)
+        lobby_2 = Lobby.create(self.user_2.id)
+        lobby_2.invite(self.user_2.id, self.user_1.id)
+
+        Lobby.move(self.user_1.id, lobby_2.id)
+
+        self.assertEqual(lobby_1.players_count, 0)
+        self.assertEqual(lobby_2.players_count, 2)
+
+        controller.lobby_leave(self.user_1)
+
+        self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(lobby_2.players_count, 1)

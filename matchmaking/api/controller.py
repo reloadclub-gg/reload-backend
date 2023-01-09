@@ -107,3 +107,15 @@ def set_private(user: User) -> Lobby:
     user.account.lobby.set_private()
 
     return user.account.lobby
+
+
+def lobby_leave(user: User) -> User:
+    lobby = user.account.lobby
+    Lobby.move(user.id, to_lobby_id=user.id)
+
+    controller.lobby_update(lobby)
+
+    user = User.objects.get(pk=user.id)
+    controller.user_status_change(user)
+
+    return user
