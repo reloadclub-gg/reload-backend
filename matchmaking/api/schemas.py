@@ -3,7 +3,7 @@ from typing import Optional
 
 from ninja import Schema
 
-from ..models import Lobby
+from ..models import Lobby, LobbyInvite
 
 
 class LobbySchema(Schema):
@@ -70,3 +70,17 @@ class LobbySchema(Schema):
     @staticmethod
     def resolve_queue_time(obj):
         return obj.queue_time
+
+
+class InviteSchema(Schema):
+    id: str
+    from_id: int
+    to_id: int
+    lobby_id: int
+
+    class Config:
+        model = LobbyInvite
+
+    @staticmethod
+    def resolve_id(obj):
+        return obj.id
