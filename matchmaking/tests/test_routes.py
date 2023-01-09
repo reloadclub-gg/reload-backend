@@ -87,7 +87,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
             response.json(), {'detail': 'User must be owner to perfom this action'}
         )
 
-    def test_lobby_remove(self):
+    def test_lobby_remove_player(self):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
         lobby_1.invite(self.user_1.id, self.user_2.id)
