@@ -44,6 +44,11 @@ def lobby_player_leave(user: User, lobby: Lobby = None):
     async_to_sync(ws_send)('ws_lobbyPlayerLeave', payload, groups=lobby_players_ids)
 
 
+def lobby_update(lobby: Lobby):
+    payload = LobbySchema.from_orm(lobby).dict()
+    async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=lobby.players_ids)
+
+
 def lobby_player_invite(invite: LobbyInvite):
     """
     Event called when a player invites other to lobby.
