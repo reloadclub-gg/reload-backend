@@ -1,12 +1,11 @@
-from datetime import datetime
 import logging
 import random
 import string
+from datetime import datetime
 from typing import Union
 from urllib import parse
 
 import redis
-
 from django.conf import settings
 from django.core import mail
 from django.utils.html import strip_tags

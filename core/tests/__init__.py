@@ -1,4 +1,5 @@
-from django.test import TestCase as DjangoTestCase, Client
+from django.test import Client
+from django.test import TestCase as DjangoTestCase
 
 from core.redis import RedisClient
 

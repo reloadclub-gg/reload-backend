@@ -1,10 +1,10 @@
 from asgiref.sync import async_to_sync
-
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema
+from matchmaking.api.schemas import InviteSchema, LobbySchema
 from matchmaking.models import Lobby, LobbyInvite
-from matchmaking.api.schemas import LobbySchema, InviteSchema
+
 from .utils import ws_send
 
 User = get_user_model()

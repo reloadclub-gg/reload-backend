@@ -1,6 +1,5 @@
-from ninja import NinjaAPI
-
 from django.conf import settings
+from ninja import NinjaAPI
 
 from accounts.api.routes import router as accounts_router
 from matchmaking.api.routes import router as mm_router

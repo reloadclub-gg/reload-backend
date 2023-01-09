@@ -1,8 +1,7 @@
 from collections.abc import Callable
 
-from redis import Redis, exceptions
-
 from django.conf import settings
+from redis import Redis, exceptions
 
 
 class RedisClient(Redis):

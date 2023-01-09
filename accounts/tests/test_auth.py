@@ -1,5 +1,6 @@
 from core.tests import TestCase
 from matchmaking.tests.mixins import VerifiedPlayersMixin
+
 from ..api.authorization import is_verified
 
 

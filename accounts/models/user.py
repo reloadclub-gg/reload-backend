@@ -1,12 +1,11 @@
-from pydantic import BaseModel, Field
-from social_django.models import UserSocialAuth
-
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
+from pydantic import BaseModel, Field
+from social_django.models import UserSocialAuth
 
 from .auth import Auth
 

@@ -1,15 +1,15 @@
+from django.http.response import Http404
 from model_bakery import baker
 from ninja import Schema
 from ninja.errors import HttpError
 
-from django.http.response import Http404
-
 from core.tests import APIClient, TestCase
 from matchmaking.models import Lobby
-from . import mixins
+
+from .. import utils
 from ..api import controller
 from ..models import Account, Auth, Invite, User, UserLogin
-from .. import utils
+from . import mixins
 
 
 class AccountSchema(Schema):

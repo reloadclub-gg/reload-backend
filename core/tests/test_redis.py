@@ -2,8 +2,9 @@ from threading import Thread
 
 from django.utils import timezone
 
-from . import TestCase
 from core.redis import RedisClient
+
+from . import TestCase
 
 cache = RedisClient()
 
