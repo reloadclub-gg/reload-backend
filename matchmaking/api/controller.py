@@ -3,7 +3,7 @@ from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
 
 from ..models import Lobby, LobbyException, LobbyInvite
-from websocket import controller
+from websocket import controller as ws_controller
 
 User = get_user_model()
 
@@ -18,10 +18,10 @@ def lobby_remove_player(request_user_id: int, lobby_id: int, user_id: int) -> Lo
         raise HttpError(400, 'User must be owner to perform this action')
 
     Lobby.move(user_id, to_lobby_id=user_id)
-    controller.lobby_update(lobby)
+    ws_controller.lobby_update(lobby)
 
     user = User.objects.get(pk=user_id)
-    controller.user_status_change(user)
+    ws_controller.user_status_change(user)
 
     return lobby
 
@@ -31,7 +31,7 @@ def lobby_invite(user: User, lobby_id: int, player_id: int) -> LobbyInvite:
 
     try:
         invite = lobby.invite(user.id, player_id)
-        controller.lobby_player_invite(invite)
+        ws_controller.lobby_player_invite(invite)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
@@ -111,9 +111,9 @@ def lobby_leave(user: User) -> User:
     lobby = user.account.lobby
     Lobby.move(user.id, to_lobby_id=user.id)
 
-    controller.lobby_update(lobby)
+    ws_controller.lobby_update(lobby)
 
     user = User.objects.get(pk=user.id)
-    controller.user_status_change(user)
+    ws_controller.user_status_change(user)
 
     return user
