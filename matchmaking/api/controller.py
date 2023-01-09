@@ -2,7 +2,7 @@ from ninja.errors import HttpError
 
 from django.contrib.auth import get_user_model
 
-from ..models import Lobby, LobbyException
+from ..models import Lobby, LobbyException, LobbyInvite
 from websocket import controller
 
 User = get_user_model()
@@ -22,7 +22,7 @@ def lobby_remove(request_user_id: int, lobby_id: int, user_id: int) -> Lobby:
     return lobby
 
 
-def lobby_invite(user: User, lobby_id: int, player_id: int) -> Lobby:
+def lobby_invite(user: User, lobby_id: int, player_id: int) -> LobbyInvite:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -34,7 +34,7 @@ def lobby_invite(user: User, lobby_id: int, player_id: int) -> Lobby:
     return invite
 
 
-def lobby_accept_invite(user: User, lobby_id: int, invite_id: str):
+def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     if user.id in lobby.players_ids:
@@ -48,7 +48,7 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str):
     return lobby
 
 
-def lobby_refuse_invite(lobby_id: int, invite_id: str):
+def lobby_refuse_invite(lobby_id: int, invite_id: str) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -61,7 +61,7 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str):
 
 def lobby_change_type_and_mode(
     user: User, lobby_id: int, lobby_type: str, lobby_mode: int
-):
+) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     if user.account.lobby.id != lobby.owner_id:
@@ -76,7 +76,7 @@ def lobby_change_type_and_mode(
     return lobby
 
 
-def lobby_enter(user: User, lobby_id: int):
+def lobby_enter(user: User, lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -87,7 +87,7 @@ def lobby_enter(user: User, lobby_id: int):
     return lobby
 
 
-def set_public(user: User):
+def set_public(user: User) -> Lobby:
     if user.account.lobby.owner_id != user.id:
         raise HttpError(400, 'User must be owner to perfom this action')
 
@@ -96,7 +96,7 @@ def set_public(user: User):
     return user.account.lobby
 
 
-def set_private(user: User):
+def set_private(user: User) -> Lobby:
     if user.account.lobby.owner_id != user.id:
         raise HttpError(400, 'User must be owner to perfom this action')
 
