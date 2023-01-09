@@ -26,6 +26,7 @@ boto3 = "*"
 django-storages = "*"
 python-decouple = "*"
 black = "*"
+isort = "*"
 
 [dev-packages]
 
@@ -52,3 +53,4 @@ test = "python ./manage.py test"
 test-w-coverage = "sh -c 'coverage run manage.py test --noinput && coverage report'"
 start = "uvicorn --host 0.0.0.0 --port 80 --reload --workers 2 core.asgi:application"
 format = "black -S ."
+sort-imports = "isort ."
