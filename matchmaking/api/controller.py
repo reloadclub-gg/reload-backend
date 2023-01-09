@@ -1,9 +1,9 @@
+from django.contrib.auth import get_user_model
 from ninja.errors import HttpError
 
-from django.contrib.auth import get_user_model
+from websocket import controller as ws_controller
 
 from ..models import Lobby, LobbyException, LobbyInvite
-from websocket import controller as ws_controller
 
 User = get_user_model()
 

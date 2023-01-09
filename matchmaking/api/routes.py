@@ -2,6 +2,7 @@ from ninja import Router
 
 from accounts.api.authentication import VerifiedRequiredAuth
 from accounts.api.schemas import UserSchema
+
 from . import controller
 from .schemas import InviteSchema, LobbySchema
 

@@ -1,7 +1,7 @@
 from ninja import Schema
 
-from . import TestCase
 from .. import utils
+from . import TestCase
 
 
 class RequestSchema1(Schema):

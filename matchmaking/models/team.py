@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 import secrets
 
-from pydantic import BaseModel
-
 from django.contrib.auth import get_user_model
+from pydantic import BaseModel
 
 from core.redis import RedisClient
 

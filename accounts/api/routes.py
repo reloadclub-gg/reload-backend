@@ -1,19 +1,12 @@
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from ninja import Router
 from ninja.errors import HttpError
 
-from django.conf import settings
-from django.contrib.auth import get_user_model
-
 from . import controller
-from .authentication import VerifiedRequiredAuth, VerifiedExemptAuth
-from .schemas import (
-    FakeSignUpSchema,
-    FakeUserSchema,
-    UserSchema,
-    SignUpSchema,
-    VerifyUserEmailSchema,
-    UpdateUserEmailSchema,
-)
+from .authentication import VerifiedExemptAuth, VerifiedRequiredAuth
+from .schemas import (FakeSignUpSchema, FakeUserSchema, SignUpSchema,
+                      UpdateUserEmailSchema, UserSchema, VerifyUserEmailSchema)
 
 User = get_user_model()
 router = Router(tags=["accounts"])

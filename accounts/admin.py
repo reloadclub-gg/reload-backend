@@ -2,11 +2,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group
-
-from social_django.models import UserSocialAuth, Association, Nonce
+from social_django.models import Association, Nonce, UserSocialAuth
 
 from core import admin_mixins
-from .models import Account, User, UserLogin, Invite
+
+from .models import Account, Invite, User, UserLogin
 
 admin.site.unregister(Group)
 if settings.ENVIRONMENT == 'production':

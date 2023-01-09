@@ -1,8 +1,7 @@
-from model_bakery import baker
-from social_django.models import UserSocialAuth
-
 from django.conf import settings
 from django.template.loader import render_to_string
+from model_bakery import baker
+from social_django.models import UserSocialAuth
 
 from core.utils import generate_random_string, send_mail
 

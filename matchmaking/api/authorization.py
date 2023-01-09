@@ -1,7 +1,9 @@
 from collections.abc import Callable
 from functools import wraps
+
 from django.contrib.auth import get_user_model
 from ninja.errors import HttpError
+
 from ..models import Lobby
 
 User = get_user_model()

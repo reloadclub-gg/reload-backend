@@ -1,14 +1,15 @@
-from ninja.errors import HttpError
-
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from ninja.errors import HttpError
 
-from core.utils import get_ip_address
-from websocket.controller import friendlist_add, user_status_change, lobby_update
 from appsettings.services import check_invite_required
-from ..models import Account, Invite, Auth, UserLogin
+from core.utils import get_ip_address
+from websocket.controller import (friendlist_add, lobby_update,
+                                  user_status_change)
+
 from .. import utils
+from ..models import Account, Auth, Invite, UserLogin
 from .authorization import is_verified
 
 User = get_user_model()
