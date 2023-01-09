@@ -4,7 +4,7 @@ from accounts.api.authentication import VerifiedRequiredAuth
 from accounts.api.schemas import UserSchema
 
 from . import controller
-from .schemas import InviteSchema, LobbySchema
+from .schemas import LobbyInviteSchema, LobbySchema
 
 router = Router(tags=['mm'])
 
@@ -42,7 +42,7 @@ def lobby_remove_player(request, lobby_id: int, user_id: int):
 @router.post(
     'lobby/{lobby_id}/invite-player/{player_id}/',
     auth=VerifiedRequiredAuth(),
-    response={201: InviteSchema},
+    response={201: LobbyInviteSchema},
 )
 def lobby_invite(request, lobby_id: int, player_id: int):
     return controller.lobby_invite(
