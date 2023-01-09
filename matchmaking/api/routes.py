@@ -2,6 +2,7 @@ from ninja import Router
 from accounts.api.authentication import VerifiedRequiredAuth
 from ..models import Lobby
 from . import controller
+from .schemas import InviteSchema
 
 router = Router(tags=['mm'])
 
@@ -28,7 +29,11 @@ def lobby_remove(request, lobby_id: int, user_id: int):
     )
 
 
-@router.post('lobby/{lobby_id}/invite-player/{player_id}/', auth=VerifiedRequiredAuth())
+@router.post(
+    'lobby/{lobby_id}/invite-player/{player_id}/',
+    auth=VerifiedRequiredAuth(),
+    response={201: InviteSchema},
+)
 def lobby_invite(request, lobby_id: int, player_id: int):
     return controller.lobby_invite(
         user=request.user, lobby_id=lobby_id, player_id=player_id
