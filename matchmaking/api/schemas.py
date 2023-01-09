@@ -72,7 +72,7 @@ class LobbySchema(Schema):
         return obj.queue_time
 
 
-class InviteSchema(Schema):
+class LobbyInviteSchema(Schema):
     id: str
     from_id: int
     to_id: int

@@ -2,7 +2,7 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema
-from matchmaking.api.schemas import InviteSchema, LobbySchema
+from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
 from matchmaking.models import Lobby, LobbyInvite
 
 from .utils import ws_send
@@ -40,5 +40,5 @@ def lobby_player_invite(invite: LobbyInvite):
     """
     Event called when a player invites other to lobby.
     """
-    payload = InviteSchema.from_orm(invite).dict()
+    payload = LobbyInviteSchema.from_orm(invite).dict()
     async_to_sync(ws_send)('ws_newInvite', payload, groups=[invite.to_id])
