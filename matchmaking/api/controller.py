@@ -49,6 +49,9 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
         except LobbyException as exc:
             raise HttpError(400, str(exc))
 
+        ws_controller.lobby_update(lobby)
+        ws_controller.user_status_change(user)
+
     return lobby
 
 
@@ -85,6 +88,9 @@ def lobby_enter(user: User, lobby_id: int) -> Lobby:
         Lobby.move(user.id, lobby_id)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
+
+    ws_controller.lobby_update(lobby)
+    ws_controller.user_status_change(user)
 
     return lobby
 
