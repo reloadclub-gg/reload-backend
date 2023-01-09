@@ -78,6 +78,8 @@ def lobby_change_type_and_mode(
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    ws_controller.lobby_update(lobby)
+
     return lobby
 
 
