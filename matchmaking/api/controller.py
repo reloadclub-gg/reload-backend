@@ -102,6 +102,7 @@ def set_public(user: User) -> Lobby:
         raise HttpError(400, 'User must be owner to perfom this action')
 
     user.account.lobby.set_public()
+    ws_controller.lobby_update(user.account.lobby)
 
     return user.account.lobby
 
@@ -111,6 +112,7 @@ def set_private(user: User) -> Lobby:
         raise HttpError(400, 'User must be owner to perfom this action')
 
     user.account.lobby.set_private()
+    ws_controller.lobby_update(user.account.lobby)
 
     return user.account.lobby
 
