@@ -18,6 +18,10 @@ def lobby_remove(request_user_id: int, lobby_id: int, user_id: int) -> Lobby:
         raise HttpError(400, 'User must be owner to perform this action')
 
     Lobby.move(user_id, to_lobby_id=user_id)
+    controller.lobby_update(lobby)
+
+    user = User.objects.get(pk=user_id)
+    controller.user_status_change(user)
 
     return lobby
 
