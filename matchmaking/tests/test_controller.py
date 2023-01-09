@@ -13,7 +13,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.user_1.auth.add_session()
         self.user_2.auth.add_session()
 
-    def test_lobby_remove(self):
+    def test_lobby_remove_player(self):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
 
@@ -23,7 +23,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(lobby_1.players_count, 2)
         self.assertEqual(lobby_2.players_count, 0)
 
-        controller.lobby_remove(
+        controller.lobby_remove_player(
             request_user_id=self.user_1.id,
             lobby_id=lobby_1.id,
             user_id=self.user_2.id,
