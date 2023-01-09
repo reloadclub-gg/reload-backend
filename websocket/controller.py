@@ -31,19 +31,6 @@ def friendlist_add(friend: User):
     async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=online_friends_ids)
 
 
-def lobby_player_leave(user: User, lobby: Lobby = None):
-    """
-    Event called when a player leaves a lobby.
-    This should notify the others players on lobby that the user has left.
-    """
-    if not lobby:
-        lobby = user.account.lobby
-
-    lobby_players_ids = [id for id in lobby.players_ids if id != user.id]
-    payload = LobbySchema.from_orm(lobby).dict()
-    async_to_sync(ws_send)('ws_lobbyPlayerLeave', payload, groups=lobby_players_ids)
-
-
 def lobby_update(lobby: Lobby):
     payload = LobbySchema.from_orm(lobby).dict()
     async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=lobby.players_ids)

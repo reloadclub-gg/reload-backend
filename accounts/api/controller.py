@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from core.utils import get_ip_address
-from websocket.controller import friendlist_add, user_status_change, lobby_player_leave
+from websocket.controller import friendlist_add, user_status_change, lobby_update
 from appsettings.services import check_invite_required
 from ..models import Account, Invite, Auth, UserLogin
 from .. import utils
@@ -45,7 +45,7 @@ def logout(user: User) -> User:
     lobby = user.account.lobby
     lobby.move(user.id, user.id, remove=True)
     if lobby.players_count > 0:
-        lobby_player_leave(user, lobby)
+        lobby_update(lobby)
 
     user.auth.expire_session(seconds=0)
     user.save()
@@ -133,6 +133,6 @@ def change_user_email(user: User, email: str) -> User:
     lobby = user.account.lobby
     lobby.move(user.id, user.id, remove=True)
     if lobby.players_count > 0:
-        lobby_player_leave(user, lobby)
+        lobby_update(lobby)
 
     return user

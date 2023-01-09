@@ -69,57 +69,6 @@ class WSControllerTestCase(VerifiedPlayersMixin, TestCase):
         mocker.assert_not_awaited()
 
     @mock.patch('websocket.utils.send_and_close')
-    def test_lobby_player_leave_2_remaining_players(self, mocker):
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
-
-        Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-
-        self.user_1.account.lobby.set_public()
-        Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
-        Lobby.move(self.user_3.id, self.user_1.account.lobby.id)
-
-        mocker.return_value = True
-        controller.lobby_player_leave(self.user_3, self.user_1.account.lobby)
-        mocker.assert_awaited()
-        self.assertEqual(mocker.await_count, 2)
-
-    @mock.patch('websocket.utils.send_and_close')
-    def test_lobby_player_leave_1_remaining_player(self, mocker):
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
-
-        Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-
-        self.user_1.account.lobby.set_public()
-        Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
-
-        mocker.return_value = True
-        controller.lobby_player_leave(self.user_2, self.user_1.account.lobby)
-        mocker.assert_awaited()
-        self.assertEqual(mocker.await_count, 1)
-
-    @mock.patch('websocket.utils.send_and_close')
-    def test_lobby_player_leave_no_remaining_players(self, mocker):
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
-
-        Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-
-        mocker.return_value = True
-        controller.lobby_player_leave(self.user_1, self.user_1.account.lobby)
-        mocker.assert_not_awaited()
-
-    @mock.patch('websocket.utils.send_and_close')
     def test_lobby_player_invite(self, mocker):
         self.user_1.auth.add_session()
         self.user_2.auth.add_session()
