@@ -1,8 +1,8 @@
 from unittest import mock
 
+from core.tests import TestCase
 from matchmaking.models import Lobby
 from matchmaking.tests.mixins import VerifiedPlayersMixin
-from core.tests import TestCase
 from websocket import controller
 
 
