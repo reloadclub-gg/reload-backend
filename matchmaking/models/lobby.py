@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from core.utils import str_to_timezone
 from core.redis import RedisClient
+from .invite import LobbyInvite
 
 cache = RedisClient()
 User = get_user_model()
@@ -324,7 +325,7 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
         )
 
-    def invite(self, from_player_id: int, to_player_id: int):
+    def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:
         """
         Lobby players can invite others players to join them in the lobby following
         these rules:
@@ -379,6 +380,10 @@ class Lobby(BaseModel):
             f'{self.cache_key}:queue',
             f'{self.cache_key}:invites',
             pre_func=transaction_pre,
+        )
+
+        return LobbyInvite(
+            from_id=from_player_id, to_id=to_player_id, lobby_id=self.owner_id
         )
 
     def get_invite_by_to_player_id(self, to_player_id: int) -> str:
