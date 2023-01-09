@@ -3,7 +3,7 @@ from ninja import Router
 from accounts.api.authentication import VerifiedRequiredAuth
 from accounts.api.schemas import UserSchema
 from . import controller
-from .schemas import InviteSchema
+from .schemas import InviteSchema, LobbySchema
 
 router = Router(tags=['mm'])
 
@@ -13,19 +13,27 @@ def lobby_leave(request):
     return controller.lobby_leave(request.user)
 
 
-@router.patch('lobby/set-public/', auth=VerifiedRequiredAuth())
+@router.patch(
+    'lobby/set-public/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+)
 def lobby_set_public(request):
     return controller.set_public(request.user)
 
 
-@router.patch('lobby/set-private/', auth=VerifiedRequiredAuth())
+@router.patch(
+    'lobby/set-private/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+)
 def lobby_set_private(request):
     return controller.set_private(request.user)
 
 
-@router.patch('lobby/{lobby_id}/remove-player/{user_id}/', auth=VerifiedRequiredAuth())
-def lobby_remove(request, lobby_id: int, user_id: int):
-    return controller.lobby_remove(
+@router.patch(
+    'lobby/{lobby_id}/remove-player/{user_id}/',
+    auth=VerifiedRequiredAuth(),
+    response={200: LobbySchema},
+)
+def lobby_remove_player(request, lobby_id: int, user_id: int):
+    return controller.lobby_remove_player(
         request_user_id=request.user.id, lobby_id=lobby_id, user_id=user_id
     )
 
@@ -42,22 +50,28 @@ def lobby_invite(request, lobby_id: int, player_id: int):
 
 
 @router.patch(
-    'lobby/{lobby_id}/accept-invite/{invite_id}/', auth=VerifiedRequiredAuth()
+    'lobby/{lobby_id}/accept-invite/{invite_id}/',
+    auth=VerifiedRequiredAuth(),
+    response={201: LobbySchema},
 )
 def lobby_accept_invite(request, lobby_id: int, invite_id: str):
     return controller.lobby_accept_invite(request.user, lobby_id, invite_id)
 
 
 @router.patch(
-    'lobby/{lobby_id}/refuse-invite/{invite_id}/', auth=VerifiedRequiredAuth()
+    'lobby/{lobby_id}/refuse-invite/{invite_id}/',
+    auth=VerifiedRequiredAuth(),
+    response={200: UserSchema},
 )
 def lobby_refuse_invite(request, lobby_id: int, invite_id: str):
-    return controller.lobby_refuse_invite(lobby_id, invite_id)
+    controller.lobby_refuse_invite(lobby_id, invite_id)
+    return request.user
 
 
 @router.patch(
     'lobby/{lobby_id}/change-type/{lobby_type}/change-mode/{lobby_mode}/',
     auth=VerifiedRequiredAuth(),
+    response={200: LobbySchema},
 )
 def lobby_change_type_and_mode(
     request, lobby_id: int, lobby_type: str, lobby_mode: int
@@ -67,6 +81,8 @@ def lobby_change_type_and_mode(
     )
 
 
-@router.patch('lobby/{lobby_id}/enter/', auth=VerifiedRequiredAuth())
+@router.patch(
+    'lobby/{lobby_id}/enter/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+)
 def lobby_enter(request, lobby_id: int):
     return controller.lobby_enter(request.user, lobby_id)
