@@ -1,6 +1,7 @@
 from core.tests import TestCase
-from ..models import Lobby
+
 from ..api.authorization import is_lobby_owner, is_lobby_participant
+from ..models import Lobby
 from . import mixins
 
 

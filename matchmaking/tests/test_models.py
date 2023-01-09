@@ -1,4 +1,5 @@
 from core.tests import TestCase, cache
+
 from ..models import Lobby
 from ..models.lobby import LobbyException
 from . import mixins

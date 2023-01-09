@@ -1,4 +1,5 @@
 from core.tests import APIClient, TestCase
+
 from ..models import Lobby
 from . import mixins
 

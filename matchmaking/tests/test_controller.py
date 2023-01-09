@@ -1,10 +1,13 @@
-from unittest import mock
 from datetime import datetime
+from unittest import mock
+
 from ninja.errors import HttpError
+
 from core.tests import TestCase
-from . import mixins
+
 from ..api import controller
 from ..models import Lobby
+from . import mixins
 
 
 class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):

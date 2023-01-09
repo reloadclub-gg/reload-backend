@@ -1,6 +1,5 @@
-from ninja.security import HttpBearer
-
 from django.contrib.auth import get_user_model
+from ninja.security import HttpBearer
 
 from .controller import login
 

@@ -1,16 +1,15 @@
 from unittest import mock
 
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from model_bakery import baker
 from social_django.models import UserSocialAuth
 
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-
 from core.tests import TestCase, cache
-from . import mixins
-from .. import models
+
+from .. import models, utils
 from ..models.auth import AuthConfig
-from .. import utils
+from . import mixins
 
 
 class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):

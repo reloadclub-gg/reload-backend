@@ -1,5 +1,4 @@
 from channels.layers import get_channel_layer
-
 from django.conf import settings
 
 from accounts.tests.mixins import AccountOneMixin

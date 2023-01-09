@@ -1,6 +1,5 @@
-from model_bakery import baker
-
 from django.contrib.auth import get_user_model
+from model_bakery import baker
 
 from accounts.models import Account
 from accounts.utils import create_social_auth

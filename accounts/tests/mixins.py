@@ -1,8 +1,7 @@
 import random
 
-from model_bakery import baker
-
 from django.contrib.auth import get_user_model
+from model_bakery import baker
 
 from ..models import Account
 from ..utils import create_social_auth
