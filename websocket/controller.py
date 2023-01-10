@@ -42,3 +42,11 @@ def lobby_player_invite(invite: LobbyInvite):
     """
     payload = LobbyInviteSchema.from_orm(invite).dict()
     async_to_sync(ws_send)('ws_lobbyInviteReceived', payload, groups=[invite.to_id])
+
+
+def lobby_player_refuse_invite(invite: LobbyInvite):
+    """
+    Event called when a player refuse invite to entry lobby.
+    """
+    payload = LobbyInviteSchema.from_orm(invite).dict()
+    async_to_sync(ws_send)('ws_refuseInvite', payload, groups=[invite.from_id])
