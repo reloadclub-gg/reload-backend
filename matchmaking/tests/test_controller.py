@@ -65,6 +65,14 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertListEqual(lobby_1.invites, [])
         self.assertEqual(lobby_1.players_count, 1)
 
+    def test_lobby_refuse_invite_with_raise(self):
+        lobby = Lobby.create(self.user_1.id)
+
+        with self.assertRaisesMessage(
+            HttpError, 'Inexistent invite caught on invite deletion'
+        ):
+            controller.lobby_refuse_invite(lobby_id=lobby.id, invite_id='99:99')
+
     def test_lobby_change_type_and_mode(self):
         lobby = Lobby.create(self.user_1.id)
 
