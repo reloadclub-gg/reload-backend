@@ -41,4 +41,4 @@ def lobby_player_invite(invite: LobbyInvite):
     Event called when a player invites other to lobby.
     """
     payload = LobbyInviteSchema.from_orm(invite).dict()
-    async_to_sync(ws_send)('ws_newInvite', payload, groups=[invite.to_id])
+    async_to_sync(ws_send)('ws_lobbyInviteReceived', payload, groups=[invite.to_id])
