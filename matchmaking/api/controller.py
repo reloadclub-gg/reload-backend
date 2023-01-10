@@ -3,7 +3,7 @@ from ninja.errors import HttpError
 
 from websocket import controller as ws_controller
 
-from ..models import Lobby, LobbyException, LobbyInvite
+from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
 
 User = get_user_model()
 
@@ -59,11 +59,11 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str):
     lobby = Lobby(owner_id=lobby_id)
 
     try:
+        invite = LobbyInvite.get(lobby_id, invite_id)
+        ws_controller.lobby_player_refuse_invite(invite)
         lobby.delete_invite(invite_id)
-    except LobbyException as exc:
+    except (LobbyException, LobbyInviteException) as exc:
         raise HttpError(400, str(exc))
-
-    ws_controller.lobby_update(lobby)
 
     return lobby
 
