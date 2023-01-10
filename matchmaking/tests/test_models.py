@@ -1,7 +1,6 @@
 from core.tests import TestCase, cache
 
-from ..models import Lobby
-from ..models.lobby import LobbyException
+from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
 from . import mixins
 
 
@@ -548,3 +547,22 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
             lobby_1.get_invites_by_from_player_id(self.user_2.id),
             [],
         )
+
+    def test_get_lobby_invite(self):
+        lobby_1 = Lobby.create(self.user_1.id)
+        Lobby.create(self.user_2.id)
+        invite_expected = lobby_1.invite(self.user_1.id, self.user_2.id)
+
+        self.assertEqual(
+            invite_expected,
+            LobbyInvite.get(lobby_1.id, f'{self.user_1.id}:{self.user_2.id}'),
+        )
+
+    def test_get_lobby_invite_with_raise(self):
+        lobby_1 = Lobby.create(self.user_1.id)
+        Lobby.create(self.user_2.id)
+
+        with self.assertRaisesMessage(
+            LobbyInviteException, 'Inexistent invite caught on invite deletion'
+        ):
+            LobbyInvite.get(lobby_1.id, '99:99')
