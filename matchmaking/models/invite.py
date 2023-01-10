@@ -1,5 +1,13 @@
 from pydantic import BaseModel
 
+from core.redis import RedisClient
+
+cache = RedisClient()
+
+
+class LobbyInviteException(Exception):
+    pass
+
 
 class LobbyInvite(BaseModel):
     """
@@ -17,3 +25,21 @@ class LobbyInvite(BaseModel):
     @property
     def id(self):
         return f'{self.from_id}:{self.to_id}'
+
+    class Config:
+        CACHE_PREFIX: str = '__mm:lobby'
+
+    @staticmethod
+    def get(lobby_id: str, invite_id: str):
+        invite = cache.sismember(
+            f'{LobbyInvite.Config.CACHE_PREFIX}:{lobby_id}:invites', invite_id
+        )
+
+        if not invite:
+            raise LobbyInviteException('Inexistent invite caught on invite deletion')
+
+        from_id, to_id = invite_id.split(':')
+
+        return LobbyInvite(
+            from_id=int(from_id), to_id=int(to_id), lobby_id=int(lobby_id)
+        )
