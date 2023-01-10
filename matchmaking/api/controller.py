@@ -63,6 +63,10 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str):
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    ws_controller.lobby_update(lobby)
+
+    return lobby
+
 
 def lobby_change_type_and_mode(
     user: User, lobby_id: int, lobby_type: str, lobby_mode: int
