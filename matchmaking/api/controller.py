@@ -142,3 +142,10 @@ def lobby_start_queue(lobby_id: int):
         raise HttpError(400, str(exc))
 
     return lobby
+
+
+def lobby_cancel_queue(lobby_id: int):
+    lobby = Lobby(owner_id=lobby_id)
+    lobby.cancel_queue()
+
+    return lobby
