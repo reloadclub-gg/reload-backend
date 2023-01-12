@@ -131,3 +131,14 @@ def lobby_leave(user: User) -> User:
     ws_controller.user_status_change(user)
 
     return user
+
+
+def lobby_start_queue(lobby_id: int):
+    lobby = Lobby(owner_id=lobby_id)
+
+    try:
+        lobby.start_queue()
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
+
+    return lobby
