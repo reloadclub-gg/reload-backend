@@ -29,7 +29,6 @@ def owner_required(f: Callable) -> Callable:
 
     @wraps(f)
     def wrapper(*args, **kwds):
-        ...
         request = args[0]
         lobby_id = args[1]
 
@@ -49,7 +48,6 @@ def participant_required(f: Callable) -> Callable:
 
     @wraps(f)
     def wrapper(*args, **kwds):
-        ...
         request = args[0]
         lobby_id = args[1]
 
