@@ -204,3 +204,12 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
             HttpError, 'Lobby is queued caught on start lobby queue'
         ):
             controller.lobby_start_queue(lobby.id)
+
+    def test_lobby_cancel_queue(self):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.start_queue()
+        self.assertTrue(lobby.queue)
+
+        controller.lobby_cancel_queue(lobby.id)
+
+        self.assertFalse(lobby.queue)
