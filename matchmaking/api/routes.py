@@ -96,3 +96,11 @@ def lobby_enter(request, lobby_id: int):
 @owner_required
 def lobby_start_queue(request, lobby_id: int):
     return controller.lobby_start_queue(lobby_id)
+
+
+@router.patch(
+    'lobby/{lobby_id}/cancel/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+)
+@owner_required
+def lobby_cancel_queue(request, lobby_id: int):
+    return controller.lobby_cancel_queue(lobby_id)
