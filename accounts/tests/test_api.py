@@ -324,7 +324,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         Lobby.create(self.user.id)
         payload = {'email': 'new@email.com'}
         response = self.api.call(
-            'post', '/update-email', data=payload, token=self.user.auth.token
+            'patch', '/update-email', data=payload, token=self.user.auth.token
         )
 
         self.user.refresh_from_db()
@@ -338,7 +338,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         self.user.auth.create_token()
         payload = {'email': self.user.email}
         response = self.api.call(
-            'post', '/update-email', data=payload, token=self.user.auth.token
+            'patch', '/update-email', data=payload, token=self.user.auth.token
         )
 
         self.user.refresh_from_db()

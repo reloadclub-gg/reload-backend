@@ -55,7 +55,7 @@ def user_detail(request):
     return request.user
 
 
-@router.post(
+@router.patch(
     'update-email/',
     auth=VerifiedExemptAuth(),
     response={200: UserSchema, 422: UserSchema},
