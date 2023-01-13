@@ -5,8 +5,14 @@ from ninja.errors import HttpError
 
 from . import controller
 from .authentication import VerifiedExemptAuth, VerifiedRequiredAuth
-from .schemas import (FakeSignUpSchema, FakeUserSchema, SignUpSchema,
-                      UpdateUserEmailSchema, UserSchema, VerifyUserEmailSchema)
+from .schemas import (
+    FakeSignUpSchema,
+    FakeUserSchema,
+    SignUpSchema,
+    UpdateUserEmailSchema,
+    UserSchema,
+    VerifyUserEmailSchema,
+)
 
 User = get_user_model()
 router = Router(tags=["accounts"])
@@ -44,7 +50,7 @@ def account_verification(request, payload: VerifyUserEmailSchema):
     return controller.verify_account(request.user, payload.verification_token)
 
 
-@router.get('auth/', auth=VerifiedRequiredAuth(), response=UserSchema)
+@router.get('auth/', auth=VerifiedExemptAuth(), response=UserSchema)
 def user_detail(request):
     return request.user
 
