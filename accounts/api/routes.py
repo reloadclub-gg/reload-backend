@@ -57,7 +57,7 @@ def user_detail(request):
 
 @router.post(
     'update-email/',
-    auth=VerifiedRequiredAuth(),
+    auth=VerifiedExemptAuth(),
     response={200: UserSchema, 422: UserSchema},
 )
 def update_email(request, payload: UpdateUserEmailSchema):
