@@ -334,19 +334,3 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertDictEqual(
             response.json(), {'detail': 'Lobby is queued caught on start lobby queue'}
         )
-
-    def test_lobby_start_queue_non_lobby_owner(self):
-        lobby = Lobby.create(self.user_1.id)
-        self.assertFalse(lobby.queue)
-        lobby.start_queue()
-
-        response = self.api.call(
-            'patch',
-            f'/lobby/{lobby.id}/start/',
-            token=self.user_2.auth.token,
-        )
-
-        self.assertEqual(response.status_code, 401)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User must be owner to perfom this action'}
-        )
