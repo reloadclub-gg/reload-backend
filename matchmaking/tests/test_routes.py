@@ -334,3 +334,17 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertDictEqual(
             response.json(), {'detail': 'Lobby is queued caught on start lobby queue'}
         )
+
+    def test_lobby_cancel_queue(self):
+        lobby = Lobby.create(self.user_1.id)
+        self.assertFalse(lobby.queue)
+        lobby.start_queue()
+
+        response = self.api.call(
+            'patch',
+            f'/lobby/{lobby.id}/cancel/',
+            token=self.user_1.auth.token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(lobby.queue)
