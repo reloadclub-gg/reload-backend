@@ -131,8 +131,9 @@ def update_email(user: User, email: str) -> User:
 
     user_status_change(user)
     lobby = user.account.lobby
-    lobby.move(user.id, user.id, remove=True)
-    if lobby.players_count > 0:
-        lobby_update(lobby)
+    if lobby:
+        lobby.move(user.id, user.id, remove=True)
+        if lobby.players_count > 0:
+            lobby_update(lobby)
 
     return user
