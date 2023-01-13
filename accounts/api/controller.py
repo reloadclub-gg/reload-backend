@@ -43,9 +43,10 @@ def login(request, token: str) -> Auth:
 
 def logout(user: User) -> User:
     lobby = user.account.lobby
-    lobby.move(user.id, user.id, remove=True)
-    if lobby.players_count > 0:
-        lobby_update(lobby)
+    if lobby:
+        lobby.move(user.id, user.id, remove=True)
+        if lobby.players_count > 0:
+            lobby_update(lobby)
 
     user.auth.expire_session(seconds=0)
     user.save()
