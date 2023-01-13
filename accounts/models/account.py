@@ -16,7 +16,7 @@ User = get_user_model()
 class Account(models.Model):
 
     VERIFICATION_TOKEN_LENGTH = 6
-    DEBUG_VERIFICATION_TOKEN = "debug"
+    DEBUG_VERIFICATION_TOKEN = "debug0"
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     steamid = models.CharField(max_length=128)
