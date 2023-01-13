@@ -56,9 +56,9 @@ def user_detail(request):
 
 
 @router.post(
-    'change-user-email/',
+    'update-email/',
     auth=VerifiedRequiredAuth(),
     response={200: UserSchema, 422: UserSchema},
 )
-def change_user_email(request, payload: UpdateUserEmailSchema):
-    return controller.change_user_email(request.user, payload.email)
+def update_email(request, payload: UpdateUserEmailSchema):
+    return controller.update_email(request.user, payload.email)
