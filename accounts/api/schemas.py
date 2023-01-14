@@ -1,11 +1,11 @@
 from typing import List, Optional
 
 import pydantic
+from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
 
-from django.contrib.auth import get_user_model
-
 from steam import Steam
+
 from ..models import Account
 
 User = get_user_model()

@@ -13,35 +13,35 @@ spec:
         app: api-deployment
     spec:
       containers:
-      - name: api
-        image: registry.digitalocean.com/gta-mm-k8s/api:latest
-        imagePullPolicy: Always
-        envFrom:
-          - secretRef:
-              name: api-staging-env
-        ports:
-          - containerPort: 80
+        - name: api
+          image: registry.digitalocean.com/gta-mm-k8s/api:latest
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: api-staging-env
+          ports:
+            - containerPort: 80
       imagePullSecrets:
         - name: gta-mm-k8s
-
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: api-service
+  annotations:
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "https"
+    service.beta.kubernetes.io/do-loadbalancer-certificate-id: "531b4fa6-ae7e-4c84-b2d0-ea9ec6018a71"
 spec:
   type: LoadBalancer
   ports:
-    - name: http
+    - name: https
       protocol: TCP
-      port: 80
+      port: 443
       targetPort: 80
 
   selector:
     app: api-deployment
-
-
 #########################
 # For HTTP (change to this when we have a domain)
 
@@ -49,9 +49,9 @@ spec:
 # kind: Service
 # metadata:
 #   name: api-service
-#   annotations:
-#     service.beta.kubernetes.io/do-loadbalancer-protocol: "https"
-#     service.beta.kubernetes.io/do-loadbalancer-certificate-id: "api-self-cert"
+# annotations:
+#   service.beta.kubernetes.io/do-loadbalancer-protocol: "https"
+#   service.beta.kubernetes.io/do-loadbalancer-certificate-id: "api-self-cert"
 # spec:
 #   type: LoadBalancer
 #   ports:

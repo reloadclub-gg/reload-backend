@@ -1,14 +1,14 @@
-from ninja.errors import HttpError
-
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from ninja.errors import HttpError
 
-from core.utils import get_ip_address
-from websocket.controller import friendlist_add
 from appsettings.services import check_invite_required
-from ..models import Account, Invite, Auth, UserLogin
+from core.utils import get_ip_address
+from websocket.controller import friendlist_add, lobby_update, user_status_change
+
 from .. import utils
+from ..models import Account, Auth, Invite, UserLogin
 from .authorization import is_verified
 
 User = get_user_model()
@@ -39,6 +39,21 @@ def login(request, token: str) -> Auth:
         request.user = user
 
         return auth
+
+
+def logout(user: User) -> User:
+    lobby = user.account.lobby
+    if lobby:
+        lobby.move(user.id, user.id, remove=True)
+        if lobby.players_count > 0:
+            lobby_update(lobby)
+
+    user.auth.expire_session(seconds=0)
+    user.save()
+
+    user_status_change(user)
+
+    return user
 
 
 def create_fake_user(email: str) -> User:
@@ -99,11 +114,13 @@ def inactivate(user: User) -> None:
     Mark an user as inactive.
     Inactive users shouldn't be able to access any endpoint that requires authentication.
     """
+    logout(user)
+
     user.is_active = False
     user.save()
 
 
-def change_user_email(user: User, email: str) -> User:
+def update_email(user: User, email: str) -> User:
     """
     Change user email and inactive user
     """
@@ -112,5 +129,12 @@ def change_user_email(user: User, email: str) -> User:
 
     user.account.is_verified = False
     user.account.save()
+
+    user_status_change(user)
+    lobby = user.account.lobby
+    if lobby:
+        lobby.move(user.id, user.id, remove=True)
+        if lobby.players_count > 0:
+            lobby_update(lobby)
 
     return user

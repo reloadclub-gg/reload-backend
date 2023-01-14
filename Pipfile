@@ -26,6 +26,8 @@ boto3 = "*"
 django-storages = "*"
 python-decouple = "*"
 black = "*"
+isort = "*"
+daphne = "*"
 
 [dev-packages]
 
@@ -48,7 +50,8 @@ collectstatic = "python ./manage.py collectstatic --no-input"
 createsuperuser = "python ./manage.py createsuperuser --email $SUPERUSER_USERNAME --no-input"
 reset-db = "sh -c 'python ./manage.py reset_db --noinput && python ./manage.py migrate --noinput'"
 shell = "python ./manage.py shell"
-test = "python ./manage.py test"
+test = "python ./manage.py test -v 2"
 test-w-coverage = "sh -c 'coverage run manage.py test --noinput && coverage report'"
 start = "uvicorn --host 0.0.0.0 --port 80 --reload --workers 2 core.asgi:application"
 format = "black -S ."
+sort-imports = "isort --profile=black --skip-glob='**/migrations/*.py' --skip-glob='**/models/__init__.py' ."

@@ -1,7 +1,9 @@
 from collections.abc import Callable
 from functools import wraps
+
 from django.contrib.auth import get_user_model
 from ninja.errors import HttpError
+
 from ..models import Lobby
 
 User = get_user_model()
@@ -27,9 +29,8 @@ def owner_required(f: Callable) -> Callable:
 
     @wraps(f)
     def wrapper(*args, **kwds):
-        ...
         request = args[0]
-        lobby_id = args[1]
+        lobby_id = kwds.get('lobby_id')
 
         if is_lobby_owner(request.user, lobby_id):
             return f(*args, **kwds)
@@ -47,9 +48,8 @@ def participant_required(f: Callable) -> Callable:
 
     @wraps(f)
     def wrapper(*args, **kwds):
-        ...
         request = args[0]
-        lobby_id = args[1]
+        lobby_id = kwds.get('lobby_id')
 
         if is_lobby_participant(request.user, lobby_id):
             return f(*args, **kwds)

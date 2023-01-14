@@ -1,7 +1,5 @@
 import secrets
 
-from social_django.models import UserSocialAuth
-
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -9,6 +7,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
+from social_django.models import UserSocialAuth
 
 from .models import Auth
 

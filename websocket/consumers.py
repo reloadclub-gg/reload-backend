@@ -1,6 +1,5 @@
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-
 from django.conf import settings
 
 from . import auth
@@ -18,7 +17,6 @@ class JsonAuthWebsocketConsumer(AsyncJsonWebsocketConsumer):
         """
 
         self.user = await sync_to_async(auth.authenticate)(self.scope)
-        print(self.user)
         if not self.user:
             return await self.close()
 

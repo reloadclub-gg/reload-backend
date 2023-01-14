@@ -6,7 +6,7 @@ on:
   push:
 
 jobs:
-  lint_and_test:
+  check_migrations:
     runs-on: ubuntu-latest
     env:
       DJANGO_SECRET_KEY: unsafe_secret_key
@@ -39,31 +39,128 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.8]
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.8"
 
-    - name: Install dependencies
-      run: |
-        sudo pip install pipenv
-        pipenv install
+      - name: Install dependencies
+        run: |
+          sudo pip install pipenv
+          pipenv install
 
-    - name: Check migrations
-      run: |
-        pipenv run python manage.py makemigrations --check --dry-run
+      - name: Check migrations
+        run: |
+          pipenv run python manage.py makemigrations --check --dry-run
 
-    - name: Lint
-      run: |
-        pipenv run lint
+      - name: Lint
+        run: |
+          pipenv run lint
 
-    - name: Run tests
-      run: |
-        pipenv run test-w-coverage
+      - name: Run tests
+        run: |
+          pipenv run test-w-coverage
+
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SECRET_KEY: unsafe_secret_key
+      REDIS_HOST: localhost
+      DATABASE_HOST: localhost
+      DATABASE_PASSWORD: postgres
+      DATABASE_USER: root
+      DATABASE_NAME: github_job
+      DATABASE_IGNORE_SSL: 1
+    services:
+      db:
+        image: postgres:14
+        env:
+          POSTGRES_USER: ${{ env.DATABASE_USER }}
+          POSTGRES_PASSWORD: ${{ env.DATABASE_PASSWORD }}
+          POSTGRES_DB: ${{ env.DATABASE_NAME }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.8"
+
+      - name: Install dependencies
+        run: |
+          sudo pip install pipenv
+          pipenv install
+
+      - name: Lint
+        run: |
+          pipenv run lint
+
+      - name: Run tests
+        run: |
+          pipenv run test-w-coverage
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SECRET_KEY: unsafe_secret_key
+      REDIS_HOST: localhost
+      DATABASE_HOST: localhost
+      DATABASE_PASSWORD: postgres
+      DATABASE_USER: root
+      DATABASE_NAME: github_job
+      DATABASE_IGNORE_SSL: 1
+    services:
+      db:
+        image: postgres:14
+        env:
+          POSTGRES_USER: ${{ env.DATABASE_USER }}
+          POSTGRES_PASSWORD: ${{ env.DATABASE_PASSWORD }}
+          POSTGRES_DB: ${{ env.DATABASE_NAME }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.8"
+
+      - name: Install dependencies
+        run: |
+          sudo pip install pipenv
+          pipenv install
+
+      - name: Run tests
+        run: |
+          pipenv run test-w-coverage

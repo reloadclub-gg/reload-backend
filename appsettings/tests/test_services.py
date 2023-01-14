@@ -1,6 +1,7 @@
-from ..services import check_invite_required
-from ..models import AppSettings
 from core.tests import TestCase
+
+from ..models import AppSettings
+from ..services import check_invite_required
 
 
 class CheckInviteRequiredTestCase(TestCase):

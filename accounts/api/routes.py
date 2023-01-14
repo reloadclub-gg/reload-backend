@@ -1,18 +1,17 @@
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from ninja import Router
 from ninja.errors import HttpError
 
-from django.conf import settings
-from django.contrib.auth import get_user_model
-
 from . import controller
-from .authentication import VerifiedRequiredAuth, VerifiedExemptAuth
+from .authentication import VerifiedExemptAuth, VerifiedRequiredAuth
 from .schemas import (
     FakeSignUpSchema,
     FakeUserSchema,
-    UserSchema,
     SignUpSchema,
-    VerifyUserEmailSchema,
     UpdateUserEmailSchema,
+    UserSchema,
+    VerifyUserEmailSchema,
 )
 
 User = get_user_model()
@@ -51,15 +50,15 @@ def account_verification(request, payload: VerifyUserEmailSchema):
     return controller.verify_account(request.user, payload.verification_token)
 
 
-@router.get('auth/', auth=VerifiedRequiredAuth(), response=UserSchema)
+@router.get('auth/', auth=VerifiedExemptAuth(), response=UserSchema)
 def user_detail(request):
     return request.user
 
 
-@router.post(
-    'change-user-email/',
-    auth=VerifiedRequiredAuth(),
+@router.patch(
+    'update-email/',
+    auth=VerifiedExemptAuth(),
     response={200: UserSchema, 422: UserSchema},
 )
-def change_user_email(request, payload: UpdateUserEmailSchema):
-    return controller.change_user_email(request.user, payload.email)
+def update_email(request, payload: UpdateUserEmailSchema):
+    return controller.update_email(request.user, payload.email)

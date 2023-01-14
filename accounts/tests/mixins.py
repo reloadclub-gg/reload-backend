@@ -1,8 +1,7 @@
 import random
 
-from model_bakery import baker
-
 from django.contrib.auth import get_user_model
+from model_bakery import baker
 
 from ..models import Account
 from ..utils import create_social_auth
@@ -27,6 +26,13 @@ class AccountOneMixin(UserOneMixin):
     def setUpTestData(cls):
         super(AccountOneMixin, cls).setUpTestData()
         cls.account = baker.make(Account, user=cls.user)
+
+
+class VerifiedAccountMixin(UserOneMixin):
+    @classmethod
+    def setUpTestData(cls):
+        super(VerifiedAccountMixin, cls).setUpTestData()
+        cls.account = baker.make(Account, user=cls.user, is_verified=True)
 
 
 class UserWithFriendsMixin(AccountOneMixin):

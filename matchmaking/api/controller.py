@@ -1,11 +1,14 @@
-from ninja.errors import HttpError
 from django.contrib.auth import get_user_model
-from ..models import Lobby, LobbyException
+from ninja.errors import HttpError
+
+from websocket import controller as ws_controller
+
+from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
 
 User = get_user_model()
 
 
-def lobby_remove(request_user_id: int, lobby_id: int, user_id: int) -> Lobby:
+def lobby_remove_player(request_user_id: int, lobby_id: int, user_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     if request_user_id not in lobby.players_ids or user_id not in lobby.players_ids:
@@ -15,47 +18,51 @@ def lobby_remove(request_user_id: int, lobby_id: int, user_id: int) -> Lobby:
         raise HttpError(400, 'User must be owner to perform this action')
 
     Lobby.move(user_id, to_lobby_id=user_id)
+    ws_controller.lobby_update(lobby)
+
+    user = User.objects.get(pk=user_id)
+    ws_controller.user_status_change(user)
 
     return lobby
 
 
-def lobby_invite(user: User, lobby_id: int, player_id: int) -> Lobby:
+def lobby_invite(user: User, lobby_id: int, player_id: int) -> LobbyInvite:
     lobby = Lobby(owner_id=lobby_id)
 
-    if user.account.lobby.id != lobby.id:
-        raise HttpError(400, 'User must be owner to perfom this action')
+    try:
+        invite = lobby.invite(user.id, player_id)
+        ws_controller.lobby_player_invite(invite)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
 
-    if player_id in lobby.invites:
-        raise HttpError(400, 'Player id has already been invited')
-
-    if player_id in lobby.players_ids:
-        raise HttpError(400, 'User already in lobby')
-
-    lobby.invite(player_id)
-
-    return lobby
+    return invite
 
 
-def lobby_accept_invite(user: User, lobby_id: int):
+def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     if user.id in lobby.players_ids:
-        lobby.delete_invite(user.id)
+        lobby.delete_invite(invite_id)
     else:
         try:
             lobby.move(user.id, lobby_id)
         except LobbyException as exc:
             raise HttpError(400, str(exc))
 
+        ws_controller.lobby_update(lobby)
+        ws_controller.user_status_change(user)
+
     return lobby
 
 
-def lobby_refuse_invite(user: User, lobby_id: int):
+def lobby_refuse_invite(lobby_id: int, invite_id: str):
     lobby = Lobby(owner_id=lobby_id)
 
     try:
-        lobby.delete_invite(user.id)
-    except LobbyException as exc:
+        invite = LobbyInvite.get(lobby_id, invite_id)
+        ws_controller.lobby_player_refuse_invite(invite)
+        lobby.delete_invite(invite_id)
+    except (LobbyException, LobbyInviteException) as exc:
         raise HttpError(400, str(exc))
 
     return lobby
@@ -63,7 +70,7 @@ def lobby_refuse_invite(user: User, lobby_id: int):
 
 def lobby_change_type_and_mode(
     user: User, lobby_id: int, lobby_type: str, lobby_mode: int
-):
+) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     if user.account.lobby.id != lobby.owner_id:
@@ -75,10 +82,12 @@ def lobby_change_type_and_mode(
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    ws_controller.lobby_update(lobby)
+
     return lobby
 
 
-def lobby_enter(user: User, lobby_id: int):
+def lobby_enter(user: User, lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -86,22 +95,57 @@ def lobby_enter(user: User, lobby_id: int):
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    ws_controller.lobby_update(lobby)
+    ws_controller.user_status_change(user)
+
     return lobby
 
 
-def set_public(user: User):
+def set_public(user: User) -> Lobby:
     if user.account.lobby.owner_id != user.id:
         raise HttpError(400, 'User must be owner to perfom this action')
 
     user.account.lobby.set_public()
+    ws_controller.lobby_update(user.account.lobby)
 
     return user.account.lobby
 
 
-def set_private(user: User):
+def set_private(user: User) -> Lobby:
     if user.account.lobby.owner_id != user.id:
         raise HttpError(400, 'User must be owner to perfom this action')
 
     user.account.lobby.set_private()
+    ws_controller.lobby_update(user.account.lobby)
 
     return user.account.lobby
+
+
+def lobby_leave(user: User) -> User:
+    lobby = user.account.lobby
+    Lobby.move(user.id, to_lobby_id=user.id)
+
+    ws_controller.lobby_update(lobby)
+
+    user = User.objects.get(pk=user.id)
+    ws_controller.user_status_change(user)
+
+    return user
+
+
+def lobby_start_queue(lobby_id: int):
+    lobby = Lobby(owner_id=lobby_id)
+
+    try:
+        lobby.start_queue()
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
+
+    return lobby
+
+
+def lobby_cancel_queue(lobby_id: int):
+    lobby = Lobby(owner_id=lobby_id)
+    lobby.cancel_queue()
+
+    return lobby

@@ -1,8 +1,10 @@
 from asgiref.sync import async_to_sync
-
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema
+from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
+from matchmaking.models import Lobby, LobbyInvite
+
 from .utils import ws_send
 
 User = get_user_model()
@@ -27,3 +29,24 @@ def friendlist_add(friend: User):
     online_friends_ids = [account.user.id for account in friend.account.online_friends]
     payload = FriendAccountSchema.from_orm(friend.account).dict()
     async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=online_friends_ids)
+
+
+def lobby_update(lobby: Lobby):
+    payload = LobbySchema.from_orm(lobby).dict()
+    async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=lobby.players_ids)
+
+
+def lobby_player_invite(invite: LobbyInvite):
+    """
+    Event called when a player invites other to lobby.
+    """
+    payload = LobbyInviteSchema.from_orm(invite).dict()
+    async_to_sync(ws_send)('ws_lobbyInviteReceived', payload, groups=[invite.to_id])
+
+
+def lobby_player_refuse_invite(invite: LobbyInvite):
+    """
+    Event called when a player refuse invite to entry lobby.
+    """
+    payload = LobbyInviteSchema.from_orm(invite).dict()
+    async_to_sync(ws_send)('ws_refuseInvite', payload, groups=[invite.from_id])

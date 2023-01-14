@@ -2,8 +2,9 @@ from unittest import mock
 
 from core.tests import TestCase
 from matchmaking.models import Lobby
-from . import mixins
+
 from .. import tasks
+from . import mixins
 
 
 class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):

@@ -2,8 +2,10 @@ from django.contrib.auth import get_user_model
 
 from accounts.models import Auth
 from accounts.tasks import watch_user_status_change
-from core.utils import get_url_param
 from core.redis import RedisClient
+from core.utils import get_url_param
+from matchmaking.models import Lobby
+
 from .controller import user_status_change
 
 User = get_user_model()
@@ -49,6 +51,7 @@ def authenticate(scope: dict) -> User:
 
     if notify_became_online:
         user_status_change(user)
+        Lobby.create(user.id)
 
     return user
 
