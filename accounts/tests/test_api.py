@@ -97,12 +97,12 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.inactivate(self.user)
         self.assertFalse(self.user.is_active)
 
-    def test_change_user_email(self):
+    def test_update_email(self):
         self.user.account.is_verified = True
         self.user.account.save()
         self.user.auth.add_session()
         Lobby.create(self.user.id)
-        controller.change_user_email(self.user, 'new@email.com')
+        controller.update_email(self.user, 'new@email.com')
 
     def test_logout(self):
         self.user.auth.add_session()
@@ -315,7 +315,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(r.status_code, 422)
         self.assertEqual(error_msg, 'field must be valid')
 
-    def test_change_user_email(self):
+    def test_update_email(self):
         baker.make(Account, user=self.user, is_verified=True)
         self.user.account.is_verified = True
         self.user.account.save()
@@ -324,7 +324,7 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         Lobby.create(self.user.id)
         payload = {'email': 'new@email.com'}
         response = self.api.call(
-            'post', '/change-user-email', data=payload, token=self.user.auth.token
+            'patch', '/update-email', data=payload, token=self.user.auth.token
         )
 
         self.user.refresh_from_db()
@@ -333,12 +333,12 @@ class AccountsEndpointsTestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(self.user.email, 'new@email.com')
         self.assertFalse(self.user.account.is_verified)
 
-    def test_change_user_email_with_same_email(self):
+    def test_update_email_with_same_email(self):
         baker.make(Account, user=self.user, is_verified=True)
         self.user.auth.create_token()
         payload = {'email': self.user.email}
         response = self.api.call(
-            'post', '/change-user-email', data=payload, token=self.user.auth.token
+            'patch', '/update-email', data=payload, token=self.user.auth.token
         )
 
         self.user.refresh_from_db()

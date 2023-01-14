@@ -5,8 +5,7 @@ from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.utils import get_ip_address
-from websocket.controller import (friendlist_add, lobby_update,
-                                  user_status_change)
+from websocket.controller import friendlist_add, lobby_update, user_status_change
 
 from .. import utils
 from ..models import Account, Auth, Invite, UserLogin
@@ -120,7 +119,7 @@ def inactivate(user: User) -> None:
     user.save()
 
 
-def change_user_email(user: User, email: str) -> User:
+def update_email(user: User, email: str) -> User:
     """
     Change user email and inactive user
     """
