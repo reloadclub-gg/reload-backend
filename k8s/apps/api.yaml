@@ -42,23 +42,3 @@ spec:
 
   selector:
     app: api-deployment
-#########################
-# For HTTP (change to this when we have a domain)
-
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: api-service
-# annotations:
-#   service.beta.kubernetes.io/do-loadbalancer-protocol: "https"
-#   service.beta.kubernetes.io/do-loadbalancer-certificate-id: "api-self-cert"
-# spec:
-#   type: LoadBalancer
-#   ports:
-#     - name: https
-#       protocol: TCP
-#       port: 443
-#       targetPort: 80
-
-#   selector:
-#     app: api-deployment
