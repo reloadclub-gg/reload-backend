@@ -37,3 +37,7 @@ reset-migrations:
 pipinstall:
 	docker-compose run --rm django pipenv install $(params)
 	make reset
+
+pipremove:
+	docker-compose run --rm django pipenv uninstall $(params)
+	make reset
