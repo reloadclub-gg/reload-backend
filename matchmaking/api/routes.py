@@ -4,6 +4,7 @@ from accounts.api.authentication import VerifiedRequiredAuth
 from accounts.api.schemas import UserSchema
 
 from . import controller
+from .authorization import owner_required
 from .schemas import LobbyInviteSchema, LobbySchema
 
 router = Router(tags=['mm'])
@@ -87,3 +88,19 @@ def lobby_change_type_and_mode(
 )
 def lobby_enter(request, lobby_id: int):
     return controller.lobby_enter(request.user, lobby_id)
+
+
+@router.patch(
+    'lobby/{lobby_id}/start/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+)
+@owner_required
+def lobby_start_queue(request, lobby_id: int):
+    return controller.lobby_start_queue(lobby_id)
+
+
+@router.patch(
+    'lobby/{lobby_id}/cancel/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+)
+@owner_required
+def lobby_cancel_queue(request, lobby_id: int):
+    return controller.lobby_cancel_queue(lobby_id)

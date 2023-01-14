@@ -186,3 +186,30 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         self.assertEqual(lobby_1.players_count, 1)
         self.assertEqual(lobby_2.players_count, 1)
+
+    def test_lobby_start_queue(self):
+        lobby = Lobby.create(self.user_1.id)
+        self.assertFalse(lobby.queue)
+
+        controller.lobby_start_queue(lobby.id)
+
+        self.assertTrue(lobby.queue)
+
+    def test_lobby_start_queue_with_queued(self):
+        lobby = Lobby.create(self.user_1.id)
+        self.assertFalse(lobby.queue)
+        lobby.start_queue()
+
+        with self.assertRaisesMessage(
+            HttpError, 'Lobby is queued caught on start lobby queue'
+        ):
+            controller.lobby_start_queue(lobby.id)
+
+    def test_lobby_cancel_queue(self):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.start_queue()
+        self.assertTrue(lobby.queue)
+
+        controller.lobby_cancel_queue(lobby.id)
+
+        self.assertFalse(lobby.queue)

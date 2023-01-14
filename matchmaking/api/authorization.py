@@ -29,9 +29,8 @@ def owner_required(f: Callable) -> Callable:
 
     @wraps(f)
     def wrapper(*args, **kwds):
-        ...
         request = args[0]
-        lobby_id = args[1]
+        lobby_id = kwds.get('lobby_id')
 
         if is_lobby_owner(request.user, lobby_id):
             return f(*args, **kwds)
@@ -49,9 +48,8 @@ def participant_required(f: Callable) -> Callable:
 
     @wraps(f)
     def wrapper(*args, **kwds):
-        ...
         request = args[0]
-        lobby_id = args[1]
+        lobby_id = kwds.get('lobby_id')
 
         if is_lobby_participant(request.user, lobby_id):
             return f(*args, **kwds)
