@@ -237,7 +237,7 @@ if os.getenv('SENTRY_DSN'):
 
 
 # Channels Settings
-CHANNEL_REDIS_DB = config('CELERY_REDIS_DB', default=10, cast=int)
+CHANNEL_REDIS_DB = config('CHANNEL_REDIS_DB', default=10, cast=int)
 CHANNEL_REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 CHANNEL_REDIS_CONN_STR = '{}://{}:{}@{}:{}/{}'.format(
     CHANNEL_REDIS_CONN_PROTOCOL,
@@ -249,7 +249,7 @@ CHANNEL_REDIS_CONN_STR = '{}://{}:{}@{}:{}/{}'.format(
 )
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'BACKEND': 'channels_redis.pubsub.RedisPubSubChannelLayer',
         'CONFIG': {'hosts': [CHANNEL_REDIS_CONN_STR]},
     },
 }
