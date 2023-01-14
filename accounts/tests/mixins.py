@@ -28,6 +28,13 @@ class AccountOneMixin(UserOneMixin):
         cls.account = baker.make(Account, user=cls.user)
 
 
+class VerifiedAccountMixin(UserOneMixin):
+    @classmethod
+    def setUpTestData(cls):
+        super(VerifiedAccountMixin, cls).setUpTestData()
+        cls.account = baker.make(Account, user=cls.user, is_verified=True)
+
+
 class UserWithFriendsMixin(AccountOneMixin):
     @classmethod
     def setUpTestData(cls):
