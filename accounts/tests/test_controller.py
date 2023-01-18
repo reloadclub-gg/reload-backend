@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.http.response import Http404
 from model_bakery import baker
 from ninja import Schema
@@ -99,6 +101,20 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.user.auth.add_session()
         Lobby.create(self.user.id)
         controller.update_email(self.user, 'new@email.com')
+        self.assertFalse(self.user.account.is_verified)
+        self.assertEqual(self.user.email, 'new@email.com')
+
+    @mock.patch(
+        'accounts.utils.send_verify_account_mail',
+        return_value=True,
+    )
+    def test_update_email_should_send_verification_email(self, mocker):
+        self.user.account.is_verified = True
+        self.user.account.save()
+        self.user.auth.add_session()
+        Lobby.create(self.user.id)
+        controller.update_email(self.user, 'new@email.com')
+        mocker.assert_called_once()
 
     def test_logout(self):
         self.user.auth.add_session()
