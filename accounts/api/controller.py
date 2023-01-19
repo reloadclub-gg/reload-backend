@@ -4,7 +4,7 @@ from django.utils import timezone
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
-from core.utils import get_ip_address
+from core.utils import generate_random_string, get_ip_address
 from websocket.controller import friendlist_add, lobby_update, user_status_change
 
 from .. import utils
@@ -126,9 +126,15 @@ def update_email(user: User, email: str) -> User:
     """
     user.email = email
     user.save()
-
+    user.account.verification_token = generate_random_string(
+        length=Account.VERIFICATION_TOKEN_LENGTH
+    )
     user.account.is_verified = False
     user.account.save()
+
+    utils.send_verify_account_mail(
+        user.email, user.steam_user.username, user.account.verification_token
+    )
 
     user_status_change(user)
     lobby = user.account.lobby
