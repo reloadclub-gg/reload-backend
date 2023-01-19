@@ -225,14 +225,17 @@ REDIS_SSL = config('REDIS_SSL', default=False, cast=bool)
 
 
 # Sentry Settings
-if os.getenv('SENTRY_DSN'):
+if config('SENTRY_DSN', default=None):
     sentry_sdk.init(
-        dsn=os.getenv('SENTRY_DSN'),
+        dsn=config('SENTRY_DSN', default=''),
         integrations=[
             DjangoIntegration(),
         ],
-        traces_sample_rate=os.getenv('SENTRY_SAMPLE_RATE', 0.1),
+        traces_sample_rate=config('SENTRY_SAMPLE_RATE', default=1.0),
         send_default_pii=True,
+        environment=ENVIRONMENT,
+        attach_stacktrace=True,
+        debug=DEBUG,
     )
 
 
