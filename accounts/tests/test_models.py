@@ -6,6 +6,7 @@ from model_bakery import baker
 from social_django.models import UserSocialAuth
 
 from core.tests import TestCase, cache
+from matchmaking.models import Lobby
 
 from .. import models, utils
 from ..models.auth import AuthConfig
@@ -121,7 +122,7 @@ class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
         self.assertRaises(ValidationError, invite.clean)
 
 
-class AccountsUserModelTestCase(mixins.AccountOneMixin, TestCase):
+class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
     def test_user_steam_user(self):
         user = baker.make(models.User)
         self.assertIsNone(user.steam_user)
@@ -138,6 +139,25 @@ class AccountsUserModelTestCase(mixins.AccountOneMixin, TestCase):
         self.assertTrue(self.user.is_online)
         self.user.auth.remove_session()
         self.assertTrue(self.user.is_online)
+
+    def test_user_status(self):
+        self.assertEqual(self.user.status, 'offline')
+        self.user.auth.add_session()
+        self.assertEqual(self.user.status, 'online')
+        Lobby.create(self.user.id)
+        self.assertEqual(self.user.status, 'online')
+
+        with mock.patch(
+            'matchmaking.models.lobby.Lobby.players_count',
+            new_callable=mock.PropertyMock,
+        ) as mocker:
+            mocker.return_value = 2
+            self.assertEqual(self.user.status, 'teaming')
+
+        self.user.account.lobby.start_queue()
+        self.assertEqual(self.user.status, 'queued')
+        self.user.account.lobby.cancel_queue()
+        self.assertEqual(self.user.status, 'online')
 
 
 class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):
