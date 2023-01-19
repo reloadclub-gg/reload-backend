@@ -142,7 +142,10 @@ if ENVIRONMENT != LOCAL:
                 'level': 'INFO',
                 'class': 'logging.handlers.SysLogHandler',
                 'formatter': 'simple',
-                'address': ('logs3.papertrailapp.com', 28882),
+                'address': (
+                    config('PAPERTRAIL_ADDRESS'),
+                    config('PAPERTRAIL_PORT', cast=int),
+                ),
             },
         },
         'formatters': {
