@@ -14,7 +14,6 @@ User = get_user_model()
 
 
 class Account(models.Model):
-
     VERIFICATION_TOKEN_LENGTH = 6
     DEBUG_VERIFICATION_TOKEN = "debug0"
 
@@ -30,7 +29,6 @@ class Account(models.Model):
 
     def save(self, *args, **kwargs):
         if self._state.adding:
-
             if not self.user.steam_user:
                 raise ValidationError("User Steam account association is missing.")
 
@@ -75,7 +73,6 @@ class Account(models.Model):
 
 
 class Invite(models.Model):
-
     MAX_INVITES_PER_ACCOUNT = 4
 
     owned_by = models.ForeignKey(Account, on_delete=models.CASCADE)
