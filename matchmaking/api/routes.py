@@ -4,7 +4,7 @@ from accounts.api.authentication import VerifiedRequiredAuth
 from accounts.api.schemas import UserSchema
 
 from . import controller
-from .authorization import owner_required
+from .authorization import owner_required, participant_required
 from .schemas import LobbyInviteSchema, LobbySchema
 
 router = Router(tags=['mm'])
@@ -16,17 +16,24 @@ def lobby_leave(request):
 
 
 @router.patch(
-    'lobby/set-public/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+    'lobby/{lobby_id}/set-public/',
+    auth=VerifiedRequiredAuth(),
+    response={200: LobbySchema},
 )
-def lobby_set_public(request):
-    return controller.set_public(request.user)
+@owner_required
+def lobby_set_public(request, lobby_id: int):
+    print(lobby_id)
+    return controller.set_public(lobby_id=lobby_id)
 
 
 @router.patch(
-    'lobby/set-private/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+    'lobby/{lobby_id}/set-private/',
+    auth=VerifiedRequiredAuth(),
+    response={200: LobbySchema},
 )
-def lobby_set_private(request):
-    return controller.set_private(request.user)
+@owner_required
+def lobby_set_private(request, lobby_id: int):
+    return controller.set_private(lobby_id=lobby_id)
 
 
 @router.patch(
@@ -34,10 +41,9 @@ def lobby_set_private(request):
     auth=VerifiedRequiredAuth(),
     response={200: LobbySchema},
 )
+@owner_required
 def lobby_remove_player(request, lobby_id: int, user_id: int):
-    return controller.lobby_remove_player(
-        request_user_id=request.user.id, lobby_id=lobby_id, user_id=user_id
-    )
+    return controller.lobby_remove_player(lobby_id=lobby_id, user_id=user_id)
 
 
 @router.post(
@@ -45,9 +51,10 @@ def lobby_remove_player(request, lobby_id: int, user_id: int):
     auth=VerifiedRequiredAuth(),
     response={201: LobbyInviteSchema},
 )
+@participant_required
 def lobby_invite(request, lobby_id: int, player_id: int):
     return controller.lobby_invite(
-        user=request.user, lobby_id=lobby_id, player_id=player_id
+        lobby_id=lobby_id, from_user_id=request.user.id, to_user_id=player_id
     )
 
 
@@ -75,12 +82,11 @@ def lobby_refuse_invite(request, lobby_id: int, invite_id: str):
     auth=VerifiedRequiredAuth(),
     response={200: LobbySchema},
 )
+@owner_required
 def lobby_change_type_and_mode(
     request, lobby_id: int, lobby_type: str, lobby_mode: int
 ):
-    return controller.lobby_change_type_and_mode(
-        request.user, lobby_id, lobby_type, lobby_mode
-    )
+    return controller.lobby_change_type_and_mode(lobby_id, lobby_type, lobby_mode)
 
 
 @router.patch(
