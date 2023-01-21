@@ -91,7 +91,6 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
             token=invited_user.auth.token,
         )
         self.assertEqual(r.status_code, 403)
-        self.assertEqual(r.json().get('detail'), 'Must be invited')
 
     def test_signup_with_existing_account(self):
         baker.make(Account, user=self.user)
@@ -103,7 +102,6 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
             token=self.user.auth.token,
         )
         self.assertEqual(r.status_code, 403)
-        self.assertEqual(r.json().get('detail'), 'User already has an account')
 
     def test_signup_with_friends(self):
         account = baker.make(Account, user=self.user, is_verified=True)
@@ -251,4 +249,3 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         invited_user.refresh_from_db()
 
         self.assertEqual(response.status_code, 403)
-        self.assertDictEqual(response.json(), {'detail': 'Must be invited'})

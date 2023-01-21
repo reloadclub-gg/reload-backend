@@ -73,7 +73,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
 
     def test_signup_not_invited(self):
         user = baker.make(User)
-        with self.assertRaisesRegex(HttpError, 'Must be invited'):
+        with self.assertRaises(HttpError):
             controller.signup(user, email=user.email)
 
     def test_verify_account(self):

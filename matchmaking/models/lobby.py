@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
 from core.redis import RedisClient
@@ -132,10 +133,12 @@ class Lobby(BaseModel):
         The overall is the highest level among the players levels.
         """
         return max(
-            [
-                user.account.level
-                for user in User.objects.filter(id__in=self.players_ids)
-            ]
+            list(
+                User.objects.filter(id__in=self.players_ids).values_list(
+                    'account__level', flat=True
+                )
+            )
+            or [0]
         )
 
     @property
@@ -179,33 +182,25 @@ class Lobby(BaseModel):
         """
         filter = User.objects.filter(pk=owner_id)
         if not filter.exists():
-            raise LobbyException('User not found caught on lobby creation')
+            raise LobbyException(_('User not found.'))
 
         user = filter[0]
         if not hasattr(user, 'account') or not user.account.is_verified:
             raise LobbyException(
-                'User don\'t have a verified account caught on lobby creation'
+                _('A verified account is required to perform this action.')
             )
 
         if not user.is_online:
-            raise LobbyException('Offline user caught on lobby creation')
+            raise LobbyException(_('Offline user.'))
 
         if lobby_type is not None and lobby_type not in Lobby.Config.TYPES:
-            avail_types = ','.join(Lobby.Config.TYPES)
-            raise LobbyException(
-                f'Type unknown, should be one of the following: {avail_types}'
-            )
+            raise LobbyException(_('The given type is not valid.'))
 
         if not lobby_type:
             lobby_type = Lobby.Config.TYPES[0]
 
         if mode is not None and mode not in Lobby.Config.MODES[lobby_type].get('modes'):
-            avail_modes = ','.join(
-                str(x) for x in Lobby.Config.MODES.get(lobby_type).get('modes')
-            )
-            raise LobbyException(
-                f'Mode unknown, should be one of the following: {avail_modes}'
-            )
+            raise LobbyException(_('The given mode is not valid.'))
 
         if not mode:
             mode = Lobby.Config.MODES.get(lobby_type).get('default')
@@ -239,12 +234,12 @@ class Lobby(BaseModel):
 
         def transaction_pre(pipe):
             if not pipe.get(from_lobby.cache_key) or not pipe.get(to_lobby.cache_key):
-                raise LobbyException('Lobby not found caught on lobby move')
+                raise LobbyException(_('Lobby not found.'))
 
-        def transaction_operations(pipe, _):
+        def transaction_operations(pipe, rpe_result):
             filter = User.objects.filter(pk=player_id)
             if not filter.exists():
-                raise LobbyException('User not found caught on lobby move')
+                raise LobbyException(_('User not found.'))
 
             if not remove:
                 joining_player = filter[0]
@@ -253,14 +248,14 @@ class Lobby(BaseModel):
                     or not joining_player.account.is_verified
                 ):
                     raise LobbyException(
-                        'User don\'t have a verified account caught on lobby move'
+                        _('A verified account is required to perform this action.')
                     )
 
                 if not joining_player.is_online:
-                    raise LobbyException('Offline user caught on lobby move')
+                    raise LobbyException(_('Offline user.'))
 
                 if from_lobby.queue or to_lobby.queue:
-                    raise LobbyException('Lobby is queued caught on lobby move')
+                    raise LobbyException(_('Lobby is queued.'))
 
                 is_owner = to_lobby.owner_id == player_id
                 can_join = (
@@ -270,10 +265,10 @@ class Lobby(BaseModel):
                 )
 
                 if not to_lobby.seats:
-                    raise LobbyException('Lobby is full caught on lobby move')
+                    raise LobbyException(_('Lobby is full.'))
 
                 if not can_join:
-                    raise LobbyException('User not invited caught on lobby move')
+                    raise LobbyException(_('User must be invited.'))
 
             if from_lobby_id != to_lobby_id:
                 pipe.srem(f'{from_lobby.cache_key}:players', player_id)
@@ -336,10 +331,10 @@ class Lobby(BaseModel):
         """
 
         if not self.seats:
-            raise LobbyException('Lobby is full caught on lobby invite')
+            raise LobbyException(_('Lobby is full.'))
 
         if self.queue:
-            raise LobbyException('Lobby is queued caught on lobby invite')
+            raise LobbyException(_('Lobby is queued.'))
 
         def transaction_pre(pipe):
             can_invite = pipe.sismember(f'{self.cache_key}:players', from_player_id)
@@ -351,26 +346,28 @@ class Lobby(BaseModel):
             can_invite, already_player, already_invited = pre_result
 
             if not can_invite:
-                raise LobbyException('User cannot invite caught on lobby invite')
+                raise LobbyException(
+                    'Usuário não tem permissão para realizar essa ação.'
+                )
 
             if already_player:
-                raise LobbyException('User already on lobby caught on lobby invite')
+                raise LobbyException(_('Invited user is already a lobby player.'))
 
             if already_invited:
-                raise LobbyException('User already invited caught on lobby invite')
+                raise LobbyException(_('User already invited.'))
 
             filter = User.objects.filter(pk=to_player_id)
             if not filter.exists():
-                raise LobbyException('User not found caught on lobby invite')
+                raise LobbyException(_('User not found.'))
 
             invited = filter[0]
             if not hasattr(invited, 'account') or not invited.account.is_verified:
                 raise LobbyException(
-                    'User don\'t have a verified account caught on lobby invite'
+                    _('A verified account is required to perform this action.')
                 )
 
             if not invited.is_online:
-                raise LobbyException('Offline user caught on lobby invite')
+                raise LobbyException(_('Offline user.'))
 
             pipe.sadd(f'{self.cache_key}:invites', f'{from_player_id}:{to_player_id}')
 
@@ -410,9 +407,9 @@ class Lobby(BaseModel):
         invite = cache.sismember(f'{self.cache_key}:invites', invite_id)
 
         if not invite:
-            raise LobbyException('Inexistent invite caught on invite deletion')
+            raise LobbyException(_('Invite not found.'))
 
-        def transaction_operations(pipe, _):
+        def transaction_operations(pipe, pre_result):
             pipe.srem(f'{self.cache_key}:invites', invite_id)
 
         cache.protected_handler(transaction_operations, f'{self.cache_key}:invites')
@@ -422,9 +419,9 @@ class Lobby(BaseModel):
         Add lobby to the queue.
         """
         if self.queue:
-            raise LobbyException('Lobby is queued caught on start lobby queue')
+            raise LobbyException(_('Lobby is queued.'))
 
-        def transaction_operations(pipe, _):
+        def transaction_operations(pipe, pre_result):
             pipe.set(f'{self.cache_key}:queue', timezone.now().isoformat())
             pipe.delete(f'{self.cache_key}:invites')
 
@@ -446,7 +443,7 @@ class Lobby(BaseModel):
         Change lobby privacy to public.
         """
         if self.queue:
-            raise LobbyException('Lobby is queued caught on set lobby public')
+            raise LobbyException(_('Lobby is queued.'))
 
         cache.set(f'{self.cache_key}:public', 1)
 
@@ -455,7 +452,7 @@ class Lobby(BaseModel):
         Change lobby privacy to private.
         """
         if self.queue:
-            raise LobbyException('Lobby is queued caught on set lobby private')
+            raise LobbyException(_('Lobby is queued.'))
 
         cache.set(f'{self.cache_key}:public', 0)
 
@@ -466,13 +463,10 @@ class Lobby(BaseModel):
         then defaults to Config.TYPES[0].
         """
         if self.queue:
-            raise LobbyException('Lobby is queued caught on set lobby type')
+            raise LobbyException(_('Lobby is queued.'))
 
         if lobby_type not in self.Config.TYPES:
-            avail_types = ','.join(Lobby.Config.TYPES)
-            raise LobbyException(
-                f'Type unknown, should be one of the following: {avail_types}'
-            )
+            raise LobbyException(_('The given type is not valid.'))
 
         cache.set(f'{self.cache_key}:type', lobby_type)
 
@@ -483,24 +477,18 @@ class Lobby(BaseModel):
         then defaults to Config.COMP_DEFAULT_MODE.
         """
         if self.queue:
-            raise LobbyException('Lobby is queued caught on set lobby mode')
+            raise LobbyException(_('Lobby is queued.'))
 
         if mode not in self.Config.MODES[self.lobby_type].get('modes'):
-            avail_modes = ','.join(
-                str(x) for x in Lobby.Config.MODES.get(self.lobby_type).get('modes')
-            )
-
-            raise LobbyException(
-                f'Mode unknown, should be one of the following: {avail_modes}'
-            )
+            raise LobbyException(_('The given mode is not valid.'))
 
         players_ids = self.non_owners_ids
 
         if self.players_count > mode:
             if self.owner_id in players_id_to_remove:
-                raise LobbyException('owner_id cannot be removed')
+                raise LobbyException(_('Owner cannot be removed.'))
             elif not players_id_to_remove:
-                for _ in range(self.players_count - mode):
+                for i in range(self.players_count - mode):
                     choice = random.choice(players_ids)
                     players_ids.remove(choice)
                     self.move(choice, choice)

@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.utils.translation import gettext as _
 
 from core.utils import generate_random_string
 from matchmaking.models import Lobby
@@ -30,7 +31,7 @@ class Account(models.Model):
     def save(self, *args, **kwargs):
         if self._state.adding:
             if not self.user.steam_user:
-                raise ValidationError("User Steam account association is missing.")
+                raise ValidationError(_('Steam account not found.'))
 
             if settings.ENVIRONMENT == settings.LOCAL:
                 self.verification_token = self.DEBUG_VERIFICATION_TOKEN
@@ -51,7 +52,7 @@ class Account(models.Model):
 
     @property
     def friends(self) -> list:
-        steam_friends_ids = [friend.get("steamid") for friend in self.steam_friends]
+        steam_friends_ids = [friend.get('steamid') for friend in self.steam_friends]
 
         return [
             account
@@ -82,20 +83,20 @@ class Invite(models.Model):
     datetime_accepted = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
-        unique_together = ["owned_by", "email"]
+        unique_together = ['owned_by', 'email']
 
     def clean(self):
         if not self.owned_by.user.is_staff:
             if len(self.owned_by.invite_set.all()) >= self.MAX_INVITES_PER_ACCOUNT:
                 raise ValidationError(
-                    f"Account reached limit of {self.MAX_INVITES_PER_ACCOUNT} invites."
+                    _(f'Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT}).')
                 )
 
         if self.datetime_accepted:
-            raise ValidationError("Accepted invites cannot be modified.")
+            raise ValidationError(_('Accepted invites cannot be modified.'))
 
         if User.objects.filter(email=self.email).exists():
-            raise ValidationError("This email address is already being used.")
+            raise ValidationError(_('An invite already exists for this email.'))
 
     def __str__(self):
         return self.email

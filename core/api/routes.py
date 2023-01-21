@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.translation import gettext as _
 from ninja import NinjaAPI
 
 from accounts.api.routes import router as accounts_router
@@ -12,4 +13,5 @@ api.add_router("/mm/", mm_router)
 
 @api.get('')
 def healty_check(request):
-    return {'status': 'ok'}
+    lang = request.LANGUAGE_CODE
+    return {'language': lang, 'i18n_check': _('Internationalization works.')}

@@ -45,3 +45,13 @@ class CoreApiClientTestCase(TestCase):
             call.headers.get('Content-Type'), 'application/json; charset=utf-8'
         )
         self.assertEqual(call.request.get('token'), 'token')
+
+    def test_i18n(self):
+        client = APIClient('/api')
+        r = client.generic(
+            'get', '', HTTP_ACCEPT_LANGUAGE='pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
+        )
+        self.assertEqual(r.json().get('language'), 'pt-br')
+        self.assertEqual(
+            r.json().get('i18n_check'), 'A internacionalização está funcionando.'
+        )

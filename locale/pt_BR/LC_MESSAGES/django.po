@@ -1,0 +1,103 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Gabriel Gularte <ggularte@3c.gg>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-21 17:50-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: accounts/api/controller.py:80
+#, fuzzy
+#| msgid "User already has an account"
+msgid "User already has an account."
+msgstr "Usuário já possui uma conta."
+
+#: accounts/api/controller.py:85 matchmaking/models/lobby.py:269
+msgid "User must be invited."
+msgstr "Usuário deve ser convidado."
+
+#: accounts/models/account.py:34
+msgid "Steam account not found."
+msgstr "Conta Steam não encontrada."
+
+#: accounts/models/account.py:92
+#, python-brace-format
+msgid "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
+msgstr "Máximo número de convites atingido ({self.MAX_INVITES_PER_ACCOUNT})."
+
+#: accounts/models/account.py:96
+msgid "Accepted invites cannot be modified."
+msgstr "Convites aceitos não podem ser modificados."
+
+#: accounts/models/account.py:99
+msgid "An invite already exists for this email."
+msgstr "Já existe um convite para este e-mail."
+
+#: core/api/routes.py:17
+msgid "Internationalization works."
+msgstr "A internacionalização está funcionando."
+
+#: matchmaking/models/invite.py:40 matchmaking/models/lobby.py:408
+msgid "Invite not found."
+msgstr "Convite não encontrado."
+
+#: matchmaking/models/lobby.py:183 matchmaking/models/lobby.py:240
+#: matchmaking/models/lobby.py:359
+msgid "User not found."
+msgstr "Usuário não encontrado."
+
+#: matchmaking/models/lobby.py:188 matchmaking/models/lobby.py:249
+#: matchmaking/models/lobby.py:364
+msgid "A verified account is required to perform this action."
+msgstr "Uma conta verificada é necessária para realizar esta ação."
+
+#: matchmaking/models/lobby.py:195 matchmaking/models/lobby.py:468
+msgid "The given type is not valid."
+msgstr "O tipo informado não é válido."
+
+#: matchmaking/models/lobby.py:201 matchmaking/models/lobby.py:486
+msgid "The given mode is not valid."
+msgstr "O modo informado não é válido."
+
+#: matchmaking/models/lobby.py:235
+msgid "Lobby not found."
+msgstr "Lobby não encontrado."
+
+#: matchmaking/models/lobby.py:253 matchmaking/models/lobby.py:368
+msgid "Offline user."
+msgstr "Usuário offline."
+
+#: matchmaking/models/lobby.py:256 matchmaking/models/lobby.py:335
+#: matchmaking/models/lobby.py:420 matchmaking/models/lobby.py:444
+#: matchmaking/models/lobby.py:453 matchmaking/models/lobby.py:464
+#: matchmaking/models/lobby.py:479
+msgid "Lobby is queued."
+msgstr "Lobby está em fila."
+
+#: matchmaking/models/lobby.py:266 matchmaking/models/lobby.py:332
+msgid "Lobby is full."
+msgstr "Libby está cheio."
+
+#: matchmaking/models/lobby.py:352
+msgid "Invited user is already a lobby player."
+msgstr "Usuário convidado já faz parte do lobby."
+
+#: matchmaking/models/lobby.py:355
+msgid "User already invited."
+msgstr "Usuário já foi convidado."
+
+#: matchmaking/models/lobby.py:492
+msgid "Owner cannot be removed."
+msgstr "O dono não pode ser removido."
