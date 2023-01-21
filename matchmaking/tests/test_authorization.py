@@ -1,13 +1,9 @@
 from django.test import RequestFactory
+from ninja.errors import AuthenticationError
 
 from core.tests import TestCase
 
-from ..api.authorization import (
-    HttpError,
-    is_lobby_owner,
-    is_lobby_participant,
-    owner_required,
-)
+from ..api.authorization import is_lobby_owner, is_lobby_participant, owner_required
 from ..models import Lobby
 from . import mixins
 
@@ -64,7 +60,5 @@ class AuthorizationTestCase(mixins.VerifiedPlayersMixin, TestCase):
         Lobby.create(self.user_1.id)
         lobby = Lobby.create(self.user_2.id)
 
-        with self.assertRaisesMessage(
-            HttpError, 'User must be owner to perfom this action'
-        ):
+        with self.assertRaises(AuthenticationError):
             decorated(request, lobby_id=lobby.id)
