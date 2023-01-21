@@ -11,7 +11,6 @@ from .auth import Auth
 
 
 class UserManager(BaseUserManager):
-
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):

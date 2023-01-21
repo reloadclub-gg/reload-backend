@@ -80,7 +80,6 @@ def str_to_timezone(value: str) -> datetime:
 
 
 def send_mail(mail_to: str, subject: str, content: str):
-
     mail.send_mail(
         subject,
         strip_tags(content),

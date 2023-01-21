@@ -348,7 +348,6 @@ class Lobby(BaseModel):
             return (can_invite, already_player, already_invited)
 
         def transaction_operations(pipe, pre_result):
-
             can_invite, already_player, already_invited = pre_result
 
             if not can_invite:

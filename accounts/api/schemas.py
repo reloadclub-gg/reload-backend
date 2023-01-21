@@ -4,6 +4,7 @@ import pydantic
 from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
 
+from matchmaking.api.schemas import LobbySchema
 from steam import Steam
 
 from ..models import Account
@@ -18,6 +19,7 @@ class FriendAccountSchema(ModelSchema):
     avatar: Optional[dict]
     is_online: Optional[bool]
     status: Optional[str]
+    lobby: Optional[LobbySchema]
 
     class Config:
         model = Account
@@ -57,6 +59,7 @@ class AccountSchema(ModelSchema):
     username: Optional[str]
     avatar: Optional[dict]
     friends: List[FriendAccountSchema] = None
+    lobby: Optional[LobbySchema]
 
     class Config:
         model = Account
@@ -110,10 +113,6 @@ class UserSchema(ModelSchema):
             return obj.email
 
         return ''
-
-    @staticmethod
-    def resolve_status(obj):
-        return obj.status
 
 
 class FakeUserSchema(UserSchema):

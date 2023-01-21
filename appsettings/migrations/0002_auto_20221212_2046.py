@@ -14,7 +14,6 @@ def delete_settings_invite_required(apps, _):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('appsettings', '0001_initial'),
     ]
