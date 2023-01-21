@@ -86,6 +86,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_online(self):
         return self.auth.sessions is not None
 
+    @property
+    def status(self):
+        if hasattr(self, 'account') and self.account.is_verified:
+            lobby = self.account.lobby
+            if lobby:
+                if lobby.queue:
+                    return 'queued'
+
+                if lobby.players_count > 1:
+                    return 'teaming'
+
+            if self.is_online:
+                return 'online'
+
+        return 'offline'
+
     def __str__(self):
         return self.email if self.email else str(self.id)
 

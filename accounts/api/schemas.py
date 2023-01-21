@@ -49,10 +49,7 @@ class FriendAccountSchema(ModelSchema):
 
     @staticmethod
     def resolve_status(obj):
-        if bool(obj.user.auth.sessions):
-            return 'online'
-        else:
-            return 'offline'
+        return obj.user.status
 
 
 class AccountSchema(ModelSchema):
@@ -86,6 +83,7 @@ class UserSchema(ModelSchema):
     account: Optional[AccountSchema] = None
     email: Optional[pydantic.EmailStr] = None
     is_online: bool = None
+    status: str
 
     class Config:
         model = User
@@ -95,6 +93,8 @@ class UserSchema(ModelSchema):
             'user_permissions',
             'is_superuser',
             'password',
+            'last_login',
+            'date_joined',
         ]
 
     @staticmethod
@@ -110,6 +110,10 @@ class UserSchema(ModelSchema):
             return obj.email
 
         return ''
+
+    @staticmethod
+    def resolve_status(obj):
+        return obj.status
 
 
 class FakeUserSchema(UserSchema):
