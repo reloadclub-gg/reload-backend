@@ -7,6 +7,8 @@ from pydantic import BaseModel
 
 from core.redis import RedisClient
 
+from .lobby import Lobby
+
 cache = RedisClient()
 User = get_user_model()
 
@@ -51,7 +53,16 @@ class Team(BaseModel):
         self.id = self.id or secrets.token_urlsafe(TeamConfig.ID_SIZE)
         self.cache_key = self.cache_key or f'{TeamConfig.CACHE_PREFIX}{self.id}'
 
-    def save(self):
+    @property
+    def players_count(self) -> int:
+        """
+        Return how many players are in all the team lobbies.
+        """
+        return sum(
+            [Lobby(owner_id=lobby_id).players_count for lobby_id in self.lobbies_ids]
+        )
+
+    def save(self) -> Team:
         """
         Save team into Redis db.
         """

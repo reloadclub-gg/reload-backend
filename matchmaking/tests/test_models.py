@@ -3,7 +3,7 @@ from unittest import mock
 
 from core.tests import TestCase, cache
 
-from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
+from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException, Team
 from . import mixins
 
 
@@ -627,3 +627,27 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         mocker.return_value = 120
         min_level, max_level = lobby.get_overall_by_elapsed_time()
         self.assertEqual((0, 5), (min_level, max_level))
+
+
+class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.user_1.auth.add_session()
+        self.user_2.auth.add_session()
+        self.user_3.auth.add_session()
+        self.user_4.auth.add_session()
+        self.user_5.auth.add_session()
+        self.user_6.auth.add_session()
+
+        self.lobby1 = Lobby.create(owner_id=self.user_1.id)
+        self.lobby2 = Lobby.create(owner_id=self.user_2.id)
+        self.lobby3 = Lobby.create(owner_id=self.user_3.id)
+        self.lobby4 = Lobby.create(owner_id=self.user_4.id)
+        self.lobby5 = Lobby.create(owner_id=self.user_5.id)
+        self.lobby6 = Lobby.create(owner_id=self.user_6.id)
+
+    def test_players_count(self):
+        team = Team(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+        self.assertEqual(
+            team.players_count, self.lobby1.players_count + self.lobby2.players_count
+        )
