@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.utils import translation
 
 from accounts.tests.mixins import UserOneMixin
