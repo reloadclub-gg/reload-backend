@@ -1,3 +1,6 @@
+from time import sleep
+from unittest import mock
+
 from core.tests import TestCase, cache
 
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
@@ -560,3 +563,67 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         with self.assertRaises(LobbyInviteException):
             LobbyInvite.get(lobby_1.id, '99:99')
+
+    def test_overall(self):
+        self.user_1.account.level = 1
+        self.user_1.account.save()
+        self.user_2.account.level = 2
+        self.user_2.account.save()
+        self.user_3.account.level = 3
+        self.user_3.account.save()
+        self.user_4.account.level = 4
+        self.user_4.account.save()
+        self.user_5.account.level = 5
+        self.user_5.account.save()
+
+        lobby_1 = Lobby.create(self.user_1.id)
+        lobby_2 = Lobby.create(self.user_2.id)
+        lobby_3 = Lobby.create(self.user_3.id)
+        lobby_4 = Lobby.create(self.user_4.id)
+        lobby_5 = Lobby.create(self.user_5.id)
+
+        lobby_1.invite(self.user_1.id, self.user_2.id)
+        lobby_1.invite(self.user_1.id, self.user_3.id)
+        lobby_1.invite(self.user_1.id, self.user_4.id)
+        lobby_1.invite(self.user_1.id, self.user_5.id)
+
+        Lobby.move(lobby_2.id, lobby_1.id)
+        Lobby.move(lobby_3.id, lobby_1.id)
+        Lobby.move(lobby_4.id, lobby_1.id)
+        Lobby.move(lobby_5.id, lobby_1.id)
+
+        self.assertEqual(lobby_1.overall, 5)
+
+    def test_queue_time(self):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.start_queue()
+        sleep(2)
+
+        self.assertEqual(lobby.queue_time, 2)
+
+    @mock.patch(
+        'matchmaking.models.lobby.Lobby.queue_time', new_callable=mock.PropertyMock
+    )
+    def test_lobby_overall_by_elapsed_time(self, mocker):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.start_queue()
+
+        mocker.return_value = 10
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 1), (min_level, max_level))
+
+        mocker.return_value = 30
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 2), (min_level, max_level))
+
+        mocker.return_value = 60
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 3), (min_level, max_level))
+
+        mocker.return_value = 90
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 4), (min_level, max_level))
+
+        mocker.return_value = 120
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 5), (min_level, max_level))
