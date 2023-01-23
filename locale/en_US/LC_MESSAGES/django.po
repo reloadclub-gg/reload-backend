@@ -5,7 +5,7 @@
 #
 #, fuzzy
 msgid ""
-msgstr ""
+msgstr "msgid """
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-23 14:00-0300\n"
@@ -22,333 +22,333 @@ msgstr ""
 #, fuzzy
 #| msgid "User already has an account"
 msgid "User already has an account."
-msgstr "Usuário já possui uma conta."
+msgstr "User already has an account."
 
 #: accounts/api/controller.py:85 matchmaking/models/lobby.py:271
 msgid "User must be invited."
-msgstr "Usuário deve ser convidado."
+msgstr "User must be invited."
 
 #: accounts/models/account.py:34
 msgid "Steam account not found."
-msgstr "Conta Steam não encontrada."
+msgstr "Steam account not found."
 
 #: accounts/models/account.py:92
 #, python-brace-format
 msgid "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
-msgstr "Máximo número de convites atingido ({self.MAX_INVITES_PER_ACCOUNT})."
+msgstr "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
 
 #: accounts/models/account.py:96
 msgid "Accepted invites cannot be modified."
-msgstr "Convites aceitos não podem ser modificados."
+msgstr "Accepted invites cannot be modified."
 
 #: accounts/models/account.py:99
 msgid "An invite already exists for this email."
-msgstr "Já existe um convite para este e-mail."
+msgstr "An invite already exists for this email."
 
 #: core/api/routes.py:31
 msgid "Unauthorized"
-msgstr "Não autorizado."
+msgstr "Unauthorized."
 
 #: core/api/routes.py:37
 msgid "Internationalization works."
-msgstr "A internacionalização está funcionando."
+msgstr "Internationalization works."
 
 #: matchmaking/models/invite.py:40 matchmaking/models/lobby.py:410
 msgid "Invite not found."
-msgstr "Convite não encontrado."
+msgstr "Invite not found."
 
 #: matchmaking/models/lobby.py:185 matchmaking/models/lobby.py:242
 #: matchmaking/models/lobby.py:361
 msgid "User not found."
-msgstr "Usuário não encontrado."
+msgstr "User not found."
 
 #: matchmaking/models/lobby.py:190 matchmaking/models/lobby.py:251
 #: matchmaking/models/lobby.py:366
 msgid "A verified account is required to perform this action."
-msgstr "Uma conta verificada é necessária para realizar esta ação."
+msgstr "A verified account is required to perform this action."
 
 #: matchmaking/models/lobby.py:194 matchmaking/models/lobby.py:255
 #: matchmaking/models/lobby.py:370
 msgid "Offline user."
-msgstr "Usuário offline."
+msgstr "Offline user."
 
 #: matchmaking/models/lobby.py:197 matchmaking/models/lobby.py:469
 msgid "The given type is not valid."
-msgstr "O tipo informado não é válido."
+msgstr "The given type is not valid."
 
 #: matchmaking/models/lobby.py:203 matchmaking/models/lobby.py:483
 msgid "The given mode is not valid."
-msgstr "O modo informado não é válido."
+msgstr "The given mode is not valid."
 
 #: matchmaking/models/lobby.py:237
 msgid "Lobby not found."
-msgstr "Lobby não encontrado."
+msgstr "Lobby not found."
 
 #: matchmaking/models/lobby.py:258 matchmaking/models/lobby.py:337
 #: matchmaking/models/lobby.py:422 matchmaking/models/lobby.py:446
 #: matchmaking/models/lobby.py:455 matchmaking/models/lobby.py:466
 #: matchmaking/models/lobby.py:480
 msgid "Lobby is queued."
-msgstr "Lobby está em fila."
+msgstr "Lobby is queued."
 
 #: matchmaking/models/lobby.py:268 matchmaking/models/lobby.py:334
 msgid "Lobby is full."
-msgstr "Libby está cheio."
+msgstr "Lobby is full."
 
 #: matchmaking/models/lobby.py:354
 msgid "Invited user is already a lobby player."
-msgstr "Usuário convidado já faz parte do lobby."
+msgstr "Invited user is already a lobby player."
 
 #: matchmaking/models/lobby.py:357
 msgid "User already invited."
-msgstr "Usuário já foi convidado."
+msgstr "User already invited."
 
 #: matchmaking/models/lobby.py:489
 msgid "Owner cannot be removed."
-msgstr "O dono não pode ser removido."
+msgstr "Owner cannot be removed."
 
 msgid "field required"
-msgstr "Esse campo é obrigatório."
+msgstr "Field required."
 
 msgid "extra fields not permitted"
-msgstr "Campos extras não são permitidos nesse contexto."
+msgstr "Extra fields not permitted."
 
 msgid "none is not an allowed value"
-msgstr "Vazio ou nulo não é um valor permitido."
+msgstr "None is not an allowed value."
 
 msgid "value is not none"
-msgstr "Valor é não nulo."
+msgstr "Value is not none."
 
 msgid "value is not None"
-msgstr "Valor é não nulo."
+msgstr "Value is not None."
 
 msgid "value could not be parsed to a boolean"
-msgstr "O valor não pode ser convertido para boleano."
+msgstr "Value could not be parsed to a boolean."
 
 msgid "byte type expected"
-msgstr "O tipo esperado é \"byte\"."
+msgstr "Byte type expected."
 
 msgid "value is not a valid dict"
-msgstr "O valor não é um dicionário válido."
+msgstr "Value is not a valid dict."
 
 msgid "value is not a valid email address"
-msgstr "O valor não é endereço de e-mail válido."
+msgstr "Value is not a valid email address."
 
 msgid "invalid or missing URL scheme"
-msgstr "Esquema URL está faltando ou é inválido."
+msgstr "Invalid or missing URL scheme."
 
 msgid "URL scheme not permitted"
-msgstr "Esquema URL não permitido."
+msgstr "URL scheme not permitted."
 
 msgid "userinfo required in URL but missing"
-msgstr "\"userinfo\" é obrigatório na URL."
+msgstr "Userinfo required in URL but missing."
 
 msgid "URL host invalid"
-msgstr "Host URL inválido."
+msgstr "URL host invalid."
 
 msgid "URL host invalid, top level domain required"
-msgstr "Host URL inválido."
+msgstr "URL host invalid, top level domain required."
 
 msgid "URL port invalid, port cannot exceed 65535"
-msgstr "Host URL inválido."
+msgstr "URL port invalid, port cannot exceed 65535."
 
 msgid "URL invalid, extra characters found after valid URL: {}"
-msgstr "URL é inválida."
+msgstr "URL invalid, extra characters found after valid URL: {}."
 
 msgid "{} is not a valid Enum instance"
-msgstr "{} não é uma instância \"Enum\" válida."
+msgstr "{} is not a valid Enum instance."
 
 msgid "{} is not a valid IntEnum instance"
-msgstr "{} não é uma instância \"IntEnum\" válida."
+msgstr "{} is not a valid IntEnum instance."
 
 msgid "value is not a valid integer"
-msgstr "O valor não é um inteiro válido."
+msgstr "Value is not a valid integer."
 
 msgid "value is not a valid float"
-msgstr "O valor não é um \"float\" válido."
+msgstr "Value is not a valid float."
 
 msgid "value is not a valid path"
-msgstr "O valor não é um caminho válido."
+msgstr "Value is not a valid path."
 
 msgid "file or directory at path \"{}\" does not exist"
-msgstr "O arquivo ou diretório em \"{}\" não existe."
+msgstr "File or directory at path \"{}\" does not exist."
 
 msgid "path \"{}\" does not point to a file"
-msgstr "O caminho \"{}\" não representa um arquivo."
+msgstr "Path \"{}\" does not point to a file."
 
 msgid "path \"{}\" does not point to a directory"
-msgstr "O caminho \"{}\" não representa um diretório."
+msgstr "Path \"{}\" does not point to a directory."
 
 msgid "ensure this value contains valid import path or valid callable: {}"
-msgstr "Certifique de que o valor contém um caminho de importação válido."
+msgstr "Ensure this value contains valid import path or valid callable: {}."
 
 msgid "value is not a valid sequence"
-msgstr "O valor não é uma sequência válida."
+msgstr "Value is not a valid sequence."
 
 msgid "value is not a valid list"
-msgstr "O valor não é uma lista válida."
+msgstr "Value is not a valid list."
 
 msgid "value is not a valid set"
-msgstr "O valor não é um conjunto válido."
+msgstr "Value is not a valid set."
 
 msgid "value is not a valid frozenset"
-msgstr "O valor não é um \"frozenset\" válido."
+msgstr "Value is not a valid frozenset."
 
 msgid "value is not a valid tuple"
-msgstr "O valor não é uma tupla válida."
+msgstr "Value is not a valid tuple."
 
 msgid "wrong tuple length {}"
-msgstr "Tamanho errado de tupla {}."
+msgstr "Wrong tuple length {}."
 
 msgid "ensure this value has at least {} items"
-msgstr "Certifique que o valor possui, pelo menos, {} itens."
+msgstr "Ensure this value has at least {} items."
 
 msgid "ensure this value has at most {} items"
-msgstr "Certifique que o valor possui, no máximo, {} itens."
+msgstr "Ensure this value has at most {} items."
 
 msgid "the list has duplicated items"
-msgstr "A lista informada possui itens duplicados."
+msgstr "The list has duplicated items."
 
 msgid "ensure this value has at least {} characters"
-msgstr "Certifique que o valor possui, pelo menos, {} caracteres."
+msgstr "Ensure this value has at least {} characters."
 
 msgid "ensure this value has at most {} characters"
-msgstr "Certifique que o valor possui, no máximo, {} caracteres."
+msgstr "Ensure this value has at most {} characters."
 
 msgid "str type expected"
-msgstr "O tipo esperado é \"string\"."
+msgstr "Str type expected."
 
 msgid "string does not match regex \"{}\""
-msgstr "A \"string\" não corresponde a \"regex\" {}."
+msgstr "String does not match regex \"{}\"."
 
 msgid "ensure this value is greater than {}"
-msgstr "Certifique que o valor é maior que {}."
+msgstr "Ensure this value is greater than {}."
 
 msgid "ensure this value is greater than or equal to {}"
-msgstr "Certifique que o valor é maior ou igual a {}."
+msgstr "Ensure this value is greater than or equal to {}."
 
 msgid "ensure this value is less than {}"
-msgstr "Certifique que o valor é menor que {}."
+msgstr "Ensure this value is less than {}."
 
 msgid "ensure this value is less than or equal to {}"
-msgstr "Certifique que o valor é menor ou igual a {}."
+msgstr "Ensure this value is less than or equal to {}."
 
 msgid "ensure this value is a multiple of {}"
-msgstr "Certifique que o valor é múltiplo de {}."
+msgstr "Ensure this value is a multiple of {}."
 
 msgid "value is not a valid decimal"
-msgstr "O valor não é um decimal válido."
+msgstr "Value is not a valid decimal."
 
 msgid "ensure that there are no more than {} digits in total"
-msgstr "Certifique que não haja mais de {} dígitos."
+msgstr "Ensure that there are no more than {} digits in total."
 
 msgid "ensure that there are no more than {} decimal places"
-msgstr "Certifique que não haja mais de {} casas decimais."
+msgstr "Ensure that there are no more than {} decimal places."
 
 msgid "ensure that there are no more than {} digits before the decimal point"
-msgstr "Certifique que não haja mais de {} dígitos depois do ponto decimal."
+msgstr "Ensure that there are no more than {} digits before the decimal point."
 
 msgid "invalid datetime format"
-msgstr "Formato de data e hora inválido."
+msgstr "Invalid datetime format."
 
 msgid "invalid date format"
-msgstr "Formato de data inválido."
+msgstr "Invalid date format."
 
 msgid "date is not in the past"
-msgstr "Data deve estar no passado."
+msgstr "Date is not in the past."
 
 msgid "date is not in the future"
-msgstr "A data deve estar no futuro."
+msgstr "Date is not in the future."
 
 msgid "invalid time format"
-msgstr "Formato de hora inválido."
+msgstr "Invalid time format."
 
 msgid "invalid duration format"
-msgstr "Formato de duração inválido."
+msgstr "Invalid duration format."
 
 msgid "value is not a valid hashable"
-msgstr "O valor não é um \"hashable\" válido."
+msgstr "Value is not a valid hashable."
 
 msgid "value is not a valid uuid"
-msgstr "O valor não é um \"uuid\" válido."
+msgstr "Value is not a valid uuid."
 
 msgid "uuid version {} expected"
-msgstr "A versão {} \"uuid\" é necessária."
+msgstr "Uuid version {} expected."
 
 msgid "instance of {} expected"
-msgstr "A instância {} é necessária."
+msgstr "Instance of {} expected."
 
 msgid "a class is expected"
-msgstr "Uma classe é necessária."
+msgstr "A class is expected."
 
 msgid "subclass of {} expected"
-msgstr "A subclasse de {} é necessária."
+msgstr "Subclass of {} expected."
 
 msgid "Invalid JSON"
-msgstr "\"JSON\" inválido."
+msgstr "Invalid JSON."
 
 msgid "JSON object must be str, bytes or bytearray"
-msgstr "Objeto \"JSON\" deve ser \"string\", \"bytes\" ou \"bytearray\"."
+msgstr "JSON object must be str, bytes or bytearray."
 
 msgid "Invalid regular expression"
-msgstr "A expressão regular é inválida."
+msgstr "Invalid regular expression."
 
 msgid "instance of {}, tuple or dict expected"
-msgstr "Uma instância de {}, tupla ou dicionário é necessária."
+msgstr "Instance of {}, tuple or dict expected."
 
 msgid "{} is not callable"
-msgstr "{} não pode ser chamado. "
+msgstr "{} is not callable "
 
 msgid "value is not a valid IPv4 or IPv6 address"
-msgstr "O valor não é um endereço \"IPv4\" ou \"UPv6\" válido."
+msgstr "Value is not a valid IPv4 or IPv6 address."
 
 msgid "value is not a valid IPv4 or IPv6 interface"
-msgstr "O valor não é uma interface \"IPv4\" ou \"UPv6\" válida."
+msgstr "Value is not a valid IPv4 or IPv6 interface."
 
 msgid "value is not a valid IPv4 or IPv6 network"
-msgstr "O valor não é uma rede \"IPv4\" ou \"UPv6\" válida."
+msgstr "Value is not a valid IPv4 or IPv6 network."
 
 msgid "value is not a valid IPv4 address"
-msgstr "O valor não é um endereço \"IPv4\" válido."
+msgstr "Value is not a valid IPv4 address."
 
 msgid "value is not a valid IPv6 address"
-msgstr "O valor não é um endereço \"IPv6\" válido."
+msgstr "Value is not a valid IPv6 address."
 
 msgid "value is not a valid IPv4 network"
-msgstr "O valor não é uma rede \"IPv4\" válida."
+msgstr "Value is not a valid IPv4 network."
 
 msgid "value is not a valid IPv6 network"
-msgstr "O valor não é uma rede \"IPv6\" válida."
+msgstr "Value is not a valid IPv6 network."
 
 msgid "value is not a valid IPv4 interface"
-msgstr "O valor não é uma interface \"IPv4\" válida."
+msgstr "Value is not a valid IPv4 interface."
 
 msgid "value is not a valid IPv6 interface"
-msgstr "O valor não é uma interface \"IPv6\" válida."
+msgstr "Value is not a valid IPv6 interface."
 
 msgid "value is not a valid color: {}"
-msgstr "O valor não é uma cor válida: {}."
+msgstr "Value is not a valid color: {}."
 
 msgid "value is not a valid boolean"
-msgstr "O valor não é um boleano válido."
+msgstr "Value is not a valid boolean."
 
 msgid "card number is not all digits"
-msgstr "O número do cartão possui dígitos a menos."
+msgstr "Card number is not all digits."
 
 msgid "card number is not luhn valid"
-msgstr "O cartão não possui um \"luhn\" válido."
+msgstr "Card number is not luhn valid."
 
 msgid "Length for a {}"
-msgstr "Tamanho para um {}."
+msgstr "Length for a {}."
 
 msgid "could not parse value and unit from byte string"
-msgstr "Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
+msgstr "Could not parse value and unit from byte string."
 
 msgid "could not interpret byte unit: {}"
-msgstr "Não foi possível interpretar a unidade \"byte\": {}."
+msgstr "Could not interpret byte unit: {}."
 
 msgid "Discriminator {} is missing in value"
-msgstr "O valor do discriminador {} está faltando."
+msgstr "Discriminator {} is missing in value."
 
 msgid "No match for discriminator {}"
-msgstr "Nenhuma correspondência para o discriminador {}."
+msgstr "No match for discriminator {}."
