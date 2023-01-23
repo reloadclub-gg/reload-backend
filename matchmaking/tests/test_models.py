@@ -3,7 +3,14 @@ from unittest import mock
 
 from core.tests import TestCase, cache
 
-from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException, Team
+from ..models import (
+    Lobby,
+    LobbyException,
+    LobbyInvite,
+    LobbyInviteException,
+    Team,
+    TeamException,
+)
 from . import mixins
 
 
@@ -651,3 +658,56 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(
             team.players_count, self.lobby1.players_count + self.lobby2.players_count
         )
+
+    def test_build(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
+        self.lobby4.start_queue()
+        self.lobby5.start_queue()
+        self.lobby6.start_queue()
+
+        team = Team.build(self.lobby1)
+        team = Team.build(self.lobby1)
+        team_model = Team.get_by_id(team.id)
+        self.assertEqual(team.id, team_model.id)
+        self.assertEqual(team.players_count, self.lobby1.max_players)
+
+    def test_build_skips(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        Lobby.move(self.user_3.id, self.lobby1.id)
+
+        self.lobby4.set_public()
+        Lobby.move(self.user_5.id, self.lobby4.id)
+        Lobby.move(self.user_6.id, self.lobby4.id)
+
+        self.lobby1.start_queue()
+        self.lobby4.start_queue()
+
+        team = Team.build(self.lobby1)
+        with self.assertRaises(TeamException):
+            Team.get_by_id(team.id)
+
+        team.delete()
+
+        self.lobby4.cancel_queue()
+
+        self.lobby6.cancel_queue()
+        Lobby.move(self.user_6.id, self.lobby6.id)
+        self.lobby6.start_queue()
+
+        self.lobby4.set_mode(1)
+        self.lobby4.start_queue()
+
+        team = Team.build(self.lobby1)
+        self.assertEqual(team.lobbies_ids, [self.lobby1.id, self.lobby6.id])
+        self.assertEqual(team.players_count, 4)
+
+        team.delete()
+        self.user_6.account.level = 7
+        self.user_6.account.save()
+
+        team = Team.build(self.lobby1)
+        self.assertEqual(team.lobbies_ids, [self.lobby1.id])
+        self.assertEqual(team.players_count, 3)
