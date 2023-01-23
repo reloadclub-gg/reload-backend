@@ -711,3 +711,11 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         team = Team.build(self.lobby1)
         self.assertEqual(team.lobbies_ids, [self.lobby1.id])
         self.assertEqual(team.players_count, 3)
+
+    def test_ready(self):
+        team = Team(lobbies_ids=[self.lobby1.id]).save()
+        self.assertFalse(team.ready)
+        team.set_ready()
+        self.assertTrue(team.ready)
+        team.set_not_ready()
+        self.assertFalse(team.ready)
