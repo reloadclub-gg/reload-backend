@@ -100,12 +100,20 @@ class Team(BaseModel):
         cache.delete(f'{self.cache_key}:ready')
 
     @staticmethod
+    def get_all() -> list[Team]:
+        """
+        Fetch and return all Teams on Redis db.
+        """
+        teams_keys = cache.keys(f'{TeamConfig.CACHE_PREFIX}*')
+        return [Team.get_by_id(team_key.split(':')[2]) for team_key in teams_keys]
+
+    @staticmethod
     def get_by_id(id: str) -> Team:
         """
         Searchs for a team given an ID.
         """
         cache_key = f'{TeamConfig.CACHE_PREFIX}{id}'
-        lobbies_ids = list(cache.smembers(cache_key))
+        lobbies_ids = sorted(list(map(int, cache.smembers(cache_key))))
         if not lobbies_ids:
             raise TeamException(TeamConfig.ERRORS['not_found'])
 
@@ -117,6 +125,7 @@ class Team(BaseModel):
         Look for queued lobbies that are compatible
         and put them together in a team.
         """
+
         # check whether the lobby is queued
         if lobby.queue:
 
@@ -149,4 +158,5 @@ class Team(BaseModel):
                             if team.players_count == lobby.max_players:
                                 team.set_ready()
 
+            team.lobbies_ids.sort()
             return team

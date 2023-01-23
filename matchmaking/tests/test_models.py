@@ -719,3 +719,13 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertTrue(team.ready)
         team.set_not_ready()
         self.assertFalse(team.ready)
+
+    def test_get_all(self):
+        team1 = Team(lobbies_ids=[self.lobby1.id]).save()
+        team2 = Team(lobbies_ids=[self.lobby2.id]).save()
+        team3 = Team(
+            lobbies_ids=[self.lobby3.id, self.lobby4.id, self.lobby5.id, self.lobby6.id]
+        ).save()
+
+        teams = Team.get_all()
+        self.assertCountEqual(teams, [team1, team2, team3])
