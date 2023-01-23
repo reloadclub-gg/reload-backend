@@ -720,6 +720,21 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         team.set_not_ready()
         self.assertFalse(team.ready)
 
+    def test_build_errors(self):
+        Team(lobbies_ids=[self.lobby1.id]).save()
+        Team(lobbies_ids=[self.lobby2.id, self.lobby4.id]).save()
+
+        with self.assertRaises(TeamException):
+            Team.build(self.lobby1)
+
+        with self.assertRaises(TeamException):
+            Team.build(self.lobby2)
+
+        with self.assertRaises(TeamException):
+            Team.build(self.lobby4)
+
+        Team.build(self.lobby3)
+
     def test_get_all(self):
         team1 = Team(lobbies_ids=[self.lobby1.id]).save()
         team2 = Team(lobbies_ids=[self.lobby2.id]).save()

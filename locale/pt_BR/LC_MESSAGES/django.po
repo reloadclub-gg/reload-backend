@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-23 20:12-0300\n"
+"POT-Creation-Date: 2023-01-23 20:19-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -435,3 +435,13 @@ msgstr "Usuário já foi convidado."
 #: matchmaking/models/lobby.py:489
 msgid "Owner cannot be removed."
 msgstr "O dono não pode ser removido."
+
+#: matchmaking/models/team.py:116
+#, fuzzy
+#| msgid "User not found."
+msgid "Team not found."
+msgstr "Time não encontrado."
+
+#: matchmaking/models/team.py:130
+msgid "Lobby already on a team."
+msgstr "O lobby já está em um time."

@@ -3,6 +3,7 @@ from __future__ import annotations
 import secrets
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
 from core.redis import RedisClient
@@ -28,9 +29,6 @@ class TeamConfig:
 
     CACHE_PREFIX: str = '__mm:team:'
     ID_SIZE: int = 16
-    ERRORS = {
-        'not_found': 'Team not found.',
-    }
 
 
 class Team(BaseModel):
@@ -115,7 +113,7 @@ class Team(BaseModel):
         cache_key = f'{TeamConfig.CACHE_PREFIX}{id}'
         lobbies_ids = sorted(list(map(int, cache.smembers(cache_key))))
         if not lobbies_ids:
-            raise TeamException(TeamConfig.ERRORS['not_found'])
+            raise TeamException(_('Team not found.'))
 
         return Team(id=id, lobbies_ids=lobbies_ids)
 
@@ -125,6 +123,11 @@ class Team(BaseModel):
         Look for queued lobbies that are compatible
         and put them together in a team.
         """
+
+        # check if received lobby already is on a team
+        teams = Team.get_all()
+        if any(lobby.id in team.lobbies_ids for team in teams):
+            raise TeamException(_('Lobby already on a team.'))
 
         # check whether the lobby is queued
         if lobby.queue:
