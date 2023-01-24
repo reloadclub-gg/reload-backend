@@ -715,9 +715,13 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
             Team.build(self.lobby2)
 
         with self.assertRaises(TeamException):
+            Team.build(self.lobby3)
+
+        with self.assertRaises(TeamException):
             Team.build(self.lobby4)
 
-        Team.build(self.lobby3)
+        self.lobby5.start_queue()
+        Team.build(self.lobby5)
 
     def test_get_all(self):
         team1 = Team.create(lobbies_ids=[self.lobby1.id])
@@ -749,3 +753,32 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         self.assertIsNotNone(obj)
         self.assertEqual(team.id, obj.id)
+
+    def test_find(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+
+        team = Team.build(self.lobby1)
+        team_model = Team.get_by_id(team.id)
+        self.assertEqual(team.id, team_model.id)
+        self.assertEqual(team.players_count, 2)
+        self.assertEqual(len(team.lobbies_ids), 2)
+
+        self.lobby3.start_queue()
+        team2 = Team.find(self.lobby3)
+        self.assertIsNotNone(team2)
+        self.assertEqual(team.id, team2.id)
+
+    def test_get_all_not_ready(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+
+        team1 = Team.build(self.lobby1)
+
+        self.lobby3.start_queue()
+        self.lobby6.start_queue()
+
+        team3 = Team.build(self.lobby3)
+
+        not_ready = Team.get_all_not_ready()
+        self.assertCountEqual([team1, team3], not_ready)

@@ -110,6 +110,11 @@ class Team(BaseModel):
         return [Team.get_by_id(team_key.split(':')[2]) for team_key in teams_keys]
 
     @staticmethod
+    def get_all_not_ready() -> Team:
+        teams = Team.get_all()
+        return [team for team in teams if not team.ready]
+
+    @staticmethod
     def get_by_id(id: str) -> Team:
         """
         Searchs for a team given an ID.
@@ -128,6 +133,23 @@ class Team(BaseModel):
         return Team.get_by_id(team.id)
 
     @staticmethod
+    def find(lobby: Lobby) -> Team:
+        # check if received lobby already is on a team
+        teams = Team.get_all()
+        if any(lobby.id in team.lobbies_ids for team in teams):
+            raise TeamException(_('Lobby already on a team.'))
+
+        # check whether the lobby is queued
+        if not lobby.queue:
+            raise TeamException(_('Lobby not queued.'))
+
+        not_ready = Team.get_all_not_ready()
+        for team in not_ready:
+            if team.players_count + lobby.players_count <= lobby.max_players:
+                team.add_lobby(lobby.id)
+                return team
+
+    @staticmethod
     def build(lobby: Lobby) -> Team:
         """
         Look for queued lobbies that are compatible
@@ -140,37 +162,39 @@ class Team(BaseModel):
             raise TeamException(_('Lobby already on a team.'))
 
         # check whether the lobby is queued
-        if lobby.queue:
-            team = Team.create(lobbies_ids=[lobby.id])
+        if not lobby.queue:
+            raise TeamException(_('Lobby not queued.'))
 
-            # get all queued lobbies
-            lobby_ids = [
-                int(key.split(':')[2])
-                for key in cache.keys('__mm:lobby:*:queue')
-                if lobby.id != int(key.split(':')[2])
-            ]
+        team = Team.create(lobbies_ids=[lobby.id])
 
-            for lobby_id in lobby_ids:
-                other_lobby = Lobby(owner_id=lobby_id)
+        # get all queued lobbies
+        lobby_ids = [
+            int(key.split(':')[2])
+            for key in cache.keys('__mm:lobby:*:queue')
+            if lobby.id != int(key.split(':')[2])
+        ]
 
-                # check if lobbies type and mode matches
-                if (
-                    lobby.lobby_type == other_lobby.lobby_type
-                    and lobby.mode == other_lobby.mode
-                ):
-                    # check if lobbies have seats enough to merge
-                    total_players = team.players_count + other_lobby.players_count
-                    if total_players <= lobby.max_players:
+        for lobby_id in lobby_ids:
+            other_lobby = Lobby(owner_id=lobby_id)
 
-                        # check if lobbies are in the same overall range
-                        min_overall, max_overall = lobby.get_overall_by_elapsed_time()
-                        if min_overall <= other_lobby.overall <= max_overall:
-                            team.add_lobby(other_lobby.id)
-                            if team.players_count == lobby.max_players:
-                                team.set_ready()
+            # check if lobbies type and mode matches
+            if (
+                lobby.lobby_type == other_lobby.lobby_type
+                and lobby.mode == other_lobby.mode
+            ):
+                # check if lobbies have seats enough to merge
+                total_players = team.players_count + other_lobby.players_count
+                if total_players <= lobby.max_players:
 
-            if len(team.lobbies_ids) > 1:
-                return team
-            else:
-                team.delete()
-                return None
+                    # check if lobbies are in the same overall range
+                    min_overall, max_overall = lobby.get_overall_by_elapsed_time()
+                    if min_overall <= other_lobby.overall <= max_overall:
+                        team.add_lobby(other_lobby.id)
+                        if team.players_count == lobby.max_players:
+                            team.set_ready()
+
+        if len(team.lobbies_ids) > 1:
+            return team
+        else:
+            team.delete()
+            return None
