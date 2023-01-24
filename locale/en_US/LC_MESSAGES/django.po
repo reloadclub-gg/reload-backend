@@ -453,4 +453,4 @@ msgstr "Lobby already on a team."
 #, fuzzy
 #| msgid "Lobby is queued."
 msgid "Lobby not queued."
-msgstr "Lobby is queued."
+msgstr "Lobby not queued."
