@@ -697,12 +697,20 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertIsNone(team)
 
     def test_ready(self):
-        team = Team.create(lobbies_ids=[self.lobby1.id])
-        self.assertFalse(team.ready)
-        team.set_ready()
-        self.assertTrue(team.ready)
-        team.set_not_ready()
-        self.assertFalse(team.ready)
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+        self.assertFalse(team1.ready)
+
+        team2 = Team.create(
+            lobbies_ids=[
+                self.lobby2.id,
+                self.lobby3.id,
+                self.lobby4.id,
+                self.lobby5.id,
+                self.lobby6.id,
+            ]
+        )
+
+        self.assertTrue(team2.ready)
 
     def test_build_errors(self):
         Team.create(lobbies_ids=[self.lobby1.id])
@@ -743,7 +751,6 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
                 self.lobby5.id,
             ]
         )
-        team1.set_ready()
         team1.remove_lobby(self.lobby3.id)
         self.assertFalse(team1.ready)
 
@@ -753,6 +760,34 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         self.assertIsNotNone(obj)
         self.assertEqual(team.id, obj.id)
+
+        team = Team.create(
+            lobbies_ids=[
+                self.lobby2.id,
+                self.lobby3.id,
+                self.lobby4.id,
+                self.lobby5.id,
+                self.lobby6.id,
+            ]
+        )
+        obj = Team.get_by_id(team.id)
+
+        self.assertIsNotNone(obj)
+        self.assertEqual(team.id, obj.id)
+        self.assertTrue(team.ready)
+
+    def test_create_and_get_by_id_error(self):
+        with self.assertRaises(TeamException):
+            Team.create(
+                lobbies_ids=[
+                    self.lobby1.id,
+                    self.lobby2.id,
+                    self.lobby3.id,
+                    self.lobby4.id,
+                    self.lobby5.id,
+                    self.lobby6.id,
+                ]
+            )
 
     def test_find(self):
         self.lobby1.start_queue()
@@ -782,3 +817,8 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         not_ready = Team.get_all_not_ready()
         self.assertCountEqual([team1, team3], not_ready)
+
+    def test_get_by_lobby_id(self):
+        team = Team.create(lobbies_ids=[self.lobby1.id])
+        obj = Team.get_by_lobby_id(self.lobby1.id)
+        self.assertEqual(team, obj)

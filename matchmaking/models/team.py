@@ -29,6 +29,7 @@ class TeamConfig:
 
     CACHE_PREFIX: str = '__mm:team:'
     ID_SIZE: int = 16
+    MAX_PLAYERS_COUNT: int = 5
 
 
 class Team(BaseModel):
@@ -73,7 +74,7 @@ class Team(BaseModel):
         """
         Return whether this team is ready to find a oposing team.
         """
-        return bool(cache.get(f'{self.cache_key}:ready'))
+        return self.players_count == TeamConfig.MAX_PLAYERS_COUNT
 
     def delete(self):
         """
@@ -81,25 +82,18 @@ class Team(BaseModel):
         """
         cache.delete(self.cache_key)
 
-    def set_ready(self):
-        """
-        Save a ready key for the team on Redis db.
-        """
-        cache.set(f'{self.cache_key}:ready', 1)
-
-    def set_not_ready(self):
-        """
-        Delete the ready key for the team on Redis db.
-        """
-        cache.delete(f'{self.cache_key}:ready')
-
     def add_lobby(self, lobby_id: int):
+        """
+        Add a lobby into a Team on Redis db.
+        """
         cache.sadd(self.cache_key, lobby_id)
 
     def remove_lobby(self, lobby_id: int):
+        """
+        Remove a lobby from a Team on Redis db.
+        If that team was ready, then it becomes not ready.
+        """
         cache.srem(self.cache_key, lobby_id)
-        if self.ready:
-            self.set_not_ready()
 
     @staticmethod
     def get_all() -> list[Team]:
@@ -111,13 +105,24 @@ class Team(BaseModel):
 
     @staticmethod
     def get_all_not_ready() -> Team:
+        """
+        Fetch all non ready teams in Redis db.
+        """
         teams = Team.get_all()
         return [team for team in teams if not team.ready]
 
     @staticmethod
+    def get_by_lobby_id(lobby_id: int) -> Team:
+        """
+        Searchs for a team given a lobby id.
+        """
+        teams = Team.get_all()
+        return next((team for team in teams if lobby_id in team.lobbies_ids), None)
+
+    @staticmethod
     def get_by_id(id: str) -> Team:
         """
-        Searchs for a team given an ID.
+        Searchs for a team given an id.
         """
         cache_key = f'{TeamConfig.CACHE_PREFIX}{id}'
         result = cache.smembers(cache_key)
@@ -128,12 +133,25 @@ class Team(BaseModel):
 
     @staticmethod
     def create(lobbies_ids: list) -> Team:
-        team = Team()
-        cache.sadd(f'{TeamConfig.CACHE_PREFIX}{team.id}', *lobbies_ids)
-        return Team.get_by_id(team.id)
+        """
+        Create a Team in Redis cache db given a list of lobbies ids.
+        """
+        players_count = sum(
+            [Lobby(owner_id=lobby_id).players_count for lobby_id in lobbies_ids]
+        )
+
+        if players_count > TeamConfig.MAX_PLAYERS_COUNT:
+            raise TeamException(_('Team players count exceeded.'))
+
+        team_id = secrets.token_urlsafe(TeamConfig.ID_SIZE)
+        cache.sadd(f'{TeamConfig.CACHE_PREFIX}{team_id}', *lobbies_ids)
+        return Team.get_by_id(team_id)
 
     @staticmethod
     def find(lobby: Lobby) -> Team:
+        """
+        Find a team for the given lobby.
+        """
         # check if received lobby already is on a team
         teams = Team.get_all()
         if any(lobby.id in team.lobbies_ids for team in teams):
@@ -155,7 +173,6 @@ class Team(BaseModel):
         Look for queued lobbies that are compatible
         and put them together in a team.
         """
-
         # check if received lobby already is on a team
         teams = Team.get_all()
         if any(lobby.id in team.lobbies_ids for team in teams):
@@ -190,8 +207,6 @@ class Team(BaseModel):
                     min_overall, max_overall = lobby.get_overall_by_elapsed_time()
                     if min_overall <= other_lobby.overall <= max_overall:
                         team.add_lobby(other_lobby.id)
-                        if team.players_count == lobby.max_players:
-                            team.set_ready()
 
         if len(team.lobbies_ids) > 1:
             return team
