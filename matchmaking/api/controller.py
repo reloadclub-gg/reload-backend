@@ -128,6 +128,10 @@ def lobby_start_queue(lobby_id: int):
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    user = User.objects.get(pk=lobby_id)
+    ws_controller.lobby_update(lobby)
+    ws_controller.user_status_change(user)
+
     return lobby
 
 
