@@ -8,6 +8,7 @@ ARG WORKDIR=/app
 WORKDIR $WORKDIR
 
 RUN pip install --upgrade pip pipenv
+RUN apt update && apt install -y gettext
 
 COPY Pipfile Pipfile.lock $WORKDIR/
 

@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from ninja import Router
-from ninja.errors import HttpError
+from ninja.errors import Http404
 
 from . import controller
 from .authentication import VerifiedExemptAuth, VerifiedRequiredAuth
@@ -26,7 +26,7 @@ def signup(request, payload: SignUpSchema):
 @router.post('fake-signup/', response={201: FakeUserSchema})
 def fake_signup(request, payload: FakeSignUpSchema):
     if not settings.DEBUG:
-        raise HttpError(404, 'Not found')
+        raise Http404()
 
     user = User.objects.filter(email=payload.email)
     if not user:

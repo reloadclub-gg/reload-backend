@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
@@ -76,12 +77,12 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     """
 
     if hasattr(user, 'account'):
-        raise HttpError(403, 'User already has an account')
+        raise HttpError(403, _('User already has an account.'))
 
     invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
     if not is_fake and (check_invite_required() and not invites.exists()):
-        raise HttpError(403, 'Must be invited')
+        raise HttpError(403, _('User must be invited.'))
 
     invites.update(datetime_accepted=timezone.now())
 

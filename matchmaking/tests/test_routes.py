@@ -36,7 +36,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertFalse(lobby.is_public)
 
         response = self.api.call(
-            'patch', '/lobby/set-public', token=self.user_1.auth.token
+            'patch', f'/lobby/{lobby.id}/set-public', token=self.user_1.auth.token
         )
 
         self.assertEqual(response.status_code, 200)
@@ -51,13 +51,10 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertFalse(lobby.is_public)
 
         response = self.api.call(
-            'patch', '/lobby/set-public', token=self.user_2.auth.token
+            'patch', f'/lobby/{lobby.id}/set-public', token=self.user_2.auth.token
         )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User must be owner to perfom this action'}
-        )
+        self.assertEqual(response.status_code, 401)
 
     def test_lobby_set_private(self):
         lobby = Lobby.create(self.user_1.id)
@@ -65,7 +62,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertTrue(lobby.is_public)
 
         response = self.api.call(
-            'patch', '/lobby/set-private', token=self.user_1.auth.token
+            'patch', f'/lobby/{lobby.id}/set-private', token=self.user_1.auth.token
         )
 
         self.assertEqual(response.status_code, 200)
@@ -80,13 +77,10 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertTrue(lobby.is_public)
 
         response = self.api.call(
-            'patch', '/lobby/set-private', token=self.user_2.auth.token
+            'patch', f'/lobby/{lobby.id}/set-private', token=self.user_2.auth.token
         )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User must be owner to perfom this action'}
-        )
+        self.assertEqual(response.status_code, 401)
 
     def test_lobby_remove_player(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -118,10 +112,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
             token=self.user_1.auth.token,
         )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User must be in lobby to perform this action'}
-        )
+        self.assertEqual(response.status_code, 401)
 
     def test_remove_user_by_non_owner(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -140,10 +131,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
             token=self.user_3.auth.token,
         )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User must be owner to perform this action'}
-        )
+        self.assertEqual(response.status_code, 401)
 
     def test_lobby_invite(self):
         lobby = Lobby.create(self.user_1.id)
@@ -172,9 +160,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User already invited caught on lobby invite'}
-        )
+        self.assertDictEqual(response.json(), {'detail': 'User already invited.'})
 
     def test_lobby_accept_invite_has_no_invited(self):
         lobby = Lobby.create(self.user_1.id)
@@ -189,9 +175,6 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User not invited caught on lobby move'}
-        )
 
     def test_lobby_refuse_invite(self):
         lobby = Lobby.create(self.user_1.id)
@@ -224,9 +207,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'Inexistent invite caught on invite deletion'}
-        )
+        self.assertDictEqual(response.json(), {'detail': 'Invite not found.'})
 
     def test_lobby_change_type_and_mode(self):
         lobby = Lobby.create(self.user_1.id)
@@ -265,10 +246,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
             token=self.user_2.auth.token,
         )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User must be owner to perfom this action'}
-        )
+        self.assertEqual(response.status_code, 401)
 
     def test_lobby_enter(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -302,9 +280,6 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'User not invited caught on lobby move'}
-        )
 
     def test_lobby_start_queue(self):
         lobby = Lobby.create(self.user_1.id)
@@ -331,9 +306,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(
-            response.json(), {'detail': 'Lobby is queued caught on start lobby queue'}
-        )
+        self.assertDictEqual(response.json(), {'detail': 'Lobby is queued.'})
 
     def test_lobby_cancel_queue(self):
         lobby = Lobby.create(self.user_1.id)

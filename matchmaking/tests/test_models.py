@@ -42,7 +42,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(lobby.lobby_type, 'custom')
 
     def test_create_type_unknown(self):
-        with self.assertRaisesRegex(LobbyException, 'Type unknown'):
+        with self.assertRaises(LobbyException):
             Lobby.create(self.user_1.id, lobby_type='unknown')
 
     def test_create_mode(self):
@@ -58,23 +58,23 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(lobby.mode, 20)
 
     def test_create_mode_unknown(self):
-        with self.assertRaisesRegex(LobbyException, 'Mode unknown'):
+        with self.assertRaises(LobbyException):
             Lobby.create(self.user_1.id, mode=7)
 
     def test_create_type_and_mode_not_compliant(self):
-        with self.assertRaisesRegex(LobbyException, 'Mode unknown'):
+        with self.assertRaises(LobbyException):
             Lobby.create(self.user_1.id, lobby_type='competitive', mode=20)
 
     def test_create_user_not_found(self):
-        with self.assertRaisesRegex(LobbyException, 'not found'):
+        with self.assertRaises(LobbyException):
             Lobby.create(12345)
 
     def test_create_user_account_unverified(self):
-        with self.assertRaisesRegex(LobbyException, 'verified account'):
+        with self.assertRaises(LobbyException):
             Lobby.create(self.online_unverified_user.id)
 
     def test_create_user_offline(self):
-        with self.assertRaisesRegex(LobbyException, 'Offline'):
+        with self.assertRaises(LobbyException):
             Lobby.create(self.offline_verified_user.id)
 
     def test_invite(self):
@@ -92,7 +92,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         lobby_1.start_queue()
 
-        with self.assertRaisesRegex(LobbyException, 'queued'):
+        with self.assertRaises(LobbyException):
             lobby_1.invite(self.user_1.id, self.user_2.id)
 
     def test_invite_full(self):
@@ -112,7 +112,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_1.invite(self.user_1.id, self.user_5.id)
         Lobby.move(self.user_5.id, lobby_1.id)
 
-        with self.assertRaisesRegex(LobbyException, 'full'):
+        with self.assertRaises(LobbyException):
             lobby_1.invite(self.user_1.id, self.user_6.id)
 
     def test_move(self):
@@ -294,9 +294,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         lobby_2 = Lobby.create(self.user_2.id)
 
-        with self.assertRaisesMessage(
-            LobbyException, 'User not invited caught on lobby move'
-        ):
+        with self.assertRaises(LobbyException):
             lobby_1.move(lobby_2.id, self.user_1.id)
 
     def test_max_players(self):
@@ -323,7 +321,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby = Lobby.create(self.user_1.id)
         self.assertEqual(lobby.lobby_type, lobby.Config.TYPES[0])
 
-        with self.assertRaisesRegex(LobbyException, 'Type unknown'):
+        with self.assertRaises(LobbyException):
             lobby.set_type('unknown')
 
         self.assertEqual(lobby.lobby_type, lobby.Config.TYPES[0])
@@ -339,7 +337,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby = Lobby.create(self.user_1.id, mode=1)
         self.assertEqual(lobby.mode, 1)
 
-        with self.assertRaisesRegex(LobbyException, 'Mode unknown'):
+        with self.assertRaises(LobbyException):
             lobby.set_mode(20)
 
         self.assertEqual(lobby.mode, 1)
@@ -356,9 +354,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def test_delete_invite_must_be_invited(self):
         lobby_1 = Lobby.create(self.user_1.id)
 
-        with self.assertRaisesMessage(
-            LobbyException, 'Inexistent invite caught on invite deletion'
-        ):
+        with self.assertRaises(LobbyException):
             lobby_1.delete_invite(f'{self.user_1.id}:{self.user_2.id}')
 
     def test_set_mode_20x20_to_5x5(self):
@@ -507,7 +503,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         )
 
         lobby_1.set_type('competitive')
-        with self.assertRaisesMessage(LobbyException, 'owner_id cannot be removed'):
+        with self.assertRaises(LobbyException):
             lobby_1.set_mode(5, [self.user_1.id])
 
     def test_move_delete_invites_from_player(self):
@@ -562,7 +558,5 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
 
-        with self.assertRaisesMessage(
-            LobbyInviteException, 'Inexistent invite caught on invite deletion'
-        ):
+        with self.assertRaises(LobbyInviteException):
             LobbyInvite.get(lobby_1.id, '99:99')

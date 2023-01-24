@@ -23,3 +23,4 @@ venv/
 celerybeat-schedule
 .kube
 *.code-workspace
+*.mo
