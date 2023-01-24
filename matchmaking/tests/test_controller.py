@@ -6,7 +6,7 @@ from ninja.errors import HttpError
 from core.tests import TestCase
 
 from ..api import controller
-from ..models import Lobby
+from ..models import Lobby, Team
 from . import mixins
 
 
@@ -161,6 +161,18 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         with self.assertRaises(HttpError):
             controller.lobby_start_queue(lobby.id)
+
+    def test_lobby_start_queue_and_find(self):
+        self.assertEqual(Team.get_all(), [])
+        lobby = Lobby.create(self.user_1.id)
+        controller.lobby_start_queue(lobby.id)
+        team = Team.get_by_lobby_id(lobby.id)
+        self.assertIsNone(team)
+
+        lobby2 = Lobby.create(self.user_2.id)
+        controller.lobby_start_queue(lobby2.id)
+        team = Team.get_by_lobby_id(lobby2.id)
+        self.assertIsNotNone(team)
 
     def test_lobby_cancel_queue(self):
         lobby = Lobby.create(self.user_1.id)
