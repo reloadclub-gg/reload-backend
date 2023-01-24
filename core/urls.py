@@ -12,7 +12,8 @@ admin.site.enable_nav_sidebar = False
 urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
-    path("api/", api.urls),
+    path('api/', api.urls),
+    path('', admin.site.urls, name='admin'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
