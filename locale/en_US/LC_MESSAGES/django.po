@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-23 20:12-0300\n"
+"POT-Creation-Date: 2023-01-24 17:36-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -434,3 +434,23 @@ msgstr "User already invited."
 #: matchmaking/models/lobby.py:489
 msgid "Owner cannot be removed."
 msgstr "Owner cannot be removed."
+
+#: matchmaking/models/team.py:126 matchmaking/models/team.py:138
+#, fuzzy
+#| msgid "User not found."
+msgid "Team not found."
+msgstr "Team not found."
+
+#: matchmaking/models/team.py:152
+msgid "Team players count exceeded."
+msgstr "Team players count exceeded."
+
+#: matchmaking/models/team.py:166 matchmaking/models/team.py:187
+msgid "Lobby already on a team."
+msgstr "Lobby already on a team."
+
+#: matchmaking/models/team.py:170 matchmaking/models/team.py:191
+#, fuzzy
+#| msgid "Lobby is queued."
+msgid "Lobby not queued."
+msgstr "Lobby not queued."

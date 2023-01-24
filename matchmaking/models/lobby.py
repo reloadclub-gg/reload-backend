@@ -498,3 +498,28 @@ class Lobby(BaseModel):
                     self.move(player_id, player_id)
 
         cache.set(f'{self.cache_key}:mode', mode)
+
+    def get_overall_by_elapsed_time(self) -> tuple:
+        """
+        Return the minimum and maximum lobby overall that this lobby
+        can team up or challenge.
+        """
+        elapsed_time = int(self.queue_time)
+
+        if not self.queue or elapsed_time < 30:
+            min = self.overall - 1 if self.overall > 0 else 0
+            max = self.overall + 1
+        elif elapsed_time < 60:
+            min = self.overall - 2 if self.overall > 1 else 0
+            max = self.overall + 2
+        elif elapsed_time < 90:
+            min = self.overall - 3 if self.overall > 2 else 0
+            max = self.overall + 3
+        elif elapsed_time < 120:
+            min = self.overall - 4 if self.overall > 3 else 0
+            max = self.overall + 4
+        else:
+            min = self.overall - 5 if self.overall > 4 else 0
+            max = self.overall + 5
+
+        return min, max

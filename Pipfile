@@ -56,4 +56,4 @@ test-w-coverage = "sh -c 'coverage run manage.py test --noinput && coverage repo
 start = "uvicorn --host 0.0.0.0 --port 80 --reload --workers 2 core.asgi:application"
 format = "black -S ."
 sort-imports = "isort --profile=black --skip-glob='**/migrations/*.py' --skip-glob='**/models/__init__.py' ."
-translate = "python ./manage.py makemessages -l pt_BR -a"
+makemessages = "python ./manage.py makemessages -l pt_BR -a"

@@ -1,6 +1,16 @@
+from time import sleep
+from unittest import mock
+
 from core.tests import TestCase, cache
 
-from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
+from ..models import (
+    Lobby,
+    LobbyException,
+    LobbyInvite,
+    LobbyInviteException,
+    Team,
+    TeamException,
+)
 from . import mixins
 
 
@@ -560,3 +570,273 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         with self.assertRaises(LobbyInviteException):
             LobbyInvite.get(lobby_1.id, '99:99')
+
+    def test_overall(self):
+        self.user_1.account.level = 1
+        self.user_1.account.save()
+        self.user_2.account.level = 2
+        self.user_2.account.save()
+        self.user_3.account.level = 3
+        self.user_3.account.save()
+        self.user_4.account.level = 4
+        self.user_4.account.save()
+        self.user_5.account.level = 5
+        self.user_5.account.save()
+
+        lobby_1 = Lobby.create(self.user_1.id)
+        lobby_2 = Lobby.create(self.user_2.id)
+        lobby_3 = Lobby.create(self.user_3.id)
+        lobby_4 = Lobby.create(self.user_4.id)
+        lobby_5 = Lobby.create(self.user_5.id)
+
+        lobby_1.invite(self.user_1.id, self.user_2.id)
+        lobby_1.invite(self.user_1.id, self.user_3.id)
+        lobby_1.invite(self.user_1.id, self.user_4.id)
+        lobby_1.invite(self.user_1.id, self.user_5.id)
+
+        Lobby.move(lobby_2.id, lobby_1.id)
+        Lobby.move(lobby_3.id, lobby_1.id)
+        Lobby.move(lobby_4.id, lobby_1.id)
+        Lobby.move(lobby_5.id, lobby_1.id)
+
+        self.assertEqual(lobby_1.overall, 5)
+
+    def test_queue_time(self):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.start_queue()
+        sleep(2)
+
+        self.assertEqual(lobby.queue_time, 2)
+
+    @mock.patch(
+        'matchmaking.models.lobby.Lobby.queue_time', new_callable=mock.PropertyMock
+    )
+    def test_lobby_overall_by_elapsed_time(self, mocker):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.start_queue()
+
+        mocker.return_value = 10
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 1), (min_level, max_level))
+
+        mocker.return_value = 30
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 2), (min_level, max_level))
+
+        mocker.return_value = 60
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 3), (min_level, max_level))
+
+        mocker.return_value = 90
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 4), (min_level, max_level))
+
+        mocker.return_value = 120
+        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        self.assertEqual((0, 5), (min_level, max_level))
+
+
+class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.user_1.auth.add_session()
+        self.user_2.auth.add_session()
+        self.user_3.auth.add_session()
+        self.user_4.auth.add_session()
+        self.user_5.auth.add_session()
+        self.user_6.auth.add_session()
+
+        self.lobby1 = Lobby.create(owner_id=self.user_1.id)
+        self.lobby2 = Lobby.create(owner_id=self.user_2.id)
+        self.lobby3 = Lobby.create(owner_id=self.user_3.id)
+        self.lobby4 = Lobby.create(owner_id=self.user_4.id)
+        self.lobby5 = Lobby.create(owner_id=self.user_5.id)
+        self.lobby6 = Lobby.create(owner_id=self.user_6.id)
+
+    def test_players_count(self):
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+        self.assertEqual(
+            team.players_count, self.lobby1.players_count + self.lobby2.players_count
+        )
+
+    def test_build(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
+        self.lobby4.start_queue()
+        self.lobby5.start_queue()
+        self.lobby6.start_queue()
+
+        team = Team.build(self.lobby1)
+        team_model = Team.get_by_id(team.id)
+        self.assertEqual(team.id, team_model.id)
+        self.assertEqual(team.players_count, self.lobby1.max_players)
+
+    def test_build_skips(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        Lobby.move(self.user_3.id, self.lobby1.id)
+
+        self.lobby4.set_public()
+        Lobby.move(self.user_5.id, self.lobby4.id)
+
+        self.lobby1.start_queue()
+        self.lobby4.set_mode(1)
+        self.lobby4.start_queue()
+        self.lobby6.start_queue()
+
+        team = Team.build(self.lobby1)
+        self.assertEqual(team.lobbies_ids, [self.lobby1.id, self.lobby6.id])
+        self.assertEqual(team.players_count, 4)
+        team.delete()
+
+        self.user_6.account.level = 7
+        self.user_6.account.save()
+
+        team = Team.build(self.lobby1)
+        self.assertIsNone(team)
+
+    def test_ready(self):
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+        self.assertFalse(team1.ready)
+
+        team2 = Team.create(
+            lobbies_ids=[
+                self.lobby2.id,
+                self.lobby3.id,
+                self.lobby4.id,
+                self.lobby5.id,
+                self.lobby6.id,
+            ]
+        )
+
+        self.assertTrue(team2.ready)
+
+    def test_build_errors(self):
+        Team.create(lobbies_ids=[self.lobby1.id])
+        Team.create(lobbies_ids=[self.lobby2.id, self.lobby4.id])
+
+        with self.assertRaises(TeamException):
+            Team.build(self.lobby1)
+
+        with self.assertRaises(TeamException):
+            Team.build(self.lobby2)
+
+        with self.assertRaises(TeamException):
+            Team.build(self.lobby3)
+
+        with self.assertRaises(TeamException):
+            Team.build(self.lobby4)
+
+        self.lobby5.start_queue()
+        Team.build(self.lobby5)
+
+    def test_get_all(self):
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+        team2 = Team.create(lobbies_ids=[self.lobby2.id])
+        team3 = Team.create(
+            lobbies_ids=[self.lobby3.id, self.lobby4.id, self.lobby5.id, self.lobby6.id]
+        )
+
+        teams = Team.get_all()
+        self.assertCountEqual(teams, [team1, team2, team3])
+
+    def test_remove_lobby(self):
+        team = Team.create(
+            lobbies_ids=[
+                self.lobby1.id,
+                self.lobby2.id,
+                self.lobby3.id,
+                self.lobby4.id,
+                self.lobby5.id,
+            ]
+        )
+        team.remove_lobby(self.lobby3.id)
+        self.assertFalse(team.ready)
+        self.assertTrue(self.lobby3.id not in team.lobbies_ids)
+
+        team.remove_lobby(self.lobby2.id)
+        team.remove_lobby(self.lobby4.id)
+        team.remove_lobby(self.lobby5.id)
+
+        with self.assertRaises(TeamException):
+            Team.get_by_id(team.id)
+
+    def test_create_and_get_by_id(self):
+        team = Team.create(lobbies_ids=[self.lobby1.id])
+        obj = Team.get_by_id(team.id)
+
+        self.assertIsNotNone(obj)
+        self.assertEqual(team.id, obj.id)
+
+        team = Team.create(
+            lobbies_ids=[
+                self.lobby2.id,
+                self.lobby3.id,
+                self.lobby4.id,
+                self.lobby5.id,
+                self.lobby6.id,
+            ]
+        )
+        obj = Team.get_by_id(team.id)
+
+        self.assertIsNotNone(obj)
+        self.assertEqual(team.id, obj.id)
+        self.assertTrue(team.ready)
+
+    def test_create_and_get_by_id_error(self):
+        with self.assertRaises(TeamException):
+            Team.create(
+                lobbies_ids=[
+                    self.lobby1.id,
+                    self.lobby2.id,
+                    self.lobby3.id,
+                    self.lobby4.id,
+                    self.lobby5.id,
+                    self.lobby6.id,
+                ]
+            )
+
+    def test_find(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+
+        team = Team.build(self.lobby1)
+        team_model = Team.get_by_id(team.id)
+        self.assertEqual(team.id, team_model.id)
+        self.assertEqual(team.players_count, 2)
+        self.assertEqual(len(team.lobbies_ids), 2)
+
+        self.lobby3.start_queue()
+        team2 = Team.find(self.lobby3)
+        self.assertIsNotNone(team2)
+        self.assertEqual(team.id, team2.id)
+
+    def test_get_all_not_ready(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+
+        team1 = Team.build(self.lobby1)
+
+        self.lobby3.start_queue()
+        self.lobby6.start_queue()
+
+        team3 = Team.build(self.lobby3)
+
+        not_ready = Team.get_all_not_ready()
+        self.assertCountEqual([team1, team3], not_ready)
+
+    def test_get_by_lobby_id(self):
+        team = Team.create(lobbies_ids=[self.lobby1.id])
+        obj = Team.get_by_lobby_id(self.lobby1.id)
+        self.assertEqual(team, obj)
+
+        with self.assertRaises(TeamException):
+            Team.get_by_lobby_id('unknown_lobby_id')
+
+    def test_delete(self):
+        team = Team.create(lobbies_ids=[self.lobby1.id])
+        team.delete()
+
+        with self.assertRaises(TeamException):
+            Team.get_by_id(team).id

@@ -3,7 +3,7 @@ from ninja.errors import HttpError
 
 from websocket import controller as ws_controller
 
-from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
+from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException, Team
 
 User = get_user_model()
 
@@ -132,11 +132,19 @@ def lobby_start_queue(lobby_id: int):
     ws_controller.lobby_update(lobby)
     ws_controller.user_status_change(user)
 
+    team = Team.find(lobby)
+    if not team:
+        Team.build(lobby)
+
     return lobby
 
 
 def lobby_cancel_queue(lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
     lobby.cancel_queue()
+
+    team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
+    if team:
+        team.remove_lobby(lobby_id)
 
     return lobby
