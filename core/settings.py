@@ -31,6 +31,7 @@ CSRF_COOKIE_SECURE = HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https' if HTTPS else 'http')
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -131,6 +133,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
+
 
 # Logging Settings
 if ENVIRONMENT != LOCAL:
@@ -142,7 +146,10 @@ if ENVIRONMENT != LOCAL:
                 'level': 'INFO',
                 'class': 'logging.handlers.SysLogHandler',
                 'formatter': 'simple',
-                'address': ('logs3.papertrailapp.com', 28882),
+                'address': (
+                    config('PAPERTRAIL_ADDRESS'),
+                    config('PAPERTRAIL_PORT', cast=int),
+                ),
             },
         },
         'formatters': {
@@ -225,14 +232,17 @@ REDIS_SSL = config('REDIS_SSL', default=False, cast=bool)
 
 
 # Sentry Settings
-if os.getenv('SENTRY_DSN'):
+if config('SENTRY_DSN', default=None):
     sentry_sdk.init(
-        dsn=os.getenv('SENTRY_DSN'),
+        dsn=config('SENTRY_DSN', default=''),
         integrations=[
             DjangoIntegration(),
         ],
-        traces_sample_rate=os.getenv('SENTRY_SAMPLE_RATE', 0.1),
+        traces_sample_rate=config('SENTRY_SAMPLE_RATE', default=1.0),
         send_default_pii=True,
+        environment=ENVIRONMENT,
+        attach_stacktrace=True,
+        debug=DEBUG,
     )
 
 
@@ -261,3 +271,19 @@ CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{CELERY_REDIS_DB}'
 
 # Websocket Application Settings
 GROUP_NAME_PREFIX = 'app'
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Reload Admin",
+    "site_header": "Reload",
+    "site_brand": "Reload",
+    "login_logo": None,
+    "welcome_sign": "Welcome to the Reload Admin",
+    "copyright": "3C.gg",
+    "show_sidebar": True,
+    "order_with_respect_to": ["auth"],
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+    },
+}

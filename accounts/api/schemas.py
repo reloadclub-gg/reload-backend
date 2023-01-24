@@ -4,6 +4,7 @@ import pydantic
 from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
 
+from matchmaking.api.schemas import LobbySchema
 from steam import Steam
 
 from ..models import Account
@@ -18,6 +19,7 @@ class FriendAccountSchema(ModelSchema):
     avatar: Optional[dict]
     is_online: Optional[bool]
     status: Optional[str]
+    lobby: Optional[LobbySchema]
 
     class Config:
         model = Account
@@ -49,10 +51,7 @@ class FriendAccountSchema(ModelSchema):
 
     @staticmethod
     def resolve_status(obj):
-        if bool(obj.user.auth.sessions):
-            return 'online'
-        else:
-            return 'offline'
+        return obj.user.status
 
 
 class AccountSchema(ModelSchema):
@@ -60,6 +59,7 @@ class AccountSchema(ModelSchema):
     username: Optional[str]
     avatar: Optional[dict]
     friends: List[FriendAccountSchema] = None
+    lobby: Optional[LobbySchema]
 
     class Config:
         model = Account
@@ -86,6 +86,7 @@ class UserSchema(ModelSchema):
     account: Optional[AccountSchema] = None
     email: Optional[pydantic.EmailStr] = None
     is_online: bool = None
+    status: str
 
     class Config:
         model = User
@@ -95,6 +96,8 @@ class UserSchema(ModelSchema):
             'user_permissions',
             'is_superuser',
             'password',
+            'last_login',
+            'date_joined',
         ]
 
     @staticmethod

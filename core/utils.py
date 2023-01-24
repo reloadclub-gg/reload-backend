@@ -80,12 +80,10 @@ def str_to_timezone(value: str) -> datetime:
 
 
 def send_mail(mail_to: str, subject: str, content: str):
-
-    if settings.ENVIRONMENT != settings.LOCAL:
-        mail.send_mail(
-            subject,
-            strip_tags(content),
-            settings.DEFAULT_FROM_EMAIL,
-            mail_to,
-            html_message=content,
-        )
+    mail.send_mail(
+        subject,
+        strip_tags(content),
+        settings.DEFAULT_FROM_EMAIL,
+        mail_to,
+        html_message=content,
+    )

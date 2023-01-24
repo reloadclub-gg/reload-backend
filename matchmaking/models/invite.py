@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
 from core.redis import RedisClient
@@ -36,7 +37,7 @@ class LobbyInvite(BaseModel):
         )
 
         if not invite:
-            raise LobbyInviteException('Inexistent invite caught on invite deletion')
+            raise LobbyInviteException(_('Invite not found.'))
 
         from_id, to_id = invite_id.split(':')
 

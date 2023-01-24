@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from ninja import Schema
@@ -17,7 +16,7 @@ class LobbySchema(Schema):
     invites: list
     invited_players_ids: list
     overall: int
-    queue: Optional[datetime]
+    queue: Optional[str]
     queue_time: Optional[int]
 
     class Config:
@@ -65,7 +64,7 @@ class LobbySchema(Schema):
 
     @staticmethod
     def resolve_queue(obj):
-        return obj.queue
+        return obj.queue.strftime('%Y-%m-%d %H:%M:%S') if obj.queue else None
 
     @staticmethod
     def resolve_queue_time(obj):

@@ -5,7 +5,6 @@ from redis import Redis, exceptions
 
 
 class RedisClient(Redis):
-
     TRANSACTION_MAX_RETRIES_DEFAULT = 3
 
     class RetryException(Exception):

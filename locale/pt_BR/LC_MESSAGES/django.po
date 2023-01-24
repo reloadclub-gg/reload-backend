@@ -1,0 +1,457 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Gabriel Gularte <ggularte@3c.gg>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-24 17:36-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: accounts/api/controller.py:80
+#, fuzzy
+#| msgid "User already has an account"
+msgid "User already has an account."
+msgstr "Usuário já possui uma conta."
+
+#: accounts/api/controller.py:85 matchmaking/models/lobby.py:271
+msgid "User must be invited."
+msgstr "Usuário deve ser convidado."
+
+#: accounts/models/account.py:34
+msgid "Steam account not found."
+msgstr "Conta Steam não encontrada."
+
+#: accounts/models/account.py:92
+#, python-brace-format
+msgid "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
+msgstr "Máximo número de convites atingido ({self.MAX_INVITES_PER_ACCOUNT})."
+
+#: accounts/models/account.py:96
+msgid "Accepted invites cannot be modified."
+msgstr "Convites aceitos não podem ser modificados."
+
+#: accounts/models/account.py:99
+msgid "An invite already exists for this email."
+msgstr "Já existe um convite para este e-mail."
+
+#: core/api/pydantic_messages.py:4
+msgid "field required"
+msgstr "Esse campo é obrigatório."
+
+#: core/api/pydantic_messages.py:5
+msgid "extra fields not permitted"
+msgstr "Campos extras não são permitidos nesse contexto."
+
+#: core/api/pydantic_messages.py:6
+msgid "none is not an allowed value"
+msgstr "Vazio ou nulo não é um valor permitido."
+
+#: core/api/pydantic_messages.py:7
+msgid "value is not none"
+msgstr "Valor é não nulo."
+
+#: core/api/pydantic_messages.py:8
+msgid "value is not None"
+msgstr "Valor é não nulo."
+
+#: core/api/pydantic_messages.py:10
+msgid "value could not be parsed to a boolean"
+msgstr "O valor não pode ser convertido para boleano."
+
+#: core/api/pydantic_messages.py:12
+msgid "byte type expected"
+msgstr "O tipo esperado é \"byte\"."
+
+#: core/api/pydantic_messages.py:13
+msgid "value is not a valid dict"
+msgstr "O valor não é um dicionário válido."
+
+#: core/api/pydantic_messages.py:14
+msgid "value is not a valid email address"
+msgstr "O valor não é endereço de e-mail válido."
+
+#: core/api/pydantic_messages.py:15
+msgid "invalid or missing URL scheme"
+msgstr "Esquema URL está faltando ou é inválido."
+
+#: core/api/pydantic_messages.py:16
+msgid "URL scheme not permitted"
+msgstr "Esquema URL não permitido."
+
+#: core/api/pydantic_messages.py:17
+msgid "userinfo required in URL but missing"
+msgstr "\"userinfo\" é obrigatório na URL."
+
+#: core/api/pydantic_messages.py:18
+msgid "URL host invalid"
+msgstr "Host URL inválido."
+
+#: core/api/pydantic_messages.py:20
+msgid "URL host invalid, top level domain required"
+msgstr "Host URL inválido."
+
+#: core/api/pydantic_messages.py:23
+msgid "URL port invalid, port cannot exceed 65535"
+msgstr "Host URL inválido."
+
+#: core/api/pydantic_messages.py:26
+msgid "URL invalid, extra characters found after valid URL: {}"
+msgstr "URL é inválida."
+
+#: core/api/pydantic_messages.py:28
+msgid "{} is not a valid Enum instance"
+msgstr "{} não é uma instância \"Enum\" válida."
+
+#: core/api/pydantic_messages.py:29
+msgid "{} is not a valid IntEnum instance"
+msgstr "{} não é uma instância \"IntEnum\" válida."
+
+#: core/api/pydantic_messages.py:30
+msgid "value is not a valid integer"
+msgstr "O valor não é um inteiro válido."
+
+#: core/api/pydantic_messages.py:31
+msgid "value is not a valid float"
+msgstr "O valor não é um \"float\" válido."
+
+#: core/api/pydantic_messages.py:32
+msgid "value is not a valid path"
+msgstr "O valor não é um caminho válido."
+
+#: core/api/pydantic_messages.py:34
+msgid "file or directory at path \"{}\" does not exist"
+msgstr "O arquivo ou diretório em \"{}\" não existe."
+
+#: core/api/pydantic_messages.py:36
+msgid "path \"{}\" does not point to a file"
+msgstr "O caminho \"{}\" não representa um arquivo."
+
+#: core/api/pydantic_messages.py:38
+msgid "path \"{}\" does not point to a directory"
+msgstr "O caminho \"{}\" não representa um diretório."
+
+#: core/api/pydantic_messages.py:41
+msgid "ensure this value contains valid import path or valid callable: {}"
+msgstr "Certifique de que o valor contém um caminho de importação válido."
+
+#: core/api/pydantic_messages.py:43
+msgid "value is not a valid sequence"
+msgstr "O valor não é uma sequência válida."
+
+#: core/api/pydantic_messages.py:44
+msgid "value is not a valid list"
+msgstr "O valor não é uma lista válida."
+
+#: core/api/pydantic_messages.py:45
+msgid "value is not a valid set"
+msgstr "O valor não é um conjunto válido."
+
+#: core/api/pydantic_messages.py:46
+msgid "value is not a valid frozenset"
+msgstr "O valor não é um \"frozenset\" válido."
+
+#: core/api/pydantic_messages.py:47
+msgid "value is not a valid tuple"
+msgstr "O valor não é uma tupla válida."
+
+#: core/api/pydantic_messages.py:48
+msgid "wrong tuple length {}"
+msgstr "Tamanho errado de tupla {}."
+
+#: core/api/pydantic_messages.py:50
+msgid "ensure this value has at least {} items"
+msgstr "Certifique que o valor possui, pelo menos, {} itens."
+
+#: core/api/pydantic_messages.py:53
+msgid "ensure this value has at most {} items"
+msgstr "Certifique que o valor possui, no máximo, {} itens."
+
+#: core/api/pydantic_messages.py:55
+msgid "the list has duplicated items"
+msgstr "A lista informada possui itens duplicados."
+
+#: core/api/pydantic_messages.py:57
+msgid "ensure this value has at least {} characters"
+msgstr "Certifique que o valor possui, pelo menos, {} caracteres."
+
+#: core/api/pydantic_messages.py:60
+msgid "ensure this value has at most {} characters"
+msgstr "Certifique que o valor possui, no máximo, {} caracteres."
+
+#: core/api/pydantic_messages.py:62
+msgid "str type expected"
+msgstr "O tipo esperado é \"string\"."
+
+#: core/api/pydantic_messages.py:63
+msgid "string does not match regex \"{}\""
+msgstr "A \"string\" não corresponde a \"regex\" {}."
+
+#: core/api/pydantic_messages.py:64
+msgid "ensure this value is greater than {}"
+msgstr "Certifique que o valor é maior que {}."
+
+#: core/api/pydantic_messages.py:66
+msgid "ensure this value is greater than or equal to {}"
+msgstr "Certifique que o valor é maior ou igual a {}."
+
+#: core/api/pydantic_messages.py:68
+msgid "ensure this value is less than {}"
+msgstr "Certifique que o valor é menor que {}."
+
+#: core/api/pydantic_messages.py:70
+msgid "ensure this value is less than or equal to {}"
+msgstr "Certifique que o valor é menor ou igual a {}."
+
+#: core/api/pydantic_messages.py:72
+msgid "ensure this value is a multiple of {}"
+msgstr "Certifique que o valor é múltiplo de {}."
+
+#: core/api/pydantic_messages.py:73
+msgid "value is not a valid decimal"
+msgstr "O valor não é um decimal válido."
+
+#: core/api/pydantic_messages.py:75
+msgid "ensure that there are no more than {} digits in total"
+msgstr "Certifique que não haja mais de {} dígitos."
+
+#: core/api/pydantic_messages.py:78
+msgid "ensure that there are no more than {} decimal places"
+msgstr "Certifique que não haja mais de {} casas decimais."
+
+#: core/api/pydantic_messages.py:81
+msgid "ensure that there are no more than {} digits before the decimal point"
+msgstr "Certifique que não haja mais de {} dígitos depois do ponto decimal."
+
+#: core/api/pydantic_messages.py:83
+msgid "invalid datetime format"
+msgstr "Formato de data e hora inválido."
+
+#: core/api/pydantic_messages.py:84
+msgid "invalid date format"
+msgstr "Formato de data inválido."
+
+#: core/api/pydantic_messages.py:85
+msgid "date is not in the past"
+msgstr "Data deve estar no passado."
+
+#: core/api/pydantic_messages.py:86
+msgid "date is not in the future"
+msgstr "A data deve estar no futuro."
+
+#: core/api/pydantic_messages.py:87
+msgid "invalid time format"
+msgstr "Formato de hora inválido."
+
+#: core/api/pydantic_messages.py:88
+msgid "invalid duration format"
+msgstr "Formato de duração inválido."
+
+#: core/api/pydantic_messages.py:89
+msgid "value is not a valid hashable"
+msgstr "O valor não é um \"hashable\" válido."
+
+#: core/api/pydantic_messages.py:90
+msgid "value is not a valid uuid"
+msgstr "O valor não é um \"uuid\" válido."
+
+#: core/api/pydantic_messages.py:91
+msgid "uuid version {} expected"
+msgstr "A versão {} \"uuid\" é necessária."
+
+#: core/api/pydantic_messages.py:92
+msgid "instance of {} expected"
+msgstr "A instância {} é necessária."
+
+#: core/api/pydantic_messages.py:93
+msgid "a class is expected"
+msgstr "Uma classe é necessária."
+
+#: core/api/pydantic_messages.py:94
+msgid "subclass of {} expected"
+msgstr "A subclasse de {} é necessária."
+
+#: core/api/pydantic_messages.py:95
+msgid "Invalid JSON"
+msgstr "\"JSON\" inválido."
+
+#: core/api/pydantic_messages.py:97
+msgid "JSON object must be str, bytes or bytearray"
+msgstr "Objeto \"JSON\" deve ser \"string\", \"bytes\" ou \"bytearray\"."
+
+#: core/api/pydantic_messages.py:99
+msgid "Invalid regular expression"
+msgstr "A expressão regular é inválida."
+
+#: core/api/pydantic_messages.py:101
+msgid "instance of {}, tuple or dict expected"
+msgstr "Uma instância de {}, tupla ou dicionário é necessária."
+
+#: core/api/pydantic_messages.py:103
+msgid "{} is not callable"
+msgstr "{} não pode ser chamado. "
+
+#: core/api/pydantic_messages.py:105
+msgid "value is not a valid IPv4 or IPv6 address"
+msgstr "O valor não é um endereço \"IPv4\" ou \"UPv6\" válido."
+
+#: core/api/pydantic_messages.py:108
+msgid "value is not a valid IPv4 or IPv6 interface"
+msgstr "O valor não é uma interface \"IPv4\" ou \"UPv6\" válida."
+
+#: core/api/pydantic_messages.py:111
+msgid "value is not a valid IPv4 or IPv6 network"
+msgstr "O valor não é uma rede \"IPv4\" ou \"UPv6\" válida."
+
+#: core/api/pydantic_messages.py:113
+msgid "value is not a valid IPv4 address"
+msgstr "O valor não é um endereço \"IPv4\" válido."
+
+#: core/api/pydantic_messages.py:114
+msgid "value is not a valid IPv6 address"
+msgstr "O valor não é um endereço \"IPv6\" válido."
+
+#: core/api/pydantic_messages.py:115
+msgid "value is not a valid IPv4 network"
+msgstr "O valor não é uma rede \"IPv4\" válida."
+
+#: core/api/pydantic_messages.py:116
+msgid "value is not a valid IPv6 network"
+msgstr "O valor não é uma rede \"IPv6\" válida."
+
+#: core/api/pydantic_messages.py:117
+msgid "value is not a valid IPv4 interface"
+msgstr "O valor não é uma interface \"IPv4\" válida."
+
+#: core/api/pydantic_messages.py:118
+msgid "value is not a valid IPv6 interface"
+msgstr "O valor não é uma interface \"IPv6\" válida."
+
+#: core/api/pydantic_messages.py:119
+msgid "value is not a valid color: {}"
+msgstr "O valor não é uma cor válida: {}."
+
+#: core/api/pydantic_messages.py:120
+msgid "value is not a valid boolean"
+msgstr "O valor não é um boleano válido."
+
+#: core/api/pydantic_messages.py:121
+msgid "card number is not all digits"
+msgstr "O número do cartão possui dígitos a menos."
+
+#: core/api/pydantic_messages.py:122
+msgid "card number is not luhn valid"
+msgstr "O cartão não possui um \"luhn\" válido."
+
+#: core/api/pydantic_messages.py:123
+msgid "Length for a {}"
+msgstr "Tamanho para um {}."
+
+#: core/api/pydantic_messages.py:125
+msgid "could not parse value and unit from byte string"
+msgstr ""
+"Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
+
+#: core/api/pydantic_messages.py:127
+msgid "could not interpret byte unit: {}"
+msgstr "Não foi possível interpretar a unidade \"byte\": {}."
+
+#: core/api/pydantic_messages.py:128
+msgid "Discriminator {} is missing in value"
+msgstr "O valor do discriminador {} está faltando."
+
+#: core/api/pydantic_messages.py:129
+msgid "No match for discriminator {}"
+msgstr "Nenhuma correspondência para o discriminador {}."
+
+#: core/api/routes.py:27
+msgid "Unauthorized"
+msgstr "Não autorizado."
+
+#: core/api/routes.py:33
+msgid "Internationalization works."
+msgstr "A internacionalização está funcionando."
+
+#: matchmaking/models/invite.py:40 matchmaking/models/lobby.py:410
+msgid "Invite not found."
+msgstr "Convite não encontrado."
+
+#: matchmaking/models/lobby.py:185 matchmaking/models/lobby.py:242
+#: matchmaking/models/lobby.py:361
+msgid "User not found."
+msgstr "Usuário não encontrado."
+
+#: matchmaking/models/lobby.py:190 matchmaking/models/lobby.py:251
+#: matchmaking/models/lobby.py:366
+msgid "A verified account is required to perform this action."
+msgstr "Uma conta verificada é necessária para realizar esta ação."
+
+#: matchmaking/models/lobby.py:194 matchmaking/models/lobby.py:255
+#: matchmaking/models/lobby.py:370
+msgid "Offline user."
+msgstr "Usuário offline."
+
+#: matchmaking/models/lobby.py:197 matchmaking/models/lobby.py:469
+msgid "The given type is not valid."
+msgstr "O tipo informado não é válido."
+
+#: matchmaking/models/lobby.py:203 matchmaking/models/lobby.py:483
+msgid "The given mode is not valid."
+msgstr "O modo informado não é válido."
+
+#: matchmaking/models/lobby.py:237
+msgid "Lobby not found."
+msgstr "Lobby não encontrado."
+
+#: matchmaking/models/lobby.py:258 matchmaking/models/lobby.py:337
+#: matchmaking/models/lobby.py:422 matchmaking/models/lobby.py:446
+#: matchmaking/models/lobby.py:455 matchmaking/models/lobby.py:466
+#: matchmaking/models/lobby.py:480
+msgid "Lobby is queued."
+msgstr "Lobby está em fila."
+
+#: matchmaking/models/lobby.py:268 matchmaking/models/lobby.py:334
+msgid "Lobby is full."
+msgstr "Libby está cheio."
+
+#: matchmaking/models/lobby.py:354
+msgid "Invited user is already a lobby player."
+msgstr "Usuário convidado já faz parte do lobby."
+
+#: matchmaking/models/lobby.py:357
+msgid "User already invited."
+msgstr "Usuário já foi convidado."
+
+#: matchmaking/models/lobby.py:489
+msgid "Owner cannot be removed."
+msgstr "O dono não pode ser removido."
+
+#: matchmaking/models/team.py:126 matchmaking/models/team.py:138
+#, fuzzy
+#| msgid "User not found."
+msgid "Team not found."
+msgstr "Time não encontrado."
+
+#: matchmaking/models/team.py:152
+msgid "Team players count exceeded."
+msgstr "A quantidade de jogadores em time foi excedida."
+
+#: matchmaking/models/team.py:166 matchmaking/models/team.py:187
+msgid "Lobby already on a team."
+msgstr "O lobby já está em um time."
+
+#: matchmaking/models/team.py:170 matchmaking/models/team.py:191
+#, fuzzy
+#| msgid "Lobby is queued."
+msgid "Lobby not queued."
+msgstr "Lobby não está em fila."

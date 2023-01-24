@@ -11,7 +11,6 @@ from .auth import Auth
 
 
 class UserManager(BaseUserManager):
-
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -85,6 +84,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_online(self):
         return self.auth.sessions is not None
+
+    @property
+    def status(self):
+        if hasattr(self, 'account') and self.account.is_verified:
+            lobby = self.account.lobby
+            if lobby:
+                if lobby.queue:
+                    return 'queued'
+
+                if lobby.players_count > 1:
+                    return 'teaming'
+
+            if self.is_online:
+                return 'online'
+
+        return 'offline'
 
     def __str__(self):
         return self.email if self.email else str(self.id)

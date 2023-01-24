@@ -2,7 +2,7 @@ from collections.abc import Callable
 from functools import wraps
 
 from django.contrib.auth import get_user_model
-from ninja.errors import HttpError
+from ninja.errors import AuthenticationError
 
 from ..models import Lobby
 
@@ -35,7 +35,7 @@ def owner_required(f: Callable) -> Callable:
         if is_lobby_owner(request.user, lobby_id):
             return f(*args, **kwds)
 
-        raise HttpError(401, 'User must be owner to perfom this action')
+        raise AuthenticationError()
 
     return wrapper
 
@@ -54,6 +54,6 @@ def participant_required(f: Callable) -> Callable:
         if is_lobby_participant(request.user, lobby_id):
             return f(*args, **kwds)
 
-        raise HttpError(401, 'User must be owner to perfom this action')
+        raise AuthenticationError()
 
     return wrapper

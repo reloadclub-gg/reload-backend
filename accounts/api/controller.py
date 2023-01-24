@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
-from core.utils import get_ip_address
+from core.utils import generate_random_string, get_ip_address
 from websocket.controller import friendlist_add, lobby_update, user_status_change
 
 from .. import utils
@@ -76,12 +77,12 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     """
 
     if hasattr(user, 'account'):
-        raise HttpError(403, 'User already has an account')
+        raise HttpError(403, _('User already has an account.'))
 
     invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
     if not is_fake and (check_invite_required() and not invites.exists()):
-        raise HttpError(403, 'Must be invited')
+        raise HttpError(403, _('User must be invited.'))
 
     invites.update(datetime_accepted=timezone.now())
 
@@ -126,9 +127,15 @@ def update_email(user: User, email: str) -> User:
     """
     user.email = email
     user.save()
-
+    user.account.verification_token = generate_random_string(
+        length=Account.VERIFICATION_TOKEN_LENGTH
+    )
     user.account.is_verified = False
     user.account.save()
+
+    utils.send_verify_account_mail(
+        user.email, user.steam_user.username, user.account.verification_token
+    )
 
     user_status_change(user)
     lobby = user.account.lobby
