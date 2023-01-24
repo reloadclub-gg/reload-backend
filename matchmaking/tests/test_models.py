@@ -654,7 +654,7 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.lobby6 = Lobby.create(owner_id=self.user_6.id)
 
     def test_players_count(self):
-        team = Team(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
         self.assertEqual(
             team.players_count, self.lobby1.players_count + self.lobby2.players_count
         )
@@ -668,7 +668,6 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.lobby6.start_queue()
 
         team = Team.build(self.lobby1)
-        team = Team.build(self.lobby1)
         team_model = Team.get_by_id(team.id)
         self.assertEqual(team.id, team_model.id)
         self.assertEqual(team.players_count, self.lobby1.max_players)
@@ -680,40 +679,25 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         self.lobby4.set_public()
         Lobby.move(self.user_5.id, self.lobby4.id)
-        Lobby.move(self.user_6.id, self.lobby4.id)
 
         self.lobby1.start_queue()
-        self.lobby4.start_queue()
-
-        team = Team.build(self.lobby1)
-        with self.assertRaises(TeamException):
-            Team.get_by_id(team.id)
-
-        team.delete()
-
-        self.lobby4.cancel_queue()
-
-        self.lobby6.cancel_queue()
-        Lobby.move(self.user_6.id, self.lobby6.id)
-        self.lobby6.start_queue()
-
         self.lobby4.set_mode(1)
         self.lobby4.start_queue()
+        self.lobby6.start_queue()
 
         team = Team.build(self.lobby1)
         self.assertEqual(team.lobbies_ids, [self.lobby1.id, self.lobby6.id])
         self.assertEqual(team.players_count, 4)
-
         team.delete()
+
         self.user_6.account.level = 7
         self.user_6.account.save()
 
         team = Team.build(self.lobby1)
-        self.assertEqual(team.lobbies_ids, [self.lobby1.id])
-        self.assertEqual(team.players_count, 3)
+        self.assertIsNone(team)
 
     def test_ready(self):
-        team = Team(lobbies_ids=[self.lobby1.id]).save()
+        team = Team.create(lobbies_ids=[self.lobby1.id])
         self.assertFalse(team.ready)
         team.set_ready()
         self.assertTrue(team.ready)
@@ -721,8 +705,8 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertFalse(team.ready)
 
     def test_build_errors(self):
-        Team(lobbies_ids=[self.lobby1.id]).save()
-        Team(lobbies_ids=[self.lobby2.id, self.lobby4.id]).save()
+        Team.create(lobbies_ids=[self.lobby1.id])
+        Team.create(lobbies_ids=[self.lobby2.id, self.lobby4.id])
 
         with self.assertRaises(TeamException):
             Team.build(self.lobby1)
@@ -736,11 +720,32 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         Team.build(self.lobby3)
 
     def test_get_all(self):
-        team1 = Team(lobbies_ids=[self.lobby1.id]).save()
-        team2 = Team(lobbies_ids=[self.lobby2.id]).save()
-        team3 = Team(
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+        team2 = Team.create(lobbies_ids=[self.lobby2.id])
+        team3 = Team.create(
             lobbies_ids=[self.lobby3.id, self.lobby4.id, self.lobby5.id, self.lobby6.id]
-        ).save()
+        )
 
         teams = Team.get_all()
         self.assertCountEqual(teams, [team1, team2, team3])
+
+    def test_remove_lobby(self):
+        team1 = Team.create(
+            lobbies_ids=[
+                self.lobby1.id,
+                self.lobby2.id,
+                self.lobby3.id,
+                self.lobby4.id,
+                self.lobby5.id,
+            ]
+        )
+        team1.set_ready()
+        team1.remove_lobby(self.lobby3.id)
+        self.assertFalse(team1.ready)
+
+    def test_create_and_get_by_id(self):
+        team = Team.create(lobbies_ids=[self.lobby1.id])
+        obj = Team.get_by_id(team.id)
+
+        self.assertIsNotNone(obj)
+        self.assertEqual(team.id, obj.id)

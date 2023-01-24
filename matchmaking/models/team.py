@@ -47,7 +47,6 @@ class Team(BaseModel):
     the maximum numbers of players.
     """
 
-    lobbies_ids: list
     id: str = None
     cache_key: str = None
 
@@ -55,6 +54,10 @@ class Team(BaseModel):
         super().__init__(**data)
         self.id = self.id or secrets.token_urlsafe(TeamConfig.ID_SIZE)
         self.cache_key = self.cache_key or f'{TeamConfig.CACHE_PREFIX}{self.id}'
+
+    @property
+    def lobbies_ids(self) -> list:
+        return sorted(list(map(int, cache.smembers(self.cache_key))))
 
     @property
     def players_count(self) -> int:
@@ -71,13 +74,6 @@ class Team(BaseModel):
         Return whether this team is ready to find a oposing team.
         """
         return bool(cache.get(f'{self.cache_key}:ready'))
-
-    def save(self) -> Team:
-        """
-        Save team into Redis db.
-        """
-        cache.sadd(self.cache_key, *self.lobbies_ids)
-        return self
 
     def delete(self):
         """
@@ -97,6 +93,14 @@ class Team(BaseModel):
         """
         cache.delete(f'{self.cache_key}:ready')
 
+    def add_lobby(self, lobby_id: int):
+        cache.sadd(self.cache_key, lobby_id)
+
+    def remove_lobby(self, lobby_id: int):
+        cache.srem(self.cache_key, lobby_id)
+        if self.ready:
+            self.set_not_ready()
+
     @staticmethod
     def get_all() -> list[Team]:
         """
@@ -111,11 +115,17 @@ class Team(BaseModel):
         Searchs for a team given an ID.
         """
         cache_key = f'{TeamConfig.CACHE_PREFIX}{id}'
-        lobbies_ids = sorted(list(map(int, cache.smembers(cache_key))))
-        if not lobbies_ids:
+        result = cache.smembers(cache_key)
+        if not result:
             raise TeamException(_('Team not found.'))
 
-        return Team(id=id, lobbies_ids=lobbies_ids)
+        return Team(id=id)
+
+    @staticmethod
+    def create(lobbies_ids: list) -> Team:
+        team = Team()
+        cache.sadd(f'{TeamConfig.CACHE_PREFIX}{team.id}', *lobbies_ids)
+        return Team.get_by_id(team.id)
 
     @staticmethod
     def build(lobby: Lobby) -> Team:
@@ -131,8 +141,7 @@ class Team(BaseModel):
 
         # check whether the lobby is queued
         if lobby.queue:
-
-            team = Team(lobbies_ids=[lobby.id])
+            team = Team.create(lobbies_ids=[lobby.id])
 
             # get all queued lobbies
             lobby_ids = [
@@ -156,10 +165,12 @@ class Team(BaseModel):
                         # check if lobbies are in the same overall range
                         min_overall, max_overall = lobby.get_overall_by_elapsed_time()
                         if min_overall <= other_lobby.overall <= max_overall:
-                            team.lobbies_ids.append(other_lobby.id)
-                            team.save()
+                            team.add_lobby(other_lobby.id)
                             if team.players_count == lobby.max_players:
                                 team.set_ready()
 
-            team.lobbies_ids.sort()
-            return team
+            if len(team.lobbies_ids) > 1:
+                return team
+            else:
+                team.delete()
+                return None
