@@ -28,6 +28,7 @@ python-decouple = "*"
 black = "*"
 isort = "*"
 daphne = "*"
+django-jazzmin = "*"
 
 [dev-packages]
 
