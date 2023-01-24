@@ -95,6 +95,9 @@ class Team(BaseModel):
         """
         cache.srem(self.cache_key, lobby_id)
 
+        if len(self.lobbies_ids) <= 1:
+            self.delete()
+
     @staticmethod
     def get_all() -> list[Team]:
         """
@@ -116,8 +119,13 @@ class Team(BaseModel):
         """
         Searchs for a team given a lobby id.
         """
-        teams = Team.get_all()
-        return next((team for team in teams if lobby_id in team.lobbies_ids), None)
+        team = next(
+            (team for team in Team.get_all() if lobby_id in team.lobbies_ids), None
+        )
+        if not team:
+            raise TeamException(_('Team not found.'))
+
+        return team
 
     @staticmethod
     def get_by_id(id: str) -> Team:

@@ -142,5 +142,6 @@ def lobby_start_queue(lobby_id: int):
 def lobby_cancel_queue(lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
     lobby.cancel_queue()
+    Team.get_by_lobby_id(lobby_id).remove_lobby(lobby_id)
 
     return lobby

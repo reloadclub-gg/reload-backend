@@ -182,3 +182,35 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         controller.lobby_cancel_queue(lobby.id)
 
         self.assertFalse(lobby.queue)
+
+    def test_lobby_cancel_queue_team(self):
+        # don't create the team yet beacuse it only has one lobby
+        lobby = Lobby.create(self.user_1.id)
+        controller.lobby_start_queue(lobby.id)
+
+        # creates the team by adding all queued lobbies => lobby2 and lobby1
+        lobby2 = Lobby.create(self.user_2.id)
+        controller.lobby_start_queue(lobby2.id)
+
+        # do not create a new team, but add this lobby into the existent team instead
+        # because it has the seats available and match all other requirements
+        self.user_3.auth.add_session()
+        lobby3 = Lobby.create(self.user_3.id)
+        controller.lobby_start_queue(lobby3.id)
+
+        team = Team.get_by_lobby_id(lobby2.id)
+        self.assertEqual(team.players_count, 3)
+        self.assertCountEqual(team.lobbies_ids, [lobby.id, lobby2.id, lobby3.id])
+
+        # just remove the lobby that have canceled the queue
+        controller.lobby_cancel_queue(lobby2.id)
+        self.assertCountEqual(team.lobbies_ids, [lobby.id, lobby3.id])
+
+        # if all lobbies cancel the queue and there's only one lobby left
+        # on team, that team will be deleted
+        #
+        # the next time a lobby starts
+        # a new queue, it will trigger a new team creation and will put
+        # all the queued lobbies together again.
+        controller.lobby_cancel_queue(lobby.id)
+        self.assertCountEqual(team.lobbies_ids, [])
