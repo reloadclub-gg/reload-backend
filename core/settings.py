@@ -31,6 +31,7 @@ CSRF_COOKIE_SECURE = HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https' if HTTPS else 'http')
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -270,3 +271,19 @@ CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{CELERY_REDIS_DB}'
 
 # Websocket Application Settings
 GROUP_NAME_PREFIX = 'app'
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Reload Admin",
+    "site_header": "Reload",
+    "site_brand": "Reload",
+    "login_logo": None,
+    "welcome_sign": "Welcome to the Reload Admin",
+    "copyright": "3C.gg",
+    "show_sidebar": True,
+    "order_with_respect_to": ["auth"],
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+    },
+}
