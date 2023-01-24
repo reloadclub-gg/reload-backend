@@ -115,14 +115,14 @@ class Team(BaseModel):
         return [team for team in teams if not team.ready]
 
     @staticmethod
-    def get_by_lobby_id(lobby_id: int) -> Team:
+    def get_by_lobby_id(lobby_id: int, fail_silently=False) -> Team:
         """
         Searchs for a team given a lobby id.
         """
         team = next(
             (team for team in Team.get_all() if lobby_id in team.lobbies_ids), None
         )
-        if not team:
+        if not team and not fail_silently:
             raise TeamException(_('Team not found.'))
 
         return team

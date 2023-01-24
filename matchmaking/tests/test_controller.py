@@ -166,7 +166,8 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(Team.get_all(), [])
         lobby = Lobby.create(self.user_1.id)
         controller.lobby_start_queue(lobby.id)
-        team = Team.get_by_lobby_id(lobby.id)
+
+        team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
         self.assertIsNone(team)
 
         lobby2 = Lobby.create(self.user_2.id)
