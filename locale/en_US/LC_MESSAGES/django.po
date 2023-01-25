@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-24 17:36-0300\n"
+"POT-Creation-Date: 2023-01-24 21:28-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,6 +44,18 @@ msgstr "Accepted invites cannot be modified."
 #: accounts/models/account.py:99
 msgid "An invite already exists for this email."
 msgstr "An invite already exists for this email."
+
+#: appsettings/models.py:7
+msgid "Text"
+msgstr "Text"
+
+#: appsettings/models.py:8
+msgid "Integer"
+msgstr "Integer"
+
+#: appsettings/models.py:9
+msgid "Boolean"
+msgstr "Boolean"
 
 #: core/api/pydantic_messages.py:4
 msgid "field required"

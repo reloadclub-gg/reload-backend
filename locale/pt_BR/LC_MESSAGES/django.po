@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-24 17:36-0300\n"
+"POT-Creation-Date: 2023-01-24 21:28-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,6 +44,18 @@ msgstr "Convites aceitos não podem ser modificados."
 #: accounts/models/account.py:99
 msgid "An invite already exists for this email."
 msgstr "Já existe um convite para este e-mail."
+
+#: appsettings/models.py:7
+msgid "Text"
+msgstr "Texto"
+
+#: appsettings/models.py:8
+msgid "Integer"
+msgstr "Inteiro"
+
+#: appsettings/models.py:9
+msgid "Boolean"
+msgstr "Boleano"
 
 #: core/api/pydantic_messages.py:4
 msgid "field required"
