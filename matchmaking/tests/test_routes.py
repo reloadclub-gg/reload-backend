@@ -315,7 +315,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         response = self.api.call(
             'patch',
-            f'/lobby/{lobby.id}/cancel/',
+            f'/lobby/{lobby.id}/cancel-queue/',
             token=self.user_1.auth.token,
         )
 

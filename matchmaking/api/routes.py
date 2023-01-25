@@ -107,7 +107,9 @@ def lobby_start_queue(request, lobby_id: int):
 
 
 @router.patch(
-    'lobby/{lobby_id}/cancel/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+    'lobby/{lobby_id}/cancel-queue/',
+    auth=VerifiedRequiredAuth(),
+    response={200: LobbySchema},
 )
 @owner_required
 def lobby_cancel_queue(request, lobby_id: int):
