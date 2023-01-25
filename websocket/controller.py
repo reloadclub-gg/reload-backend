@@ -1,3 +1,5 @@
+from typing import List
+
 from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
@@ -31,9 +33,11 @@ def friendlist_add(friend: User):
     async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=online_friends_ids)
 
 
-def lobby_update(lobby: Lobby):
-    payload = LobbySchema.from_orm(lobby).dict()
-    async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=lobby.players_ids)
+def lobby_update(lobbies: List[Lobby]):
+    for lobby in lobbies:
+        payload = LobbySchema.from_orm(lobby).dict()
+        groups = lobby.players_ids
+        async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=groups)
 
 
 def lobby_player_invite(invite: LobbyInvite):
