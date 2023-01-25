@@ -3,16 +3,20 @@ from django.utils.translation import gettext as _
 
 
 class AppSettings(models.Model):
+    TEXT = 'text'
+    INTEGER = 'integer'
+    BOOLEAN = 'boolean'
+
     KIND_CHOICES = (
-        ('text', _('Text')),
-        ('integer', _('Integer')),
-        ('boolean', _('Boolean')),
+        (TEXT, _('Text')),
+        (INTEGER, _('Integer')),
+        (BOOLEAN, _('Boolean')),
     )
 
+    kind = models.CharField(choices=KIND_CHOICES, default='text')
     name = models.CharField(max_length=100)
     value = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
-    kind = models.CharField(choices=KIND_CHOICES, default='text')
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
