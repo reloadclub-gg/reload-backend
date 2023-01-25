@@ -278,18 +278,30 @@ CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{CELERY_REDIS_DB}'
 GROUP_NAME_PREFIX = 'app'
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Reload Admin",
-    "site_header": "Reload",
-    "site_brand": "Reload",
-    "login_logo": None,
-    "welcome_sign": "Welcome to the Reload Admin",
-    "copyright": "3C.gg",
-    "show_sidebar": True,
-    "order_with_respect_to": ["auth"],
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
+    'site_title': 'Reload Admin',
+    'site_header': 'Reload',
+    'site_brand': 'Reload',
+    'login_logo': None,
+    'welcome_sign': 'Welcome to the Reload Admin',
+    'copyright': '3C.gg',
+    'show_sidebar': True,
+    'order_with_respect_to': [
+        'appsettings',
+        'accounts',
+        'accounts.account',
+        'accounts.user',
+        'accounts.userlogin',
+        'accounts.invite',
+        'social_django',
+    ],
+    'icons': {
+        'appsettings.appsettings': 'fas fa-cogs',
+        'accounts.account': 'fas fa-users',
+        'accounts.user': 'fas fa-user',
+        'accounts.userlogin': 'fas fa-sign-in-alt',
+        'accounts.invite': 'fas fa-door-open',
+        'social_django.association': 'fas fa-network-wired',
+        'social_django.usersocialauth': 'fab fa-steam',
     },
-    "show_ui_builder": DEBUG,
+    'show_ui_builder': DEBUG,
 }
