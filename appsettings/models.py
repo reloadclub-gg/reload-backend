@@ -19,5 +19,9 @@ class AppSettings(models.Model):
     is_active = models.BooleanField(default=True)
     description = models.TextField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'App Settings'
+        verbose_name_plural = 'App Settings'
+
     def __str__(self):
         return self.name
