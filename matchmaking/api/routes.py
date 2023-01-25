@@ -97,7 +97,9 @@ def lobby_enter(request, lobby_id: int):
 
 
 @router.patch(
-    'lobby/{lobby_id}/start/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+    'lobby/{lobby_id}/start-queue/',
+    auth=VerifiedRequiredAuth(),
+    response={200: LobbySchema},
 )
 @owner_required
 def lobby_start_queue(request, lobby_id: int):

@@ -287,7 +287,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         response = self.api.call(
             'patch',
-            f'/lobby/{lobby.id}/start/',
+            f'/lobby/{lobby.id}/start-queue/',
             token=self.user_1.auth.token,
         )
 
@@ -301,7 +301,7 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         response = self.api.call(
             'patch',
-            f'/lobby/{lobby.id}/start/',
+            f'/lobby/{lobby.id}/start-queue/',
             token=self.user_1.auth.token,
         )
 
