@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import List
+
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
@@ -44,3 +48,20 @@ class LobbyInvite(BaseModel):
         return LobbyInvite(
             from_id=int(from_id), to_id=int(to_id), lobby_id=int(lobby_id)
         )
+
+    @staticmethod
+    def get_all() -> List[LobbyInvite]:
+        invites = []
+        keys = cache.keys(f'{LobbyInvite.Config.CACHE_PREFIX}:*:invites')
+        for key in keys:
+            lobby_id = key.split(':')[2]
+            lobby_invites = cache.smembers(key)
+            for invite_id in lobby_invites:
+                from_id, to_id = invite_id.split(':')
+                invites.append(
+                    LobbyInvite(
+                        from_id=int(from_id), to_id=int(to_id), lobby_id=int(lobby_id)
+                    )
+                )
+
+        return invites

@@ -855,3 +855,79 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         with self.assertRaises(TeamException):
             Team.get_by_id(team).id
+
+
+class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.user_1.auth.add_session()
+        self.user_2.auth.add_session()
+        self.user_3.auth.add_session()
+        self.user_4.auth.add_session()
+        self.user_5.auth.add_session()
+        self.user_6.auth.add_session()
+
+        self.lobby1 = Lobby.create(owner_id=self.user_1.id)
+        self.lobby2 = Lobby.create(owner_id=self.user_2.id)
+        self.lobby3 = Lobby.create(owner_id=self.user_3.id)
+        self.lobby4 = Lobby.create(owner_id=self.user_4.id)
+        self.lobby5 = Lobby.create(owner_id=self.user_5.id)
+        self.lobby6 = Lobby.create(owner_id=self.user_6.id)
+
+    def test_get_all(self):
+        invites = LobbyInvite.get_all()
+        self.assertCountEqual(invites, [])
+
+        self.lobby1.invite(self.user_1.id, self.user_2.id)
+        invites = LobbyInvite.get_all()
+        self.assertCountEqual(
+            invites,
+            [
+                LobbyInvite(
+                    from_id=self.user_1.id,
+                    to_id=self.user_2.id,
+                    lobby_id=self.lobby1.id,
+                )
+            ],
+        )
+
+        self.lobby1.invite(self.user_1.id, self.user_3.id)
+        invites = LobbyInvite.get_all()
+        self.assertCountEqual(
+            invites,
+            [
+                LobbyInvite(
+                    from_id=self.user_1.id,
+                    to_id=self.user_2.id,
+                    lobby_id=self.lobby1.id,
+                ),
+                LobbyInvite(
+                    from_id=self.user_1.id,
+                    to_id=self.user_3.id,
+                    lobby_id=self.lobby1.id,
+                ),
+            ],
+        )
+
+        self.lobby5.invite(self.user_5.id, self.user_4.id)
+        invites = LobbyInvite.get_all()
+        self.assertCountEqual(
+            invites,
+            [
+                LobbyInvite(
+                    from_id=self.user_1.id,
+                    to_id=self.user_2.id,
+                    lobby_id=self.lobby1.id,
+                ),
+                LobbyInvite(
+                    from_id=self.user_1.id,
+                    to_id=self.user_3.id,
+                    lobby_id=self.lobby1.id,
+                ),
+                LobbyInvite(
+                    from_id=self.user_5.id,
+                    to_id=self.user_4.id,
+                    lobby_id=self.lobby5.id,
+                ),
+            ],
+        )
