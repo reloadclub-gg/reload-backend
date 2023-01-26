@@ -145,6 +145,8 @@ def lobby_cancel_queue(lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
     lobby.cancel_queue()
 
+    ws_controller.lobby_update([lobby])
+
     team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
     if team:
         team.remove_lobby(lobby_id)
