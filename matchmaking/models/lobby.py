@@ -225,7 +225,8 @@ class Lobby(BaseModel):
         If `remove` is True, it means that we need to purge this
         lobby, removing it from Redis cache. This usually happen
         when the owner logs out. Before lobby deletion, we move
-        every other player (if there is any) to another lobby.
+        every other player (if there is any) to another lobby. We
+        also need to cancel the queue for the current lobby.
         """
 
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
@@ -309,6 +310,7 @@ class Lobby(BaseModel):
                 pipe.delete(f'{to_lobby.cache_key}:queue')
                 pipe.delete(f'{to_lobby.cache_key}:is_public')
                 pipe.delete(f'{to_lobby.cache_key}:invites')
+                from_lobby.cancel_queue()
 
         cache.protected_handler(
             transaction_operations,

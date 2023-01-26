@@ -286,6 +286,21 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
             ],
         )
 
+    def test_lobby_move_on_queue(self):
+        lobby1 = Lobby.create(self.user_1.id)
+        lobby2 = Lobby.create(self.user_2.id)
+        lobby1.set_public()
+        Lobby.move(self.user_2.id, lobby1.id)
+        lobby1.start_queue()
+
+        with self.assertRaises(LobbyException):
+            Lobby.move(self.user_2.id, lobby2.id)
+
+        Lobby.move(self.user_2.id, lobby2.id, remove=True)
+        self.assertIsNone(lobby1.queue)
+        self.assertIsNone(lobby1.queue_time)
+        self.assertCountEqual(lobby1.players_ids, [self.user_1.id])
+
     def test_lobby_set_public(self):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_1.set_public()
