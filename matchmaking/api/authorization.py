@@ -9,12 +9,6 @@ from ..models import Lobby
 User = get_user_model()
 
 
-def is_lobby_owner(user: User, lobby_id: int) -> bool:
-    lobby = Lobby(owner_id=lobby_id)
-
-    return user.id == lobby.owner_id
-
-
 def is_lobby_participant(user: User, lobby_id: int) -> bool:
     lobby = Lobby(owner_id=lobby_id)
 
@@ -32,7 +26,7 @@ def owner_required(f: Callable) -> Callable:
         request = args[0]
         lobby_id = kwds.get('lobby_id')
 
-        if is_lobby_owner(request.user, lobby_id):
+        if Lobby.is_owner(lobby_id, request.user.id):
             return f(*args, **kwds)
 
         raise AuthenticationError()
