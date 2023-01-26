@@ -65,3 +65,13 @@ class LobbyInvite(BaseModel):
                 )
 
         return invites
+
+    @staticmethod
+    def get_by_to_user_id(to_user_id: int) -> List[LobbyInvite]:
+        all_invites = LobbyInvite.get_all()
+        to_invites = []
+        for invite in all_invites:
+            if to_user_id == invite.to_id:
+                to_invites.append(invite)
+
+        return to_invites

@@ -931,3 +931,38 @@ class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
                 ),
             ],
         )
+
+    def test_get_by_to_user_id(self):
+        invites = LobbyInvite.get_by_to_user_id(self.user_2.id)
+        self.assertCountEqual(invites, [])
+
+        self.lobby1.invite(self.user_1.id, self.user_2.id)
+        invites = LobbyInvite.get_by_to_user_id(self.user_2.id)
+        self.assertCountEqual(
+            invites,
+            [
+                LobbyInvite(
+                    from_id=self.user_1.id,
+                    to_id=self.user_2.id,
+                    lobby_id=self.lobby1.id,
+                )
+            ],
+        )
+
+        self.lobby3.invite(self.user_3.id, self.user_2.id)
+        invites = LobbyInvite.get_by_to_user_id(self.user_2.id)
+        self.assertCountEqual(
+            invites,
+            [
+                LobbyInvite(
+                    from_id=self.user_1.id,
+                    to_id=self.user_2.id,
+                    lobby_id=self.lobby1.id,
+                ),
+                LobbyInvite(
+                    from_id=self.user_3.id,
+                    to_id=self.user_2.id,
+                    lobby_id=self.lobby3.id,
+                ),
+            ],
+        )
