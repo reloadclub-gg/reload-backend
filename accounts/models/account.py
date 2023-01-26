@@ -1,4 +1,5 @@
 from functools import cached_property
+from typing import List
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -8,7 +9,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from core.utils import generate_random_string
-from matchmaking.models import Lobby
+from matchmaking.models import Lobby, LobbyInvite
 from steam import Steam
 
 User = get_user_model()
@@ -71,6 +72,10 @@ class Account(models.Model):
     @property
     def lobby(self) -> Lobby:
         return Lobby.get_current(self.user.id)
+
+    @property
+    def lobby_invites(self) -> List[LobbyInvite]:
+        return LobbyInvite.get_by_to_user_id(self.user.id)
 
 
 class Invite(models.Model):
