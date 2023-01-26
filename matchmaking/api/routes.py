@@ -111,6 +111,6 @@ def lobby_start_queue(request, lobby_id: int):
     auth=VerifiedRequiredAuth(),
     response={200: LobbySchema},
 )
-@owner_required
+@participant_required
 def lobby_cancel_queue(request, lobby_id: int):
     return controller.lobby_cancel_queue(lobby_id)
