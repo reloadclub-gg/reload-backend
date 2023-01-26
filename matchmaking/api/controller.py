@@ -16,6 +16,7 @@ def lobby_remove_player(lobby_id: int, user_id: int) -> Lobby:
     ws_controller.lobby_update([current_lobby, user_lobby])
 
     user = User.objects.get(pk=user_id)
+
     ws_controller.user_status_change(user)
 
     return current_lobby
@@ -130,9 +131,9 @@ def lobby_start_queue(lobby_id: int):
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    user = User.objects.get(pk=lobby_id)
     ws_controller.lobby_update([lobby])
-    ws_controller.user_status_change(user)
+    for user_id in lobby.players_ids:
+        ws_controller.user_status_change(User.objects.get(pk=user_id))
 
     team = Team.find(lobby)
     if not team:
@@ -146,6 +147,8 @@ def lobby_cancel_queue(lobby_id: int):
     lobby.cancel_queue()
 
     ws_controller.lobby_update([lobby])
+    for user_id in lobby.players_ids:
+        ws_controller.user_status_change(User.objects.get(pk=user_id))
 
     team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
     if team:
