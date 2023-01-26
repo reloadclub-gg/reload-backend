@@ -281,7 +281,7 @@ JAZZMIN_SETTINGS = {
     'site_title': 'Reload Admin',
     'site_header': 'Reload',
     'site_brand': 'Reload',
-    'login_logo': None,
+    'site_logo': 'brand/logo.png',
     'welcome_sign': 'Welcome to the Reload Admin',
     'copyright': '3C.gg',
     'show_sidebar': True,
