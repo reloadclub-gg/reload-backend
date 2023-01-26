@@ -35,7 +35,7 @@ def fake_signup(request, payload: FakeSignUpSchema):
         return controller.signup(user, payload.email, is_fake=True)
 
     user[0].auth.create_token()
-    return user[0]
+    return controller.auth(user[0])
 
 
 @router.delete('/', auth=VerifiedRequiredAuth())
@@ -52,7 +52,7 @@ def account_verification(request, payload: VerifyUserEmailSchema):
 
 @router.get('auth/', auth=VerifiedExemptAuth(), response=UserSchema)
 def user_detail(request):
-    return request.user
+    return controller.auth(request.user)
 
 
 @router.patch(

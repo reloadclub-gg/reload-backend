@@ -16,6 +16,17 @@ from .authorization import is_verified
 User = get_user_model()
 
 
+def auth(user: User):
+    if user.auth.sessions is None:
+        user.auth.add_session()
+        user.auth.persist_session()
+
+    if not user.account.lobby:
+        Lobby.create(user.id)
+
+    return user
+
+
 def login(request, token: str) -> Auth:
     """
     Checks if there is any existing user for the given auth token and
