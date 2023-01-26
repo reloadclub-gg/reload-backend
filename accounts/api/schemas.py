@@ -4,7 +4,7 @@ import pydantic
 from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
 
-from matchmaking.api.schemas import LobbySchema
+from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
 from steam import Steam
 
 from ..models import Account
@@ -60,6 +60,7 @@ class AccountSchema(ModelSchema):
     avatar: Optional[dict]
     friends: List[FriendAccountSchema] = None
     lobby: Optional[LobbySchema]
+    lobby_invites: Optional[List[LobbyInviteSchema]]
 
     class Config:
         model = Account
