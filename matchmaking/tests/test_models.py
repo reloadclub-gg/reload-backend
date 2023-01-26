@@ -653,12 +653,12 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def test_is_owner_is_true(self):
         lobby = Lobby.create(self.user_1.id)
 
-        self.assertTrue(Lobby.is_owner(lobby.owner_id, self.user_1.id))
+        self.assertTrue(Lobby.is_owner(lobby.id, self.user_1.id))
 
     def test_is_owner_is_false(self):
         lobby = Lobby.create(self.user_1.id)
 
-        self.assertFalse(Lobby.is_owner(lobby.owner_id, self.user_2.id))
+        self.assertFalse(Lobby.is_owner(lobby.id, self.user_2.id))
 
 
 class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):

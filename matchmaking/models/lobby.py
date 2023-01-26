@@ -35,6 +35,8 @@ class Lobby(BaseModel):
     [key] __mm:lobby:[player_id]:mode <1|5|20>
     """
 
+    owner_id: int
+
     class Config:
         CACHE_PREFIX: str = '__mm:lobby'
         TYPES: list = ['competitive', 'custom']
@@ -42,8 +44,6 @@ class Lobby(BaseModel):
             TYPES[0]: {'modes': [1, 5], 'default': 5},
             TYPES[1]: {'modes': [20], 'default': 20},
         }
-
-    owner_id: int
 
     @property
     def cache_key(self):
@@ -528,5 +528,7 @@ class Lobby(BaseModel):
         return min, max
 
     @staticmethod
-    def is_owner(owner_id: int, player_id: int) -> bool:
-        return owner_id == player_id
+    def is_owner(lobby_id: int, player_id: int) -> bool:
+        lobby = Lobby(owner_id=lobby_id)
+
+        return lobby.owner_id == player_id
