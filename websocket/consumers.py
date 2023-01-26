@@ -35,7 +35,7 @@ class JsonAuthWebsocketConsumer(AsyncJsonWebsocketConsumer):
         We decrement the user session on Redis, so each connection represents
         one session with a unique token in cache.
         """
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
-
         if self.user:
             await sync_to_async(auth.disconnect)(self.user)
+
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)

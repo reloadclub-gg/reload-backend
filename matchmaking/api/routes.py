@@ -22,7 +22,6 @@ def lobby_leave(request):
 )
 @owner_required
 def lobby_set_public(request, lobby_id: int):
-    print(lobby_id)
     return controller.set_public(lobby_id=lobby_id)
 
 
