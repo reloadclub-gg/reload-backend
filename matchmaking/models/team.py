@@ -86,7 +86,16 @@ class Team(BaseModel):
         """
         Add a lobby into a Team on Redis db.
         """
-        cache.sadd(self.cache_key, lobby_id)
+        lobby = Lobby(owner_id=lobby_id)
+
+        def transaction_operations(pipe, pre_result):
+            pipe.sadd(self.cache_key, lobby_id)
+
+        cache.protected_handler(
+            transaction_operations,
+            f'{lobby.cache_key}:players',
+            f'{lobby.cache_key}:queue',
+        )
 
     def remove_lobby(self, lobby_id: int):
         """
