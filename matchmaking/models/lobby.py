@@ -64,14 +64,14 @@ class Lobby(BaseModel):
         """
         All player_ids that are in lobby. Owner included.
         """
-        return list(map(int, cache.smembers(f'{self.cache_key}:players')))
+        return sorted(list(map(int, cache.smembers(f'{self.cache_key}:players'))))
 
     @property
     def non_owners_ids(self) -> list:
         """
         All player_ids that are in lobby. Owner excluded.
         """
-        return [id for id in self.players_ids if id != self.owner_id]
+        return sorted([id for id in self.players_ids if id != self.owner_id])
 
     @property
     def is_public(self) -> bool:
@@ -87,14 +87,14 @@ class Lobby(BaseModel):
         """
         Retrieve all unaccepted invites.
         """
-        return list(cache.smembers(f'{self.cache_key}:invites'))
+        return sorted(list(cache.smembers(f'{self.cache_key}:invites')))
 
     @property
     def invited_players_ids(self) -> list:
         """
         Retrieve all invited player_id's.
         """
-        return list(map(int, [invite.split(':')[1] for invite in self.invites]))
+        return sorted(list(map(int, [invite.split(':')[1] for invite in self.invites])))
 
     @property
     def queue(self) -> datetime:
