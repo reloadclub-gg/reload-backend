@@ -16,6 +16,20 @@ from .authorization import is_verified
 User = get_user_model()
 
 
+def auth(user: User):
+    if hasattr(user, 'account') and user.account.is_verified and not user.account.lobby:
+        if user.auth.sessions is None:
+            user.auth.add_session()
+
+        Lobby.create(user.id)
+
+        user.auth.remove_session()
+        if user.auth.sessions == 0:
+            user.auth.expire_session(0)
+
+    return user
+
+
 def login(request, token: str) -> Auth:
     """
     Checks if there is any existing user for the given auth token and
@@ -107,9 +121,12 @@ def verify_account(user: User, verification_token: str) -> User:
     user.account.is_verified = True
     user.account.save()
 
-    user.auth.add_session()
-    user.auth.persist_session()
-    Lobby.create(user.id)
+    if user.auth.sessions is None:
+        user.auth.add_session()
+        user.auth.persist_session()
+
+    if not user.account.lobby:
+        Lobby.create(user.id)
 
     friendlist_add(user)
     return user

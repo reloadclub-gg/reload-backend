@@ -41,16 +41,18 @@ def authenticate(scope: dict) -> User:
         return None
 
     user = user[0]
-    notify_became_online = False
+    from_offline_status = False
 
     if user.auth.sessions is None:
-        notify_became_online = True
+        from_offline_status = True
 
     user.auth.add_session()
     user.auth.persist_session()
 
-    if notify_became_online:
+    if from_offline_status:
         user_status_change(user)
+
+    if not user.account.lobby:
         Lobby.create(user.id)
 
     return user
