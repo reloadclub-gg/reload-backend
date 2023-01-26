@@ -525,3 +525,7 @@ class Lobby(BaseModel):
             max = self.overall + 5
 
         return min, max
+
+    @staticmethod
+    def is_owner(owner_id: int, player_id: int) -> bool:
+        return owner_id == player_id
