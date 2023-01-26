@@ -6,6 +6,7 @@ from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
+from matchmaking.models import Lobby
 from websocket.controller import friendlist_add, lobby_update, user_status_change
 
 from .. import utils
@@ -105,6 +106,10 @@ def verify_account(user: User, verification_token: str) -> User:
 
     user.account.is_verified = True
     user.account.save()
+
+    user.auth.add_session()
+    user.auth.persist_session()
+    Lobby.create(user.id)
 
     friendlist_add(user)
     return user
