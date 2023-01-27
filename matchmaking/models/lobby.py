@@ -258,7 +258,7 @@ class Lobby(BaseModel):
                 if from_lobby.queue or to_lobby.queue:
                     raise LobbyException(_('Lobby is queued.'))
 
-                is_owner = Lobby.is_owner(to_lobby.owner_id, player_id)
+                is_owner = Lobby.is_owner(to_lobby_id, player_id)
 
                 can_join = (
                     to_lobby.is_public
