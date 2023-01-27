@@ -650,6 +650,16 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         min_level, max_level = lobby.get_overall_by_elapsed_time()
         self.assertEqual((0, 5), (min_level, max_level))
 
+    def test_is_owner_is_true(self):
+        lobby = Lobby.create(self.user_1.id)
+
+        self.assertTrue(Lobby.is_owner(lobby.id, self.user_1.id))
+
+    def test_is_owner_is_false(self):
+        lobby = Lobby.create(self.user_1.id)
+
+        self.assertFalse(Lobby.is_owner(lobby.id, self.user_2.id))
+
 
 class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def setUp(self) -> None:
