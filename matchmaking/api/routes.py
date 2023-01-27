@@ -69,11 +69,10 @@ def lobby_accept_invite(request, lobby_id: int, invite_id: str):
 @router.patch(
     'lobby/{lobby_id}/refuse-invite/{invite_id}/',
     auth=VerifiedRequiredAuth(),
-    response={200: UserSchema},
+    response={200: LobbyInviteSchema},
 )
 def lobby_refuse_invite(request, lobby_id: int, invite_id: str):
-    controller.lobby_refuse_invite(lobby_id, invite_id)
-    return request.user
+    return controller.lobby_refuse_invite(lobby_id, invite_id)
 
 
 @router.patch(

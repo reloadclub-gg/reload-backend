@@ -61,7 +61,7 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str):
     except (LobbyException, LobbyInviteException) as exc:
         raise HttpError(400, str(exc))
 
-    return lobby
+    return invite
 
 
 def lobby_change_type_and_mode(
