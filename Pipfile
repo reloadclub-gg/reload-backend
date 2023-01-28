@@ -29,6 +29,7 @@ black = "*"
 isort = "*"
 daphne = "*"
 django-jazzmin = "*"
+django-rosetta = "*"
 
 [dev-packages]
 
