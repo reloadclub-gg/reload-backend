@@ -24,7 +24,7 @@ def validation_errors(request, exc):
 
 @api.exception_handler(AuthenticationError)
 def authentication_errors(request, exc):
-    return api.create_response(request, {'detail': _('Unauthorized')}, status=401)
+    return api.create_response(request, {'detail': _('Unauthorized.')}, status=401)
 
 
 @api.get('')

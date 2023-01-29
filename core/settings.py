@@ -50,6 +50,11 @@ INSTALLED_APPS = [
     'appsettings.apps.AppSettingsConfig',
 ]
 
+if ENVIRONMENT == LOCAL:
+    INSTALLED_APPS += [
+        'rosetta',
+    ]
+
 AUTH_USER_MODEL = 'accounts.User'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 

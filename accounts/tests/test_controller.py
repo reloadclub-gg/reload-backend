@@ -1,6 +1,5 @@
 from unittest import mock
 
-from django.http.response import Http404
 from model_bakery import baker
 from ninja import Schema
 from ninja.errors import HttpError
@@ -84,7 +83,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
     def test_verify_account_already_verified(self):
         self.user.account.is_verified = True
         self.user.account.save()
-        with self.assertRaises(Http404):
+        with self.assertRaises(HttpError):
             controller.verify_account(self.user, self.user.account.verification_token)
 
     def test_inactivate(self):

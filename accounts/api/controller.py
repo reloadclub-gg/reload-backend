@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
@@ -114,9 +113,12 @@ def verify_account(user: User, verification_token: str) -> User:
     """
     Mark an user account as is_verified if isn't already.
     """
-    get_object_or_404(
-        Account, user=user, verification_token=verification_token, is_verified=False
-    )
+    account = Account.objects.filter(
+        user=user, verification_token=verification_token, is_verified=False
+    ).exists()
+
+    if not account:
+        raise HttpError(400, _('Invalid verification token.'))
 
     user.account.is_verified = True
     user.account.save()
