@@ -22,7 +22,6 @@ def lobby_leave(request):
 )
 @owner_required
 def lobby_set_public(request, lobby_id: int):
-    print(lobby_id)
     return controller.set_public(lobby_id=lobby_id)
 
 
@@ -70,11 +69,10 @@ def lobby_accept_invite(request, lobby_id: int, invite_id: str):
 @router.patch(
     'lobby/{lobby_id}/refuse-invite/{invite_id}/',
     auth=VerifiedRequiredAuth(),
-    response={200: UserSchema},
+    response={200: LobbyInviteSchema},
 )
 def lobby_refuse_invite(request, lobby_id: int, invite_id: str):
-    controller.lobby_refuse_invite(lobby_id, invite_id)
-    return request.user
+    return controller.lobby_refuse_invite(lobby_id, invite_id)
 
 
 @router.patch(
@@ -97,7 +95,9 @@ def lobby_enter(request, lobby_id: int):
 
 
 @router.patch(
-    'lobby/{lobby_id}/start/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+    'lobby/{lobby_id}/start-queue/',
+    auth=VerifiedRequiredAuth(),
+    response={200: LobbySchema},
 )
 @owner_required
 def lobby_start_queue(request, lobby_id: int):
@@ -105,8 +105,10 @@ def lobby_start_queue(request, lobby_id: int):
 
 
 @router.patch(
-    'lobby/{lobby_id}/cancel/', auth=VerifiedRequiredAuth(), response={200: LobbySchema}
+    'lobby/{lobby_id}/cancel-queue/',
+    auth=VerifiedRequiredAuth(),
+    response={200: LobbySchema},
 )
-@owner_required
+@participant_required
 def lobby_cancel_queue(request, lobby_id: int):
     return controller.lobby_cancel_queue(lobby_id)

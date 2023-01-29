@@ -2,9 +2,10 @@ from typing import List, Optional
 
 import pydantic
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
-from matchmaking.api.schemas import LobbySchema
+from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
 from steam import Steam
 
 from ..models import Account
@@ -60,6 +61,7 @@ class AccountSchema(ModelSchema):
     avatar: Optional[dict]
     friends: List[FriendAccountSchema] = None
     lobby: Optional[LobbySchema]
+    lobby_invites: Optional[List[LobbyInviteSchema]]
 
     class Config:
         model = Account
@@ -130,20 +132,17 @@ class SignUpSchema(Schema):
 
     @pydantic.validator('email')
     def email_must_be_unique(cls, v):
-        if User.objects.filter(email=v).exists():
-            raise ValueError('field must be unique')
+        assert not User.objects.filter(email=v).exists(), _('E-mail must be unique.')
         return v
 
     @pydantic.validator('terms')
     def terms_must_be_true(cls, v):
-        if not v:
-            raise ValueError('field must be true')
+        assert v, _('User must read and agree with our Terms and Policy.')
         return v
 
     @pydantic.validator('policy')
     def policy_must_be_true(cls, v):
-        if not v:
-            raise ValueError('field must be true')
+        assert v, _('User must read and agree with our Terms and Policy.')
         return v
 
 
@@ -154,12 +153,6 @@ class FakeSignUpSchema(Schema):
 class VerifyUserEmailSchema(Schema):
     verification_token: str
 
-    @pydantic.validator('verification_token')
-    def must_be_valid(cls, v):
-        if not Account.objects.filter(verification_token=v).exists():
-            raise ValueError('field must be valid')
-        return v
-
 
 class UserUpdateSchema(Schema):
     email: pydantic.EmailStr = None
@@ -167,14 +160,17 @@ class UserUpdateSchema(Schema):
 
     @pydantic.root_validator
     def any_of(cls, v):
-        if not any(v.values()):
-            raise ValueError('one of email or verification_token must have a value')
+        assert any(v.values()), _(
+            'One of e-mail or verification_token must have a value.'
+        )
         return v
 
     @pydantic.validator('verification_token')
     def must_be_valid(cls, v):
-        if Account.objects.filter(verification_token=v).exists():
-            raise ValueError('field must be valid')
+        if v:
+            assert Account.objects.filter(verification_token=v).exists(), _(
+                'Invalid verification token.'
+            )
         return v
 
 
@@ -183,7 +179,5 @@ class UpdateUserEmailSchema(Schema):
 
     @pydantic.validator('email')
     def email_must_be_unique(cls, v):
-        if User.objects.filter(email=v).exists():
-            raise ValueError('field must be unique')
-
+        assert not User.objects.filter(email=v).exists(), _('E-mail must be unique.')
         return v

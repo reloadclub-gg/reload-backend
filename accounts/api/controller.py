@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
+from matchmaking.models import Lobby
 from websocket.controller import friendlist_add, lobby_update, user_status_change
 
 from .. import utils
@@ -13,6 +13,20 @@ from ..models import Account, Auth, Invite, UserLogin
 from .authorization import is_verified
 
 User = get_user_model()
+
+
+def auth(user: User):
+    if hasattr(user, 'account') and user.account.is_verified and not user.account.lobby:
+        if user.auth.sessions is None:
+            user.auth.add_session()
+
+        Lobby.create(user.id)
+
+        user.auth.remove_session()
+        if user.auth.sessions == 0:
+            user.auth.expire_session(0)
+
+    return user
 
 
 def login(request, token: str) -> Auth:
@@ -47,7 +61,7 @@ def logout(user: User) -> User:
     if lobby:
         lobby.move(user.id, user.id, remove=True)
         if lobby.players_count > 0:
-            lobby_update(lobby)
+            lobby_update([lobby])
 
     user.auth.expire_session(seconds=0)
     user.save()
@@ -99,12 +113,22 @@ def verify_account(user: User, verification_token: str) -> User:
     """
     Mark an user account as is_verified if isn't already.
     """
-    get_object_or_404(
-        Account, user=user, verification_token=verification_token, is_verified=False
-    )
+    account = Account.objects.filter(
+        user=user, verification_token=verification_token, is_verified=False
+    ).exists()
+
+    if not account:
+        raise HttpError(400, _('Invalid verification token.'))
 
     user.account.is_verified = True
     user.account.save()
+
+    if user.auth.sessions is None:
+        user.auth.add_session()
+        user.auth.persist_session()
+
+    if not user.account.lobby:
+        Lobby.create(user.id)
 
     friendlist_add(user)
     return user
@@ -142,6 +166,6 @@ def update_email(user: User, email: str) -> User:
     if lobby:
         lobby.move(user.id, user.id, remove=True)
         if lobby.players_count > 0:
-            lobby_update(lobby)
+            lobby_update([lobby])
 
     return user

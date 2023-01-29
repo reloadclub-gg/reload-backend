@@ -9,15 +9,17 @@ User = get_user_model()
 
 
 def lobby_remove_player(lobby_id: int, user_id: int) -> Lobby:
-    lobby = Lobby(owner_id=lobby_id)
+    current_lobby = Lobby(owner_id=lobby_id)
+    user_lobby = Lobby(owner_id=user_id)
 
     Lobby.move(user_id, to_lobby_id=user_id)
-    ws_controller.lobby_update(lobby)
+    ws_controller.lobby_update([current_lobby, user_lobby])
 
     user = User.objects.get(pk=user_id)
+
     ws_controller.user_status_change(user)
 
-    return lobby
+    return current_lobby
 
 
 def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvite:
@@ -43,7 +45,7 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
         except LobbyException as exc:
             raise HttpError(400, str(exc))
 
-        ws_controller.lobby_update(lobby)
+        ws_controller.lobby_update([lobby])
         ws_controller.user_status_change(user)
 
     return lobby
@@ -59,7 +61,7 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str):
     except (LobbyException, LobbyInviteException) as exc:
         raise HttpError(400, str(exc))
 
-    return lobby
+    return invite
 
 
 def lobby_change_type_and_mode(
@@ -73,7 +75,7 @@ def lobby_change_type_and_mode(
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    ws_controller.lobby_update(lobby)
+    ws_controller.lobby_update([lobby])
 
     return lobby
 
@@ -86,7 +88,7 @@ def lobby_enter(user: User, lobby_id: int) -> Lobby:
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    ws_controller.lobby_update(lobby)
+    ws_controller.lobby_update([lobby])
     ws_controller.user_status_change(user)
 
     return lobby
@@ -95,7 +97,7 @@ def lobby_enter(user: User, lobby_id: int) -> Lobby:
 def set_public(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     lobby.set_public()
-    ws_controller.lobby_update(lobby)
+    ws_controller.lobby_update([lobby])
 
     return lobby
 
@@ -103,16 +105,17 @@ def set_public(lobby_id: int) -> Lobby:
 def set_private(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     lobby.set_private()
-    ws_controller.lobby_update(lobby)
+    ws_controller.lobby_update([lobby])
 
     return lobby
 
 
 def lobby_leave(user: User) -> User:
-    lobby = user.account.lobby
+    current_lobby = user.account.lobby
+    user_lobby = Lobby(owner_id=user.id)
     Lobby.move(user.id, to_lobby_id=user.id)
 
-    ws_controller.lobby_update(lobby)
+    ws_controller.lobby_update([current_lobby, user_lobby])
 
     user = User.objects.get(pk=user.id)
     ws_controller.user_status_change(user)
@@ -128,9 +131,9 @@ def lobby_start_queue(lobby_id: int):
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    user = User.objects.get(pk=lobby_id)
-    ws_controller.lobby_update(lobby)
-    ws_controller.user_status_change(user)
+    ws_controller.lobby_update([lobby])
+    for user_id in lobby.players_ids:
+        ws_controller.user_status_change(User.objects.get(pk=user_id))
 
     team = Team.find(lobby)
     if not team:
@@ -142,6 +145,10 @@ def lobby_start_queue(lobby_id: int):
 def lobby_cancel_queue(lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
     lobby.cancel_queue()
+
+    ws_controller.lobby_update([lobby])
+    for user_id in lobby.players_ids:
+        ws_controller.user_status_change(User.objects.get(pk=user_id))
 
     team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
     if team:

@@ -163,15 +163,13 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         payload = {'verification_token': self.user.account.verification_token}
         r = self.api.call('post', '/verify', data=payload, token=self.user.auth.token)
 
-        self.assertEqual(r.status_code, 404)
+        self.assertEqual(r.status_code, 400)
 
     def test_account_verification_invalid_token(self):
         self.user.auth.create_token()
         payload = {'verification_token': 'any'}
         r = self.api.call('post', '/verify', data=payload, token=self.user.auth.token)
-        error_msg = r.json().get('detail')[0].get('msg')
-        self.assertEqual(r.status_code, 422)
-        self.assertEqual(error_msg, 'field must be valid')
+        self.assertEqual(r.status_code, 400)
 
     def test_update_email(self):
         baker.make(Account, user=self.user, is_verified=True)
@@ -200,20 +198,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         )
 
         self.user.refresh_from_db()
-
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(
-            response.json(),
-            {
-                'detail': [
-                    {
-                        'loc': ['body', 'payload', 'email'],
-                        'msg': 'field must be unique',
-                        'type': 'value_error',
-                    }
-                ]
-            },
-        )
 
     def test_validator_check_invite_required(self):
         account = baker.make(Account, user=self.user)

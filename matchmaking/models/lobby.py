@@ -35,6 +35,8 @@ class Lobby(BaseModel):
     [key] __mm:lobby:[player_id]:mode <1|5|20>
     """
 
+    owner_id: int
+
     class Config:
         CACHE_PREFIX: str = '__mm:lobby'
         TYPES: list = ['competitive', 'custom']
@@ -42,8 +44,6 @@ class Lobby(BaseModel):
             TYPES[0]: {'modes': [1, 5], 'default': 5},
             TYPES[1]: {'modes': [20], 'default': 20},
         }
-
-    owner_id: int
 
     @property
     def cache_key(self):
@@ -64,14 +64,14 @@ class Lobby(BaseModel):
         """
         All player_ids that are in lobby. Owner included.
         """
-        return list(map(int, cache.smembers(f'{self.cache_key}:players')))
+        return sorted(list(map(int, cache.smembers(f'{self.cache_key}:players'))))
 
     @property
     def non_owners_ids(self) -> list:
         """
         All player_ids that are in lobby. Owner excluded.
         """
-        return [id for id in self.players_ids if id != self.owner_id]
+        return sorted([id for id in self.players_ids if id != self.owner_id])
 
     @property
     def is_public(self) -> bool:
@@ -87,14 +87,14 @@ class Lobby(BaseModel):
         """
         Retrieve all unaccepted invites.
         """
-        return list(cache.smembers(f'{self.cache_key}:invites'))
+        return sorted(list(cache.smembers(f'{self.cache_key}:invites')))
 
     @property
     def invited_players_ids(self) -> list:
         """
         Retrieve all invited player_id's.
         """
-        return list(map(int, [invite.split(':')[1] for invite in self.invites]))
+        return sorted(list(map(int, [invite.split(':')[1] for invite in self.invites])))
 
     @property
     def queue(self) -> datetime:
@@ -225,7 +225,8 @@ class Lobby(BaseModel):
         If `remove` is True, it means that we need to purge this
         lobby, removing it from Redis cache. This usually happen
         when the owner logs out. Before lobby deletion, we move
-        every other player (if there is any) to another lobby.
+        every other player (if there is any) to another lobby. We
+        also need to cancel the queue for the current lobby.
         """
 
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
@@ -257,7 +258,8 @@ class Lobby(BaseModel):
                 if from_lobby.queue or to_lobby.queue:
                     raise LobbyException(_('Lobby is queued.'))
 
-                is_owner = to_lobby.owner_id == player_id
+                is_owner = Lobby.is_owner(to_lobby_id, player_id)
+
                 can_join = (
                     to_lobby.is_public
                     or player_id in to_lobby.invited_players_ids
@@ -309,6 +311,7 @@ class Lobby(BaseModel):
                 pipe.delete(f'{to_lobby.cache_key}:queue')
                 pipe.delete(f'{to_lobby.cache_key}:is_public')
                 pipe.delete(f'{to_lobby.cache_key}:invites')
+                from_lobby.cancel_queue()
 
         cache.protected_handler(
             transaction_operations,
@@ -523,3 +526,9 @@ class Lobby(BaseModel):
             max = self.overall + 5
 
         return min, max
+
+    @staticmethod
+    def is_owner(lobby_id: int, player_id: int) -> bool:
+        lobby = Lobby(owner_id=lobby_id)
+
+        return lobby.owner_id == player_id

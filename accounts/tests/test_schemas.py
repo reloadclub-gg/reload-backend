@@ -60,6 +60,10 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
                 schemas.FriendAccountSchema.from_orm(x).dict()
                 for x in self.user.account.friends
             ],
+            'lobby_invites': [
+                schemas.LobbyInviteSchema.from_orm(x).dict()
+                for x in self.user.account.lobby_invites
+            ],
         }
 
         self.assertDictEqual(payload, expected_payload)
