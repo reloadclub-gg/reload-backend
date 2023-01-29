@@ -204,7 +204,7 @@ EMAIL_PORT = config('EMAIL_PORT', default=2525, cast=int)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='e31ca571bd0f1b')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='a69be0ba200ecf')
-DEFAULT_FROM_EMAIL = 'Equipe GTA MM <equipe@3c.gg>'
+DEFAULT_FROM_EMAIL = 'Equipe Reload Club <equipe@reloadclub.gg>'
 
 
 # Steam Settings
