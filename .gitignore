@@ -5,8 +5,7 @@ __pycache__/
 .bash_history
 database/
 .cache/
-static/*
-!static/brand
+static/
 media/
 *.pem
 api*.json
