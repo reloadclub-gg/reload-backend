@@ -79,6 +79,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.verify_account(self.user, self.user.account.verification_token)
         self.user.refresh_from_db()
         self.assertTrue(self.user.account.is_verified)
+        self.assertIsNone(self.user.auth.sessions)
 
     def test_verify_account_already_verified(self):
         self.user.account.is_verified = True
