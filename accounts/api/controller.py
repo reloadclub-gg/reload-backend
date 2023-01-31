@@ -124,11 +124,22 @@ def verify_account(user: User, verification_token: str) -> User:
     user.account.save()
 
     if user.auth.sessions is None:
+        # we just need to create a session to create a lobby
         user.auth.add_session()
         user.auth.persist_session()
 
     if not user.account.lobby:
+        # we need to create a session in order to create a lobby
+        if user.auth.sessions is None:
+            user.auth.add_session()
+            user.auth.persist_session()
+
         Lobby.create(user.id)
+
+        # then we can remove the session
+        user.auth.remove_session()
+        if user.auth.sessions == 0:
+            user.auth.expire_session(0)
 
     friendlist_add(user)
     return user
