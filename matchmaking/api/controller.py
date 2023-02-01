@@ -122,15 +122,17 @@ def set_private(lobby_id: int) -> Lobby:
 def lobby_leave(user: User) -> User:
     current_lobby = user.account.lobby
     user_lobby = Lobby(owner_id=user.id)
-    Lobby.move(user.id, to_lobby_id=user.id)
+    lobbies_update = [current_lobby, user_lobby]
+    new_lobby = Lobby.move(user.id, to_lobby_id=user.id)
+    if new_lobby:
+        lobbies_update.append(new_lobby)
+        for user_id in new_lobby.players_ids:
+            ws_controller.user_status_change(User.objects.get(pk=user_id))
 
-    ws_controller.lobby_update([current_lobby, user_lobby])
+    ws_controller.lobby_update(lobbies_update)
 
     user = User.objects.get(pk=user.id)
     ws_controller.user_status_change(user)
-
-    if current_lobby.players_count == 1 and current_lobby.owner_id != user.id:
-        ws_controller.user_status_change(User.objects.get(pk=current_lobby.owner_id))
 
     return user
 
