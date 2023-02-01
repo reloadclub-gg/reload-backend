@@ -18,6 +18,7 @@ def lobby_remove_player(lobby_id: int, user_id: int) -> Lobby:
     user = User.objects.get(pk=user_id)
 
     ws_controller.user_status_change(user)
+    ws_controller.user_update(user)
 
     return current_lobby
 
@@ -36,6 +37,11 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
 
 def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
+    was_solo = lobby.players_count == 1
+    try:
+        invite = LobbyInvite.get(lobby_id=lobby_id, invite_id=invite_id)
+    except LobbyInviteException as exc:
+        raise HttpError(400, str(exc))
 
     if user.id in lobby.players_ids:
         lobby.delete_invite(invite_id)
@@ -47,6 +53,9 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
 
         ws_controller.lobby_update([lobby])
         ws_controller.user_status_change(user)
+
+        if was_solo:
+            ws_controller.user_status_change(User.objects.get(pk=invite.from_id))
 
     return lobby
 
@@ -119,6 +128,9 @@ def lobby_leave(user: User) -> User:
 
     user = User.objects.get(pk=user.id)
     ws_controller.user_status_change(user)
+
+    if current_lobby.players_count == 1 and current_lobby.owner_id != user.id:
+        ws_controller.user_status_change(User.objects.get(pk=current_lobby.owner_id))
 
     return user
 
