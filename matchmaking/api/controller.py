@@ -134,9 +134,6 @@ def lobby_leave(user: User) -> User:
     user = User.objects.get(pk=user.id)
     ws_controller.user_status_change(user)
 
-    if current_lobby.players_count == 1 and current_lobby.owner_id != user.id:
-        ws_controller.user_status_change(User.objects.get(pk=current_lobby.owner_id))
-
     return user
 
 
