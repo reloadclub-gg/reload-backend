@@ -75,7 +75,11 @@ class AccountAdmin(admin_mixins.ReadOnlyModelAdminMixin):
         return obj.user.steam_user.steamid
 
     def username(self, obj):
-        return obj.user.steam_user.username
+        return (
+            obj.user.steam_user.username
+            if hasattr(obj.user.steam_user, 'username')
+            else '-'
+        )
 
 
 @admin.register(Invite)
