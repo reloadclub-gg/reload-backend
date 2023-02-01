@@ -62,3 +62,8 @@ def user_detail(request):
 )
 def update_email(request, payload: UpdateUserEmailSchema):
     return controller.update_email(request.user, payload.email)
+
+
+@router.patch('logout/', auth=VerifiedExemptAuth(), response={200: UserSchema})
+def logout(request):
+    return controller.logout(request.user)
