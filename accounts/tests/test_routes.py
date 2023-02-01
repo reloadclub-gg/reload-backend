@@ -234,3 +234,13 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         invited_user.refresh_from_db()
 
         self.assertEqual(response.status_code, 403)
+
+    def test_logout(self):
+        self.user.auth.create_token()
+        self.user.auth.add_session()
+        baker.make(Account, user=self.user, is_verified=True)
+        Lobby.create(self.user.id)
+        r = self.api.patch('/logout', token=self.user.auth.token)
+        self.user.refresh_from_db()
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.user.status, 'offline')
