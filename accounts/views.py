@@ -2,10 +2,8 @@ import secrets
 
 from django.conf import settings
 from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.utils.decorators import method_decorator
 from django.views import View
 from social_django.models import UserSocialAuth
 
@@ -17,7 +15,6 @@ class SteamAuthWebHook(View):
     View that authenticate users via OpenID with Steam.
     """
 
-    @method_decorator(login_required)
     def get(self, request):
         if not request.user.is_active:
             return redirect(settings.FRONT_END_INACTIVE_URL)
