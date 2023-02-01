@@ -3,6 +3,7 @@ import sys
 
 import sentry_sdk
 from decouple import config
+from django.urls import reverse_lazy
 from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -227,6 +228,9 @@ SOCIAL_AUTH_URL_NAMESPACE = 'accounts:auth'
 FRONT_END_AUTH_URL = FRONT_END_URL + '/auth/?token={}'
 FRONT_END_INACTIVE_URL = FRONT_END_URL + '/conta-inativa/'
 FRONT_END_VERIFY_URL = FRONT_END_URL + '/verificar/'
+
+
+LOGIN_URL = reverse_lazy('admin:login')
 
 # Cache Settings
 REDIS_HOST = config('REDIS_HOST', default='redis')
