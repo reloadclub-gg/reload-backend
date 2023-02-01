@@ -215,7 +215,7 @@ class Lobby(BaseModel):
 
     # flake8: noqa: C901
     @staticmethod
-    def move(player_id: int, to_lobby_id: int, remove: bool = False):
+    def move(player_id: int, to_lobby_id: int, remove: bool = False) -> Lobby:
         """
         This method move players around between lobbies.
         If `to_lobby_id` == `player_id`, then this lobby
@@ -232,13 +232,15 @@ class Lobby(BaseModel):
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
         from_lobby = Lobby(owner_id=from_lobby_id)
         to_lobby = Lobby(owner_id=to_lobby_id)
+        new_lobby = None
 
         def transaction_pre(pipe):
             if not pipe.get(from_lobby.cache_key) or not pipe.get(to_lobby.cache_key):
                 raise LobbyException(_('Lobby not found.'))
 
-        def transaction_operations(pipe, rpe_result):
+        def transaction_operations(pipe, pre_result):
             filter = User.objects.filter(pk=player_id)
+            new_lobby = None
             if not filter.exists():
                 raise LobbyException(_('User not found.'))
 
@@ -313,7 +315,9 @@ class Lobby(BaseModel):
                 pipe.delete(f'{to_lobby.cache_key}:invites')
                 from_lobby.cancel_queue()
 
-        cache.protected_handler(
+            return new_lobby
+
+        new_lobby = cache.protected_handler(
             transaction_operations,
             f'{from_lobby.cache_key}:players',
             f'{from_lobby.cache_key}:queue',
@@ -322,7 +326,10 @@ class Lobby(BaseModel):
             f'{Lobby.Config.CACHE_PREFIX}:{player_id}',
             f'{to_lobby.cache_key}:invites',
             pre_func=transaction_pre,
+            value_from_callable=True,
         )
+
+        return new_lobby
 
     def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:
         """
