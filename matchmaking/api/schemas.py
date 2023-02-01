@@ -17,6 +17,7 @@ class LobbyPlayerSchema(Schema):
     avatar: Optional[dict]
     is_online: Optional[bool]
     level: Optional[str]
+    status: Optional[str]
 
     class Config:
         model = User
