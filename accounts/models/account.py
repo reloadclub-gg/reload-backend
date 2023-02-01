@@ -77,6 +77,10 @@ class Account(models.Model):
     def lobby_invites(self) -> List[LobbyInvite]:
         return LobbyInvite.get_by_to_user_id(self.user.id)
 
+    @property
+    def lobby_invites_sent(self) -> List[LobbyInvite]:
+        return LobbyInvite.get_by_from_user_id(self.user.id)
+
 
 class Invite(models.Model):
     MAX_INVITES_PER_ACCOUNT = 4
