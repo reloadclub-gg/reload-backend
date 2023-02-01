@@ -77,6 +77,7 @@ class LobbyInviteSchema(Schema):
     id: str
     lobby_id: int
     from_player: LobbyPlayerSchema
+    to_player: LobbyPlayerSchema
 
     class Config:
         model = LobbyInvite
@@ -84,3 +85,7 @@ class LobbyInviteSchema(Schema):
     @staticmethod
     def resolve_from_player(obj):
         return User.objects.get(pk=obj.from_id)
+
+    @staticmethod
+    def resolve_to_player(obj):
+        return User.objects.get(pk=obj.to_id)
