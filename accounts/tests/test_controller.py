@@ -92,8 +92,10 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.user.account.is_verified = True
         self.user.account.save()
         Lobby.create(self.user.id)
+        self.assertTrue(self.user.is_active)
         controller.inactivate(self.user)
         self.assertFalse(self.user.is_active)
+        self.assertIsNotNone(self.user.date_inactivation)
 
     def test_update_email(self):
         self.user.account.is_verified = True
