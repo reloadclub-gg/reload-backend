@@ -63,3 +63,10 @@ def lobby_player_refuse_invite(invite: LobbyInvite):
     """
     payload = LobbyInviteSchema.from_orm(invite).dict()
     async_to_sync(ws_send)('ws_refuseInvite', payload, groups=[invite.from_id])
+
+
+def lobby_invites_update(lobby: Lobby, expired: bool = False):
+    for invite in lobby.invites:
+        payload = LobbyInviteSchema.from_orm(invite).dict()
+        action = 'ws_updateInvite' if not expired else 'ws_removeInvite'
+        async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])
