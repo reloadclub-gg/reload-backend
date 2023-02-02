@@ -433,7 +433,6 @@ class Lobby(BaseModel):
 
         def transaction_operations(pipe, pre_result):
             pipe.set(f'{self.cache_key}:queue', timezone.now().isoformat())
-            pipe.delete(f'{self.cache_key}:invites')
 
         cache.protected_handler(
             transaction_operations,
