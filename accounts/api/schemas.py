@@ -62,6 +62,7 @@ class AccountSchema(ModelSchema):
     friends: List[FriendAccountSchema] = None
     lobby: Optional[LobbySchema]
     lobby_invites: Optional[List[LobbyInviteSchema]]
+    lobby_invites_sent: Optional[List[LobbyInviteSchema]]
 
     class Config:
         model = Account
