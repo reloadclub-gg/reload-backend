@@ -19,6 +19,7 @@ def lobby_remove_player(lobby_id: int, user_id: int) -> Lobby:
 
     ws_controller.user_status_change(user)
     ws_controller.user_update(user)
+    ws_controller.lobby_invites_update(current_lobby)
 
     return current_lobby
 
@@ -53,6 +54,7 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
 
         ws_controller.lobby_update([lobby])
         ws_controller.user_status_change(user)
+        ws_controller.lobby_invites_update(lobby)
 
         if was_solo:
             ws_controller.user_status_change(User.objects.get(pk=invite.from_id))
@@ -99,6 +101,7 @@ def lobby_enter(user: User, lobby_id: int) -> Lobby:
 
     ws_controller.lobby_update([lobby])
     ws_controller.user_status_change(user)
+    ws_controller.lobby_invites_update(lobby)
 
     return lobby
 
@@ -130,7 +133,7 @@ def lobby_leave(user: User) -> User:
             ws_controller.user_status_change(User.objects.get(pk=user_id))
 
     ws_controller.lobby_update(lobbies_update)
-
+    ws_controller.lobby_invites_update(current_lobby, expired=bool(new_lobby))
     user = User.objects.get(pk=user.id)
     ws_controller.user_status_change(user)
 
@@ -146,6 +149,9 @@ def lobby_start_queue(lobby_id: int):
         raise HttpError(400, str(exc))
 
     ws_controller.lobby_update([lobby])
+    ws_controller.lobby_invites_update(lobby, expired=True)
+    for invite in lobby.invites:
+        lobby.delete_invite(invite.id)
     for user_id in lobby.players_ids:
         ws_controller.user_status_change(User.objects.get(pk=user_id))
 
