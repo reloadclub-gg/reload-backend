@@ -189,6 +189,32 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         team = Team.get_by_lobby_id(lobby2.id)
         self.assertIsNotNone(team)
 
+    def test_queueing_should_delete_all_invites(self):
+        lobby_1 = Lobby.create(self.user_1.id)
+        Lobby.create(self.user_2.id)
+        lobby_1.invite(self.user_1.id, self.user_2.id)
+        Lobby.move(self.user_2.id, lobby_1.id)
+        self.user_3.auth.add_session()
+        lobby_1.invite(self.user_2.id, self.user_3.id)
+
+        self.assertEqual(
+            lobby_1.get_invites_by_from_player_id(self.user_2.id),
+            [
+                LobbyInvite(
+                    from_id=self.user_2.id,
+                    to_id=self.user_3.id,
+                    lobby_id=lobby_1.id,
+                )
+            ],
+        )
+
+        controller.lobby_start_queue(lobby_1.id)
+
+        self.assertEqual(
+            lobby_1.get_invites_by_from_player_id(self.user_2.id),
+            [],
+        )
+
     def test_lobby_cancel_queue(self):
         lobby = Lobby.create(self.user_1.id)
         lobby.start_queue()
