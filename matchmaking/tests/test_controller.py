@@ -6,7 +6,7 @@ from ninja.errors import HttpError
 from core.tests import TestCase
 
 from ..api import controller
-from ..models import Lobby, Team
+from ..models import Lobby, LobbyInvite, Team
 from . import mixins
 
 
@@ -47,14 +47,28 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
             to_user_id=self.user_2.id,
         )
 
-        self.assertEqual(lobby_1.invites, [f'{self.user_1.id}:{self.user_2.id}'])
+        self.assertEqual(
+            lobby_1.invites,
+            [
+                LobbyInvite(
+                    lobby_id=lobby_1.id, from_id=self.user_1.id, to_id=self.user_2.id
+                )
+            ],
+        )
 
     def test_lobby_refuse_invite(self):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
         lobby_2.invite(lobby_2.id, lobby_1.id)
 
-        self.assertListEqual(lobby_2.invites, [f'{self.user_2.id}:{self.user_1.id}'])
+        self.assertListEqual(
+            lobby_2.invites,
+            [
+                LobbyInvite(
+                    lobby_id=lobby_2.id, from_id=self.user_2.id, to_id=self.user_1.id
+                )
+            ],
+        )
         self.assertEqual(lobby_1.players_count, 1)
 
         controller.lobby_refuse_invite(
