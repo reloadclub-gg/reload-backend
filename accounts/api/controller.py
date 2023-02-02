@@ -64,8 +64,6 @@ def logout(user: User) -> User:
             lobby_update([lobby])
 
     user.auth.expire_session(seconds=0)
-    user.save()
-
     user_status_change(user)
 
     return user
