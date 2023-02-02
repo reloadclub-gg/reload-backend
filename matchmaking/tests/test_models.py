@@ -173,15 +173,18 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_3 = Lobby.create(self.user_3.id)
 
         lobby_1.invite(self.user_1.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
+        new_lobby = Lobby.move(self.user_3.id, lobby_1.id)
+        self.assertIsNone(new_lobby)
 
         lobby_2.invite(self.user_2.id, self.user_1.id)
-        Lobby.move(self.user_1.id, lobby_2.id)
+        new_lobby = Lobby.move(self.user_1.id, lobby_2.id)
+        self.assertIsNotNone(new_lobby)
 
         current_moved_player_lobby = cache.get(lobby_1.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
         self.assertEqual(len(cache.smembers(f'{lobby_2.cache_key}:invites')), 0)
         self.assertEqual(lobby_1.players_ids, [])
+        self.assertEqual(new_lobby.id, lobby_3.id)
         self.assertEqual(lobby_3.players_ids, [self.user_3.id])
         self.assertCountEqual(
             lobby_2.players_ids,
