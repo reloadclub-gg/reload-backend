@@ -4,6 +4,7 @@ from model_bakery import baker
 from ninja import Schema
 from ninja.errors import HttpError
 
+from appsettings.models import AppSettings
 from core.tests import TestCase
 from matchmaking.models import Lobby
 
@@ -71,6 +72,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertIsNotNone(invite.datetime_accepted)
 
     def test_signup_not_invited(self):
+        AppSettings.set_bool('Invite Required', True)
         user = baker.make(User)
         with self.assertRaises(HttpError):
             controller.signup(user, email=user.email)
