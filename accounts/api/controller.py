@@ -143,15 +143,14 @@ def verify_account(user: User, verification_token: str) -> User:
     return user
 
 
-def inactivate(user: User) -> None:
+def inactivate(user: User) -> User:
     """
     Mark an user as inactive.
     Inactive users shouldn't be able to access any endpoint that requires authentication.
     """
     logout(user)
-
-    user.is_active = False
-    user.save()
+    user.inactivate()
+    return user
 
 
 def update_email(user: User, email: str) -> User:

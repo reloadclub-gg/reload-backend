@@ -101,6 +101,7 @@ class UserSchema(ModelSchema):
             'password',
             'last_login',
             'date_joined',
+            'date_inactivation',
         ]
 
     @staticmethod

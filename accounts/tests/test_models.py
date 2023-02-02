@@ -159,6 +159,13 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         self.user.account.lobby.cancel_queue()
         self.assertEqual(self.user.status, 'online')
 
+    def test_inactivate(self):
+        self.assertTrue(self.user.is_active)
+        self.assertIsNone(self.user.date_inactivation)
+        self.user.inactivate()
+        self.assertFalse(self.user.is_active)
+        self.assertIsNotNone(self.user.date_inactivation)
+
 
 class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):
     def test_token_init(self):
