@@ -54,7 +54,7 @@ class LobbySchema(Schema):
     players_count: int
     non_owners_ids: list
     is_public: bool
-    invites: list
+    invites: List[LobbyInvite]
     invited_players_ids: list
     overall: int
     seats: int

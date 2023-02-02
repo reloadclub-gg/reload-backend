@@ -94,7 +94,14 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_1.invite(self.user_1.id, self.user_2.id)
         invites = list(cache.smembers(f'{lobby_1.cache_key}:invites'))
         self.assertEqual(invites, [f'{self.user_1.id}:{self.user_2.id}'])
-        self.assertEqual(lobby_1.invites, [f'{self.user_1.id}:{self.user_2.id}'])
+        self.assertEqual(
+            lobby_1.invites,
+            [
+                LobbyInvite(
+                    lobby_id=lobby_1.id, from_id=self.user_1.id, to_id=self.user_2.id
+                )
+            ],
+        )
 
     def test_invite_queue(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -374,7 +381,14 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
         lobby_1.invite(self.user_1.id, lobby_2.id)
-        self.assertListEqual(lobby_1.invites, [f'{self.user_1.id}:{self.user_2.id}'])
+        self.assertListEqual(
+            lobby_1.invites,
+            [
+                LobbyInvite(
+                    lobby_id=lobby_1.id, from_id=self.user_1.id, to_id=self.user_2.id
+                )
+            ],
+        )
 
         lobby_1.delete_invite(f'{self.user_1.id}:{self.user_2.id}')
         self.assertListEqual(lobby_1.invites, [])
@@ -543,7 +557,13 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         self.assertEqual(
             lobby_1.get_invites_by_from_player_id(self.user_2.id),
-            [f'{self.user_2.id}:{self.user_3.id}'],
+            [
+                LobbyInvite(
+                    from_id=self.user_2.id,
+                    to_id=self.user_3.id,
+                    lobby_id=lobby_1.id,
+                )
+            ],
         )
 
         Lobby.move(self.user_2.id, self.user_2.id)
@@ -562,7 +582,13 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         self.assertEqual(
             lobby_1.get_invites_by_from_player_id(self.user_2.id),
-            [f'{self.user_2.id}:{self.user_3.id}'],
+            [
+                LobbyInvite(
+                    from_id=self.user_2.id,
+                    to_id=self.user_3.id,
+                    lobby_id=lobby_1.id,
+                )
+            ],
         )
 
         lobby_1.start_queue()
