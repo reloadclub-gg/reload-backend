@@ -38,7 +38,9 @@ class Account(models.Model):
                 self.verification_token = self.DEBUG_VERIFICATION_TOKEN
             else:
                 length = self.VERIFICATION_TOKEN_LENGTH
-                self.verification_token = generate_random_string(length=length)
+                self.verification_token = generate_random_string(
+                    length=length, allowed_chars='digits'
+                )
 
             self.steamid = self.user.steam_user.steamid
 
