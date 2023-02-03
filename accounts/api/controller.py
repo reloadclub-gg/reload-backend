@@ -139,6 +139,9 @@ def verify_account(user: User, verification_token: str) -> User:
         if user.auth.sessions == 0:
             user.auth.expire_session(0)
 
+    if not user.date_update_email:
+        utils.send_welcome_mail(user.email, user.steam_user.username, user.auth.token)
+
     friendlist_add(user)
     return user
 
