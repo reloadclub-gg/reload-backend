@@ -102,6 +102,7 @@ class UserSchema(ModelSchema):
             'last_login',
             'date_joined',
             'date_inactivation',
+            'date_email_update',
         ]
 
     @staticmethod
