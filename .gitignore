@@ -6,7 +6,6 @@ __pycache__/
 database/
 .cache/
 static/*
-!static/brand
 media/
 *.pem
 api*.json
