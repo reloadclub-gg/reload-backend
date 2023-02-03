@@ -76,6 +76,7 @@ class LobbySchemaTestCase(mixins.VerifiedPlayersMixin, TestCase):
         expected_payload = {
             'id': f'{self.user_1.id}:{self.user_2.id}',
             'lobby_id': lobby_1.id,
+            'lobby': schemas.LobbySchema.from_orm(lobby_1).dict(),
             'from_player': schemas.LobbyPlayerSchema.from_orm(self.user_1).dict(),
             'to_player': schemas.LobbyPlayerSchema.from_orm(self.user_2).dict(),
         }
