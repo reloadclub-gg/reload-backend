@@ -38,7 +38,7 @@ def fake_signup(request, payload: FakeSignUpSchema):
     return controller.auth(user[0])
 
 
-@router.delete('/', auth=VerifiedRequiredAuth())
+@router.delete('/', auth=VerifiedRequiredAuth(), response={200: UserSchema})
 def cancel_account(request):
     return controller.inactivate(request.user)
 
