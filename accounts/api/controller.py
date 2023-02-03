@@ -153,6 +153,7 @@ def inactivate(user: User) -> User:
     """
     logout(user)
     user.inactivate()
+    utils.send_inactivation_mail(user.email)
     return user
 
 
