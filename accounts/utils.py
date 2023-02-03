@@ -56,4 +56,4 @@ def send_verify_account_mail(mail_to: str, username: str, token: str):
         },
     )
 
-    send_mail([mail_to], 'GTA MM - Bem vindo!', html_content)
+    send_mail([mail_to], 'ReloadClub - Falta pouco!', html_content)
