@@ -31,6 +31,11 @@ SESSION_COOKIE_SECURE = HTTPS
 CSRF_COOKIE_SECURE = HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https' if HTTPS else 'http')
 
+SITE_URL_PREFIX = 'https://' if HTTPS else 'http://'
+SITE_URL_PORT = config('HOST_PORT', default=8000)
+SITE_URL_SUFFIX = f':{SITE_URL_PORT}' if SITE_URL_PORT else ''
+SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
+
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
