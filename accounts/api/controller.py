@@ -100,9 +100,9 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
 
     user.email = email
     user.save()
-    account = Account.objects.create(user=user)
+    Account.objects.create(user=user)
     utils.send_verify_account_mail(
-        user.email, user.steam_user.username, account.verification_token
+        user.email, user.steam_user.username, user.auth.token
     )
     return user
 
@@ -166,7 +166,7 @@ def update_email(user: User, email: str) -> User:
     user.account.save()
 
     utils.send_verify_account_mail(
-        user.email, user.steam_user.username, user.account.verification_token
+        user.email, user.steam_user.username, user.auth.token
     )
 
     user_status_change(user)

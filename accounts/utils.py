@@ -50,10 +50,9 @@ def send_verify_account_mail(mail_to: str, username: str, token: str):
     html_content = render_to_string(
         'accounts/emails/verify-email.html',
         {
-            'base_url': settings.SITE_URL,
             'username': username,
             'token': token,
-            'url': settings.FRONT_END_VERIFY_URL.format(token),
+            'url': settings.FRONT_END_AUTH_URL.format(token),
         },
     )
 
