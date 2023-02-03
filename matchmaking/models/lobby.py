@@ -87,14 +87,18 @@ class Lobby(BaseModel):
         """
         Retrieve all unaccepted invites.
         """
-        return sorted(list(cache.smembers(f'{self.cache_key}:invites')))
+        invite_ids = sorted(list(cache.smembers(f'{self.cache_key}:invites')))
+        return [
+            LobbyInvite.get(lobby_id=self.id, invite_id=invite_id)
+            for invite_id in invite_ids
+        ]
 
     @property
     def invited_players_ids(self) -> list:
         """
         Retrieve all invited player_id's.
         """
-        return sorted(list(map(int, [invite.split(':')[1] for invite in self.invites])))
+        return sorted(list(map(int, [invite.to_id for invite in self.invites])))
 
     @property
     def queue(self) -> datetime:
@@ -280,7 +284,7 @@ class Lobby(BaseModel):
                 pipe.set(f'{Lobby.Config.CACHE_PREFIX}:{player_id}', to_lobby.owner_id)
                 invite = to_lobby.get_invite_by_to_player_id(player_id)
                 if invite:
-                    pipe.srem(f'{to_lobby.cache_key}:invites', invite)
+                    pipe.srem(f'{to_lobby.cache_key}:invites', invite.id)
 
             if len(from_lobby.non_owners_ids) > 0 and from_lobby.owner_id == player_id:
                 new_owner_id = min(from_lobby.non_owners_ids)
@@ -305,7 +309,7 @@ class Lobby(BaseModel):
 
             invites_from_player = from_lobby.get_invites_by_from_player_id(player_id)
             for invite in invites_from_player:
-                from_lobby.delete_invite(invite)
+                from_lobby.delete_invite(invite.id)
 
             if remove:
                 pipe.delete(to_lobby.cache_key)
@@ -395,18 +399,14 @@ class Lobby(BaseModel):
 
     def get_invite_by_to_player_id(self, to_player_id: int) -> str:
         result = None
-        for invite_id in self.invites:
-            if to_player_id == int(invite_id.split(':')[1]):
-                result = invite_id
+        for invite in self.invites:
+            if to_player_id == invite.to_id:
+                result = invite
 
         return result
 
     def get_invites_by_from_player_id(self, from_player_id: int) -> str:
-        return [
-            invite
-            for invite in self.invites
-            if from_player_id == int(invite.split(':')[0])
-        ]
+        return [invite for invite in self.invites if from_player_id == invite.from_id]
 
     def delete_invite(self, invite_id):
         """
@@ -433,7 +433,6 @@ class Lobby(BaseModel):
 
         def transaction_operations(pipe, pre_result):
             pipe.set(f'{self.cache_key}:queue', timezone.now().isoformat())
-            pipe.delete(f'{self.cache_key}:invites')
 
         cache.protected_handler(
             transaction_operations,

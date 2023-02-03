@@ -1,6 +1,6 @@
 from core.tests import APIClient, TestCase
 
-from ..models import Lobby
+from ..models import Lobby, LobbyInvite
 from . import mixins
 
 
@@ -145,7 +145,11 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(
             self.user_1.account.lobby.invites,
-            [f'{self.user_1.id}:{self.user_2.id}'],
+            [
+                LobbyInvite(
+                    lobby_id=lobby.id, from_id=self.user_1.id, to_id=self.user_2.id
+                )
+            ],
         )
 
     def test_lobby_invite_user_already_been_invited(self):
@@ -182,7 +186,14 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         Lobby.create(self.user_2.id)
 
-        self.assertListEqual(lobby.invites, [f'{self.user_1.id}:{self.user_2.id}'])
+        self.assertListEqual(
+            lobby.invites,
+            [
+                LobbyInvite(
+                    lobby_id=lobby.id, from_id=self.user_1.id, to_id=self.user_2.id
+                )
+            ],
+        )
 
         response = self.api.call(
             'patch',
