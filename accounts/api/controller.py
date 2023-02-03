@@ -158,6 +158,7 @@ def update_email(user: User, email: str) -> User:
     Change user email and inactive user
     """
     user.email = email
+    user.date_email_update = timezone.now()
     user.save()
     user.account.verification_token = generate_random_string(
         length=Account.VERIFICATION_TOKEN_LENGTH

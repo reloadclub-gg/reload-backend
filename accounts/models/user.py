@@ -53,6 +53,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField('active', default=True)
     date_joined = models.DateTimeField('date joined', default=timezone.now)
     date_inactivation = models.DateTimeField('date inactivation', blank=True, null=True)
+    date_email_update = models.DateTimeField(
+        'latest email update date', blank=True, null=True
+    )
 
     objects = UserManager()
 
