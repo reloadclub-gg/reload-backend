@@ -57,3 +57,14 @@ def send_verify_account_mail(mail_to: str, username: str, token: str):
     )
 
     send_mail([mail_to], 'ReloadClub - Falta pouco!', html_content)
+
+
+def send_welcome_mail(mail_to: str):
+    """
+    Send an e-mail to the user after a successful account verification.
+    """
+    html_content = render_to_string(
+        'accounts/emails/welcome-email.html',
+    )
+
+    send_mail([mail_to], 'ReloadClub - Boas-vindas!', html_content)
