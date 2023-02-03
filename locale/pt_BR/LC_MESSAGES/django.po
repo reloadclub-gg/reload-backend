@@ -457,7 +457,7 @@ msgstr "Lobby está em fila."
 
 #: matchmaking/models/lobby.py:270 matchmaking/models/lobby.py:337
 msgid "Lobby is full."
-msgstr "Libby está cheio."
+msgstr "Lobby está cheio."
 
 #: matchmaking/models/lobby.py:357
 msgid "Invited user is already a lobby player."
