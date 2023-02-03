@@ -68,3 +68,14 @@ def send_welcome_mail(mail_to: str):
     )
 
     send_mail([mail_to], 'ReloadClub - Boas-vindas!', html_content)
+
+
+def send_inactivation_mail(mail_to: str):
+    """
+    Send an e-mail to the user uppon account inactivation.
+    """
+    html_content = render_to_string(
+        'accounts/emails/inactivation-email.html',
+    )
+
+    send_mail([mail_to], 'ReloadClub - Nos vemos em breve!', html_content)
