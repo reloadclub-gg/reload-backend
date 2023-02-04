@@ -43,7 +43,6 @@ def friendlist_add(friend: User):
 
 
 def lobby_update(lobbies: List[Lobby]):
-    print('here')
     for lobby in lobbies:
         payload = LobbySchema.from_orm(lobby).dict()
         groups = lobby.players_ids
