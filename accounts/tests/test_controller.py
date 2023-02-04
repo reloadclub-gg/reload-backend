@@ -4,6 +4,7 @@ from model_bakery import baker
 from ninja import Schema
 from ninja.errors import HttpError
 
+from appsettings.models import AppSettings
 from core.tests import TestCase
 from matchmaking.models import Lobby
 
@@ -71,6 +72,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertIsNotNone(invite.datetime_accepted)
 
     def test_signup_not_invited(self):
+        AppSettings.set_bool('Invite Required', True)
         user = baker.make(User)
         with self.assertRaises(HttpError):
             controller.signup(user, email=user.email)
@@ -79,6 +81,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.verify_account(self.user, self.user.account.verification_token)
         self.user.refresh_from_db()
         self.assertTrue(self.user.account.is_verified)
+        self.assertIsNone(self.user.auth.sessions)
 
     def test_verify_account_already_verified(self):
         self.user.account.is_verified = True
@@ -91,8 +94,10 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.user.account.is_verified = True
         self.user.account.save()
         Lobby.create(self.user.id)
+        self.assertTrue(self.user.is_active)
         controller.inactivate(self.user)
         self.assertFalse(self.user.is_active)
+        self.assertIsNotNone(self.user.date_inactivation)
 
     def test_update_email(self):
         self.user.account.is_verified = True

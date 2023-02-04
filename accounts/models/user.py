@@ -52,6 +52,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField('staff status', default=False)
     is_active = models.BooleanField('active', default=True)
     date_joined = models.DateTimeField('date joined', default=timezone.now)
+    date_inactivation = models.DateTimeField('date inactivation', blank=True, null=True)
+    date_email_update = models.DateTimeField(
+        'latest email update date', blank=True, null=True
+    )
 
     objects = UserManager()
 
@@ -68,6 +72,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    def inactivate(self):
+        self.is_active = False
+        self.date_inactivation = timezone.now()
+        self.save()
 
     @property
     def steam_user(self):

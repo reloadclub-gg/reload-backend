@@ -66,3 +66,19 @@ class LobbySchemaTestCase(mixins.VerifiedPlayersMixin, TestCase):
         }
 
         self.assertDictEqual(payload, expected_payload)
+
+    def test_lobby_invite_schema(self):
+        lobby_1 = Lobby.create(self.user_1.id)
+        Lobby.create(self.user_2.id)
+        invite = lobby_1.invite(self.user_1.id, self.user_2.id)
+        payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
+
+        expected_payload = {
+            'id': f'{self.user_1.id}:{self.user_2.id}',
+            'lobby_id': lobby_1.id,
+            'lobby': schemas.LobbySchema.from_orm(lobby_1).dict(),
+            'from_player': schemas.LobbyPlayerSchema.from_orm(self.user_1).dict(),
+            'to_player': schemas.LobbyPlayerSchema.from_orm(self.user_2).dict(),
+        }
+
+        self.assertDictEqual(payload, expected_payload)

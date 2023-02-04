@@ -17,6 +17,7 @@ class LobbyPlayerSchema(Schema):
     avatar: Optional[dict]
     is_online: Optional[bool]
     level: Optional[str]
+    status: Optional[str]
 
     class Config:
         model = User
@@ -53,7 +54,7 @@ class LobbySchema(Schema):
     players_count: int
     non_owners_ids: list
     is_public: bool
-    invites: list
+    invites: List[LobbyInvite]
     invited_players_ids: list
     overall: int
     seats: int
@@ -75,7 +76,9 @@ class LobbySchema(Schema):
 class LobbyInviteSchema(Schema):
     id: str
     lobby_id: int
+    lobby: LobbySchema
     from_player: LobbyPlayerSchema
+    to_player: LobbyPlayerSchema
 
     class Config:
         model = LobbyInvite
@@ -83,3 +86,11 @@ class LobbyInviteSchema(Schema):
     @staticmethod
     def resolve_from_player(obj):
         return User.objects.get(pk=obj.from_id)
+
+    @staticmethod
+    def resolve_to_player(obj):
+        return User.objects.get(pk=obj.to_id)
+
+    @staticmethod
+    def resolve_lobby(obj):
+        return Lobby(owner_id=obj.lobby_id)

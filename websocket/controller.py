@@ -3,13 +3,22 @@ from typing import List
 from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
-from accounts.api.schemas import FriendAccountSchema
+from accounts.api.schemas import FriendAccountSchema, UserSchema
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
 from matchmaking.models import Lobby, LobbyInvite
 
 from .utils import ws_send
 
 User = get_user_model()
+
+
+def user_update(user: User):
+    """
+    Event called when a user gets updated and do not receive an API response
+    so the client can update the user.
+    """
+    payload = UserSchema.from_orm(user).dict()
+    async_to_sync(ws_send)('ws_userUpdate', payload, groups=[user.id])
 
 
 def user_status_change(user: User):
@@ -54,3 +63,10 @@ def lobby_player_refuse_invite(invite: LobbyInvite):
     """
     payload = LobbyInviteSchema.from_orm(invite).dict()
     async_to_sync(ws_send)('ws_refuseInvite', payload, groups=[invite.from_id])
+
+
+def lobby_invites_update(lobby: Lobby, expired: bool = False):
+    for invite in lobby.invites:
+        payload = LobbyInviteSchema.from_orm(invite).dict()
+        action = 'ws_updateInvite' if not expired else 'ws_removeInvite'
+        async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])

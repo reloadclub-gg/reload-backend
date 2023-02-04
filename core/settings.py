@@ -3,6 +3,7 @@ import sys
 
 import sentry_sdk
 from decouple import config
+from django.urls import reverse_lazy
 from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,6 +30,11 @@ SECURE_SSL_REDIRECT = HTTPS
 SESSION_COOKIE_SECURE = HTTPS
 CSRF_COOKIE_SECURE = HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https' if HTTPS else 'http')
+
+SITE_URL_PREFIX = 'https://' if HTTPS else 'http://'
+SITE_URL_PORT = config('HOST_PORT', default=8000)
+SITE_URL_SUFFIX = f':{SITE_URL_PORT}' if SITE_URL_PORT else ''
+SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -178,6 +184,7 @@ if ENVIRONMENT != LOCAL:
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'core', 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -226,6 +233,9 @@ SOCIAL_AUTH_URL_NAMESPACE = 'accounts:auth'
 FRONT_END_AUTH_URL = FRONT_END_URL + '/auth/?token={}'
 FRONT_END_INACTIVE_URL = FRONT_END_URL + '/conta-inativa/'
 FRONT_END_VERIFY_URL = FRONT_END_URL + '/verificar/'
+
+
+LOGIN_URL = reverse_lazy('admin:login')
 
 # Cache Settings
 REDIS_HOST = config('REDIS_HOST', default='redis')
@@ -278,17 +288,32 @@ CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{CELERY_REDIS_DB}'
 GROUP_NAME_PREFIX = 'app'
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Reload Admin",
-    "site_header": "Reload",
-    "site_brand": "Reload",
-    "login_logo": None,
-    "welcome_sign": "Welcome to the Reload Admin",
-    "copyright": "3C.gg",
-    "show_sidebar": True,
-    "order_with_respect_to": ["auth"],
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
+    'site_title': 'Reload Admin',
+    'site_header': 'Reload',
+    'site_brand': 'Reload',
+    'site_logo': 'brand/logo_white.png',
+    'login_logo': 'brand/logo.png',
+    'site_icon': 'brand/favicon.ico',
+    'welcome_sign': 'Welcome to the Reload Admin',
+    'copyright': '3C.gg',
+    'show_sidebar': True,
+    'order_with_respect_to': [
+        'appsettings',
+        'accounts',
+        'accounts.account',
+        'accounts.user',
+        'accounts.userlogin',
+        'accounts.invite',
+        'social_django',
+    ],
+    'icons': {
+        'appsettings.appsettings': 'fas fa-cogs',
+        'accounts.account': 'fas fa-users',
+        'accounts.user': 'fas fa-user',
+        'accounts.userlogin': 'fas fa-sign-in-alt',
+        'accounts.invite': 'fas fa-door-open',
+        'social_django.association': 'fas fa-network-wired',
+        'social_django.usersocialauth': 'fab fa-steam',
     },
+    'show_ui_builder': DEBUG,
 }

@@ -1,5 +1,6 @@
 from model_bakery import baker
 
+from appsettings.models import AppSettings
 from core.tests import APIClient, TestCase
 from matchmaking.models import Lobby
 
@@ -80,6 +81,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(r.status_code, 422)
 
     def test_signup_without_invite(self):
+        AppSettings.set_bool('Invite Required', True)
         invited_user = baker.make(User, email='')
         utils.create_social_auth(invited_user)
         invited_user.auth.create_token()
@@ -201,6 +203,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(response.status_code, 422)
 
     def test_validator_check_invite_required(self):
+        AppSettings.set_bool('Invite Required', True)
         account = baker.make(Account, user=self.user)
         invite = baker.make(Invite, owned_by=account, email='any@email.com')
         invited_user = baker.make(User, email='')
@@ -221,6 +224,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertFalse(invited_user.account.is_verified)
 
     def test_validator_check_invite_required_with_raise(self):
+        AppSettings.set_bool('Invite Required', True)
         invited_user = baker.make(User, email='')
         utils.create_social_auth(invited_user)
         invited_user.auth.create_token()
@@ -234,3 +238,13 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         invited_user.refresh_from_db()
 
         self.assertEqual(response.status_code, 403)
+
+    def test_logout(self):
+        self.user.auth.create_token()
+        self.user.auth.add_session()
+        baker.make(Account, user=self.user, is_verified=True)
+        Lobby.create(self.user.id)
+        r = self.api.patch('/logout', token=self.user.auth.token)
+        self.user.refresh_from_db()
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.user.status, 'offline')

@@ -52,8 +52,30 @@ def send_verify_account_mail(mail_to: str, username: str, token: str):
         {
             'username': username,
             'token': token,
-            'url': settings.FRONT_END_VERIFY_URL.format(token),
+            'url': settings.FRONT_END_AUTH_URL.format(token),
         },
     )
 
-    send_mail([mail_to], 'GTA MM - Bem vindo!', html_content)
+    send_mail([mail_to], 'ReloadClub - Falta pouco!', html_content)
+
+
+def send_welcome_mail(mail_to: str):
+    """
+    Send an e-mail to the user after a successful account verification.
+    """
+    html_content = render_to_string(
+        'accounts/emails/welcome-email.html',
+    )
+
+    send_mail([mail_to], 'ReloadClub - Boas-vindas!', html_content)
+
+
+def send_inactivation_mail(mail_to: str):
+    """
+    Send an e-mail to the user uppon account inactivation.
+    """
+    html_content = render_to_string(
+        'accounts/emails/inactivation-email.html',
+    )
+
+    send_mail([mail_to], 'ReloadClub - Nos vemos em breve!', html_content)

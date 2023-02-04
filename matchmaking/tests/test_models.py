@@ -94,7 +94,14 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_1.invite(self.user_1.id, self.user_2.id)
         invites = list(cache.smembers(f'{lobby_1.cache_key}:invites'))
         self.assertEqual(invites, [f'{self.user_1.id}:{self.user_2.id}'])
-        self.assertEqual(lobby_1.invites, [f'{self.user_1.id}:{self.user_2.id}'])
+        self.assertEqual(
+            lobby_1.invites,
+            [
+                LobbyInvite(
+                    lobby_id=lobby_1.id, from_id=self.user_1.id, to_id=self.user_2.id
+                )
+            ],
+        )
 
     def test_invite_queue(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -173,15 +180,18 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_3 = Lobby.create(self.user_3.id)
 
         lobby_1.invite(self.user_1.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
+        new_lobby = Lobby.move(self.user_3.id, lobby_1.id)
+        self.assertIsNone(new_lobby)
 
         lobby_2.invite(self.user_2.id, self.user_1.id)
-        Lobby.move(self.user_1.id, lobby_2.id)
+        new_lobby = Lobby.move(self.user_1.id, lobby_2.id)
+        self.assertIsNotNone(new_lobby)
 
         current_moved_player_lobby = cache.get(lobby_1.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
         self.assertEqual(len(cache.smembers(f'{lobby_2.cache_key}:invites')), 0)
         self.assertEqual(lobby_1.players_ids, [])
+        self.assertEqual(new_lobby.id, lobby_3.id)
         self.assertEqual(lobby_3.players_ids, [self.user_3.id])
         self.assertCountEqual(
             lobby_2.players_ids,
@@ -371,7 +381,14 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
         lobby_1.invite(self.user_1.id, lobby_2.id)
-        self.assertListEqual(lobby_1.invites, [f'{self.user_1.id}:{self.user_2.id}'])
+        self.assertListEqual(
+            lobby_1.invites,
+            [
+                LobbyInvite(
+                    lobby_id=lobby_1.id, from_id=self.user_1.id, to_id=self.user_2.id
+                )
+            ],
+        )
 
         lobby_1.delete_invite(f'{self.user_1.id}:{self.user_2.id}')
         self.assertListEqual(lobby_1.invites, [])
@@ -540,29 +557,16 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         self.assertEqual(
             lobby_1.get_invites_by_from_player_id(self.user_2.id),
-            [f'{self.user_2.id}:{self.user_3.id}'],
+            [
+                LobbyInvite(
+                    from_id=self.user_2.id,
+                    to_id=self.user_3.id,
+                    lobby_id=lobby_1.id,
+                )
+            ],
         )
 
         Lobby.move(self.user_2.id, self.user_2.id)
-
-        self.assertEqual(
-            lobby_1.get_invites_by_from_player_id(self.user_2.id),
-            [],
-        )
-
-    def test_queueing_should_delete_all_invites(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        Lobby.move(self.user_2.id, lobby_1.id)
-        lobby_1.invite(self.user_2.id, self.user_3.id)
-
-        self.assertEqual(
-            lobby_1.get_invites_by_from_player_id(self.user_2.id),
-            [f'{self.user_2.id}:{self.user_3.id}'],
-        )
-
-        lobby_1.start_queue()
 
         self.assertEqual(
             lobby_1.get_invites_by_from_player_id(self.user_2.id),

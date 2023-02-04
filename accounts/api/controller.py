@@ -64,8 +64,6 @@ def logout(user: User) -> User:
             lobby_update([lobby])
 
     user.auth.expire_session(seconds=0)
-    user.save()
-
     user_status_change(user)
 
     return user
@@ -102,9 +100,9 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
 
     user.email = email
     user.save()
-    account = Account.objects.create(user=user)
+    Account.objects.create(user=user)
     utils.send_verify_account_mail(
-        user.email, user.steam_user.username, account.verification_token
+        user.email, user.steam_user.username, user.auth.token
     )
     return user
 
@@ -124,25 +122,39 @@ def verify_account(user: User, verification_token: str) -> User:
     user.account.save()
 
     if user.auth.sessions is None:
+        # we just need to create a session to create a lobby
         user.auth.add_session()
         user.auth.persist_session()
 
     if not user.account.lobby:
+        # we need to create a session in order to create a lobby
+        if user.auth.sessions is None:
+            user.auth.add_session()
+            user.auth.persist_session()
+
         Lobby.create(user.id)
+
+        # then we can remove the session
+        user.auth.remove_session()
+        if user.auth.sessions == 0:
+            user.auth.expire_session(0)
+
+    if not user.date_email_update:
+        utils.send_welcome_mail(user.email)
 
     friendlist_add(user)
     return user
 
 
-def inactivate(user: User) -> None:
+def inactivate(user: User) -> User:
     """
     Mark an user as inactive.
     Inactive users shouldn't be able to access any endpoint that requires authentication.
     """
     logout(user)
-
-    user.is_active = False
-    user.save()
+    user.inactivate()
+    utils.send_inactivation_mail(user.email)
+    return user
 
 
 def update_email(user: User, email: str) -> User:
@@ -150,6 +162,7 @@ def update_email(user: User, email: str) -> User:
     Change user email and inactive user
     """
     user.email = email
+    user.date_email_update = timezone.now()
     user.save()
     user.account.verification_token = generate_random_string(
         length=Account.VERIFICATION_TOKEN_LENGTH
@@ -158,7 +171,7 @@ def update_email(user: User, email: str) -> User:
     user.account.save()
 
     utils.send_verify_account_mail(
-        user.email, user.steam_user.username, user.account.verification_token
+        user.email, user.steam_user.username, user.auth.token
     )
 
     user_status_change(user)
