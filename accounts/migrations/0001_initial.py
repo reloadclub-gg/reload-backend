@@ -56,12 +56,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "date_inactivation",
-                    models.DateTimeField(
-                        blank=True, null=True, verbose_name="date inactivation"
-                    ),
-                ),
-                (
                     "groups",
                     models.ManyToManyField(
                         blank=True,

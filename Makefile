@@ -26,14 +26,6 @@ reset:
 	sh ./pipenv-run migrate
 	sh ./pipenv-run loaddata
 
-reset-migrations:
-	make down
-	find . -name '00*_*.py' -delete
-	docker-compose up -d
-	sh ./pipenv-run makemigrations
-	sh ./pipenv-run migrate
-	sh ./pipenv-run loaddata
-
 pipinstall:
 	docker-compose run --rm django pipenv install $(params)
 	make reset
