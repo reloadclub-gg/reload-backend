@@ -41,7 +41,7 @@ def login(request, token: str) -> Auth:
     if not auth:
         return
 
-    user = User.objects.filter(pk=auth.user_id, is_active=True).first()
+    user = User.objects.filter(pk=auth.user_id).first()
 
     if user and (hasattr(request, 'verified_exempt') or is_verified(user)):
         UserLogin.objects.update_or_create(
