@@ -36,13 +36,15 @@ class RedisClient(Redis):
                 try:
                     pipe.watch(*watches)
                     pre_func_value = None
-                    if pre_func:
+                    if callable(pre_func):
                         pre_func_value = pre_func(pipe)
                     pipe.multi()
                     func_value = func(pipe, pre_func_value)
                     exec_value = pipe.execute()
                     return func_value if value_from_callable else exec_value
-                except exceptions.WatchError:
+                except exceptions.WatchError as exc:
+                    if settings.TEST_MODE:
+                        raise exc
                     pass
             else:
                 raise self.RetryException(
