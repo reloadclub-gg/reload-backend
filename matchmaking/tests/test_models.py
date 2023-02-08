@@ -1,6 +1,7 @@
 from time import sleep
 from unittest import mock
 
+from core.redis import RedisClient
 from core.tests import TestCase, cache
 
 from ..models import (
@@ -663,6 +664,16 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby = Lobby.create(self.user_1.id)
 
         self.assertFalse(Lobby.is_owner(lobby.id, self.user_2.id))
+
+    def test_delete_all_keys(self):
+        cache = RedisClient()
+        Lobby.create(self.user_1.id)
+
+        self.assertEqual(len(cache.keys()), 12)
+
+        Lobby.delete_all_keys(self.user_1.id)
+
+        self.assertEqual(len(cache.keys()), 8)
 
 
 class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):

@@ -538,3 +538,12 @@ class Lobby(BaseModel):
         lobby = Lobby(owner_id=lobby_id)
 
         return lobby.owner_id == player_id
+
+    @staticmethod
+    def delete_all_keys(lobby_id: int) -> bool:
+        lobby = Lobby(owner_id=lobby_id)
+
+        cache.delete(*cache.keys(f'{lobby.cache_key}:*'))
+        cache.delete(lobby.cache_key)
+
+        return lobby
