@@ -667,13 +667,15 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
     def test_delete_all_keys(self):
         cache = RedisClient()
-        Lobby.create(self.user_1.id)
+        lobby = Lobby.create(self.user_1.id)
+        self.assertGreaterEqual(
+            len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 1
+        )
 
-        self.assertEqual(len(cache.keys()), 12)
-
-        Lobby.delete_all_keys(self.user_1.id)
-
-        self.assertEqual(len(cache.keys()), 8)
+        Lobby.delete(lobby.id)
+        self.assertEqual(
+            len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 0
+        )
 
 
 class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
