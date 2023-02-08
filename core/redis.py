@@ -42,9 +42,7 @@ class RedisClient(Redis):
                     func_value = func(pipe, pre_func_value)
                     exec_value = pipe.execute()
                     return func_value if value_from_callable else exec_value
-                except exceptions.WatchError as exc:
-                    if settings.TEST_MODE:
-                        raise exc
+                except exceptions.WatchError:
                     pass
             else:
                 raise self.RetryException(

@@ -238,6 +238,11 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
             ],
         )
 
+    def test_move_remove(self):
+        lobby = Lobby.create(self.user_1.id)
+        Lobby.move(self.user_1.id, lobby.id, remove=True)
+        self.assertEqual(len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{lobby.id}*')), 0)
+
     def test_cancel(self):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)

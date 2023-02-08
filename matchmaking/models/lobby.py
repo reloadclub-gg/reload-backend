@@ -312,11 +312,7 @@ class Lobby(BaseModel):
                 from_lobby.delete_invite(invite.id)
 
             if remove:
-                pipe.delete(to_lobby.cache_key)
-                pipe.delete(f'{to_lobby.cache_key}:players')
-                pipe.delete(f'{to_lobby.cache_key}:queue')
-                pipe.delete(f'{to_lobby.cache_key}:is_public')
-                pipe.delete(f'{to_lobby.cache_key}:invites')
+                Lobby.delete(to_lobby.id, pipe=pipe)
                 from_lobby.cancel_queue()
 
             return new_lobby
@@ -540,7 +536,13 @@ class Lobby(BaseModel):
         return lobby.owner_id == player_id
 
     @staticmethod
-    def delete(lobby_id: int):
+    def delete(lobby_id: int, pipe=None):
         lobby = Lobby(owner_id=lobby_id)
-        cache.delete(*cache.keys(f'{lobby.cache_key}:*'))
-        cache.delete(lobby.cache_key)
+        keys = cache.keys(f'{lobby.cache_key}:*')
+        if len(keys) >= 1:
+            if pipe:
+                pipe.delete(*keys)
+                pipe.delete(lobby.cache_key)
+            else:
+                cache.delete(*keys)
+                cache.delete(lobby.cache_key)
