@@ -4,7 +4,6 @@ from django.conf import settings
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
-from django.utils.safestring import mark_safe
 
 
 def emails_view(request, get_context):
