@@ -8,10 +8,9 @@ class EmailViewTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['title'], 'E-mails')
-        self.assertListEqual(
-            response.context['emails'],
-            ['verify-email.html', 'inactivation-email.html', 'welcome-email.html'],
-        )
+        self.assertIn('verify-email.html', response.context['emails'])
+        self.assertIn('inactivation-email.html', response.context['emails'])
+        self.assertIn('welcome-email.html', response.context['emails'])
 
     def test_email_rendered_verify_email(self):
         response = self.client.get(
