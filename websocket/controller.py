@@ -70,3 +70,11 @@ def lobby_invites_update(lobby: Lobby, expired: bool = False):
         payload = LobbyInviteSchema.from_orm(invite).dict()
         action = 'ws_updateInvite' if not expired else 'ws_removeInvite'
         async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])
+
+
+def user_lobby_invites_expire(user: User):
+    invites = user.account.lobby_invites_sent + user.account.lobby_invites
+    for invite in invites:
+        payload = LobbyInviteSchema.from_orm(invite).dict()
+        action = 'ws_removeInvite'
+        async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])

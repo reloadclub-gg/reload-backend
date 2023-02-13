@@ -1,6 +1,7 @@
 from time import sleep
 from unittest import mock
 
+from core.redis import RedisClient
 from core.tests import TestCase, cache
 
 from ..models import (
@@ -236,6 +237,11 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
                 self.user_2.id,
             ],
         )
+
+    def test_move_remove(self):
+        lobby = Lobby.create(self.user_1.id)
+        Lobby.move(self.user_1.id, lobby.id, remove=True)
+        self.assertEqual(len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{lobby.id}*')), 0)
 
     def test_cancel(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -663,6 +669,18 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby = Lobby.create(self.user_1.id)
 
         self.assertFalse(Lobby.is_owner(lobby.id, self.user_2.id))
+
+    def test_delete_all_keys(self):
+        cache = RedisClient()
+        lobby = Lobby.create(self.user_1.id)
+        self.assertGreaterEqual(
+            len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 1
+        )
+
+        Lobby.delete(lobby.id)
+        self.assertEqual(
+            len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 0
+        )
 
 
 class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):

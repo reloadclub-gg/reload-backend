@@ -6,7 +6,12 @@ from ninja.errors import HttpError
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
 from matchmaking.models import Lobby
-from websocket.controller import friendlist_add, lobby_update, user_status_change
+from websocket.controller import (
+    friendlist_add,
+    lobby_update,
+    user_lobby_invites_expire,
+    user_status_change,
+)
 
 from .. import utils
 from ..models import Account, Auth, Invite, UserLogin
@@ -41,7 +46,7 @@ def login(request, token: str) -> Auth:
     if not auth:
         return
 
-    user = User.objects.filter(pk=auth.user_id, is_active=True).first()
+    user = User.objects.filter(pk=auth.user_id).first()
 
     if user and (hasattr(request, 'verified_exempt') or is_verified(user)):
         UserLogin.objects.update_or_create(
@@ -57,11 +62,12 @@ def login(request, token: str) -> Auth:
 
 
 def logout(user: User) -> User:
+    user_lobby_invites_expire(user)
     lobby = user.account.lobby
     if lobby:
-        lobby.move(user.id, user.id, remove=True)
-        if lobby.players_count > 0:
-            lobby_update([lobby])
+        new_lobby = Lobby.move(user.id, user.id, remove=True)
+        if new_lobby:
+            lobby_update([new_lobby])
 
     user.auth.expire_session(seconds=0)
     user_status_change(user)

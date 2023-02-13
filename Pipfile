@@ -30,6 +30,7 @@ isort = "*"
 daphne = "*"
 django-jazzmin = "*"
 django-rosetta = "*"
+ipython = "*"
 
 [dev-packages]
 

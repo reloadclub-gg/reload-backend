@@ -1,11 +1,20 @@
 import secrets
 
 from django.conf import settings
-from django.contrib.auth import logout
+from django.contrib.auth import REDIRECT_FIELD_NAME, logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
+from social_core.utils import setting_name
 from social_django.models import UserSocialAuth
+from social_django.utils import psa
+from social_django.views import _do_login
+
+from accounts.social_actions import do_complete
 
 from .models import Auth
 
@@ -15,13 +24,15 @@ class SteamAuthWebHook(View):
     View that authenticate users via OpenID with Steam.
     """
 
+    @method_decorator(login_required)
     def get(self, request):
-        if not request.user.is_active:
-            return redirect(settings.FRONT_END_INACTIVE_URL)
-
         auth = Auth(user_id=request.user.pk)
         auth.create_token()
         request.user.last_login = timezone.now()
+
+        if not request.user.is_active:
+            logout(request)
+            return redirect(settings.FRONT_END_AUTH_URL.format(auth.token))
 
         # Search if user has more then 1 SocialAuth related, then delete others
         # so user can only have only one association
@@ -44,3 +55,26 @@ class SteamAuthWebHook(View):
 
         logout(request)
         return redirect(settings.FRONT_END_AUTH_URL.format(auth.token))
+
+
+# This is required by the complete view
+NAMESPACE = getattr(settings, setting_name("URL_NAMESPACE"), None) or "social"
+
+
+@never_cache
+@csrf_exempt
+@psa(f"{NAMESPACE}:complete")
+def complete(request, backend, *args, **kwargs):
+    """
+    This view overrides the social_django.views.complete by calling the custom
+    accounts.social_actions.do_complete, which allows inactive users to login.
+    """
+    return do_complete(
+        request.backend,
+        _do_login,
+        user=request.user,
+        redirect_name=REDIRECT_FIELD_NAME,
+        request=request,
+        *args,
+        **kwargs,
+    )

@@ -7,6 +7,7 @@ from ninja.errors import HttpError
 from appsettings.models import AppSettings
 from core.tests import TestCase
 from matchmaking.models import Lobby
+from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from .. import utils
 from ..api import controller
@@ -133,7 +134,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertIsNone(user_offline.account.lobby)
         self.assertFalse(user_offline.is_online)
 
-    def test_logout_lobby(self):
+    def test_logout_lobby_owner(self):
         # TODO
         pass
 
@@ -141,7 +142,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.user.auth.add_session()
         self.user.account.is_verified = True
         self.user.account.save()
-        lobby_1 = Lobby.create(self.user.id)
+        Lobby.create(self.user.id)
 
         another_user = User.objects.create_user(
             "hulk@avengers.com",
@@ -153,12 +154,44 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         another_user.account.is_verified = True
         another_user.account.save()
         lobby_2 = Lobby.create(another_user.id)
-        lobby_2.invite(another_user.id, lobby_1.id)
-        Lobby.move(lobby_1.id, lobby_2.id)
+        lobby_2.invite(another_user.id, self.user.id)
+        Lobby.move(self.user.id, lobby_2.id)
 
         self.assertEqual(self.user.account.lobby.id, lobby_2.id)
 
-        user_offline = controller.logout(self.user)
+        controller.logout(self.user)
 
-        self.assertIsNone(user_offline.account.lobby)
-        self.assertFalse(user_offline.is_online)
+        self.assertIsNone(self.user.account.lobby)
+        self.assertFalse(self.user.is_online)
+
+
+class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
+    def setUp(self) -> None:
+        self.user_1.auth.add_session()
+        self.user_2.auth.add_session()
+        self.user_3.auth.add_session()
+        self.user_4.auth.add_session()
+        self.user_5.auth.add_session()
+        self.user_6.auth.add_session()
+        return super().setUp()
+
+    @mock.patch('accounts.api.controller.user_lobby_invites_expire')
+    @mock.patch('accounts.api.controller.lobby_update')
+    def test_logout_lobby_owner(self, lobby_update, user_lobby_invites_expire):
+        lobby_1 = Lobby.create(self.user_1.id)
+        Lobby.create(self.user_2.id)
+        Lobby.create(self.user_3.id)
+        Lobby.create(self.user_4.id)
+        Lobby.create(self.user_5.id)
+
+        lobby_1.invite(self.user_1.id, self.user_6.id)
+
+        lobby_1.set_public()
+        Lobby.move(self.user_2.id, lobby_1.id)
+        Lobby.move(self.user_3.id, lobby_1.id)
+        Lobby.move(self.user_4.id, lobby_1.id)
+        Lobby.move(self.user_5.id, lobby_1.id)
+
+        controller.logout(self.user_1)
+        lobby_update.assert_called_once()
+        user_lobby_invites_expire.assert_called_once()

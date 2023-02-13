@@ -230,9 +230,8 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/accounts/auth/finish/'
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/accounts/auth/finish/'
 SOCIAL_AUTH_URL_NAMESPACE = 'accounts:auth'
+SOCIAL_AUTH_ALLOW_INACTIVE_USERS_LOGIN = True
 FRONT_END_AUTH_URL = FRONT_END_URL + '/auth/?token={}'
-FRONT_END_INACTIVE_URL = FRONT_END_URL + '/conta-inativa/'
-FRONT_END_VERIFY_URL = FRONT_END_URL + '/verificar/'
 
 
 LOGIN_URL = reverse_lazy('admin:login')

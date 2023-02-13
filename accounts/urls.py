@@ -6,5 +6,5 @@ app_name = 'accounts'
 
 urlpatterns = [
     path('auth/finish/', views.SteamAuthWebHook.as_view(), name='auth_finish'),
-    path('', include('social_django.urls', namespace='auth')),
+    path('', include('accounts.social_urls', namespace='auth')),
 ]

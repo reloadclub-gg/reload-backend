@@ -36,7 +36,7 @@ class RedisClient(Redis):
                 try:
                     pipe.watch(*watches)
                     pre_func_value = None
-                    if pre_func:
+                    if callable(pre_func):
                         pre_func_value = pre_func(pipe)
                     pipe.multi()
                     func_value = func(pipe, pre_func_value)

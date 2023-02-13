@@ -147,8 +147,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
 
         self.user.auth.create_token()
         r = self.api.get('/auth', token=self.user.auth.token)
-        self.assertEqual(r.status_code, 401)
-        self.assertEqual(r.json().get('detail'), 'Unauthorized.')
+        self.assertEqual(r.status_code, 200)
 
     def test_account_verification(self):
         baker.make(Account, user=self.user)
