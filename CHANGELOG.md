@@ -10,3 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Página do admin para renderizar templates de e-mails
+
+### Fixed
+
+- Imagem de fundo do e-mail de inativação do usuário com link quebrado
