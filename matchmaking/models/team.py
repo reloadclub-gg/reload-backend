@@ -87,6 +87,13 @@ class Team(BaseModel):
             mean([Lobby(owner_id=lobby_id).overall for lobby_id in self.lobbies_ids])
         )
 
+    @property
+    def challengeable(self) -> list[Team]:
+        ready = Team.get_all_ready()
+        # for team in ready:
+        #     min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
+        #     if min_overall <= other_lobby.overall <= max_overall:
+
     @staticmethod
     def get_all() -> list[Team]:
         """
@@ -102,6 +109,14 @@ class Team(BaseModel):
         """
         teams = Team.get_all()
         return [team for team in teams if not team.ready]
+
+    @staticmethod
+    def get_all_ready() -> Team:
+        """
+        Fetch all ready teams in Redis db.
+        """
+        teams = Team.get_all()
+        return [team for team in teams if team.ready]
 
     @staticmethod
     def get_by_lobby_id(lobby_id: int, fail_silently=False) -> Team:
@@ -161,7 +176,7 @@ class Team(BaseModel):
         not_ready = Team.get_all_not_ready()
         for team in not_ready:
             if team.players_count + lobby.players_count <= lobby.max_players:
-                min_overall, max_overall = lobby.get_overall_by_elapsed_time()
+                min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
                 if min_overall <= team.overall <= max_overall:
                     team.add_lobby(lobby.id)
                     return team
@@ -203,7 +218,7 @@ class Team(BaseModel):
                 if total_players <= lobby.max_players:
 
                     # check if lobbies are in the same overall range
-                    min_overall, max_overall = lobby.get_overall_by_elapsed_time()
+                    min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
                     if min_overall <= other_lobby.overall <= max_overall:
                         team.add_lobby(other_lobby.id)
 
@@ -243,3 +258,6 @@ class Team(BaseModel):
 
         if len(self.lobbies_ids) <= 1:
             self.delete()
+
+    def challenge(self):
+        ready_teams = self.get_all_ready()

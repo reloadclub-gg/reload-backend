@@ -641,23 +641,23 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby.start_queue()
 
         mocker.return_value = 10
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 1), (min_level, max_level))
 
         mocker.return_value = 30
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 2), (min_level, max_level))
 
         mocker.return_value = 60
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 3), (min_level, max_level))
 
         mocker.return_value = 90
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 4), (min_level, max_level))
 
         mocker.return_value = 120
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 5), (min_level, max_level))
 
     def test_is_owner_is_true(self):

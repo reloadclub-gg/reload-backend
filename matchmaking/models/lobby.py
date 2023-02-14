@@ -504,7 +504,7 @@ class Lobby(BaseModel):
 
         cache.set(f'{self.cache_key}:mode', mode)
 
-    def get_overall_by_elapsed_time(self) -> tuple:
+    def get_min_max_overall_by_queue_time(self) -> tuple:
         """
         Return the minimum and maximum lobby overall that this lobby
         can team up or challenge.
