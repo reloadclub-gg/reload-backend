@@ -859,6 +859,23 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertIsNotNone(team2)
         self.assertEqual(team.id, team2.id)
 
+    def test_find_not_matching_overalls(self):
+        self.user_3.account.level = 20
+        self.user_3.account.save()
+
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+
+        team = Team.build(self.lobby1)
+        team_model = Team.get_by_id(team.id)
+        self.assertEqual(team.id, team_model.id)
+        self.assertEqual(team.players_count, 2)
+        self.assertEqual(len(team.lobbies_ids), 2)
+
+        self.lobby3.start_queue()
+        team2 = Team.find(self.lobby3)
+        self.assertIsNone(team2)
+
     def test_overall(self):
         self.user_1.account.level = 5
         self.user_1.account.save()

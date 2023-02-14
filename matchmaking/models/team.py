@@ -192,8 +192,10 @@ class Team(BaseModel):
         not_ready = Team.get_all_not_ready()
         for team in not_ready:
             if team.players_count + lobby.players_count <= lobby.max_players:
-                team.add_lobby(lobby.id)
-                return team
+                min_overall, max_overall = lobby.get_overall_by_elapsed_time()
+                if min_overall <= team.overall <= max_overall:
+                    team.add_lobby(lobby.id)
+                    return team
 
     @staticmethod
     def build(lobby: Lobby) -> Team:
