@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import secrets
+from math import ceil
+from statistics import mean
 
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
@@ -75,6 +77,15 @@ class Team(BaseModel):
         Return whether this team is ready to find a oposing team.
         """
         return self.players_count == TeamConfig.MAX_PLAYERS_COUNT
+
+    @property
+    def overall(self) -> int:
+        """
+        Return all lobbies overall.
+        """
+        return ceil(
+            mean([Lobby(owner_id=lobby_id).overall for lobby_id in self.lobbies_ids])
+        )
 
     def delete(self):
         """

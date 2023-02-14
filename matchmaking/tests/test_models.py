@@ -859,6 +859,18 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertIsNotNone(team2)
         self.assertEqual(team.id, team2.id)
 
+    def test_overall(self):
+        self.user_1.account.level = 5
+        self.user_1.account.save()
+        self.user_2.account.level = 4
+        self.user_2.account.save()
+
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+
+        team = Team.build(self.lobby1)
+        self.assertEqual(team.overall, 5)
+
     def test_get_all_not_ready(self):
         self.lobby1.start_queue()
         self.lobby2.start_queue()
