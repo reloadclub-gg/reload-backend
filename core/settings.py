@@ -315,4 +315,13 @@ JAZZMIN_SETTINGS = {
         'social_django.usersocialauth': 'fab fa-steam',
     },
     'show_ui_builder': DEBUG,
+    'custom_links': {
+        'appsettings': [
+            {
+                'name': 'Emails',
+                'url': 'admin:appsettings_appsettings_emails',
+                'icon': 'fas fa-at',
+            }
+        ]
+    },
 }
