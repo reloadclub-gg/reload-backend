@@ -87,37 +87,6 @@ class Team(BaseModel):
             mean([Lobby(owner_id=lobby_id).overall for lobby_id in self.lobbies_ids])
         )
 
-    def delete(self):
-        """
-        Delete team from Redis db.
-        """
-        cache.delete(self.cache_key)
-
-    def add_lobby(self, lobby_id: int):
-        """
-        Add a lobby into a Team on Redis db.
-        """
-        lobby = Lobby(owner_id=lobby_id)
-
-        def transaction_operations(pipe, pre_result):
-            pipe.sadd(self.cache_key, lobby_id)
-
-        cache.protected_handler(
-            transaction_operations,
-            f'{lobby.cache_key}:players',
-            f'{lobby.cache_key}:queue',
-        )
-
-    def remove_lobby(self, lobby_id: int):
-        """
-        Remove a lobby from a Team on Redis db.
-        If that team was ready, then it becomes not ready.
-        """
-        cache.srem(self.cache_key, lobby_id)
-
-        if len(self.lobbies_ids) <= 1:
-            self.delete()
-
     @staticmethod
     def get_all() -> list[Team]:
         """
@@ -243,3 +212,34 @@ class Team(BaseModel):
         else:
             team.delete()
             return None
+
+    def delete(self):
+        """
+        Delete team from Redis db.
+        """
+        cache.delete(self.cache_key)
+
+    def add_lobby(self, lobby_id: int):
+        """
+        Add a lobby into a Team on Redis db.
+        """
+        lobby = Lobby(owner_id=lobby_id)
+
+        def transaction_operations(pipe, pre_result):
+            pipe.sadd(self.cache_key, lobby_id)
+
+        cache.protected_handler(
+            transaction_operations,
+            f'{lobby.cache_key}:players',
+            f'{lobby.cache_key}:queue',
+        )
+
+    def remove_lobby(self, lobby_id: int):
+        """
+        Remove a lobby from a Team on Redis db.
+        If that team was ready, then it becomes not ready.
+        """
+        cache.srem(self.cache_key, lobby_id)
+
+        if len(self.lobbies_ids) <= 1:
+            self.delete()
