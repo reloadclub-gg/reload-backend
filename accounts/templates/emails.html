@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="form-group">
+      <label for="email">E-mail select</label>
+      <select class="form-control" id="email" name="email">
+        <option value="">---------</option>
+        {% for email in emails %}
+        <option value="{{ email }}">{{ email }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div id="email-show">
+      <h1>Selecione um e-mail acima para ser exibido</h1>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block extrajs %}
+
+<script>
+
+  $(document).ready(function () {
+    $('#email').on('change', function () {
+      var value = this.value;
+      $('#email-show').html('<h1>Selecione um email acima para ser exibido</h1>')
+
+      if (value) {
+        $.getJSON('/admin/appsettings/appsettings/email-rendered-by-name/' + value, function (data) {
+          $('#email-show').html(data.email_rendered)
+        });
+      }
+    });
+  });
+
+</script>
+
+{% endblock extrajs %}
