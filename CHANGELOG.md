@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [a88d544 - 23/02/2023]
+
 ### Added
 
 - Página do admin para renderizar templates de e-mails
