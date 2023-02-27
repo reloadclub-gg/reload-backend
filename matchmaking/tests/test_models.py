@@ -695,6 +695,10 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.user_4.auth.add_session()
         self.user_5.auth.add_session()
         self.user_6.auth.add_session()
+        self.user_7.auth.add_session()
+        self.user_8.auth.add_session()
+        self.user_9.auth.add_session()
+        self.user_10.auth.add_session()
 
         self.lobby1 = Lobby.create(owner_id=self.user_1.id)
         self.lobby2 = Lobby.create(owner_id=self.user_2.id)
@@ -702,6 +706,10 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.lobby4 = Lobby.create(owner_id=self.user_4.id)
         self.lobby5 = Lobby.create(owner_id=self.user_5.id)
         self.lobby6 = Lobby.create(owner_id=self.user_6.id)
+        self.lobby7 = Lobby.create(owner_id=self.user_7.id)
+        self.lobby8 = Lobby.create(owner_id=self.user_8.id)
+        self.lobby9 = Lobby.create(owner_id=self.user_9.id)
+        self.lobby10 = Lobby.create(owner_id=self.user_10.id)
 
     def test_players_count(self):
         team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
@@ -979,6 +987,54 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         match = Team.overall_match(team, self.lobby3)
         self.assertFalse(match)
+
+    def test_get_opponent_team(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        Lobby.move(self.user_3.id, self.lobby1.id)
+        Lobby.move(self.user_4.id, self.lobby1.id)
+        Lobby.move(self.user_5.id, self.lobby1.id)
+        self.lobby1.start_queue()
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+
+        self.lobby6.set_public()
+        Lobby.move(self.user_7.id, self.lobby6.id)
+        Lobby.move(self.user_8.id, self.lobby6.id)
+        Lobby.move(self.user_9.id, self.lobby6.id)
+        Lobby.move(self.user_10.id, self.lobby6.id)
+        self.lobby6.start_queue()
+        team2 = Team.create(lobbies_ids=[self.lobby6.id])
+
+        opponent = team2.get_opponent_team()
+        self.assertEqual(opponent, team1)
+
+    def test_get_opponent_team_overall_queue_time(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        Lobby.move(self.user_3.id, self.lobby1.id)
+        Lobby.move(self.user_4.id, self.lobby1.id)
+        Lobby.move(self.user_5.id, self.lobby1.id)
+        self.lobby1.start_queue()
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+
+        self.user_8.account.level = 5
+        self.user_8.account.save()
+
+        self.lobby6.set_public()
+        Lobby.move(self.user_7.id, self.lobby6.id)
+        Lobby.move(self.user_8.id, self.lobby6.id)
+        Lobby.move(self.user_9.id, self.lobby6.id)
+        Lobby.move(self.user_10.id, self.lobby6.id)
+        self.lobby6.start_queue()
+        team = Team.create(lobbies_ids=[self.lobby6.id])
+
+        opponent = team.get_opponent_team()
+        self.assertIsNone(opponent)
+
+        elapsed_time = (timezone.now() - datetime.timedelta(seconds=140)).isoformat()
+        cache.set(f'{self.lobby1.cache_key}:queue', elapsed_time)
+        opponent = team.get_opponent_team()
+        self.assertEqual(opponent, team1)
 
 
 class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):

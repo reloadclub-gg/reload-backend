@@ -155,9 +155,13 @@ def lobby_start_queue(lobby_id: int):
     for user_id in lobby.players_ids:
         ws_controller.user_status_change(User.objects.get(pk=user_id))
 
-    team = Team.find(lobby)
-    if not team:
-        Team.build(lobby)
+    team = Team.find(lobby) or Team.build(lobby)
+    if team and team.ready:
+        opponent = team.get_opponent_team()
+        if opponent:
+            # TODO create pre-match (https://github.com/3C-gg/reload-backend/issues/238)
+            # TODO send ws to lobbies (https://github.com/3C-gg/reload-backend/issues/236)
+            pass
 
     return lobby
 

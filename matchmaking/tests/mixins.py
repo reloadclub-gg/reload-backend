@@ -100,6 +100,42 @@ class VerifiedPlayersMixin:
         create_social_auth(cls.user_6)
         baker.make(Account, user=cls.user_6, is_verified=True)
 
+        cls.user_7 = baker.make(User, email='user_7@example.com')
+        create_social_auth(cls.user_7)
+        baker.make(Account, user=cls.user_7, is_verified=True)
+
+        cls.user_8 = baker.make(User, email='user_8@example.com')
+        create_social_auth(cls.user_8)
+        baker.make(Account, user=cls.user_8, is_verified=True)
+
+        cls.user_9 = baker.make(User, email='user_9@example.com')
+        create_social_auth(cls.user_9)
+        baker.make(Account, user=cls.user_9, is_verified=True)
+
+        cls.user_10 = baker.make(User, email='user_10@example.com')
+        create_social_auth(cls.user_10)
+        baker.make(Account, user=cls.user_10, is_verified=True)
+
+        cls.user_11 = baker.make(User, email='user_11@example.com')
+        create_social_auth(cls.user_11)
+        baker.make(Account, user=cls.user_11, is_verified=True)
+
+        cls.user_12 = baker.make(User, email='user_12@example.com')
+        create_social_auth(cls.user_12)
+        baker.make(Account, user=cls.user_12, is_verified=True)
+
+        cls.user_13 = baker.make(User, email='user_13@example.com')
+        create_social_auth(cls.user_13)
+        baker.make(Account, user=cls.user_13, is_verified=True)
+
+        cls.user_14 = baker.make(User, email='user_14@example.com')
+        create_social_auth(cls.user_14)
+        baker.make(Account, user=cls.user_14, is_verified=True)
+
+        cls.user_15 = baker.make(User, email='user_15@example.com')
+        create_social_auth(cls.user_15)
+        baker.make(Account, user=cls.user_15, is_verified=True)
+
         cls.online_noaccount_user = baker.make(
             User, email='online_noaccount_user@example.com'
         )

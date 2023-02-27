@@ -142,7 +142,7 @@ class Team(BaseModel):
         return [Team.get_by_id(team_key.split(':')[2]) for team_key in teams_keys]
 
     @staticmethod
-    def get_all_not_ready() -> Team:
+    def get_all_not_ready() -> list[Team]:
         """
         Fetch all non ready teams in Redis db.
         """
@@ -150,7 +150,7 @@ class Team(BaseModel):
         return [team for team in teams if not team.ready]
 
     @staticmethod
-    def get_all_ready() -> Team:
+    def get_all_ready() -> list[Team]:
         """
         Fetch all ready teams in Redis db.
         """
@@ -300,3 +300,14 @@ class Team(BaseModel):
 
         if len(self.lobbies_ids) <= 1:
             self.delete()
+
+    def get_opponent_team(self):
+        ready_teams = self.get_all_ready()
+        for team in ready_teams:
+            if self.id != team.id:
+                # check if type and mode matches
+                if self.type_mode == team.type_mode:
+                    # check if teams are in the same overall range
+                    min_overall, max_overall = team.min_max_overall_by_queue_time
+                    if min_overall <= self.overall <= max_overall:
+                        return team
