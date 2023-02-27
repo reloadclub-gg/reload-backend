@@ -946,7 +946,39 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.lobby2.start_queue()
 
         team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
-        print(team.min_max_overall_by_queue_time)
+        self.assertEqual(team.min_max_overall_by_queue_time, (0, 4))
+
+    def test_overall_match(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+        match = Team.overall_match(team, self.lobby3)
+        self.assertTrue(match)
+
+        elapsed_time = (timezone.now() - datetime.timedelta(seconds=100)).isoformat()
+        cache.set(f'{self.lobby1.cache_key}:queue', elapsed_time)
+        cache.set(f'{self.lobby2.cache_key}:queue', elapsed_time)
+        cache.set(f'{self.lobby3.cache_key}:queue', elapsed_time)
+
+        self.user_4.account.level = 4
+        self.user_4.account.save()
+        self.lobby4.start_queue()
+
+        match = Team.overall_match(team, self.lobby4)
+        self.assertTrue(match)
+
+    def test_overall_not_match(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+
+        self.user_3.account.level = 6
+        self.user_3.account.save()
+        self.lobby3.start_queue()
+
+        match = Team.overall_match(team, self.lobby3)
+        self.assertFalse(match)
 
 
 class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):

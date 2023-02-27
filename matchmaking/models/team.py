@@ -129,6 +129,11 @@ class Team(BaseModel):
         return self.lobbies[0].lobby_type, self.lobbies[0].mode
 
     @staticmethod
+    def overall_match(team, lobby) -> bool:
+        min_overall, max_overall = team.min_max_overall_by_queue_time
+        return min_overall <= lobby.overall <= max_overall
+
+    @staticmethod
     def get_all() -> list[Team]:
         """
         Fetch and return all Teams on Redis db.
@@ -213,8 +218,8 @@ class Team(BaseModel):
 
                 # check if lobby and team type/mode matches
                 if team.type_mode == (lobby.lobby_type, lobby.mode):
-                    min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
-                    if min_overall <= team.overall <= max_overall:
+
+                    if Team.overall_match(team, lobby):
                         team.add_lobby(lobby.id)
                         return team
 
