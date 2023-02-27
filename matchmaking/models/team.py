@@ -88,6 +88,33 @@ class Team(BaseModel):
         )
 
     @property
+    def min_max_overall_by_queue_time(self) -> tuple:
+        """
+        Return the minimum and maximum team overall that this team
+        can team up or challenge.
+        """
+
+        elapsed_time = ceil(mean([lobby.queue_time for lobby in self.lobbies]))
+
+        if elapsed_time < 30:
+            min = self.overall - 1 if self.overall > 0 else 0
+            max = self.overall + 1
+        elif elapsed_time < 60:
+            min = self.overall - 2 if self.overall > 1 else 0
+            max = self.overall + 2
+        elif elapsed_time < 90:
+            min = self.overall - 3 if self.overall > 2 else 0
+            max = self.overall + 3
+        elif elapsed_time < 120:
+            min = self.overall - 4 if self.overall > 3 else 0
+            max = self.overall + 4
+        else:
+            min = self.overall - 5 if self.overall > 4 else 0
+            max = self.overall + 5
+
+        return min, max
+
+    @property
     def lobbies(self) -> list[Lobby]:
         """
         Return lobbies.
@@ -99,7 +126,7 @@ class Team(BaseModel):
         """
         Return team type and mode.
         """
-        return (self.lobbies[0].lobby_type, self.lobbies[0].mode)
+        return self.lobbies[0].lobby_type, self.lobbies[0].mode
 
     @staticmethod
     def get_all() -> list[Team]:

@@ -1,5 +1,8 @@
+import datetime
 from time import sleep
 from unittest import mock
+
+from django.utils import timezone
 
 from core.redis import RedisClient
 from core.tests import TestCase, cache
@@ -932,6 +935,18 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def test_type_mode(self):
         team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id, self.lobby3.id])
         self.assertEqual(team.type_mode, ('competitive', 5))
+
+    def test_min_max_overall_by_queue_time(self):
+        self.lobby1.start_queue()
+        now_minus_100 = (timezone.now() - datetime.timedelta(seconds=100)).isoformat()
+        cache.set(f'{self.lobby1.cache_key}:queue', now_minus_100)
+
+        self.user_2.account.level = 3
+        self.user_2.account.save()
+        self.lobby2.start_queue()
+
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+        print(team.min_max_overall_by_queue_time)
 
 
 class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
