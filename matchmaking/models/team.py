@@ -88,11 +88,18 @@ class Team(BaseModel):
         )
 
     @property
-    def challengeable(self) -> list[Team]:
-        ready = Team.get_all_ready()
-        # for team in ready:
-        #     min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
-        #     if min_overall <= other_lobby.overall <= max_overall:
+    def lobbies(self) -> list[Lobby]:
+        """
+        Return lobbies.
+        """
+        return [Lobby(owner_id=lobby_id) for lobby_id in self.lobbies_ids]
+
+    @property
+    def type_mode(self) -> tuple:
+        """
+        Return team type and mode.
+        """
+        return (self.lobbies[0].lobby_type, self.lobbies[0].mode)
 
     @staticmethod
     def get_all() -> list[Team]:
@@ -176,10 +183,13 @@ class Team(BaseModel):
         not_ready = Team.get_all_not_ready()
         for team in not_ready:
             if team.players_count + lobby.players_count <= lobby.max_players:
-                min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
-                if min_overall <= team.overall <= max_overall:
-                    team.add_lobby(lobby.id)
-                    return team
+
+                # check if lobby and team type/mode matches
+                if team.type_mode == (lobby.lobby_type, lobby.mode):
+                    min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
+                    if min_overall <= team.overall <= max_overall:
+                        team.add_lobby(lobby.id)
+                        return team
 
     @staticmethod
     def build(lobby: Lobby) -> Team:
@@ -258,6 +268,3 @@ class Team(BaseModel):
 
         if len(self.lobbies_ids) <= 1:
             self.delete()
-
-    def challenge(self):
-        ready_teams = self.get_all_ready()

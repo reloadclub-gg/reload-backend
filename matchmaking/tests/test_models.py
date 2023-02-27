@@ -876,6 +876,18 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         team2 = Team.find(self.lobby3)
         self.assertIsNone(team2)
 
+    def test_find_not_matching_mode(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        team = Team.build(self.lobby1)
+        team_model = Team.get_by_id(team.id)
+        self.assertEqual(team.id, team_model.id)
+
+        self.lobby3.set_mode(1)
+        self.lobby3.start_queue()
+        team = Team.find(self.lobby3)
+        self.assertIsNone(team)
+
     def test_overall(self):
         self.user_1.account.level = 5
         self.user_1.account.save()
@@ -916,6 +928,10 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         with self.assertRaises(TeamException):
             Team.get_by_id(team).id
+
+    def test_type_mode(self):
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id, self.lobby3.id])
+        self.assertEqual(team.type_mode, ('competitive', 5))
 
 
 class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
