@@ -3,6 +3,7 @@ from __future__ import annotations
 import secrets
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
 from core.redis import RedisClient
