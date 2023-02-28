@@ -1,5 +1,8 @@
+import datetime
 from time import sleep
 from unittest import mock
+
+from django.utils import timezone
 
 from core.redis import RedisClient
 from core.tests import TestCase, cache
@@ -641,23 +644,23 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby.start_queue()
 
         mocker.return_value = 10
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 1), (min_level, max_level))
 
         mocker.return_value = 30
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 2), (min_level, max_level))
 
         mocker.return_value = 60
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 3), (min_level, max_level))
 
         mocker.return_value = 90
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 4), (min_level, max_level))
 
         mocker.return_value = 120
-        min_level, max_level = lobby.get_overall_by_elapsed_time()
+        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
         self.assertEqual((0, 5), (min_level, max_level))
 
     def test_is_owner_is_true(self):
@@ -692,6 +695,10 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.user_4.auth.add_session()
         self.user_5.auth.add_session()
         self.user_6.auth.add_session()
+        self.user_7.auth.add_session()
+        self.user_8.auth.add_session()
+        self.user_9.auth.add_session()
+        self.user_10.auth.add_session()
 
         self.lobby1 = Lobby.create(owner_id=self.user_1.id)
         self.lobby2 = Lobby.create(owner_id=self.user_2.id)
@@ -699,6 +706,10 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.lobby4 = Lobby.create(owner_id=self.user_4.id)
         self.lobby5 = Lobby.create(owner_id=self.user_5.id)
         self.lobby6 = Lobby.create(owner_id=self.user_6.id)
+        self.lobby7 = Lobby.create(owner_id=self.user_7.id)
+        self.lobby8 = Lobby.create(owner_id=self.user_8.id)
+        self.lobby9 = Lobby.create(owner_id=self.user_9.id)
+        self.lobby10 = Lobby.create(owner_id=self.user_10.id)
 
     def test_players_count(self):
         team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
@@ -859,6 +870,47 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertIsNotNone(team2)
         self.assertEqual(team.id, team2.id)
 
+    def test_find_not_matching_overalls(self):
+        self.user_3.account.level = 20
+        self.user_3.account.save()
+
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+
+        team = Team.build(self.lobby1)
+        team_model = Team.get_by_id(team.id)
+        self.assertEqual(team.id, team_model.id)
+        self.assertEqual(team.players_count, 2)
+        self.assertEqual(len(team.lobbies_ids), 2)
+
+        self.lobby3.start_queue()
+        team2 = Team.find(self.lobby3)
+        self.assertIsNone(team2)
+
+    def test_find_not_matching_mode(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        team = Team.build(self.lobby1)
+        team_model = Team.get_by_id(team.id)
+        self.assertEqual(team.id, team_model.id)
+
+        self.lobby3.set_mode(1)
+        self.lobby3.start_queue()
+        team = Team.find(self.lobby3)
+        self.assertIsNone(team)
+
+    def test_overall(self):
+        self.user_1.account.level = 5
+        self.user_1.account.save()
+        self.user_2.account.level = 4
+        self.user_2.account.save()
+
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+
+        team = Team.build(self.lobby1)
+        self.assertEqual(team.overall, 5)
+
     def test_get_all_not_ready(self):
         self.lobby1.start_queue()
         self.lobby2.start_queue()
@@ -887,6 +939,102 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         with self.assertRaises(TeamException):
             Team.get_by_id(team).id
+
+    def test_type_mode(self):
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id, self.lobby3.id])
+        self.assertEqual(team.type_mode, ('competitive', 5))
+
+    def test_min_max_overall_by_queue_time(self):
+        self.lobby1.start_queue()
+        now_minus_100 = (timezone.now() - datetime.timedelta(seconds=100)).isoformat()
+        cache.set(f'{self.lobby1.cache_key}:queue', now_minus_100)
+
+        self.user_2.account.level = 3
+        self.user_2.account.save()
+        self.lobby2.start_queue()
+
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+        self.assertEqual(team.min_max_overall_by_queue_time, (0, 4))
+
+    def test_overall_match(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+        match = Team.overall_match(team, self.lobby3)
+        self.assertTrue(match)
+
+        elapsed_time = (timezone.now() - datetime.timedelta(seconds=100)).isoformat()
+        cache.set(f'{self.lobby1.cache_key}:queue', elapsed_time)
+        cache.set(f'{self.lobby2.cache_key}:queue', elapsed_time)
+        cache.set(f'{self.lobby3.cache_key}:queue', elapsed_time)
+
+        self.user_4.account.level = 4
+        self.user_4.account.save()
+        self.lobby4.start_queue()
+
+        match = Team.overall_match(team, self.lobby4)
+        self.assertTrue(match)
+
+    def test_overall_not_match(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+
+        self.user_3.account.level = 6
+        self.user_3.account.save()
+        self.lobby3.start_queue()
+
+        match = Team.overall_match(team, self.lobby3)
+        self.assertFalse(match)
+
+    def test_get_opponent_team(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        Lobby.move(self.user_3.id, self.lobby1.id)
+        Lobby.move(self.user_4.id, self.lobby1.id)
+        Lobby.move(self.user_5.id, self.lobby1.id)
+        self.lobby1.start_queue()
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+
+        self.lobby6.set_public()
+        Lobby.move(self.user_7.id, self.lobby6.id)
+        Lobby.move(self.user_8.id, self.lobby6.id)
+        Lobby.move(self.user_9.id, self.lobby6.id)
+        Lobby.move(self.user_10.id, self.lobby6.id)
+        self.lobby6.start_queue()
+        team2 = Team.create(lobbies_ids=[self.lobby6.id])
+
+        opponent = team2.get_opponent_team()
+        self.assertEqual(opponent, team1)
+
+    def test_get_opponent_team_overall_queue_time(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        Lobby.move(self.user_3.id, self.lobby1.id)
+        Lobby.move(self.user_4.id, self.lobby1.id)
+        Lobby.move(self.user_5.id, self.lobby1.id)
+        self.lobby1.start_queue()
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+
+        self.user_8.account.level = 5
+        self.user_8.account.save()
+
+        self.lobby6.set_public()
+        Lobby.move(self.user_7.id, self.lobby6.id)
+        Lobby.move(self.user_8.id, self.lobby6.id)
+        Lobby.move(self.user_9.id, self.lobby6.id)
+        Lobby.move(self.user_10.id, self.lobby6.id)
+        self.lobby6.start_queue()
+        team = Team.create(lobbies_ids=[self.lobby6.id])
+
+        opponent = team.get_opponent_team()
+        self.assertIsNone(opponent)
+
+        elapsed_time = (timezone.now() - datetime.timedelta(seconds=140)).isoformat()
+        cache.set(f'{self.lobby1.cache_key}:queue', elapsed_time)
+        opponent = team.get_opponent_team()
+        self.assertEqual(opponent, team1)
 
 
 class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
