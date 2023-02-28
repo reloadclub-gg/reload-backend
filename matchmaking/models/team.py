@@ -82,6 +82,14 @@ class Team(BaseModel):
     def overall(self) -> int:
         """
         Return all lobbies overall.
+
+        If there is only one lobby on team, then the overral will
+        be the highest level among that lobby players (what is equal to lobby.overall).
+
+        If there is more then one lobby, the overall will be the average between all lobbies.
+
+        This is effective because if there is only one lobby, it means that is a pre builded lobby
+        with friends, and thus we want to pair by the highest skilled/leveled player.
         """
         return ceil(
             mean([Lobby(owner_id=lobby_id).overall for lobby_id in self.lobbies_ids])

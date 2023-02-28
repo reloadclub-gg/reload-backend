@@ -1,7 +1,9 @@
 import datetime
+import time
 from time import sleep
 from unittest import mock
 
+from django.conf import settings
 from django.utils import timezone
 
 from core.redis import RedisClient
@@ -12,6 +14,9 @@ from ..models import (
     LobbyException,
     LobbyInvite,
     LobbyInviteException,
+    Match,
+    MatchConfig,
+    MatchException,
     Team,
     TeamException,
 )
@@ -1146,3 +1151,126 @@ class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
                 ),
             ],
         )
+
+
+class MatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.user_1.auth.add_session()
+        self.user_2.auth.add_session()
+        self.user_3.auth.add_session()
+        self.user_4.auth.add_session()
+        self.user_5.auth.add_session()
+        self.user_6.auth.add_session()
+        self.user_7.auth.add_session()
+        self.user_8.auth.add_session()
+        self.user_9.auth.add_session()
+        self.user_10.auth.add_session()
+        self.user_11.auth.add_session()
+        self.user_12.auth.add_session()
+        self.user_13.auth.add_session()
+        self.user_14.auth.add_session()
+        self.user_15.auth.add_session()
+
+        self.lobby1 = Lobby.create(owner_id=self.user_1.id)
+        self.lobby2 = Lobby.create(owner_id=self.user_2.id)
+        self.lobby3 = Lobby.create(owner_id=self.user_3.id)
+        self.lobby4 = Lobby.create(owner_id=self.user_4.id)
+        self.lobby5 = Lobby.create(owner_id=self.user_5.id)
+        self.lobby6 = Lobby.create(owner_id=self.user_6.id)
+        self.lobby7 = Lobby.create(owner_id=self.user_7.id)
+        self.lobby8 = Lobby.create(owner_id=self.user_8.id)
+        self.lobby9 = Lobby.create(owner_id=self.user_9.id)
+        self.lobby10 = Lobby.create(owner_id=self.user_10.id)
+        self.lobby11 = Lobby.create(owner_id=self.user_11.id)
+        self.lobby12 = Lobby.create(owner_id=self.user_12.id)
+        self.lobby13 = Lobby.create(owner_id=self.user_13.id)
+        self.lobby14 = Lobby.create(owner_id=self.user_14.id)
+        self.lobby15 = Lobby.create(owner_id=self.user_15.id)
+
+        self.team1 = Team.create(
+            [
+                self.lobby1.id,
+                self.lobby2.id,
+                self.lobby3.id,
+                self.lobby4.id,
+                self.lobby5.id,
+            ]
+        )
+        self.team2 = Team.create(
+            [
+                self.lobby6.id,
+                self.lobby7.id,
+                self.lobby8.id,
+                self.lobby9.id,
+                self.lobby10.id,
+            ]
+        )
+
+    def test_create(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        match_model = Match.get_by_id(match.id)
+        self.assertEqual(match, match_model)
+
+    def test_start_players_ready_countdown(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        ready_time = cache.get(f'{match.cache_key}:ready_time')
+        self.assertIsNone(ready_time)
+
+        match.start_players_ready_countdown()
+        ready_time = cache.get(f'{match.cache_key}:ready_time')
+        self.assertIsNotNone(ready_time)
+
+    def test_set_player_ready(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        match.start_players_ready_countdown()
+        self.assertEqual(match.ready_players, 0)
+
+        match.set_player_ready()
+        self.assertEqual(match.ready_players, 1)
+
+    def test_set_player_ready_wrong_state(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        with self.assertRaises(MatchException):
+            match.set_player_ready()
+
+    def test_set_player_lock_in(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        self.assertEqual(match.players_in, 0)
+
+        match.set_player_lock_in()
+        self.assertEqual(match.players_in, 1)
+
+    def test_set_player_lock_in_wrong_state(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        match.start_players_ready_countdown()
+        with self.assertRaises(MatchException):
+            match.set_player_lock_in()
+
+    def test_state(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        self.assertEqual(match.state, MatchConfig.STATES.get('pre_start'))
+
+        match.start_players_ready_countdown()
+        self.assertEqual(match.state, MatchConfig.STATES.get('lock_in'))
+
+        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
+            match.set_player_ready()
+
+        self.assertEqual(match.state, MatchConfig.STATES.get('ready'))
+
+    def test_countdown(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        match.start_players_ready_countdown()
+        self.assertEqual(match.countdown, 30)
+        time.sleep(2)
+        self.assertEqual(match.countdown, 28)
+
+    def test_teams(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        self.assertEqual(match.teams[0], self.team1)
+        self.assertEqual(match.teams[1], self.team2)
+
+    def test_players(self):
+        match = Match.create(self.team1.id, self.team2.id)
+        self.assertEqual(len(match.players), 10)
