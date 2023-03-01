@@ -17,17 +17,17 @@ cache = RedisClient()
 User = get_user_model()
 
 
-class MatchException(Exception):
+class PreMatchException(Exception):
     """
-    Custom Match exception class.
+    Custom PreMatch exception class.
     """
 
     pass
 
 
-class MatchConfig:
+class PreMatchConfig:
     """
-    Config class for the Match model.
+    Config class for the PreMatch model.
     """
 
     CACHE_PREFIX: str = '__mm:match:'
@@ -36,16 +36,16 @@ class MatchConfig:
     READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
     READY_PLAYERS_MIN: int = settings.MATCH_READY_PLAYERS_MIN
     STATES = {
+        'idle': -1,
         'pre_start': 0,
         'lock_in': 1,
         'ready': 2,
     }
 
 
-class Match(BaseModel):
+class PreMatch(BaseModel):
     """
-    This model represents matches on Redis cache db.
-    Match is a platform match and not a FiveM match.
+    This model represents a pre-match on Redis cache db.
     This model has all necessary logic and properties that
     need to be done before create a REAL match on FiveM and disk db.
 
@@ -58,7 +58,7 @@ class Match(BaseModel):
     Stores the datetime that a match was ready for players to confirm their seats.
 
     [key] __mm:match:[match_id]:ready_count <int>
-    Holds the amount of players that are ready to play before we create the Match.
+    Holds the amount of players that are ready to play before we create the PreMatch.
 
     [key] __mm:match:[match_id]:players_in <int>
     Holds the amount of players that are in the pre match so the countdown of ready starts.
@@ -69,20 +69,23 @@ class Match(BaseModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.id = self.id or secrets.token_urlsafe(MatchConfig.ID_SIZE)
-        self.cache_key = self.cache_key or f'{MatchConfig.CACHE_PREFIX}{self.id}'
+        self.id = self.id or secrets.token_urlsafe(PreMatchConfig.ID_SIZE)
+        self.cache_key = self.cache_key or f'{PreMatchConfig.CACHE_PREFIX}{self.id}'
 
     @property
     def state(self) -> str:
-        if self.countdown is None and self.ready_players == 0:
-            return MatchConfig.STATES.get('pre_start')
+        if self.players_in < PreMatchConfig.READY_PLAYERS_MIN:
+            return PreMatchConfig.STATES.get('pre_start')
         elif (
-            self.countdown >= MatchConfig.READY_COUNTDOWN_GAP
-            and self.ready_players < MatchConfig.READY_PLAYERS_MIN
+            self.countdown
+            and self.countdown >= PreMatchConfig.READY_COUNTDOWN_GAP
+            and self.ready_players < PreMatchConfig.READY_PLAYERS_MIN
         ):
-            return MatchConfig.STATES.get('lock_in')
+            return PreMatchConfig.STATES.get('lock_in')
+        elif self.ready_players == PreMatchConfig.READY_PLAYERS_MIN:
+            return PreMatchConfig.STATES.get('ready')
         else:
-            return MatchConfig.STATES.get('ready')
+            return PreMatchConfig.STATES.get('idle')
 
     @property
     def countdown(self) -> int:
@@ -90,7 +93,7 @@ class Match(BaseModel):
         if ready_start_time:
             ready_start_time = str_to_timezone(ready_start_time)
             elapsed_time = (timezone.now() - ready_start_time).seconds
-            return MatchConfig.READY_COUNTDOWN - elapsed_time
+            return PreMatchConfig.READY_COUNTDOWN - elapsed_time
 
     @property
     def ready_players(self) -> int:
@@ -140,44 +143,44 @@ class Match(BaseModel):
         return self.team1_players + self.team2_players
 
     @staticmethod
-    def create(team1_id: str, team2_id: str) -> Match:
+    def create(team1_id: str, team2_id: str) -> PreMatch:
         team1 = Team.get_by_id(team1_id)
         team2 = Team.get_by_id(team2_id)
 
         if not any([team1.ready, team2.ready]):
-            raise MatchException(
-                _('All teams must be ready in order to create a Match.')
+            raise PreMatchException(
+                _('All teams must be ready in order to create a PreMatch.')
             )
 
-        match_id = secrets.token_urlsafe(MatchConfig.ID_SIZE)
-        cache.set(f'{MatchConfig.CACHE_PREFIX}{match_id}', f'{team1_id}:{team2_id}')
-        return Match.get_by_id(match_id)
+        match_id = secrets.token_urlsafe(PreMatchConfig.ID_SIZE)
+        cache.set(f'{PreMatchConfig.CACHE_PREFIX}{match_id}', f'{team1_id}:{team2_id}')
+        return PreMatch.get_by_id(match_id)
 
     @staticmethod
     def get_by_id(id: str):
         """
         Searchs for a match given an id.
         """
-        cache_key = f'{MatchConfig.CACHE_PREFIX}{id}'
+        cache_key = f'{PreMatchConfig.CACHE_PREFIX}{id}'
         result = cache.get(cache_key)
         if not result:
-            raise MatchException(_('Match not found.'))
+            raise PreMatchException(_('PreMatch not found.'))
 
         team1_id = result.split(':')[0]
         team2_id = result.split(':')[1]
-        return Match(team1_id=team1_id, team2_id=team2_id, id=id)
+        return PreMatch(team1_id=team1_id, team2_id=team2_id, id=id)
 
     def start_players_ready_countdown(self):
         cache.set(f'{self.cache_key}:ready_time', timezone.now().isoformat())
 
     def set_player_ready(self):
-        if not self.state == MatchConfig.STATES.get('lock_in'):
-            raise MatchException(_('Match is not ready for ready players.'))
+        if not self.state == PreMatchConfig.STATES.get('lock_in'):
+            raise PreMatchException(_('PreMatch is not ready for ready players.'))
 
         cache.incr(f'{self.cache_key}:ready_count')
 
     def set_player_lock_in(self):
-        if not self.state == MatchConfig.STATES.get('pre_start'):
-            raise MatchException(_('Match is not ready to lock in players.'))
+        if not self.state == PreMatchConfig.STATES.get('pre_start'):
+            raise PreMatchException(_('PreMatch is not ready to lock in players.'))
 
         cache.incr(f'{self.cache_key}:players_in')

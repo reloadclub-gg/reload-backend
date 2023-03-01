@@ -1,4 +1,4 @@
 from .invite import LobbyInvite, LobbyInviteException
 from .lobby import Lobby, LobbyException
 from .team import Team, TeamException
-from .match import Match, MatchException, MatchConfig
+from .pre_match import PreMatch, PreMatchException, PreMatchConfig

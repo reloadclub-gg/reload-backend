@@ -14,9 +14,9 @@ from ..models import (
     LobbyException,
     LobbyInvite,
     LobbyInviteException,
-    Match,
-    MatchConfig,
-    MatchException,
+    PreMatch,
+    PreMatchConfig,
+    PreMatchException,
     Team,
     TeamException,
 )
@@ -1153,7 +1153,7 @@ class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         )
 
 
-class MatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()
@@ -1208,12 +1208,12 @@ class MatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         )
 
     def test_create(self):
-        match = Match.create(self.team1.id, self.team2.id)
-        match_model = Match.get_by_id(match.id)
+        match = PreMatch.create(self.team1.id, self.team2.id)
+        match_model = PreMatch.get_by_id(match.id)
         self.assertEqual(match, match_model)
 
     def test_start_players_ready_countdown(self):
-        match = Match.create(self.team1.id, self.team2.id)
+        match = PreMatch.create(self.team1.id, self.team2.id)
         ready_time = cache.get(f'{match.cache_key}:ready_time')
         self.assertIsNone(ready_time)
 
@@ -1222,7 +1222,7 @@ class MatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertIsNotNone(ready_time)
 
     def test_set_player_ready(self):
-        match = Match.create(self.team1.id, self.team2.id)
+        match = PreMatch.create(self.team1.id, self.team2.id)
         match.start_players_ready_countdown()
         self.assertEqual(match.ready_players, 0)
 
@@ -1230,47 +1230,47 @@ class MatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(match.ready_players, 1)
 
     def test_set_player_ready_wrong_state(self):
-        match = Match.create(self.team1.id, self.team2.id)
-        with self.assertRaises(MatchException):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+        with self.assertRaises(PreMatchException):
             match.set_player_ready()
 
     def test_set_player_lock_in(self):
-        match = Match.create(self.team1.id, self.team2.id)
+        match = PreMatch.create(self.team1.id, self.team2.id)
         self.assertEqual(match.players_in, 0)
 
         match.set_player_lock_in()
         self.assertEqual(match.players_in, 1)
 
     def test_set_player_lock_in_wrong_state(self):
-        match = Match.create(self.team1.id, self.team2.id)
+        match = PreMatch.create(self.team1.id, self.team2.id)
         match.start_players_ready_countdown()
-        with self.assertRaises(MatchException):
+        with self.assertRaises(PreMatchException):
             match.set_player_lock_in()
 
     def test_state(self):
-        match = Match.create(self.team1.id, self.team2.id)
-        self.assertEqual(match.state, MatchConfig.STATES.get('pre_start'))
+        match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('pre_start'))
 
         match.start_players_ready_countdown()
-        self.assertEqual(match.state, MatchConfig.STATES.get('lock_in'))
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
 
         for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
             match.set_player_ready()
 
-        self.assertEqual(match.state, MatchConfig.STATES.get('ready'))
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('ready'))
 
     def test_countdown(self):
-        match = Match.create(self.team1.id, self.team2.id)
+        match = PreMatch.create(self.team1.id, self.team2.id)
         match.start_players_ready_countdown()
         self.assertEqual(match.countdown, 30)
         time.sleep(2)
         self.assertEqual(match.countdown, 28)
 
     def test_teams(self):
-        match = Match.create(self.team1.id, self.team2.id)
+        match = PreMatch.create(self.team1.id, self.team2.id)
         self.assertEqual(match.teams[0], self.team1)
         self.assertEqual(match.teams[1], self.team2)
 
     def test_players(self):
-        match = Match.create(self.team1.id, self.team2.id)
+        match = PreMatch.create(self.team1.id, self.team2.id)
         self.assertEqual(len(match.players), 10)
