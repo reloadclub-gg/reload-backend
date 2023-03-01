@@ -1,9 +1,18 @@
 from django.contrib.auth import get_user_model
-from ninja.errors import HttpError
+from ninja.errors import AuthenticationError, Http404, HttpError
 
 from websocket import controller as ws_controller
 
-from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException, Team
+from ..models import (
+    Lobby,
+    LobbyException,
+    LobbyInvite,
+    LobbyInviteException,
+    PreMatch,
+    PreMatchConfig,
+    PreMatchException,
+    Team,
+)
 
 User = get_user_model()
 
@@ -159,7 +168,7 @@ def lobby_start_queue(lobby_id: int):
     if team and team.ready:
         opponent = team.get_opponent_team()
         if opponent:
-            # TODO create pre-match (https://github.com/3C-gg/reload-backend/issues/238)
+            PreMatch.create(team.id, opponent.id)
             # TODO send ws to lobbies (https://github.com/3C-gg/reload-backend/issues/236)
             pass
 
@@ -179,3 +188,17 @@ def lobby_cancel_queue(lobby_id: int):
         team.remove_lobby(lobby_id)
 
     return lobby
+
+
+def match_player_lock_in(user: User, match_id: str):
+    try:
+        match = PreMatch.get_by_id(match_id)
+    except PreMatchException:
+        raise Http404()
+
+    if user not in match.players:
+        raise AuthenticationError()
+
+    match.set_player_lock_in()
+    if match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
+        match.start_players_ready_countdown()

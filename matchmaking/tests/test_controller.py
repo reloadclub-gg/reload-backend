@@ -1,12 +1,12 @@
 from datetime import datetime
 from unittest import mock
 
-from ninja.errors import HttpError
+from ninja.errors import AuthenticationError, Http404, HttpError
 
 from core.tests import TestCase
 
 from ..api import controller
-from ..models import Lobby, LobbyInvite, Team
+from ..models import Lobby, LobbyInvite, PreMatch, PreMatchConfig, Team
 from . import mixins
 
 
@@ -255,3 +255,25 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         # all the queued lobbies together again.
         controller.lobby_cancel_queue(lobby.id)
         self.assertCountEqual(team.lobbies_ids, [])
+
+
+class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
+    def test_match_player_lock_in(self):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertEqual(match.players_in, 0)
+
+        controller.match_player_lock_in(self.user_1, match.id)
+        self.assertEqual(match.players_in, 1)
+
+        with self.assertRaises(Http404):
+            controller.match_player_lock_in(self.user_1, 'UNKNOWN_ID')
+
+        with self.assertRaises(AuthenticationError):
+            controller.match_player_lock_in(self.user_15, match.id)
+
+        for _ in range(0, 8):
+            match.set_player_lock_in()
+
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('pre_start'))
+        controller.match_player_lock_in(self.user_10, match.id)
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
