@@ -112,3 +112,8 @@ def lobby_start_queue(request, lobby_id: int):
 @participant_required
 def lobby_cancel_queue(request, lobby_id: int):
     return controller.lobby_cancel_queue(lobby_id)
+
+
+@router.patch('match/{match_id}/player-lock-in/', auth=VerifiedRequiredAuth())
+def match_player_lock_in(request, match_id: str):
+    return controller.match_player_lock_in(user=request.user, match_id=match_id)
