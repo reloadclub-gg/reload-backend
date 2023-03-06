@@ -7,9 +7,9 @@ from websocket.consumers import JsonAuthWebsocketConsumer
 
 class WSConsumerTestCase(VerifiedAccountMixin, TestCase):
     def setUp(self) -> None:
+        super().setUp()
         self.user.auth.create_token()
         self.user.account
-        return super().setUp()
 
     async def test_connect(self):
         communicator = WebsocketCommunicator(
