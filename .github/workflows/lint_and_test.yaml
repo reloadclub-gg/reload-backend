@@ -15,7 +15,6 @@ jobs:
       DATABASE_PASSWORD: postgres
       DATABASE_USER: root
       DATABASE_NAME: github_job
-      DATABASE_IGNORE_SSL: 1
     services:
       db:
         image: postgres:14
@@ -64,7 +63,6 @@ jobs:
       DATABASE_PASSWORD: postgres
       DATABASE_USER: root
       DATABASE_NAME: github_job
-      DATABASE_IGNORE_SSL: 1
     services:
       db:
         image: postgres:14
@@ -113,7 +111,6 @@ jobs:
       DATABASE_PASSWORD: postgres
       DATABASE_USER: root
       DATABASE_NAME: github_job
-      DATABASE_IGNORE_SSL: 1
     services:
       db:
         image: postgres:14

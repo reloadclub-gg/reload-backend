@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import secrets
+from math import ceil
+from statistics import mean
 
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
@@ -76,36 +78,68 @@ class Team(BaseModel):
         """
         return self.players_count == TeamConfig.MAX_PLAYERS_COUNT
 
-    def delete(self):
+    @property
+    def overall(self) -> int:
         """
-        Delete team from Redis db.
-        """
-        cache.delete(self.cache_key)
+        Return all lobbies overall.
 
-    def add_lobby(self, lobby_id: int):
-        """
-        Add a lobby into a Team on Redis db.
-        """
-        lobby = Lobby(owner_id=lobby_id)
+        If there is only one lobby on team, then the overral will
+        be the highest level among that lobby players (what is equal to lobby.overall).
 
-        def transaction_operations(pipe, pre_result):
-            pipe.sadd(self.cache_key, lobby_id)
+        If there is more then one lobby, the overall will be the average between all lobbies.
 
-        cache.protected_handler(
-            transaction_operations,
-            f'{lobby.cache_key}:players',
-            f'{lobby.cache_key}:queue',
+        This is effective because if there is only one lobby, it means that is a pre builded lobby
+        with friends, and thus we want to pair by the highest skilled/leveled player.
+        """
+        return ceil(
+            mean([Lobby(owner_id=lobby_id).overall for lobby_id in self.lobbies_ids])
         )
 
-    def remove_lobby(self, lobby_id: int):
+    @property
+    def min_max_overall_by_queue_time(self) -> tuple:
         """
-        Remove a lobby from a Team on Redis db.
-        If that team was ready, then it becomes not ready.
+        Return the minimum and maximum team overall that this team
+        can team up or challenge.
         """
-        cache.srem(self.cache_key, lobby_id)
 
-        if len(self.lobbies_ids) <= 1:
-            self.delete()
+        elapsed_time = ceil(mean([lobby.queue_time for lobby in self.lobbies]))
+
+        if elapsed_time < 30:
+            min = self.overall - 1 if self.overall > 0 else 0
+            max = self.overall + 1
+        elif elapsed_time < 60:
+            min = self.overall - 2 if self.overall > 1 else 0
+            max = self.overall + 2
+        elif elapsed_time < 90:
+            min = self.overall - 3 if self.overall > 2 else 0
+            max = self.overall + 3
+        elif elapsed_time < 120:
+            min = self.overall - 4 if self.overall > 3 else 0
+            max = self.overall + 4
+        else:
+            min = self.overall - 5 if self.overall > 4 else 0
+            max = self.overall + 5
+
+        return min, max
+
+    @property
+    def lobbies(self) -> list[Lobby]:
+        """
+        Return lobbies.
+        """
+        return [Lobby(owner_id=lobby_id) for lobby_id in self.lobbies_ids]
+
+    @property
+    def type_mode(self) -> tuple:
+        """
+        Return team type and mode.
+        """
+        return self.lobbies[0].lobby_type, self.lobbies[0].mode
+
+    @staticmethod
+    def overall_match(team, lobby) -> bool:
+        min_overall, max_overall = team.min_max_overall_by_queue_time
+        return min_overall <= lobby.overall <= max_overall
 
     @staticmethod
     def get_all() -> list[Team]:
@@ -116,12 +150,20 @@ class Team(BaseModel):
         return [Team.get_by_id(team_key.split(':')[2]) for team_key in teams_keys]
 
     @staticmethod
-    def get_all_not_ready() -> Team:
+    def get_all_not_ready() -> list[Team]:
         """
         Fetch all non ready teams in Redis db.
         """
         teams = Team.get_all()
         return [team for team in teams if not team.ready]
+
+    @staticmethod
+    def get_all_ready() -> list[Team]:
+        """
+        Fetch all ready teams in Redis db.
+        """
+        teams = Team.get_all()
+        return [team for team in teams if team.ready]
 
     @staticmethod
     def get_by_lobby_id(lobby_id: int, fail_silently=False) -> Team:
@@ -181,8 +223,13 @@ class Team(BaseModel):
         not_ready = Team.get_all_not_ready()
         for team in not_ready:
             if team.players_count + lobby.players_count <= lobby.max_players:
-                team.add_lobby(lobby.id)
-                return team
+
+                # check if lobby and team type/mode matches
+                if team.type_mode == (lobby.lobby_type, lobby.mode):
+
+                    if Team.overall_match(team, lobby):
+                        team.add_lobby(lobby.id)
+                        return team
 
     @staticmethod
     def build(lobby: Lobby) -> Team:
@@ -221,7 +268,7 @@ class Team(BaseModel):
                 if total_players <= lobby.max_players:
 
                     # check if lobbies are in the same overall range
-                    min_overall, max_overall = lobby.get_overall_by_elapsed_time()
+                    min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
                     if min_overall <= other_lobby.overall <= max_overall:
                         team.add_lobby(other_lobby.id)
 
@@ -230,3 +277,45 @@ class Team(BaseModel):
         else:
             team.delete()
             return None
+
+    def delete(self):
+        """
+        Delete team from Redis db.
+        """
+        cache.delete(self.cache_key)
+
+    def add_lobby(self, lobby_id: int):
+        """
+        Add a lobby into a Team on Redis db.
+        """
+        lobby = Lobby(owner_id=lobby_id)
+
+        def transaction_operations(pipe, pre_result):
+            pipe.sadd(self.cache_key, lobby_id)
+
+        cache.protected_handler(
+            transaction_operations,
+            f'{lobby.cache_key}:players',
+            f'{lobby.cache_key}:queue',
+        )
+
+    def remove_lobby(self, lobby_id: int):
+        """
+        Remove a lobby from a Team on Redis db.
+        If that team was ready, then it becomes not ready.
+        """
+        cache.srem(self.cache_key, lobby_id)
+
+        if len(self.lobbies_ids) <= 1:
+            self.delete()
+
+    def get_opponent_team(self):
+        ready_teams = self.get_all_ready()
+        for team in ready_teams:
+            if self.id != team.id:
+                # check if type and mode matches
+                if self.type_mode == team.type_mode:
+                    # check if teams are in the same overall range
+                    min_overall, max_overall = team.min_max_overall_by_queue_time
+                    if min_overall <= self.overall <= max_overall:
+                        return team

@@ -325,3 +325,10 @@ JAZZMIN_SETTINGS = {
         ]
     },
 }
+
+# Match Settings
+MATCH_READY_PLAYERS_MIN = (
+    10 if TEST_MODE else config('MATCH_READY_PLAYERS_MIN', default=10, cast=int)
+)
+MATCH_READY_COUNTDOWN = config('MATCH_READY_COUNTDOWN', default=30, cast=int)
+MATCH_READY_COUNTDOWN_GAP = config('MATCH_READY_COUNTDOWN_GAP', default=-2, cast=int)

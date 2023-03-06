@@ -1,9 +1,18 @@
 from django.contrib.auth import get_user_model
-from ninja.errors import HttpError
+from ninja.errors import AuthenticationError, Http404, HttpError
 
 from websocket import controller as ws_controller
 
-from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException, Team
+from ..models import (
+    Lobby,
+    LobbyException,
+    LobbyInvite,
+    LobbyInviteException,
+    PreMatch,
+    PreMatchConfig,
+    PreMatchException,
+    Team,
+)
 
 User = get_user_model()
 
@@ -155,9 +164,13 @@ def lobby_start_queue(lobby_id: int):
     for user_id in lobby.players_ids:
         ws_controller.user_status_change(User.objects.get(pk=user_id))
 
-    team = Team.find(lobby)
-    if not team:
-        Team.build(lobby)
+    team = Team.find(lobby) or Team.build(lobby)
+    if team and team.ready:
+        opponent = team.get_opponent_team()
+        if opponent:
+            PreMatch.create(team.id, opponent.id)
+            # TODO send ws to lobbies (https://github.com/3C-gg/reload-backend/issues/236)
+            pass
 
     return lobby
 
@@ -175,3 +188,36 @@ def lobby_cancel_queue(lobby_id: int):
         team.remove_lobby(lobby_id)
 
     return lobby
+
+
+def match_player_lock_in(user: User, match_id: str):
+    try:
+        match = PreMatch.get_by_id(match_id)
+    except PreMatchException:
+        raise Http404()
+
+    if user not in match.players:
+        raise AuthenticationError()
+
+    match.set_player_lock_in()
+    if match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
+        match.start_players_ready_countdown()
+
+
+def match_player_ready(user: User, match_id: str):
+    try:
+        match = PreMatch.get_by_id(match_id)
+    except PreMatchException:
+        raise Http404()
+
+    if user not in match.players:
+        raise AuthenticationError()
+
+    match.set_player_ready()
+    if match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
+        pass
+        # TODO create match in DB
+        # (https://github.com/3C-gg/reload-backend/issues/241)
+
+        # TODO start match on the FiveM server
+        # (https://github.com/3C-gg/reload-backend/issues/243)
