@@ -277,3 +277,26 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(match.state, PreMatchConfig.STATES.get('pre_start'))
         controller.match_player_lock_in(self.user_10, match.id)
         self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
+
+    def test_match_player_ready(self):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+
+        for _ in range(0, 10):
+            match.set_player_lock_in()
+
+        match.start_players_ready_countdown()
+        controller.match_player_ready(self.user_1, match.id)
+        self.assertEqual(match.players_ready, 1)
+
+        with self.assertRaises(Http404):
+            controller.match_player_ready(self.user_1, 'UNKNOWN_ID')
+
+        with self.assertRaises(AuthenticationError):
+            controller.match_player_ready(self.user_15, match.id)
+
+        for _ in range(0, 8):
+            match.set_player_ready()
+
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
+        controller.match_player_ready(self.user_10, match.id)
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('ready'))
