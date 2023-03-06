@@ -1,0 +1,26 @@
+name: Check CHANGELOG.md
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+
+jobs:
+  check_changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get changes in CHANGELOG.md
+        id: changed-files-specific
+        uses: tj-actions/changed-files@v35
+        with:
+          files: CHANGELOG.md
+
+      - name: Check if CHANGELOG.md has changes
+        if: steps.changed-files-specific.outputs.any_changed == 'false'
+        run: |
+          echo "CHANGELOG.md must be updated."
+          exit 1
