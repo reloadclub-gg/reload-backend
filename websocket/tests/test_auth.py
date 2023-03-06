@@ -6,10 +6,10 @@ from websocket import auth
 
 class WSAuthTestCase(AccountOneMixin, TestCase):
     def setUp(self) -> None:
+        super().setUp()
         self.user.account.is_verified = True
         self.user.account.save()
         self.user.auth.create_token()
-        return super().setUp()
 
     def test_authenticate(self):
         scope = {'query_string': f'anyurl.com/?token={self.user.auth.token}'}

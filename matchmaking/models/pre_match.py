@@ -79,10 +79,10 @@ class PreMatch(BaseModel):
         elif (
             self.countdown
             and self.countdown >= PreMatchConfig.READY_COUNTDOWN_GAP
-            and self.ready_players < PreMatchConfig.READY_PLAYERS_MIN
+            and self.players_ready < PreMatchConfig.READY_PLAYERS_MIN
         ):
             return PreMatchConfig.STATES.get('lock_in')
-        elif self.ready_players == PreMatchConfig.READY_PLAYERS_MIN:
+        elif self.players_ready == PreMatchConfig.READY_PLAYERS_MIN:
             return PreMatchConfig.STATES.get('ready')
         else:
             return PreMatchConfig.STATES.get('idle')
@@ -96,7 +96,7 @@ class PreMatch(BaseModel):
             return PreMatchConfig.READY_COUNTDOWN - elapsed_time
 
     @property
-    def ready_players(self) -> int:
+    def players_ready(self) -> int:
         if self.countdown and self.countdown > 0:
             count = cache.get(f'{self.cache_key}:ready_count')
             if count:

@@ -202,3 +202,22 @@ def match_player_lock_in(user: User, match_id: str):
     match.set_player_lock_in()
     if match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
         match.start_players_ready_countdown()
+
+
+def match_player_ready(user: User, match_id: str):
+    try:
+        match = PreMatch.get_by_id(match_id)
+    except PreMatchException:
+        raise Http404()
+
+    if user not in match.players:
+        raise AuthenticationError()
+
+    match.set_player_ready()
+    if match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
+        pass
+        # TODO create match in DB
+        # (https://github.com/3C-gg/reload-backend/issues/241)
+
+        # TODO start match on the FiveM server
+        # (https://github.com/3C-gg/reload-backend/issues/243)

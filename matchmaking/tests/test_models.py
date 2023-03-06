@@ -1227,10 +1227,10 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
             match.set_player_lock_in()
         match.start_players_ready_countdown()
-        self.assertEqual(match.ready_players, 0)
+        self.assertEqual(match.players_ready, 0)
 
         match.set_player_ready()
-        self.assertEqual(match.ready_players, 1)
+        self.assertEqual(match.players_ready, 1)
 
     def test_set_player_ready_wrong_state(self):
         match = PreMatch.create(self.team1.id, self.team2.id)

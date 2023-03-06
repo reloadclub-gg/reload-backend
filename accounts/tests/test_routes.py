@@ -11,8 +11,8 @@ from . import mixins
 
 class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
     def setUp(self):
+        super().setUp()
         self.api = APIClient('/api/accounts')
-        return super().setUp()
 
     def test_fake_signup_existent_user(self):
         with self.settings(DEBUG=True):

@@ -167,13 +167,13 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
 
 class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
     def setUp(self) -> None:
+        super().setUp()
         self.user_1.auth.add_session()
         self.user_2.auth.add_session()
         self.user_3.auth.add_session()
         self.user_4.auth.add_session()
         self.user_5.auth.add_session()
         self.user_6.auth.add_session()
-        return super().setUp()
 
     @mock.patch('accounts.api.controller.user_lobby_invites_expire')
     @mock.patch('accounts.api.controller.lobby_update')

@@ -6,8 +6,8 @@ from . import mixins
 
 class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
     def setUp(self) -> None:
-        self.api = APIClient('/api/mm')
         super().setUp()
+        self.api = APIClient('/api/mm')
         self.user_1.auth.add_session()
         self.user_1.auth.create_token()
         self.user_2.auth.add_session()
@@ -336,8 +336,8 @@ class LobbyAPITestCase(mixins.VerifiedPlayersMixin, TestCase):
 
 class MatchAPITestCase(mixins.TeamsMixin, TestCase):
     def setUp(self) -> None:
-        self.api = APIClient('/api/mm')
         super().setUp()
+        self.api = APIClient('/api/mm')
 
     def test_match_player_lock_in(self):
         match = PreMatch.create(self.team1.id, self.team2.id)

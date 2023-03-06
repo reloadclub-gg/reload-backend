@@ -10,77 +10,71 @@ User = get_user_model()
 
 
 class UserOneMixin:
-    @classmethod
-    def setUpTestData(cls):
-        super(UserOneMixin, cls).setUpTestData()
+    def setUp(self):
+        super().setUp()
 
-        cls.user = User.objects.create_user(
+        self.user = User.objects.create_user(
             "spiderman@avengers.com",
             "mrstark",
         )
-        cls.social_auth = create_social_auth(cls.user)
+        self.social_auth = create_social_auth(self.user)
 
 
 class AccountOneMixin(UserOneMixin):
-    @classmethod
-    def setUpTestData(cls):
-        super(AccountOneMixin, cls).setUpTestData()
-        cls.account = baker.make(Account, user=cls.user)
+    def setUp(self):
+        super().setUp()
+        self.account = baker.make(Account, user=self.user)
 
 
 class VerifiedAccountMixin(UserOneMixin):
-    @classmethod
-    def setUpTestData(cls):
-        super(VerifiedAccountMixin, cls).setUpTestData()
-        cls.account = baker.make(Account, user=cls.user, is_verified=True)
+    def setUp(self):
+        super().setUp()
+        self.account = baker.make(Account, user=self.user, is_verified=True)
 
 
 class UserWithFriendsMixin(VerifiedAccountMixin):
-    @classmethod
-    def setUpTestData(cls):
-        super(UserWithFriendsMixin, cls).setUpTestData()
+    def setUp(self):
+        super().setUp()
 
-        cls.friend1 = baker.make(User)
-        create_social_auth(cls.friend1)
-        baker.make(Account, user=cls.friend1, is_verified=True)
+        self.friend1 = baker.make(User)
+        create_social_auth(self.friend1)
+        baker.make(Account, user=self.friend1, is_verified=True)
 
-        cls.friend2 = baker.make(User)
-        create_social_auth(cls.friend2)
-        baker.make(Account, user=cls.friend2, is_verified=True)
+        self.friend2 = baker.make(User)
+        create_social_auth(self.friend2)
+        baker.make(Account, user=self.friend2, is_verified=True)
 
 
 class Random3HundredUsersMixin:
-    @classmethod
-    def setUpTestData(cls):
-        super(Random3HundredUsersMixin, cls).setUpTestData()
+    def setUp(self):
+        super().setUp()
 
         for index in range(0, 300):
             user = baker.make(User)
             create_social_auth(user)
             setattr(
-                cls,
+                self,
                 f'user{index+1}',
                 user,
             )
 
-        cls.users = User.objects.all()
+        self.users = User.objects.all()
 
 
 class Random3HundredsAccountsMixin(Random3HundredUsersMixin):
-    @classmethod
-    def setUpTestData(cls):
-        super(Random3HundredsAccountsMixin, cls).setUpTestData()
+    def setUp(self):
+        super().setUp()
 
-        for user in cls.users.all().order_by('id')[:150]:
+        for user in self.users.all().order_by('id')[:150]:
             setattr(
-                cls,
+                self,
                 f'account{user.id}',
                 baker.make(Account, user=user, is_verified=True),
             )
 
-        for user in cls.users.order_by('id')[150:]:
+        for user in self.users.order_by('id')[150:]:
             setattr(
-                cls,
+                self,
                 f'account{user.id}',
                 baker.make(Account, user=user, is_verified=False),
             )
