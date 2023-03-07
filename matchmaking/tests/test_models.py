@@ -1283,3 +1283,15 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def test_players(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
         self.assertEqual(len(match.players), 10)
+
+    def test_get_by_team_id(self):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+
+        result1 = PreMatch.get_by_team_id(self.team1.id)
+        self.assertEqual(match, result1)
+
+        result2 = PreMatch.get_by_team_id(self.team2.id)
+        self.assertEqual(match, result2)
+
+        result3 = PreMatch.get_by_team_id(self.team1.id, self.team2.id)
+        self.assertEqual(match, result3)

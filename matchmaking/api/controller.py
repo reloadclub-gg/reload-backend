@@ -169,8 +169,8 @@ def lobby_start_queue(lobby_id: int):
         opponent = team.get_opponent_team()
         if opponent:
             PreMatch.create(team.id, opponent.id)
-            # TODO send ws to lobbies (https://github.com/3C-gg/reload-backend/issues/236)
-            pass
+            lobbies = team.lobbies + opponent.lobbies
+            ws_controller.match_found(lobbies)
 
     return lobby
 
