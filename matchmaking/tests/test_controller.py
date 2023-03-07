@@ -4,6 +4,7 @@ from unittest import mock
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from core.tests import TestCase
+from matches.models import Match
 
 from ..api import controller
 from ..models import Lobby, LobbyInvite, PreMatch, PreMatchConfig, Team
@@ -325,24 +326,43 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
 
     def test_match_player_ready(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
 
         for _ in range(0, 10):
-            match.set_player_lock_in()
+            pre_match.set_player_lock_in()
 
-        match.start_players_ready_countdown()
-        controller.match_player_ready(self.user_1, match.id)
-        self.assertEqual(match.players_ready, 1)
+        pre_match.start_players_ready_countdown()
+        controller.match_player_ready(self.user_1, pre_match.id)
+        self.assertEqual(pre_match.players_ready, 1)
 
         with self.assertRaises(Http404):
             controller.match_player_ready(self.user_1, 'UNKNOWN_ID')
 
         with self.assertRaises(AuthenticationError):
-            controller.match_player_ready(self.user_15, match.id)
+            controller.match_player_ready(self.user_15, pre_match.id)
 
         for _ in range(0, 8):
-            match.set_player_ready()
+            pre_match.set_player_ready()
 
-        self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
-        controller.match_player_ready(self.user_10, match.id)
-        self.assertEqual(match.state, PreMatchConfig.STATES.get('ready'))
+        self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('lock_in'))
+        controller.match_player_ready(self.user_10, pre_match.id)
+        self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('ready'))
+
+    def test_create_match(self):
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        for _ in range(0, 10):
+            pre_match.set_player_lock_in()
+
+        pre_match.start_players_ready_countdown()
+
+        for _ in range(0, 10):
+            pre_match.set_player_ready()
+
+        controller.create_match(pre_match)
+        match_player_user1 = self.user_1.matches_set.first()
+        match_player_user6 = self.user_6.matches_set.first()
+        self.assertIsNotNone(match_player_user1)
+        self.assertIsNotNone(match_player_user6)
+        self.assertEqual(match_player_user1.match, match_player_user6.match)
+        self.assertEqual(match_player_user1.team, Match.Teams.TEAM_A)
+        self.assertEqual(match_player_user6.team, Match.Teams.TEAM_B)
