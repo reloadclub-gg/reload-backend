@@ -78,3 +78,9 @@ def user_lobby_invites_expire(user: User):
         payload = LobbyInviteSchema.from_orm(invite).dict()
         action = 'ws_removeInvite'
         async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])
+
+
+def match_found(lobbies: List[Lobby]):
+    for lobby in lobbies:
+        groups = lobby.players_ids
+        async_to_sync(ws_send)('ws_matchFound', {}, groups=groups)
