@@ -165,10 +165,20 @@ class PreMatch(BaseModel):
         result = cache.get(cache_key)
         if not result:
             raise PreMatchException(_('PreMatch not found.'))
+        return PreMatch(id=id)
 
-        team1_id = result.split(':')[0]
-        team2_id = result.split(':')[1]
-        return PreMatch(team1_id=team1_id, team2_id=team2_id, id=id)
+    @staticmethod
+    def get_by_team_id(team1_id: str, team2_id: str = None):
+        matches_keys = cache.keys(f'{PreMatchConfig.CACHE_PREFIX}*')
+        for key in matches_keys:
+            match_id = key.split(':')[2]
+            value = cache.get(key)
+            if team2_id:
+                if value == f'{team1_id}:{team2_id}':
+                    return PreMatch(id=match_id)
+            else:
+                if team1_id in value:
+                    return PreMatch(id=match_id)
 
     def start_players_ready_countdown(self):
         cache.set(f'{self.cache_key}:ready_time', timezone.now().isoformat())
