@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from ninja.errors import AuthenticationError, Http404, HttpError
 
+from matches.models import Match, MatchPlayer
 from websocket import controller as ws_controller
 
 from ..models import (
@@ -206,18 +207,27 @@ def match_player_lock_in(user: User, match_id: str):
 
 def match_player_ready(user: User, match_id: str):
     try:
-        match = PreMatch.get_by_id(match_id)
+        pre_match = PreMatch.get_by_id(match_id)
     except PreMatchException:
         raise Http404()
 
-    if user not in match.players:
+    if user not in pre_match.players:
         raise AuthenticationError()
 
-    match.set_player_ready()
-    if match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
-        pass
-        # TODO create match in DB
-        # (https://github.com/3C-gg/reload-backend/issues/241)
+    pre_match.set_player_ready()
+    if pre_match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
+        create_match(pre_match)
 
         # TODO start match on the FiveM server
         # (https://github.com/3C-gg/reload-backend/issues/243)
+
+
+def create_match(pre_match):
+    game_type, game_mode = pre_match.teams[0].type_mode
+    match = Match.objects.create(game_type=game_type, game_mode=game_mode)
+
+    for user in pre_match.team1_players:
+        MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_A)
+
+    for user in pre_match.team2_players:
+        MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_B)
