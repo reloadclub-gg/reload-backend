@@ -248,6 +248,10 @@ class Team(BaseModel):
 
         team = Team.create(lobbies_ids=[lobby.id])
 
+        # check if team is full already
+        if team.players_count == lobby.max_players:
+            return team
+
         # get all queued lobbies
         lobby_ids = [
             int(key.split(':')[2])
