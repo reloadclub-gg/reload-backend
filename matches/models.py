@@ -16,9 +16,9 @@ class Match(models.Model):
         RUNNING = 1
         FINISHED = 2
 
-    class GameType(models.IntegerChoices):
-        CUSTOM = 0
-        COMPETITIVE = 1
+    class GameType(models.TextChoices):
+        CUSTOM = 'custom'
+        COMPETITIVE = 'competitive'
 
     class GameMode(models.IntegerChoices):
         SOLO = 1
@@ -36,7 +36,7 @@ class Match(models.Model):
     )
     team_a_score = models.IntegerField(default=0, blank=True, null=True)
     team_b_score = models.IntegerField(default=0, blank=True, null=True)
-    game_type = models.IntegerField(choices=GameType.choices)
+    game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)
 
     def generate_match_password(self) -> str:
