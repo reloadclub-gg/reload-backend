@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Adiciona checkagem do CHANGELOG.md no workflow do GitHub (https://github.com/3C-gg/reload-backend/pull/252)
+- Adiciona checkagem do CHANGELOG.md no workflow do GitHub (https://github.com/3C-gg/reload-backend/issues/251)
+- Adiciona envio de WS para lobbies quando encontra partida (https://github.com/3C-gg/reload-backend/issues/236)
 
 ## [f6c6b3e - 06/03/2023]
 
