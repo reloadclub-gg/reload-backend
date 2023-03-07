@@ -4,6 +4,8 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema, UserSchema
+from matches.api.schemas import MatchSchema
+from matches.models import Match
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
 from matchmaking.models import Lobby, LobbyInvite
 
@@ -84,3 +86,9 @@ def match_found(lobbies: List[Lobby]):
     for lobby in lobbies:
         groups = lobby.players_ids
         async_to_sync(ws_send)('ws_matchFound', {}, groups=groups)
+
+
+def match_loading(match: Match):
+    groups = [player.user.id for player in match.matchplayer_set.all()]
+    payload = MatchSchema.from_orm(match).dict()
+    async_to_sync(ws_send)('ws_matchLoading', payload, groups=groups)

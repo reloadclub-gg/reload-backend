@@ -216,13 +216,14 @@ def match_player_ready(user: User, match_id: str):
 
     pre_match.set_player_ready()
     if pre_match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
-        create_match(pre_match)
+        match = create_match(pre_match)
+        ws_controller.match_loading(match)
 
         # TODO start match on the FiveM server
         # (https://github.com/3C-gg/reload-backend/issues/243)
 
 
-def create_match(pre_match):
+def create_match(pre_match) -> Match:
     game_type, game_mode = pre_match.teams[0].type_mode
     match = Match.objects.create(game_type=game_type, game_mode=game_mode)
 
@@ -231,3 +232,5 @@ def create_match(pre_match):
 
     for user in pre_match.team2_players:
         MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_B)
+
+    return match
