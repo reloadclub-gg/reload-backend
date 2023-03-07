@@ -13,9 +13,9 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
 
         expected_payload = {
             'id': match.id,
-            'create_date': match.create_date,
-            'start_date': match.start_date,
-            'end_date': match.end_date,
+            'create_date': match.create_date.isoformat(),
+            'start_date': match.start_date.isoformat() if match.start_date else None,
+            'end_date': match.end_date.isoformat() if match.end_date else None,
             'winner_team': match.winner_team,
             'status': match.status,
             'team_a_score': match.team_a_score,
@@ -78,9 +78,9 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
 
         expected_payload = {
             'id': match.id,
-            'create_date': match.create_date,
-            'start_date': match.start_date,
-            'end_date': match.end_date,
+            'create_date': match.create_date.isoformat(),
+            'start_date': match.start_date.isoformat() if match.start_date else None,
+            'end_date': match.end_date.isoformat() if match.end_date else None,
             'winner_team': match.winner_team,
             'status': match.status,
             'team_a_score': match.team_a_score,
