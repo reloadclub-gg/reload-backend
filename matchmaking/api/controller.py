@@ -14,6 +14,7 @@ from ..models import (
     PreMatchException,
     Team,
 )
+from ..tasks import cancel_match_after_countdown
 
 User = get_user_model()
 
@@ -203,6 +204,14 @@ def match_player_lock_in(user: User, match_id: str):
     match.set_player_lock_in()
     if match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
         match.start_players_ready_countdown()
+        # delay task to check if countdown is over to READY_COUNTDOWN seconds
+        # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
+        cancel_match_after_countdown.apply_async(
+            (match.id,),
+            countdown=PreMatchConfig.READY_COUNTDOWN
+            + (-PreMatchConfig.READY_COUNTDOWN_GAP),
+            serializer='json',
+        )
 
 
 def match_player_ready(user: User, match_id: str):

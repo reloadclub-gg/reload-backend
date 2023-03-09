@@ -36,6 +36,7 @@ class PreMatchConfig:
     READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
     READY_PLAYERS_MIN: int = settings.MATCH_READY_PLAYERS_MIN
     STATES = {
+        'canceled': -2,
         'idle': -1,
         'pre_start': 0,
         'lock_in': 1,
@@ -58,7 +59,7 @@ class PreMatch(BaseModel):
     Stores the datetime that a match was ready for players to confirm their seats.
 
     [key] __mm:match:[match_id]:ready_count <int>
-    Holds the amount of players that are ready to play before we create the PreMatch.
+    Holds the amount of players that are ready to play before we create the Match itself.
 
     [key] __mm:match:[match_id]:players_in <int>
     Holds the amount of players that are in the pre match so the countdown of ready starts.
@@ -77,13 +78,19 @@ class PreMatch(BaseModel):
         if self.players_in < PreMatchConfig.READY_PLAYERS_MIN:
             return PreMatchConfig.STATES.get('pre_start')
         elif (
-            self.countdown
+            self.countdown is not None
             and self.countdown >= PreMatchConfig.READY_COUNTDOWN_GAP
             and self.players_ready < PreMatchConfig.READY_PLAYERS_MIN
         ):
             return PreMatchConfig.STATES.get('lock_in')
         elif self.players_ready == PreMatchConfig.READY_PLAYERS_MIN:
             return PreMatchConfig.STATES.get('ready')
+        elif (
+            self.countdown is not None
+            and self.countdown <= PreMatchConfig.READY_COUNTDOWN_GAP
+            and self.players_ready < PreMatchConfig.READY_PLAYERS_MIN
+        ):
+            return PreMatchConfig.STATES.get('canceled')
         else:
             return PreMatchConfig.STATES.get('idle')
 
@@ -194,3 +201,15 @@ class PreMatch(BaseModel):
             raise PreMatchException(_('PreMatch is not ready to lock in players.'))
 
         cache.incr(f'{self.cache_key}:players_in')
+
+    @staticmethod
+    def delete(id: str, pipe=None):
+        lobby = PreMatch(id=id)
+        keys = cache.keys(f'{lobby.cache_key}:*')
+        if len(keys) >= 1:
+            if pipe:
+                pipe.delete(*keys)
+                pipe.delete(lobby.cache_key)
+            else:
+                cache.delete(*keys)
+                cache.delete(lobby.cache_key)

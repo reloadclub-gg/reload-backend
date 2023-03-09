@@ -92,3 +92,9 @@ def match_loading(match: Match):
     groups = [player.user.id for player in match.matchplayer_set.all()]
     payload = MatchSchema.from_orm(match).dict()
     async_to_sync(ws_send)('ws_matchLoading', payload, groups=groups)
+
+
+def match_cancel(lobbies: List[Lobby]):
+    for lobby in lobbies:
+        groups = lobby.players_ids
+        async_to_sync(ws_send)('ws_matchCanceled', {}, groups=groups)
