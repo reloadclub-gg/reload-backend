@@ -1268,6 +1268,17 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         self.assertEqual(match.state, PreMatchConfig.STATES.get('ready'))
 
+    def test_state_canceled(self):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+
+        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
+            match.set_player_lock_in()
+
+        past_time = (timezone.now() - timezone.timedelta(seconds=30)).isoformat()
+        cache.set(f'{match.cache_key}:ready_time', past_time)
+
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
+
     def test_countdown(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
         match.start_players_ready_countdown()
@@ -1295,3 +1306,10 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         result3 = PreMatch.get_by_team_id(self.team1.id, self.team2.id)
         self.assertEqual(match, result3)
+
+    def test_delete_all_keys(self):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertGreaterEqual(len(cache.keys(f'{match.cache_key}*')), 1)
+
+        PreMatch.delete(match.id)
+        self.assertGreaterEqual(len(cache.keys(f'{match.cache_key}*')), 0)
