@@ -97,6 +97,7 @@ class LobbyInviteSchema(Schema):
 
 
 class PreMatchSchema(Schema):
+    id: str
     state: str
     countdown: Optional[int]
     players_ready: int
@@ -104,7 +105,6 @@ class PreMatchSchema(Schema):
 
     class Config:
         model = PreMatch
-        model_fields = ['id']
 
     @staticmethod
     def resolve_state(obj):

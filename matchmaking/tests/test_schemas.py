@@ -90,6 +90,7 @@ class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
         payload = schemas.PreMatchSchema.from_orm(pre_match).dict()
 
         expected_payload = {
+            'id': pre_match.id,
             'state': list(PreMatchConfig.STATES.keys())[
                 list(PreMatchConfig.STATES.values()).index(pre_match.state)
             ],
