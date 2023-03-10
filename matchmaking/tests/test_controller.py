@@ -190,7 +190,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         team = Team.get_by_lobby_id(lobby2.id)
         self.assertIsNotNone(team)
 
-    @mock.patch('websocket.controller.match_found')
+    @mock.patch('websocket.controller.pre_match')
     def test_lobby_start_queue_and_find_match(self, mocker):
         self.user_1.auth.add_session()
         self.user_2.auth.add_session()
@@ -234,7 +234,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         mocker.assert_called_once()
         lobbies = team2.lobbies + team1.lobbies
-        mocker.assert_called_with(lobbies)
+        mocker.assert_called_with(lobbies, match)
 
     def test_queueing_should_delete_all_invites(self):
         lobby_1 = Lobby.create(self.user_1.id)

@@ -1,7 +1,7 @@
 from core.tests import TestCase
 
 from ..api import schemas
-from ..models import Lobby
+from ..models import Lobby, PreMatch, PreMatchConfig
 from . import mixins
 
 
@@ -81,4 +81,21 @@ class LobbySchemaTestCase(mixins.VerifiedPlayersMixin, TestCase):
             'to_player': schemas.LobbyPlayerSchema.from_orm(self.user_2).dict(),
         }
 
+        self.assertDictEqual(payload, expected_payload)
+
+
+class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
+    def test_pre_match_schema(self):
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        payload = schemas.PreMatchSchema.from_orm(pre_match).dict()
+
+        expected_payload = {
+            'id': pre_match.id,
+            'state': list(PreMatchConfig.STATES.keys())[
+                list(PreMatchConfig.STATES.values()).index(pre_match.state)
+            ],
+            'countdown': pre_match.countdown,
+            'players_ready': pre_match.players_ready,
+            'players_in': pre_match.players_in,
+        }
         self.assertDictEqual(payload, expected_payload)

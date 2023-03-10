@@ -170,9 +170,12 @@ def lobby_start_queue(lobby_id: int):
     if team and team.ready:
         opponent = team.get_opponent_team()
         if opponent:
-            PreMatch.create(team.id, opponent.id)
             lobbies = team.lobbies + opponent.lobbies
-            ws_controller.match_found(lobbies)
+            for lobby in lobbies:
+                lobby.cancel_queue()
+
+            pre_match = PreMatch.create(team.id, opponent.id)
+            ws_controller.pre_match(lobbies, pre_match)
 
     return lobby
 
@@ -225,8 +228,10 @@ def match_player_ready(user: User, match_id: str):
 
     pre_match.set_player_ready()
     if pre_match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
-        match = create_match(pre_match)
-        ws_controller.match_loading(match)
+        pass
+
+        # TODO send WS call to update match on client
+        # (https://github.com/3C-gg/reload-backend/issues/265)
 
         # TODO start match on the FiveM server
         # (https://github.com/3C-gg/reload-backend/issues/243)
