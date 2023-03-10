@@ -1,11 +1,11 @@
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
-from ninja import Schema
+from ninja import ModelSchema, Schema
 
 from steam import Steam
 
-from ..models import Lobby, LobbyInvite
+from ..models import Lobby, LobbyInvite, PreMatch, PreMatchConfig
 
 User = get_user_model()
 
@@ -94,3 +94,20 @@ class LobbyInviteSchema(Schema):
     @staticmethod
     def resolve_lobby(obj):
         return Lobby(owner_id=obj.lobby_id)
+
+
+class PreMatchSchema(Schema):
+    state: str
+    countdown: Optional[int]
+    players_ready: int
+    players_in: int
+
+    class Config:
+        model = PreMatch
+        model_fields = ['id']
+
+    @staticmethod
+    def resolve_state(obj):
+        return list(PreMatchConfig.STATES.keys())[
+            list(PreMatchConfig.STATES.values()).index(obj.state)
+        ]
