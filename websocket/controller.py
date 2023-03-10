@@ -4,8 +4,6 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema, UserSchema
-from matches.api.schemas import MatchSchema
-from matches.models import Match
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
 

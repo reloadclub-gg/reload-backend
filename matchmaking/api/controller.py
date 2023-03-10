@@ -228,8 +228,10 @@ def match_player_ready(user: User, match_id: str):
 
     pre_match.set_player_ready()
     if pre_match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
-        match = create_match(pre_match)
-        ws_controller.match_loading(match)
+        pass
+
+        # TODO send WS call to update match on client
+        # (https://github.com/3C-gg/reload-backend/issues/265)
 
         # TODO start match on the FiveM server
         # (https://github.com/3C-gg/reload-backend/issues/243)

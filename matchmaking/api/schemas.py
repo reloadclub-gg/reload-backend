@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
-from ninja import ModelSchema, Schema
+from ninja import Schema
 
 from steam import Steam
 

@@ -234,7 +234,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         mocker.assert_called_once()
         lobbies = team2.lobbies + team1.lobbies
-        mocker.assert_called_with(lobbies)
+        mocker.assert_called_with(lobbies, match)
 
     def test_queueing_should_delete_all_invites(self):
         lobby_1 = Lobby.create(self.user_1.id)
