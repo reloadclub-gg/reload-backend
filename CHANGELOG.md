@@ -18,11 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Método estático `delete` para o model PreMatch.
 - Tarefa que cancela partida, deletando ela do Redis, caso `countdown` para que fique pronta chegue ao final sem que todos os players se marquem como prontos e envia chamada WS para usuários da partida informando que partida foi cancelada (https://github.com/3C-gg/reload-backend/issues/257).
 - Chamada para tarefa que cancela partida ao iniciar `countdown`.
+- Novo settings para quantidade mínima de players para que o time seja considerado pronto (`ready`).
+- Schema de Pré Partida (`PreMatch`) para ser enviado ao encontrar uma partida.
 
 ### Changed
 
 - Altera modelo de Matches removendo senha e modificando tipo de campo de game_type para refletir lógica do model Lobby.
 - Propriedade `state` de PreMatch agora retorna `canceled` para pre partidas que não ficam prontas até que o `countdown` acabe.
+- Altera chamada WS de match_found para pre_match. (https://github.com/3C-gg/reload-backend/issues/262)
 
 ## [f6c6b3e - 06/03/2023]
 
