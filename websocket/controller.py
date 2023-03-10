@@ -6,8 +6,8 @@ from django.contrib.auth import get_user_model
 from accounts.api.schemas import FriendAccountSchema, UserSchema
 from matches.api.schemas import MatchSchema
 from matches.models import Match
-from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
-from matchmaking.models import Lobby, LobbyInvite
+from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
+from matchmaking.models import Lobby, LobbyInvite, PreMatch
 
 from .utils import ws_send
 
@@ -82,16 +82,11 @@ def user_lobby_invites_expire(user: User):
         async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])
 
 
-def match_found(lobbies: List[Lobby]):
+def pre_match(lobbies: List[Lobby], pre_match: PreMatch):
+    payload = PreMatchSchema.from_orm(pre_match).dict()
     for lobby in lobbies:
         groups = lobby.players_ids
-        async_to_sync(ws_send)('ws_matchFound', {}, groups=groups)
-
-
-def match_loading(match: Match):
-    groups = [player.user.id for player in match.matchplayer_set.all()]
-    payload = MatchSchema.from_orm(match).dict()
-    async_to_sync(ws_send)('ws_matchLoading', payload, groups=groups)
+        async_to_sync(ws_send)('ws_preMatch', payload, groups=groups)
 
 
 def match_cancel(lobbies: List[Lobby]):
