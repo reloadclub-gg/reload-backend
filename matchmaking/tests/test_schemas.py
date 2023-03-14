@@ -95,7 +95,7 @@ class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
                 list(PreMatchConfig.STATES.values()).index(pre_match.state)
             ],
             'countdown': pre_match.countdown,
-            'players_ready': pre_match.players_ready,
-            'players_in': pre_match.players_in,
+            'players_ready_count': len(pre_match.players_ready),
+            'players_total': len(pre_match.players),
         }
         self.assertDictEqual(payload, expected_payload)

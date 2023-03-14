@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from matches.models import Match, MatchPlayer
@@ -226,8 +227,11 @@ def match_player_ready(user: User, match_id: str):
     if user not in pre_match.players:
         raise AuthenticationError()
 
-    pre_match.set_player_ready()
-    if pre_match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
+    if user in pre_match.players_ready:
+        raise HttpError(400, _('Player already set as ready.'))
+
+    pre_match.set_player_ready(user.id)
+    if len(pre_match.players_ready) >= PreMatchConfig.READY_PLAYERS_MIN:
         pass
 
         # TODO send WS call to update match on client
