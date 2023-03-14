@@ -196,31 +196,32 @@ def lobby_cancel_queue(lobby_id: int):
     return lobby
 
 
-def match_player_lock_in(user: User, match_id: str):
+def match_player_lock_in(user: User, pre_match_id: str):
     try:
-        match = PreMatch.get_by_id(match_id)
+        pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:
         raise Http404()
 
-    if user not in match.players:
+    if user not in pre_match.players:
         raise AuthenticationError()
 
-    match.set_player_lock_in()
-    if match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
-        match.start_players_ready_countdown()
+    pre_match.set_player_lock_in()
+    if pre_match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
+        pre_match.start_players_ready_countdown()
+        ws_controller.pre_match(pre_match, user)
         # delay task to check if countdown is over to READY_COUNTDOWN seconds
         # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
         cancel_match_after_countdown.apply_async(
-            (match.id,),
+            (pre_match.id,),
             countdown=PreMatchConfig.READY_COUNTDOWN
             + (-PreMatchConfig.READY_COUNTDOWN_GAP),
             serializer='json',
         )
 
 
-def match_player_ready(user: User, match_id: str):
+def match_player_ready(user: User, pre_match_id: str):
     try:
-        pre_match = PreMatch.get_by_id(match_id)
+        pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:
         raise Http404()
 
@@ -232,13 +233,8 @@ def match_player_ready(user: User, match_id: str):
 
     pre_match.set_player_ready(user.id)
     if len(pre_match.players_ready) >= PreMatchConfig.READY_PLAYERS_MIN:
-        pass
-
-        # TODO send WS call to update match on client
-        # (https://github.com/3C-gg/reload-backend/issues/265)
-
-        # TODO start match on the FiveM server
-        # (https://github.com/3C-gg/reload-backend/issues/243)
+        create_match(pre_match)
+        ws_controller.pre_match(pre_match, user)
 
 
 def create_match(pre_match) -> Match:
@@ -250,5 +246,8 @@ def create_match(pre_match) -> Match:
 
     for user in pre_match.team2_players:
         MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_B)
+
+    # TODO start match on the FiveM server
+    # (https://github.com/3C-gg/reload-backend/issues/243)
 
     return match

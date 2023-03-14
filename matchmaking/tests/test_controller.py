@@ -324,7 +324,8 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         controller.match_player_lock_in(self.user_10, match.id)
         self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
 
-    def test_match_player_ready(self):
+    @mock.patch('websocket.controller.pre_match')
+    def test_match_player_ready(self, mocker):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
 
         for _ in range(0, 10):
@@ -349,6 +350,7 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('lock_in'))
         controller.match_player_ready(self.user_10, pre_match.id)
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('ready'))
+        mocker.assert_called_with(pre_match, self.user_10)
 
     def test_create_match(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
