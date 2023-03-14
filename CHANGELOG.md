@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera chamada WS de match_found para pre_match. (https://github.com/3C-gg/reload-backend/issues/262)
 - Altera forma como modelo de PreMatch guarda os players marcados como `ready` (https://github.com/3C-gg/reload-backend/issues/267).
 - JSON de PreMatch agora é retornado com uma nova propriedade `user_ready` para indicar se o usuário autenticado foi marcado como `ready` (https://github.com/3C-gg/reload-backend/issues/270).
+- Altera maneira de detecção de grupos de envio do WS para o evento `pre_match`.
 
 ## [f6c6b3e - 06/03/2023]
 

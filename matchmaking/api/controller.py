@@ -176,7 +176,7 @@ def lobby_start_queue(lobby_id: int, user: User):
                 lobby.cancel_queue()
 
             pre_match = PreMatch.create(team.id, opponent.id)
-            ws_controller.pre_match(lobbies, pre_match, user)
+            ws_controller.pre_match(pre_match, user)
 
     return lobby
 
