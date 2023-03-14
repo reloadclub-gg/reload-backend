@@ -1227,15 +1227,15 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
             match.set_player_lock_in()
         match.start_players_ready_countdown()
-        self.assertEqual(match.players_ready, 0)
+        self.assertEqual(len(match.players_ready), 0)
 
-        match.set_player_ready()
-        self.assertEqual(match.players_ready, 1)
+        match.set_player_ready(self.user_1.id)
+        self.assertEqual(len(match.players_ready), 1)
 
     def test_set_player_ready_wrong_state(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
         with self.assertRaises(PreMatchException):
-            match.set_player_ready()
+            match.set_player_ready(self.user_1.id)
 
     def test_set_player_lock_in(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
@@ -1263,8 +1263,8 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         match.start_players_ready_countdown()
         self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
 
-        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
-            match.set_player_ready()
+        for player in match.players:
+            match.set_player_ready(player.id)
 
         self.assertEqual(match.state, PreMatchConfig.STATES.get('ready'))
 

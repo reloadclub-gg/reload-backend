@@ -100,8 +100,8 @@ class PreMatchSchema(Schema):
     id: str
     state: str
     countdown: Optional[int]
-    players_ready: int
-    players_in: int
+    players_ready_count: int
+    players_total: int
 
     class Config:
         model = PreMatch
@@ -111,3 +111,11 @@ class PreMatchSchema(Schema):
         return list(PreMatchConfig.STATES.keys())[
             list(PreMatchConfig.STATES.values()).index(obj.state)
         ]
+
+    @staticmethod
+    def resolve_players_total(obj):
+        return len(obj.players)
+
+    @staticmethod
+    def resolve_players_ready_count(obj):
+        return len(obj.players_ready)

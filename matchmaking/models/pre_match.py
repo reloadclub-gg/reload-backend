@@ -52,16 +52,16 @@ class PreMatch(BaseModel):
 
     The Redis db keys from this model are described below:
 
-    [key] __mm:match:[match_id] <str> [team1_id:team2_id]
+    [key] __mm:match:[match_id] [team1_id:team2_id]
     Stores a match with teams ids.
 
-    [key] __mm:match:[match_id]:ready_time <datetime>
+    [key] __mm:match:[match_id]:ready_time
     Stores the datetime that a match was ready for players to confirm their seats.
 
-    [key] __mm:match:[match_id]:ready_count <int>
-    Holds the amount of players that are ready to play before we create the Match itself.
+    [set] __mm:match:[match_id]:ready_players_ids
+    Stores which players are ready.
 
-    [key] __mm:match:[match_id]:players_in <int>
+    [key] __mm:match:[match_id]:players_in
     Holds the amount of players that are in the pre match so the countdown of ready starts.
     """
 
@@ -80,15 +80,15 @@ class PreMatch(BaseModel):
         elif (
             self.countdown is not None
             and self.countdown >= PreMatchConfig.READY_COUNTDOWN_GAP
-            and self.players_ready < PreMatchConfig.READY_PLAYERS_MIN
+            and len(self.players_ready) < PreMatchConfig.READY_PLAYERS_MIN
         ):
             return PreMatchConfig.STATES.get('lock_in')
-        elif self.players_ready == PreMatchConfig.READY_PLAYERS_MIN:
+        elif len(self.players_ready) == PreMatchConfig.READY_PLAYERS_MIN:
             return PreMatchConfig.STATES.get('ready')
         elif (
             self.countdown is not None
             and self.countdown <= PreMatchConfig.READY_COUNTDOWN_GAP
-            and self.players_ready < PreMatchConfig.READY_PLAYERS_MIN
+            and len(self.players_ready) < PreMatchConfig.READY_PLAYERS_MIN
         ):
             return PreMatchConfig.STATES.get('canceled')
         else:
@@ -103,13 +103,13 @@ class PreMatch(BaseModel):
             return PreMatchConfig.READY_COUNTDOWN - elapsed_time
 
     @property
-    def players_ready(self) -> int:
+    def players_ready(self) -> list[User]:
         if self.countdown and self.countdown > 0:
-            count = cache.get(f'{self.cache_key}:ready_count')
-            if count:
-                return int(count)
+            players_ids = cache.smembers(f'{self.cache_key}:ready_players_ids')
+            if players_ids:
+                return [User.objects.get(pk=player_id) for player_id in players_ids]
 
-        return 0
+        return []
 
     @property
     def players_in(self) -> int:
@@ -190,11 +190,11 @@ class PreMatch(BaseModel):
     def start_players_ready_countdown(self):
         cache.set(f'{self.cache_key}:ready_time', timezone.now().isoformat())
 
-    def set_player_ready(self):
+    def set_player_ready(self, user_id: int):
         if not self.state == PreMatchConfig.STATES.get('lock_in'):
             raise PreMatchException(_('PreMatch is not ready for ready players.'))
 
-        cache.incr(f'{self.cache_key}:ready_count')
+        cache.sadd(f'{self.cache_key}:ready_players_ids', user_id)
 
     def set_player_lock_in(self):
         if not self.state == PreMatchConfig.STATES.get('pre_start'):

@@ -333,7 +333,7 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
 
         pre_match.start_players_ready_countdown()
         controller.match_player_ready(self.user_1, pre_match.id)
-        self.assertEqual(pre_match.players_ready, 1)
+        self.assertEqual(len(pre_match.players_ready), 1)
 
         with self.assertRaises(Http404):
             controller.match_player_ready(self.user_1, 'UNKNOWN_ID')
@@ -341,8 +341,11 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         with self.assertRaises(AuthenticationError):
             controller.match_player_ready(self.user_15, pre_match.id)
 
-        for _ in range(0, 8):
-            pre_match.set_player_ready()
+        for player in pre_match.players[:9]:
+            pre_match.set_player_ready(player.id)
+
+        with self.assertRaises(HttpError):
+            controller.match_player_ready(self.user_1, pre_match.id)
 
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('lock_in'))
         controller.match_player_ready(self.user_10, pre_match.id)
@@ -355,8 +358,8 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
 
         pre_match.start_players_ready_countdown()
 
-        for _ in range(0, 10):
-            pre_match.set_player_ready()
+        for player in pre_match.players[:10]:
+            pre_match.set_player_ready(player.id)
 
         controller.create_match(pre_match)
         match_player_user1 = self.user_1.matches_set.first()
