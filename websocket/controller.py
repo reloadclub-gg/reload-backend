@@ -80,7 +80,7 @@ def user_lobby_invites_expire(user: User):
         async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])
 
 
-def pre_match(lobbies: List[Lobby], pre_match: PreMatch, user: User):
+def pre_match(pre_match: PreMatch, user: User):
     payload = PreMatchSchema.from_orm(pre_match).dict()
 
     # We have to hack this because there is no good way to pass authenticated user through Schemas.
@@ -90,10 +90,8 @@ def pre_match(lobbies: List[Lobby], pre_match: PreMatch, user: User):
     # - https://docs.pydantic.dev/blog/pydantic-v2/#validation-context
     # - https://github.com/vitalik/django-ninja/issues/526
     payload['user_ready'] = user in pre_match.players_ready
-
-    for lobby in lobbies:
-        groups = lobby.players_ids
-        async_to_sync(ws_send)('ws_preMatch', payload, groups=groups)
+    groups = [player.id for player in pre_match.players]
+    async_to_sync(ws_send)('ws_preMatch', payload, groups=groups)
 
 
 def match_cancel(lobbies: List[Lobby]):

@@ -116,9 +116,9 @@ def lobby_cancel_queue(request, lobby_id: int):
 
 @router.patch('match/{match_id}/player-lock-in/', auth=VerifiedRequiredAuth())
 def match_player_lock_in(request, match_id: str):
-    return controller.match_player_lock_in(user=request.user, match_id=match_id)
+    return controller.match_player_lock_in(user=request.user, pre_match_id=match_id)
 
 
 @router.patch('match/{match_id}/player-ready/', auth=VerifiedRequiredAuth())
 def match_player_ready(request, match_id: str):
-    return controller.match_player_ready(user=request.user, match_id=match_id)
+    return controller.match_player_ready(user=request.user, pre_match_id=match_id)
