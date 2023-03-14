@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera modelo de Matches removendo senha e modificando tipo de campo de game_type para refletir lógica do model Lobby.
 - Propriedade `state` de PreMatch agora retorna `canceled` para pre partidas que não ficam prontas até que o `countdown` acabe.
 - Altera chamada WS de match_found para pre_match. (https://github.com/3C-gg/reload-backend/issues/262)
+- Altera forma como modelo de PreMatch guarda os players marcados como `ready` (https://github.com/3C-gg/reload-backend/issues/267).
 
 ## [f6c6b3e - 06/03/2023]
 
