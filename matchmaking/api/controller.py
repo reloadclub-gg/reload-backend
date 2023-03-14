@@ -152,7 +152,7 @@ def lobby_leave(user: User) -> User:
     return user
 
 
-def lobby_start_queue(lobby_id: int):
+def lobby_start_queue(lobby_id: int, user: User):
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -176,7 +176,7 @@ def lobby_start_queue(lobby_id: int):
                 lobby.cancel_queue()
 
             pre_match = PreMatch.create(team.id, opponent.id)
-            ws_controller.pre_match(lobbies, pre_match)
+            ws_controller.pre_match(lobbies, pre_match, user)
 
     return lobby
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-27 15:05-0300\n"
+"POT-Creation-Date: 2023-03-14 18:10-0300\n"
 "PO-Revision-Date: 2023-01-28 00:05-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -418,6 +418,12 @@ msgstr "Não autorizado."
 msgid "Internationalization works."
 msgstr "A internacionalização está funcionando."
 
+#: matchmaking/api/controller.py:231
+#, fuzzy
+#| msgid "Lobby already on a team."
+msgid "Player already set as ready."
+msgstr "Jogador já foi marcado como pronto."
+
 #: matchmaking/models/invite.py:44 matchmaking/models/lobby.py:416
 msgid "Invite not found."
 msgstr "Convite não encontrado."
@@ -472,18 +478,36 @@ msgstr "Usuário já foi convidado."
 msgid "Owner cannot be removed."
 msgstr "O dono não pode ser removido."
 
-#: matchmaking/models/team.py:171 matchmaking/models/team.py:183
+#: matchmaking/models/pre_match.py:159
+msgid "All teams must be ready in order to create a PreMatch."
+msgstr ""
+
+#: matchmaking/models/pre_match.py:174
+#, fuzzy
+#| msgid "Team not found."
+msgid "PreMatch not found."
+msgstr "Time não encontrado."
+
+#: matchmaking/models/pre_match.py:195
+msgid "PreMatch is not ready for ready players."
+msgstr "Partida ainda não está pronta para receber pedidos de jogadores prontos."
+
+#: matchmaking/models/pre_match.py:201
+msgid "PreMatch is not ready to lock in players."
+msgstr "Partida ainda não está pronta para receber pedidos de jogadores a participar."
+
+#: matchmaking/models/team.py:178 matchmaking/models/team.py:190
 msgid "Team not found."
 msgstr "Time não encontrado."
 
-#: matchmaking/models/team.py:197
+#: matchmaking/models/team.py:204
 msgid "Team players count exceeded."
 msgstr "A quantidade de jogadores em time foi excedida."
 
-#: matchmaking/models/team.py:211 matchmaking/models/team.py:237
+#: matchmaking/models/team.py:218 matchmaking/models/team.py:244
 msgid "Lobby already on a team."
 msgstr "O lobby já está em um time."
 
-#: matchmaking/models/team.py:215 matchmaking/models/team.py:241
+#: matchmaking/models/team.py:222 matchmaking/models/team.py:248
 msgid "Lobby not queued."
 msgstr "Lobby não está em fila."

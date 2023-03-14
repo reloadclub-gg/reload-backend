@@ -101,7 +101,7 @@ def lobby_enter(request, lobby_id: int):
 )
 @owner_required
 def lobby_start_queue(request, lobby_id: int):
-    return controller.lobby_start_queue(lobby_id)
+    return controller.lobby_start_queue(lobby_id, request.user)
 
 
 @router.patch(
