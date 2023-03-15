@@ -204,12 +204,12 @@ class PreMatch(BaseModel):
 
     @staticmethod
     def delete(id: str, pipe=None):
-        lobby = PreMatch(id=id)
-        keys = cache.keys(f'{lobby.cache_key}:*')
+        pre_match = PreMatch(id=id)
+        keys = cache.keys(f'{pre_match.cache_key}:*')
         if len(keys) >= 1:
             if pipe:
                 pipe.delete(*keys)
-                pipe.delete(lobby.cache_key)
+                pipe.delete(pre_match.cache_key)
             else:
                 cache.delete(*keys)
-                cache.delete(lobby.cache_key)
+                cache.delete(pre_match.cache_key)

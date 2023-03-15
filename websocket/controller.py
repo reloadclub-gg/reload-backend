@@ -45,8 +45,7 @@ def friendlist_add(friend: User):
 def lobby_update(lobbies: List[Lobby]):
     for lobby in lobbies:
         payload = LobbySchema.from_orm(lobby).dict()
-        groups = lobby.players_ids
-        async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=groups)
+        async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=lobby.players_ids)
 
 
 def lobby_player_invite(invite: LobbyInvite):
@@ -94,7 +93,14 @@ def pre_match(pre_match: PreMatch, user: User):
     async_to_sync(ws_send)('ws_preMatch', payload, groups=groups)
 
 
-def match_cancel(lobbies: List[Lobby]):
-    for lobby in lobbies:
-        groups = lobby.players_ids
-        async_to_sync(ws_send)('ws_matchCanceled', {}, groups=groups)
+def match_cancel(pre_match: PreMatch):
+    groups = [player.id for player in pre_match.players]
+    async_to_sync(ws_send)('ws_preMatchCancel', None, groups=groups)
+
+
+def match_cancel_warn(lobby: Lobby):
+    async_to_sync(ws_send)('ws_preMatchCancelWarn', None, groups=lobby.players_ids)
+
+
+def restart_queue(lobby: Lobby):
+    async_to_sync(ws_send)('ws_restartQueue', None, groups=lobby.players_ids)
