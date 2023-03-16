@@ -65,6 +65,10 @@ def lobby_player_refuse_invite(invite: LobbyInvite):
 
 
 def lobby_invites_update(lobby: Lobby, expired: bool = False):
+    """
+    Event called when an invite gets updated.
+    If invite is expired we send an action to remove invite from user invites list.
+    """
     for invite in lobby.invites:
         payload = LobbyInviteSchema.from_orm(invite).dict()
         action = 'ws_updateInvite' if not expired else 'ws_removeInvite'
@@ -72,6 +76,9 @@ def lobby_invites_update(lobby: Lobby, expired: bool = False):
 
 
 def user_lobby_invites_expire(user: User):
+    """
+    Event called to remove all invites from a lobby.
+    """
     invites = user.account.lobby_invites_sent + user.account.lobby_invites
     for invite in invites:
         payload = LobbyInviteSchema.from_orm(invite).dict()
@@ -79,28 +86,35 @@ def user_lobby_invites_expire(user: User):
         async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])
 
 
-def pre_match(pre_match: PreMatch, user: User):
+def pre_match(pre_match: PreMatch):
+    """
+    This event is triggered to create or update a pre match on client.
+    """
     payload = PreMatchSchema.from_orm(pre_match).dict()
 
-    # We have to hack this because there is no good way to pass authenticated user through Schemas.
-    # Soon Pydantic 2 will be released with `context` in Schemas, until there
-    # we will use this hacky stuff to let the client know if the auth user is ready or not.
-    # Refs:
-    # - https://docs.pydantic.dev/blog/pydantic-v2/#validation-context
-    # - https://github.com/vitalik/django-ninja/issues/526
-    payload['user_ready'] = user in pre_match.players_ready
-    groups = [player.id for player in pre_match.players]
-    async_to_sync(ws_send)('ws_preMatch', payload, groups=groups)
+    for player in pre_match.players:
+        payload['user_ready'] = player in pre_match.players_ready
+        async_to_sync(ws_send)('ws_preMatch', payload, groups=[player.id])
 
 
 def match_cancel(pre_match: PreMatch):
+    """
+    This event is triggered to cancel a pre match on client.
+    """
     groups = [player.id for player in pre_match.players]
     async_to_sync(ws_send)('ws_preMatchCancel', None, groups=groups)
 
 
 def match_cancel_warn(lobby: Lobby):
+    """
+    We use this event to warn players from a lobby that didn't get ready on pre match.
+    """
     async_to_sync(ws_send)('ws_preMatchCancelWarn', None, groups=lobby.players_ids)
 
 
 def restart_queue(lobby: Lobby):
+    """
+    Event to request that ready lobbies get in the queue again. This usually happens
+    after a pre match gets canceled.
+    """
     async_to_sync(ws_send)('ws_restartQueue', None, groups=lobby.players_ids)
