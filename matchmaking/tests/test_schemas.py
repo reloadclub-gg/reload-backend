@@ -97,5 +97,6 @@ class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
             'countdown': pre_match.countdown,
             'players_ready_count': len(pre_match.players_ready),
             'players_total': len(pre_match.players),
+            'user_ready': False,
         }
         self.assertDictEqual(payload, expected_payload)

@@ -9,7 +9,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from core.utils import generate_random_string
-from matchmaking.models import Lobby, LobbyInvite
+from matchmaking.models import Lobby, LobbyInvite, PreMatch
 from steam import Steam
 
 User = get_user_model()
@@ -82,6 +82,10 @@ class Account(models.Model):
     @property
     def lobby_invites_sent(self) -> List[LobbyInvite]:
         return LobbyInvite.get_by_from_user_id(self.user.id)
+
+    @property
+    def pre_match(self) -> PreMatch:
+        return PreMatch.get_by_player_id(self.user.id)
 
 
 class Invite(models.Model):

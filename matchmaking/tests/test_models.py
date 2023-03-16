@@ -1313,3 +1313,19 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         PreMatch.delete(match.id)
         self.assertGreaterEqual(len(cache.keys(f'{match.cache_key}*')), 0)
+
+    def test_get_all(self):
+        all_matches = PreMatch.get_all()
+        self.assertEqual(len(all_matches), 0)
+
+        PreMatch.create(self.team1.id, self.team2.id)
+        all_matches = PreMatch.get_all()
+        self.assertEqual(len(all_matches), 1)
+
+    def test_get_by_player_id(self):
+        PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.get_by_player_id(player_id=self.user_1.id)
+        self.assertIsNotNone(pre_match)
+
+        pre_match = PreMatch.get_by_player_id(player_id=self.user_15.id)
+        self.assertIsNone(pre_match)

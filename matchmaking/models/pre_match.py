@@ -187,6 +187,26 @@ class PreMatch(BaseModel):
                 if team1_id in value:
                     return PreMatch(id=match_id)
 
+    @staticmethod
+    def get_all():
+        pre_matches_keys = cache.keys(f'{PreMatchConfig.CACHE_PREFIX}*')
+        result = []
+        for pre_match_key in pre_matches_keys:
+            pre_match_id = pre_match_key.split(':')[2]
+            pre_match = PreMatch.get_by_id(pre_match_id)
+            result.append(pre_match)
+
+        return result
+
+    @staticmethod
+    def get_by_player_id(player_id: int):
+        for pre_match in PreMatch.get_all():
+            players_ids = [player.id for player in pre_match.players]
+            if player_id in players_ids:
+                return pre_match
+
+        return None
+
     def start_players_ready_countdown(self):
         cache.set(f'{self.cache_key}:ready_time', timezone.now().isoformat())
 
