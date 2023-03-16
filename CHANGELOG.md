@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Schema de Pré Partida (`PreMatch`) para ser enviado ao encontrar uma partida.
 - Chamada WS quando houver atualização na Pre Partida (https://github.com/3C-gg/reload-backend/issues/265).
 - Adiciona 2 novos eventos ao controller de websocket: `match_cancel_warn` que envia um pedido ao client para notificar o lobby em que algum player não aceitou a partida e `restart_queue` que avisa ao client que pode re-startar a queue caso todos os players de um lobby tenham aceitado a partida (https://github.com/3C-gg/reload-backend/issues/263).
+- Adiciona 2 métodos de apoio ao model `PreMatch`: `get_all` e `get_by_player_id`.
+- Adiciona o campo `pre_match` ao esquema `AccountSchema`.
 
 ### Changed
 
@@ -33,6 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera maneira de detecção de grupos de envio do WS para o evento `pre_match`.
 - Altera namespace do parâmetro `match_id` nos controllers de match pre_match.
 - Método `match_cancel` do controller de websocket agora recebe `pre_match` como parâmetro.
+
+### Fixed
+
+- Campo `user_ready` estava enviando informaçãono WS relativa ao jogador recebido pela chamada da API fazendo com que o client não carregasse corretamente os jogadores que estavam prontos. Corrigimos para que esse campo carregue uma informação diferente para cada jogador da partida (https://github.com/3C-gg/reload-backend/issues/273).
+- O evento WS de `pre_match` estava sendo chamado somente quando todos os players se marcavam como `ready`. Corrigimos para que o evento seja disparado a cada `ready` de player (https://github.com/3C-gg/reload-backend/issues/277).
 
 ## [f6c6b3e - 06/03/2023]
 
