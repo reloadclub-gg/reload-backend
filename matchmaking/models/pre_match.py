@@ -104,10 +104,9 @@ class PreMatch(BaseModel):
 
     @property
     def players_ready(self) -> list[User]:
-        if self.countdown and self.countdown > 0:
-            players_ids = cache.smembers(f'{self.cache_key}:ready_players_ids')
-            if players_ids:
-                return [User.objects.get(pk=player_id) for player_id in players_ids]
+        players_ids = cache.smembers(f'{self.cache_key}:ready_players_ids')
+        if players_ids:
+            return [User.objects.get(pk=player_id) for player_id in players_ids]
 
         return []
 
