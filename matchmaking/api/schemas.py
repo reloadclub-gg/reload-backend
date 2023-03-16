@@ -102,6 +102,7 @@ class PreMatchSchema(Schema):
     countdown: Optional[int]
     players_ready_count: int
     players_total: int
+    user_ready: Optional[bool] = False
 
     class Config:
         model = PreMatch
