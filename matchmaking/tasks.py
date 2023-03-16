@@ -26,6 +26,8 @@ def cancel_match_after_countdown(pre_match_id: str):
     if pre_match.state != PreMatchConfig.STATES.get('ready'):
         # send ws call to lobbies to cancel that match
         ws_controller.match_cancel(pre_match)
+        for user in pre_match.players:
+            ws_controller.user_status_change(user)
 
         # re-start queue for lobbies which all players accepted
         lobbies = pre_match.teams[0].lobbies + pre_match.teams[1].lobbies
