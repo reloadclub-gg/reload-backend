@@ -30,7 +30,9 @@ def cancel_match_after_countdown(pre_match_id: str):
             ws_controller.user_status_change(user)
 
         # re-start queue for lobbies which all players accepted
-        lobbies = pre_match.teams[0].lobbies + pre_match.teams[1].lobbies
+        team1 = pre_match.teams[0]
+        team2 = pre_match.teams[1]
+        lobbies = team1.lobbies + team2.lobbies
         ready_players_ids = [player.id for player in pre_match.players_ready]
         for lobby in lobbies:
             if all(elem in ready_players_ids for elem in lobby.players_ids):
@@ -41,8 +43,6 @@ def cancel_match_after_countdown(pre_match_id: str):
                 # https://github.com/3C-gg/reload-backend/issues/275
 
         # delete the pre_match and teams from Redis
-        team1 = pre_match.teams[0]
-        team2 = pre_match.teams[1]
         team1.delete()
         team2.delete()
         PreMatch.delete(pre_match.id)
