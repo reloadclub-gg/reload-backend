@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adiciona 2 novos eventos ao controller de websocket: `match_cancel_warn` que envia um pedido ao client para notificar o lobby em que algum player não aceitou a partida e `restart_queue` que avisa ao client que pode re-startar a queue caso todos os players de um lobby tenham aceitado a partida (https://github.com/3C-gg/reload-backend/issues/263).
 - Adiciona 2 métodos de apoio ao model `PreMatch`: `get_all` e `get_by_player_id`.
 - Adiciona o campo `pre_match` ao esquema `AccountSchema`.
+- Adiciona campo `user_ready` no `pre_match` em `AccountSchema`.
 
 ### Changed
 
