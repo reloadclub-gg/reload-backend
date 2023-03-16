@@ -152,7 +152,7 @@ def lobby_leave(user: User) -> User:
     return user
 
 
-def lobby_start_queue(lobby_id: int, user: User):
+def lobby_start_queue(lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -176,7 +176,7 @@ def lobby_start_queue(lobby_id: int, user: User):
                 lobby.cancel_queue()
 
             pre_match = PreMatch.create(team.id, opponent.id)
-            ws_controller.pre_match(pre_match, user)
+            ws_controller.pre_match(pre_match)
 
     return lobby
 
@@ -208,7 +208,7 @@ def match_player_lock_in(user: User, pre_match_id: str):
     pre_match.set_player_lock_in()
     if pre_match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
         pre_match.start_players_ready_countdown()
-        ws_controller.pre_match(pre_match, user)
+        ws_controller.pre_match(pre_match)
         # delay task to check if countdown is over to READY_COUNTDOWN seconds
         # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
         cancel_match_after_countdown.apply_async(
@@ -234,7 +234,7 @@ def match_player_ready(user: User, pre_match_id: str):
     pre_match.set_player_ready(user.id)
     if len(pre_match.players_ready) >= PreMatchConfig.READY_PLAYERS_MIN:
         create_match(pre_match)
-        ws_controller.pre_match(pre_match, user)
+        ws_controller.pre_match(pre_match)
 
 
 def create_match(pre_match) -> Match:

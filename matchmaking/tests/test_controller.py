@@ -165,7 +165,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby = Lobby.create(self.user_1.id)
         self.assertFalse(lobby.queue)
 
-        controller.lobby_start_queue(lobby.id, self.user_1)
+        controller.lobby_start_queue(lobby.id)
 
         self.assertTrue(lobby.queue)
 
@@ -175,18 +175,18 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby.start_queue()
 
         with self.assertRaises(HttpError):
-            controller.lobby_start_queue(lobby.id, self.user_1)
+            controller.lobby_start_queue(lobby.id)
 
     def test_lobby_start_queue_and_find(self):
         self.assertEqual(Team.get_all(), [])
         lobby = Lobby.create(self.user_1.id)
-        controller.lobby_start_queue(lobby.id, self.user_1)
+        controller.lobby_start_queue(lobby.id)
 
         team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
         self.assertIsNone(team)
 
         lobby2 = Lobby.create(self.user_2.id)
-        controller.lobby_start_queue(lobby2.id, self.user_2)
+        controller.lobby_start_queue(lobby2.id)
         team = Team.get_by_lobby_id(lobby2.id)
         self.assertIsNotNone(team)
 
@@ -224,8 +224,8 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         Lobby.move(self.user_9.id, lobby2.id)
         Lobby.move(self.user_10.id, lobby2.id)
 
-        controller.lobby_start_queue(lobby1.id, self.user_1)
-        controller.lobby_start_queue(lobby2.id, self.user_6)
+        controller.lobby_start_queue(lobby1.id)
+        controller.lobby_start_queue(lobby2.id)
         team1 = Team.get_by_lobby_id(lobby1.id)
         team2 = Team.get_by_lobby_id(lobby2.id)
         match = PreMatch.get_by_team_id(team1.id)
@@ -233,7 +233,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertTrue(team2 in match.teams)
 
         mocker.assert_called_once()
-        mocker.assert_called_with(match, self.user_6)
+        mocker.assert_called_with(match)
 
     def test_queueing_should_delete_all_invites(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -254,7 +254,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
             ],
         )
 
-        controller.lobby_start_queue(lobby_1.id, self.user_1)
+        controller.lobby_start_queue(lobby_1.id)
 
         self.assertEqual(
             lobby_1.get_invites_by_from_player_id(self.user_2.id),
@@ -273,17 +273,17 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def test_lobby_cancel_queue_team(self):
         # don't create the team yet beacuse it only has one lobby
         lobby = Lobby.create(self.user_1.id)
-        controller.lobby_start_queue(lobby.id, self.user_1)
+        controller.lobby_start_queue(lobby.id)
 
         # creates the team by adding all queued lobbies => lobby2 and lobby1
         lobby2 = Lobby.create(self.user_2.id)
-        controller.lobby_start_queue(lobby2.id, self.user_2)
+        controller.lobby_start_queue(lobby2.id)
 
         # do not create a new team, but add this lobby into the existent team instead
         # because it has the seats available and match all other requirements
         self.user_3.auth.add_session()
         lobby3 = Lobby.create(self.user_3.id)
-        controller.lobby_start_queue(lobby3.id, self.user_3)
+        controller.lobby_start_queue(lobby3.id)
 
         team = Team.get_by_lobby_id(lobby2.id)
         self.assertEqual(team.players_count, 3)
@@ -350,7 +350,7 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('lock_in'))
         controller.match_player_ready(self.user_10, pre_match.id)
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('ready'))
-        mocker.assert_called_with(pre_match, self.user_10)
+        mocker.assert_called_with(pre_match)
 
     def test_create_match(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
