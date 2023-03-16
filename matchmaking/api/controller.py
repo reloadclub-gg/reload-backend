@@ -232,9 +232,9 @@ def match_player_ready(user: User, pre_match_id: str):
         raise HttpError(400, _('Player already set as ready.'))
 
     pre_match.set_player_ready(user.id)
+    ws_controller.pre_match(pre_match)
     if len(pre_match.players_ready) >= PreMatchConfig.READY_PLAYERS_MIN:
         create_match(pre_match)
-        ws_controller.pre_match(pre_match)
 
 
 def create_match(pre_match) -> Match:

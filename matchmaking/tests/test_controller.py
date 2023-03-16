@@ -341,8 +341,8 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         with self.assertRaises(AuthenticationError):
             controller.match_player_ready(self.user_15, pre_match.id)
 
-        for player in pre_match.players[:9]:
-            pre_match.set_player_ready(player.id)
+        for player in pre_match.players[1:9]:
+            controller.match_player_ready(player, pre_match.id)
 
         with self.assertRaises(HttpError):
             controller.match_player_ready(self.user_1, pre_match.id)
@@ -350,6 +350,7 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('lock_in'))
         controller.match_player_ready(self.user_10, pre_match.id)
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('ready'))
+        self.assertEqual(mocker.call_count, 10)
         mocker.assert_called_with(pre_match)
 
     def test_create_match(self):
