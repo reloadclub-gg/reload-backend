@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adiciona o campo `pre_match` ao esquema `AccountSchema`.
 - Adiciona campo `user_ready` no `pre_match` em `AccountSchema` (https://github.com/3C-gg/reload-backend/issues/279).
 - Envia WS de atualização de usuário ao cancelar ou iniciar uma pré partida (https://github.com/3C-gg/reload-backend/issues/283).
+- Endpoints `match_player_lock_in` e `match_player_ready` agora passam a retornar `PreMatchSchema` (https://github.com/3C-gg/reload-backend/issues/286).
 
 ### Changed
 
@@ -39,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Método `match_cancel` do controller de websocket agora recebe `pre_match` como parâmetro.
 - Tarefa `cancel_match_after_countdown` que cancela a partida depois que acaba o countdown para que os players fiquem prontos agora faz um fetch dos times antes, quando eles são requisitados pela primeira vez.
 - Settings de countdown de pré partida (`MATCH_READY_COUNTDOWN`) agora tem valor diferente quando está em `TEST_MODE`.
+- Aumenta tempo de gap de countdown para ficar pronto na pré partida (`MATCH_READY_COUNTDOWN_GAP`): 2 -> 4.
 
 ### Fixed
 

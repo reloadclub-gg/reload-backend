@@ -5,7 +5,7 @@ from accounts.api.schemas import UserSchema
 
 from . import controller
 from .authorization import owner_required, participant_required
-from .schemas import LobbyInviteSchema, LobbySchema
+from .schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 
 router = Router(tags=['mm'])
 
@@ -114,11 +114,19 @@ def lobby_cancel_queue(request, lobby_id: int):
     return controller.lobby_cancel_queue(lobby_id)
 
 
-@router.patch('match/{match_id}/player-lock-in/', auth=VerifiedRequiredAuth())
+@router.patch(
+    'match/{match_id}/player-lock-in/',
+    auth=VerifiedRequiredAuth(),
+    response={200: PreMatchSchema},
+)
 def match_player_lock_in(request, match_id: str):
     return controller.match_player_lock_in(user=request.user, pre_match_id=match_id)
 
 
-@router.patch('match/{match_id}/player-ready/', auth=VerifiedRequiredAuth())
+@router.patch(
+    'match/{match_id}/player-ready/',
+    auth=VerifiedRequiredAuth(),
+    response={200: PreMatchSchema},
+)
 def match_player_ready(request, match_id: str):
     return controller.match_player_ready(user=request.user, pre_match_id=match_id)
