@@ -45,6 +45,7 @@ class SteamUser(BaseModel):
     username: str = Field(None, alias='personaname')
     avatarhash: str = None
     communityvisibilitystate: int = None
+    profileurl: str = None
 
 
 class User(AbstractBaseUser, PermissionsMixin):
