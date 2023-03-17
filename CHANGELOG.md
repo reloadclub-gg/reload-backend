@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Método `players_ready` do model `PreMatch` estava retornando players que ficaram prontos somente no estado `lock_in`. Corrigimos para que esse método passe a retornar os players mesmo quando não estiver nesse estado (https://github.com/3C-gg/reload-backend/issues/282).
 - Corrigimos o campo `level` do `LobbyPlayerSchema` que estava retornando uma _string_ quando na verdade deveria retornar um _integer_.
 - Corrigido processo de aceitar convites que estava apenas lidando com o método do model `Lobby` quando. Mas para o funcionamento ideal, precisamos seguir o processo de sair do lobby atual e entrar em um novo, disparando os devidos eventos websockets e tratando da maneira correta, tanto a saída quanto a entrada (https://github.com/3C-gg/reload-backend/issues/289).
+- Corrigimos algumas situações onde não era disparado evento websocket para o client para atualizar a lista de convite ou o status dos usuários, tanto logado quanto do lobby, fazendo com que alguns status ficassem defasados e alguns convites fantasmas aparecessem (https://github.com/3C-gg/reload-backend/issues/290).
 
 ## [f6c6b3e - 06/03/2023]
 
