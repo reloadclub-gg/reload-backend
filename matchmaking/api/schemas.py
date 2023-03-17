@@ -16,8 +16,9 @@ class LobbyPlayerSchema(Schema):
     username: Optional[str]
     avatar: Optional[dict]
     is_online: Optional[bool]
-    level: Optional[str]
+    level: Optional[int]
     status: Optional[str]
+    steam_url: Optional[str]
 
     class Config:
         model = User
@@ -41,6 +42,10 @@ class LobbyPlayerSchema(Schema):
     @staticmethod
     def resolve_level(obj):
         return obj.account.level
+
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.steam_user.profileurl
 
 
 class LobbySchema(Schema):

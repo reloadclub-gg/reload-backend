@@ -21,6 +21,7 @@ class FriendAccountSchema(ModelSchema):
     is_online: Optional[bool]
     status: Optional[str]
     lobby: Optional[LobbySchema]
+    steam_url: Optional[str]
 
     class Config:
         model = Account
@@ -54,6 +55,10 @@ class FriendAccountSchema(ModelSchema):
     def resolve_status(obj):
         return obj.user.status
 
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.user.steam_user.profileurl
+
 
 class AccountSchema(ModelSchema):
     steamid: Optional[str]
@@ -64,6 +69,7 @@ class AccountSchema(ModelSchema):
     lobby_invites: Optional[List[LobbyInviteSchema]]
     lobby_invites_sent: Optional[List[LobbyInviteSchema]]
     pre_match: Optional[PreMatchSchema] = None
+    steam_url: Optional[str]
 
     class Config:
         model = Account
@@ -93,6 +99,10 @@ class AccountSchema(ModelSchema):
             return schema
 
         return None
+
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.user.steam_user.profileurl
 
 
 class UserSchema(ModelSchema):

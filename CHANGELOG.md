@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adiciona campo `user_ready` no `pre_match` em `AccountSchema` (https://github.com/3C-gg/reload-backend/issues/279).
 - Envia WS de atualização de usuário ao cancelar ou iniciar uma pré partida (https://github.com/3C-gg/reload-backend/issues/283).
 - Endpoints `match_player_lock_in` e `match_player_ready` agora passam a retornar `PreMatchSchema` (https://github.com/3C-gg/reload-backend/issues/286).
+- Para que o client consiga redirecionar os usuários para o perfil da Steam de outros usuários, adicionamos o campo `steam_url` nos esquemas: `AccountSchema`, `LobbyPlayerSchema` e `FriendAccountSchema`. Esse campo representa o campo `profileurl` da API da Steam (https://github.com/3C-gg/reload-backend/issues/261).
 
 ### Changed
 
@@ -47,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Campo `user_ready` estava enviando informaçãono WS relativa ao jogador recebido pela chamada da API fazendo com que o client não carregasse corretamente os jogadores que estavam prontos. Corrigimos para que esse campo carregue uma informação diferente para cada jogador da partida (https://github.com/3C-gg/reload-backend/issues/273).
 - O evento WS de `pre_match` estava sendo chamado somente quando todos os players se marcavam como `ready`. Corrigimos para que o evento seja disparado a cada `ready` de player (https://github.com/3C-gg/reload-backend/issues/277).
 - Método `players_ready` do model `PreMatch` estava retornando players que ficaram prontos somente no estado `lock_in`. Corrigimos para que esse método passe a retornar os players mesmo quando não estiver nesse estado (https://github.com/3C-gg/reload-backend/issues/282).
+- Corrigimos o campo `level` do `LobbyPlayerSchema` que estava retornando uma _string_ quando na verdade deveria retornar um _integer_.
 
 ## [f6c6b3e - 06/03/2023]
 
