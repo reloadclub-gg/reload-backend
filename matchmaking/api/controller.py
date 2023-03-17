@@ -221,6 +221,8 @@ def match_player_lock_in(user: User, pre_match_id: str):
             serializer='json',
         )
 
+    return pre_match
+
 
 def match_player_ready(user: User, pre_match_id: str):
     try:
@@ -238,6 +240,8 @@ def match_player_ready(user: User, pre_match_id: str):
     ws_controller.pre_match(pre_match)
     if len(pre_match.players_ready) >= PreMatchConfig.READY_PLAYERS_MIN:
         create_match(pre_match)
+
+    return pre_match
 
 
 def create_match(pre_match) -> Match:
