@@ -57,6 +57,28 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
             ],
         )
 
+    def test_lobby_accept_invite(self):
+        lobby_1 = Lobby.create(self.user_1.id)
+        lobby_2 = Lobby.create(self.user_2.id)
+        invite = lobby_2.invite(lobby_2.id, lobby_1.id)
+
+        controller.lobby_accept_invite(self.user_1, lobby_2.id, invite.id)
+
+        self.assertListEqual(lobby_2.invites, [])
+        self.assertEqual(lobby_2.players_count, 2)
+
+    @mock.patch('matchmaking.api.controller.lobby_leave')
+    @mock.patch('matchmaking.api.controller.lobby_enter')
+    def test_lobby_accept_invite_mocked(self, mock_enter, mock_leave):
+        lobby_1 = Lobby.create(self.user_1.id)
+        lobby_2 = Lobby.create(self.user_2.id)
+        invite = lobby_2.invite(lobby_2.id, lobby_1.id)
+
+        controller.lobby_accept_invite(self.user_1, lobby_2.id, invite.id)
+
+        mock_enter.assert_called_once()
+        mock_leave.assert_called_once()
+
     def test_lobby_refuse_invite(self):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
