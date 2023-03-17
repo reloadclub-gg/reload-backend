@@ -25,13 +25,19 @@ def lobby_remove_player(lobby_id: int, user_id: int) -> Lobby:
     user_lobby = Lobby(owner_id=user_id)
 
     Lobby.move(user_id, to_lobby_id=user_id)
+
+    current_lobby_players = [
+        User.objects.get(pk=player_id) for player_id in current_lobby.players_ids
+    ]
+    for player in current_lobby_players:
+        ws_controller.user_status_change(player)
+        ws_controller.user_update(player)
+
     ws_controller.lobby_update([current_lobby, user_lobby])
 
     user = User.objects.get(pk=user_id)
-
     ws_controller.user_status_change(user)
     ws_controller.user_update(user)
-    ws_controller.lobby_invites_update(current_lobby)
 
     return current_lobby
 
@@ -89,6 +95,11 @@ def lobby_enter(user: User, lobby_id: int) -> Lobby:
     ws_controller.user_status_change(user)
     ws_controller.lobby_invites_update(lobby)
 
+    lobby_players = [User.objects.get(pk=player_id) for player_id in lobby.players_ids]
+    for player in lobby_players:
+        ws_controller.user_status_change(player)
+        ws_controller.user_update(player)
+
     return lobby
 
 
@@ -142,10 +153,15 @@ def lobby_leave(user: User) -> User:
         lobbies_update.append(new_lobby)
         for user_id in new_lobby.players_ids:
             ws_controller.user_status_change(User.objects.get(pk=user_id))
+            ws_controller.user_update(User.objects.get(pk=user_id))
 
+    current_lobby_players = [
+        User.objects.get(pk=player_id) for player_id in current_lobby.players_ids
+    ]
+    for player in current_lobby_players:
+        ws_controller.user_status_change(player)
+        ws_controller.user_update(player)
     ws_controller.lobby_update(lobbies_update)
-    ws_controller.lobby_invites_update(current_lobby, expired=bool(new_lobby))
-    user = User.objects.get(pk=user.id)
     ws_controller.user_status_change(user)
 
     return user
