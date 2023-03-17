@@ -48,32 +48,6 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
     return invite
 
 
-def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
-    lobby = Lobby(owner_id=lobby_id)
-    was_solo = lobby.players_count == 1
-    try:
-        invite = LobbyInvite.get(lobby_id=lobby_id, invite_id=invite_id)
-    except LobbyInviteException as exc:
-        raise HttpError(400, str(exc))
-
-    if user.id in lobby.players_ids:
-        lobby.delete_invite(invite_id)
-    else:
-        try:
-            lobby.move(user.id, lobby_id)
-        except LobbyException as exc:
-            raise HttpError(400, str(exc))
-
-        ws_controller.lobby_update([lobby])
-        ws_controller.user_status_change(user)
-        ws_controller.lobby_invites_update(lobby)
-
-        if was_solo:
-            ws_controller.user_status_change(User.objects.get(pk=invite.from_id))
-
-    return lobby
-
-
 def lobby_refuse_invite(lobby_id: int, invite_id: str):
     lobby = Lobby(owner_id=lobby_id)
 
@@ -134,11 +108,36 @@ def set_private(lobby_id: int) -> Lobby:
     return lobby
 
 
+def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
+    current_lobby = user.account.lobby
+    new_lobby = Lobby(owner_id=lobby_id)
+
+    if current_lobby.id == new_lobby.id:
+        raise HttpError(400, _('Can\'t accept an invite from the same lobby.'))
+
+    try:
+        LobbyInvite.get(lobby_id=lobby_id, invite_id=invite_id)
+    except LobbyInviteException as exc:
+        raise HttpError(400, str(exc))
+
+    if user.id in new_lobby.players_ids:
+        new_lobby.delete_invite(invite_id)
+        return new_lobby
+
+    lobby_leave(user)
+    lobby_enter(user, new_lobby.id)
+    return new_lobby
+
+
 def lobby_leave(user: User) -> User:
     current_lobby = user.account.lobby
     user_lobby = Lobby(owner_id=user.id)
     lobbies_update = [current_lobby, user_lobby]
-    new_lobby = Lobby.move(user.id, to_lobby_id=user.id)
+    try:
+        new_lobby = Lobby.move(user.id, to_lobby_id=user.id)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
+
     if new_lobby:
         lobbies_update.append(new_lobby)
         for user_id in new_lobby.players_ids:
