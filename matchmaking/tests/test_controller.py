@@ -21,19 +21,29 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
 
-        lobby_1.invite(lobby_1.id, lobby_2.id)
-        Lobby.move(lobby_2.id, self.user_1.id)
+        lobby_1.invite(self.user_1.id, self.user_2.id)
+        Lobby.move(self.user_2.id, lobby_1.id)
 
         self.assertEqual(lobby_1.players_count, 2)
         self.assertEqual(lobby_2.players_count, 0)
 
-        controller.lobby_remove_player(
-            lobby_id=lobby_1.id,
-            user_id=self.user_2.id,
-        )
+        controller.lobby_remove_player(self.user_2.id, lobby_1.id)
 
         self.assertEqual(lobby_1.players_count, 1)
         self.assertEqual(lobby_2.players_count, 1)
+
+    def test_remove_player_from_wrong_lobby(self):
+        lobby_1 = Lobby.create(self.user_1.id)
+        lobby_2 = Lobby.create(self.user_2.id)
+
+        lobby_1.invite(self.user_1.id, self.user_2.id)
+        Lobby.move(self.user_2.id, lobby_1.id)
+
+        self.assertEqual(lobby_1.players_count, 2)
+        self.assertEqual(lobby_2.players_count, 0)
+
+        with self.assertRaises(HttpError):
+            controller.lobby_remove_player(self.user_2.id, lobby_2.id)
 
     def test_lobby_invite(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -67,17 +77,15 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertListEqual(lobby_2.invites, [])
         self.assertEqual(lobby_2.players_count, 2)
 
-    @mock.patch('matchmaking.api.controller.lobby_leave')
-    @mock.patch('matchmaking.api.controller.lobby_enter')
-    def test_lobby_accept_invite_mocked(self, mock_enter, mock_leave):
+    @mock.patch('matchmaking.api.controller.lobby_move')
+    def test_lobby_accept_invite_mocked(self, mock_move):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
         invite = lobby_2.invite(lobby_2.id, lobby_1.id)
 
         controller.lobby_accept_invite(self.user_1, lobby_2.id, invite.id)
 
-        mock_enter.assert_called_once()
-        mock_leave.assert_called_once()
+        mock_move.assert_called_once()
 
     def test_lobby_refuse_invite(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -201,6 +209,29 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         controller.lobby_leave(self.user_1)
         self.assertEqual(lobby_1.players_count, 1)
         self.assertEqual(lobby_2.players_count, 4)
+
+    @mock.patch('websocket.controller.user_status_change')
+    def test_lobby_move(self, mock_status_change):
+        Lobby.create(self.user_1.id)
+        lobby_2 = Lobby.create(self.user_2.id)
+        lobby_2.invite(self.user_2.id, self.user_1.id)
+
+        controller.lobby_move(self.user_1, lobby_2.id)
+        self.assertEqual(mock_status_change.call_count, 2)
+
+    @mock.patch('websocket.controller.user_status_change')
+    def test_lobby_move_derived(self, mock_status_change):
+        self.user_3.auth.add_session()
+
+        lobby_1 = Lobby.create(self.user_1.id)
+        Lobby.create(self.user_2.id)
+        lobby_1.set_public()
+        Lobby.move(self.user_2.id, lobby_1.id)
+
+        lobby_3 = Lobby.create(self.user_3.id)
+        lobby_3.invite(self.user_3.id, self.user_1.id)
+        controller.lobby_move(self.user_1, lobby_3.id)
+        mock_status_change.assert_called_once()
 
     def test_lobby_start_queue(self):
         lobby = Lobby.create(self.user_1.id)
