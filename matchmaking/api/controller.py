@@ -20,26 +20,45 @@ from ..tasks import cancel_match_after_countdown
 User = get_user_model()
 
 
-def lobby_remove_player(lobby_id: int, user_id: int) -> Lobby:
-    current_lobby = Lobby(owner_id=lobby_id)
-    user_lobby = Lobby(owner_id=user_id)
+def lobby_move(user: User, lobby_id: int, inviter_user: User = None) -> Lobby:
+    old_lobby = user.account.lobby
+    new_lobby = Lobby(owner_id=lobby_id)
+    lobbies_update = [old_lobby, new_lobby]
+    update_inviter_status = new_lobby.players_count == 1
 
-    Lobby.move(user_id, to_lobby_id=user_id)
+    try:
+        derived_lobby = Lobby.move(user.id, to_lobby_id=lobby_id)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
 
-    current_lobby_players = [
-        User.objects.get(pk=player_id) for player_id in current_lobby.players_ids
-    ]
-    for player in current_lobby_players:
-        ws_controller.user_status_change(player)
-        ws_controller.user_update(player)
+    if derived_lobby:
+        lobbies_update.append(derived_lobby)
 
-    ws_controller.lobby_update([current_lobby, user_lobby])
+    ws_controller.lobby_update(lobbies_update)
 
-    user = User.objects.get(pk=user_id)
-    ws_controller.user_status_change(user)
+    if old_lobby.players_count == 1 or (not derived_lobby and old_lobby.id == user.id):
+        ws_controller.user_status_change(user)
+
+    if update_inviter_status:
+        owner = User.objects.get(pk=new_lobby.owner_id)
+        ws_controller.user_status_change(owner)
+
     ws_controller.user_update(user)
+    if inviter_user:
+        ws_controller.user_update(inviter_user)
 
-    return current_lobby
+    return new_lobby
+
+
+def lobby_remove_player(user_id: int, lobby_id: int) -> Lobby:
+    user = User.objects.get(pk=user_id)
+    from_lobby = Lobby(owner_id=lobby_id)
+    to_lobby = Lobby(owner_id=user_id)
+
+    if user_id not in from_lobby.players_ids:
+        raise HttpError(400, _('User must be in provided lobby to leave from it.'))
+
+    return lobby_move(user, to_lobby.id)
 
 
 def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvite:
@@ -54,7 +73,7 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
     return invite
 
 
-def lobby_refuse_invite(lobby_id: int, invite_id: str):
+def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -127,7 +146,7 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
         raise HttpError(400, _('Can\'t accept an invite from the same lobby.'))
 
     try:
-        LobbyInvite.get(lobby_id=lobby_id, invite_id=invite_id)
+        lobby_invite = LobbyInvite.get(lobby_id=lobby_id, invite_id=invite_id)
     except LobbyInviteException as exc:
         raise HttpError(400, str(exc))
 
@@ -135,44 +154,19 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
         new_lobby.delete_invite(invite_id)
         return new_lobby
 
-    lobby_leave(user)
-    lobby_enter(user, new_lobby.id)
+    inviter = User.objects.get(pk=lobby_invite.from_id)
+    lobby_move(user, new_lobby.id, inviter_user=inviter)
     return new_lobby
 
 
-def lobby_leave(user: User) -> User:
-    current_lobby = user.account.lobby
-    user_lobby = Lobby(owner_id=user.id)
-    lobbies_update = [current_lobby, user_lobby]
-    try:
-        new_lobby = Lobby.move(user.id, to_lobby_id=user.id)
-    except LobbyException as exc:
-        raise HttpError(400, str(exc))
+def lobby_leave(user: User) -> Lobby:
+    user = User.objects.get(pk=user.id)
+    to_lobby = Lobby(owner_id=user.id)
 
-    ws_controller.lobby_update(lobbies_update)
-    ws_controller.user_status_change(user)
-    notified_players_ids = []
-
-    if new_lobby:
-        lobbies_update.append(new_lobby)
-        for user_id in new_lobby.players_ids:
-            notified_players_ids.append(user_id)
-            ws_controller.user_status_change(User.objects.get(pk=user_id))
-            ws_controller.user_update(User.objects.get(pk=user_id))
-
-    current_lobby_players = [
-        User.objects.get(pk=player_id)
-        for player_id in current_lobby.players_ids
-        if player_id not in notified_players_ids
-    ]
-    for player in current_lobby_players:
-        ws_controller.user_status_change(player)
-        ws_controller.user_update(player)
-
-    return user
+    return lobby_move(user, to_lobby.id)
 
 
-def lobby_start_queue(lobby_id: int):
+def lobby_start_queue(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -204,7 +198,7 @@ def lobby_start_queue(lobby_id: int):
     return lobby
 
 
-def lobby_cancel_queue(lobby_id: int):
+def lobby_cancel_queue(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     lobby.cancel_queue()
 
@@ -219,7 +213,7 @@ def lobby_cancel_queue(lobby_id: int):
     return lobby
 
 
-def match_player_lock_in(user: User, pre_match_id: str):
+def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
     try:
         pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:
@@ -244,7 +238,7 @@ def match_player_lock_in(user: User, pre_match_id: str):
     return pre_match
 
 
-def match_player_ready(user: User, pre_match_id: str):
+def match_player_ready(user: User, pre_match_id: str) -> PreMatch:
     try:
         pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:

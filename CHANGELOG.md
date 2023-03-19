@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Envia WS de atualização de usuário ao cancelar ou iniciar uma pré partida (https://github.com/3C-gg/reload-backend/issues/283).
 - Endpoints `match_player_lock_in` e `match_player_ready` agora passam a retornar `PreMatchSchema` (https://github.com/3C-gg/reload-backend/issues/286).
 - Para que o client consiga redirecionar os usuários para o perfil da Steam de outros usuários, adicionamos o campo `steam_url` nos esquemas: `AccountSchema`, `LobbyPlayerSchema` e `FriendAccountSchema`. Esse campo representa o campo `profileurl` da API da Steam (https://github.com/3C-gg/reload-backend/issues/261).
+- Controller de mover jogadores, para que não tenhamos que fazer um `leave` e um `enter` (https://github.com/3C-gg/reload-backend/issues/295).
 
 ### Changed
 

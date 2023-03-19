@@ -77,13 +77,14 @@ def lobby_invites_update(lobby: Lobby, expired: bool = False):
 
 def user_lobby_invites_expire(user: User):
     """
-    Event called to remove all invites from a lobby.
+    Event called to remove all invites from a user.
     """
     invites = user.account.lobby_invites_sent + user.account.lobby_invites
     for invite in invites:
         payload = LobbyInviteSchema.from_orm(invite).dict()
-        action = 'ws_removeInvite'
-        async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])
+        async_to_sync(ws_send)(
+            'ws_removeInvite', payload, groups=[invite.to_id, invite.from_id]
+        )
 
 
 def pre_match(pre_match: PreMatch):
