@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
+from matches.models import Match, MatchPlayer
 from websocket import controller as ws_controller
 
 from ..models import (
@@ -13,24 +15,50 @@ from ..models import (
     PreMatchException,
     Team,
 )
+from ..tasks import cancel_match_after_countdown
 
 User = get_user_model()
 
 
-def lobby_remove_player(lobby_id: int, user_id: int) -> Lobby:
-    current_lobby = Lobby(owner_id=lobby_id)
-    user_lobby = Lobby(owner_id=user_id)
+def lobby_move(user: User, lobby_id: int, inviter_user: User = None) -> Lobby:
+    old_lobby = user.account.lobby
+    new_lobby = Lobby(owner_id=lobby_id)
+    lobbies_update = [old_lobby, new_lobby]
+    update_inviter_status = new_lobby.players_count == 1
 
-    Lobby.move(user_id, to_lobby_id=user_id)
-    ws_controller.lobby_update([current_lobby, user_lobby])
+    try:
+        derived_lobby = Lobby.move(user.id, to_lobby_id=lobby_id)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
 
-    user = User.objects.get(pk=user_id)
+    if derived_lobby:
+        lobbies_update.append(derived_lobby)
 
-    ws_controller.user_status_change(user)
+    ws_controller.lobby_update(lobbies_update)
+
+    if old_lobby.players_count == 1 or (not derived_lobby and old_lobby.id == user.id):
+        ws_controller.user_status_change(user)
+
+    if update_inviter_status:
+        owner = User.objects.get(pk=new_lobby.owner_id)
+        ws_controller.user_status_change(owner)
+
     ws_controller.user_update(user)
-    ws_controller.lobby_invites_update(current_lobby)
+    if inviter_user:
+        ws_controller.user_update(inviter_user)
 
-    return current_lobby
+    return new_lobby
+
+
+def lobby_remove_player(user_id: int, lobby_id: int) -> Lobby:
+    user = User.objects.get(pk=user_id)
+    from_lobby = Lobby(owner_id=lobby_id)
+    to_lobby = Lobby(owner_id=user_id)
+
+    if user_id not in from_lobby.players_ids:
+        raise HttpError(400, _('User must be in provided lobby to leave from it.'))
+
+    return lobby_move(user, to_lobby.id)
 
 
 def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvite:
@@ -45,33 +73,7 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
     return invite
 
 
-def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
-    lobby = Lobby(owner_id=lobby_id)
-    was_solo = lobby.players_count == 1
-    try:
-        invite = LobbyInvite.get(lobby_id=lobby_id, invite_id=invite_id)
-    except LobbyInviteException as exc:
-        raise HttpError(400, str(exc))
-
-    if user.id in lobby.players_ids:
-        lobby.delete_invite(invite_id)
-    else:
-        try:
-            lobby.move(user.id, lobby_id)
-        except LobbyException as exc:
-            raise HttpError(400, str(exc))
-
-        ws_controller.lobby_update([lobby])
-        ws_controller.user_status_change(user)
-        ws_controller.lobby_invites_update(lobby)
-
-        if was_solo:
-            ws_controller.user_status_change(User.objects.get(pk=invite.from_id))
-
-    return lobby
-
-
-def lobby_refuse_invite(lobby_id: int, invite_id: str):
+def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -112,6 +114,11 @@ def lobby_enter(user: User, lobby_id: int) -> Lobby:
     ws_controller.user_status_change(user)
     ws_controller.lobby_invites_update(lobby)
 
+    lobby_players = [User.objects.get(pk=player_id) for player_id in lobby.players_ids]
+    for player in lobby_players:
+        ws_controller.user_status_change(player)
+        ws_controller.user_update(player)
+
     return lobby
 
 
@@ -131,25 +138,35 @@ def set_private(lobby_id: int) -> Lobby:
     return lobby
 
 
-def lobby_leave(user: User) -> User:
+def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
     current_lobby = user.account.lobby
-    user_lobby = Lobby(owner_id=user.id)
-    lobbies_update = [current_lobby, user_lobby]
-    new_lobby = Lobby.move(user.id, to_lobby_id=user.id)
-    if new_lobby:
-        lobbies_update.append(new_lobby)
-        for user_id in new_lobby.players_ids:
-            ws_controller.user_status_change(User.objects.get(pk=user_id))
+    new_lobby = Lobby(owner_id=lobby_id)
 
-    ws_controller.lobby_update(lobbies_update)
-    ws_controller.lobby_invites_update(current_lobby, expired=bool(new_lobby))
+    if current_lobby.id == new_lobby.id:
+        raise HttpError(400, _('Can\'t accept an invite from the same lobby.'))
+
+    try:
+        lobby_invite = LobbyInvite.get(lobby_id=lobby_id, invite_id=invite_id)
+    except LobbyInviteException as exc:
+        raise HttpError(400, str(exc))
+
+    if user.id in new_lobby.players_ids:
+        new_lobby.delete_invite(invite_id)
+        return new_lobby
+
+    inviter = User.objects.get(pk=lobby_invite.from_id)
+    lobby_move(user, new_lobby.id, inviter_user=inviter)
+    return new_lobby
+
+
+def lobby_leave(user: User) -> Lobby:
     user = User.objects.get(pk=user.id)
-    ws_controller.user_status_change(user)
+    to_lobby = Lobby(owner_id=user.id)
 
-    return user
+    return lobby_move(user, to_lobby.id)
 
 
-def lobby_start_queue(lobby_id: int):
+def lobby_start_queue(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -168,14 +185,20 @@ def lobby_start_queue(lobby_id: int):
     if team and team.ready:
         opponent = team.get_opponent_team()
         if opponent:
-            PreMatch.create(team.id, opponent.id)
-            # TODO send ws to lobbies (https://github.com/3C-gg/reload-backend/issues/236)
-            pass
+            lobbies = team.lobbies + opponent.lobbies
+            for lobby in lobbies:
+                lobby.cancel_queue()
+                ws_controller.lobby_update(lobbies)
+
+            pre_match = PreMatch.create(team.id, opponent.id)
+            ws_controller.pre_match(pre_match)
+            for user in pre_match.players:
+                ws_controller.user_status_change(user)
 
     return lobby
 
 
-def lobby_cancel_queue(lobby_id: int):
+def lobby_cancel_queue(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     lobby.cancel_queue()
 
@@ -190,34 +213,62 @@ def lobby_cancel_queue(lobby_id: int):
     return lobby
 
 
-def match_player_lock_in(user: User, match_id: str):
+def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
     try:
-        match = PreMatch.get_by_id(match_id)
+        pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:
         raise Http404()
 
-    if user not in match.players:
+    if user not in pre_match.players:
         raise AuthenticationError()
 
-    match.set_player_lock_in()
-    if match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
-        match.start_players_ready_countdown()
+    pre_match.set_player_lock_in()
+    if pre_match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
+        pre_match.start_players_ready_countdown()
+        ws_controller.pre_match(pre_match)
+        # delay task to check if countdown is over to READY_COUNTDOWN seconds
+        # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
+        cancel_match_after_countdown.apply_async(
+            (pre_match.id,),
+            countdown=PreMatchConfig.READY_COUNTDOWN
+            + (-PreMatchConfig.READY_COUNTDOWN_GAP),
+            serializer='json',
+        )
+
+    return pre_match
 
 
-def match_player_ready(user: User, match_id: str):
+def match_player_ready(user: User, pre_match_id: str) -> PreMatch:
     try:
-        match = PreMatch.get_by_id(match_id)
+        pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:
         raise Http404()
 
-    if user not in match.players:
+    if user not in pre_match.players:
         raise AuthenticationError()
 
-    match.set_player_ready()
-    if match.players_ready >= PreMatchConfig.READY_PLAYERS_MIN:
-        pass
-        # TODO create match in DB
-        # (https://github.com/3C-gg/reload-backend/issues/241)
+    if user in pre_match.players_ready:
+        raise HttpError(400, _('Player already set as ready.'))
 
-        # TODO start match on the FiveM server
-        # (https://github.com/3C-gg/reload-backend/issues/243)
+    pre_match.set_player_ready(user.id)
+    ws_controller.pre_match(pre_match)
+    if len(pre_match.players_ready) >= PreMatchConfig.READY_PLAYERS_MIN:
+        create_match(pre_match)
+
+    return pre_match
+
+
+def create_match(pre_match) -> Match:
+    game_type, game_mode = pre_match.teams[0].type_mode
+    match = Match.objects.create(game_type=game_type, game_mode=game_mode)
+
+    for user in pre_match.team1_players:
+        MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_A)
+
+    for user in pre_match.team2_players:
+        MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_B)
+
+    # TODO start match on the FiveM server
+    # (https://github.com/3C-gg/reload-backend/issues/243)
+
+    return match

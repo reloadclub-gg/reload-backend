@@ -1,0 +1,28 @@
+name: Check CHANGELOG.md
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+
+jobs:
+  check_changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get changes on changelog
+        id: changelog-changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            src:
+              - 'CHANGELOG.md'
+
+      - name: Check if CHANGELOG.md has changes
+        if: steps.changes.outputs.src == 'false'
+        run: |
+          echo "CHANGELOG.md must be updated."
+          exit 1

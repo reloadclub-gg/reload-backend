@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
-from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
+from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 from steam import Steam
 
 from ..models import Account
@@ -21,6 +21,7 @@ class FriendAccountSchema(ModelSchema):
     is_online: Optional[bool]
     status: Optional[str]
     lobby: Optional[LobbySchema]
+    steam_url: Optional[str]
 
     class Config:
         model = Account
@@ -54,6 +55,10 @@ class FriendAccountSchema(ModelSchema):
     def resolve_status(obj):
         return obj.user.status
 
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.user.steam_user.profileurl
+
 
 class AccountSchema(ModelSchema):
     steamid: Optional[str]
@@ -63,6 +68,8 @@ class AccountSchema(ModelSchema):
     lobby: Optional[LobbySchema]
     lobby_invites: Optional[List[LobbyInviteSchema]]
     lobby_invites_sent: Optional[List[LobbyInviteSchema]]
+    pre_match: Optional[PreMatchSchema] = None
+    steam_url: Optional[str]
 
     class Config:
         model = Account
@@ -83,6 +90,19 @@ class AccountSchema(ModelSchema):
             'medium': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium'),
             'large': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'full'),
         }
+
+    @staticmethod
+    def resolve_pre_match(obj):
+        if obj.pre_match:
+            schema = PreMatchSchema.from_orm(obj.pre_match).dict()
+            schema['user_ready'] = obj.user in obj.pre_match.players_ready
+            return schema
+
+        return None
+
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.user.steam_user.profileurl
 
 
 class UserSchema(ModelSchema):

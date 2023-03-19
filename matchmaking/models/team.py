@@ -4,6 +4,7 @@ import secrets
 from math import ceil
 from statistics import mean
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
@@ -31,7 +32,7 @@ class TeamConfig:
 
     CACHE_PREFIX: str = '__mm:team:'
     ID_SIZE: int = 16
-    MAX_PLAYERS_COUNT: int = 5
+    READY_PLAYERS_MIN: int = settings.TEAM_READY_PLAYERS_MIN
 
 
 class Team(BaseModel):
@@ -76,7 +77,7 @@ class Team(BaseModel):
         """
         Return whether this team is ready to find a oposing team.
         """
-        return self.players_count == TeamConfig.MAX_PLAYERS_COUNT
+        return self.players_count == TeamConfig.READY_PLAYERS_MIN
 
     @property
     def overall(self) -> int:
@@ -199,7 +200,7 @@ class Team(BaseModel):
             [Lobby(owner_id=lobby_id).players_count for lobby_id in lobbies_ids]
         )
 
-        if players_count > TeamConfig.MAX_PLAYERS_COUNT:
+        if players_count > TeamConfig.READY_PLAYERS_MIN:
             raise TeamException(_('Team players count exceeded.'))
 
         team_id = secrets.token_urlsafe(TeamConfig.ID_SIZE)
@@ -247,6 +248,10 @@ class Team(BaseModel):
             raise TeamException(_('Lobby not queued.'))
 
         team = Team.create(lobbies_ids=[lobby.id])
+
+        # check if team is full already
+        if team.players_count == TeamConfig.READY_PLAYERS_MIN:
+            return team
 
         # get all queued lobbies
         lobby_ids = [

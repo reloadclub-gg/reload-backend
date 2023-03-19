@@ -1227,15 +1227,15 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
             match.set_player_lock_in()
         match.start_players_ready_countdown()
-        self.assertEqual(match.players_ready, 0)
+        self.assertEqual(len(match.players_ready), 0)
 
-        match.set_player_ready()
-        self.assertEqual(match.players_ready, 1)
+        match.set_player_ready(self.user_1.id)
+        self.assertEqual(len(match.players_ready), 1)
 
     def test_set_player_ready_wrong_state(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
         with self.assertRaises(PreMatchException):
-            match.set_player_ready()
+            match.set_player_ready(self.user_1.id)
 
     def test_set_player_lock_in(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
@@ -1263,10 +1263,21 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         match.start_players_ready_countdown()
         self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
 
-        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
-            match.set_player_ready()
+        for player in match.players:
+            match.set_player_ready(player.id)
 
         self.assertEqual(match.state, PreMatchConfig.STATES.get('ready'))
+
+    def test_state_canceled(self):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+
+        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
+            match.set_player_lock_in()
+
+        past_time = (timezone.now() - timezone.timedelta(seconds=30)).isoformat()
+        cache.set(f'{match.cache_key}:ready_time', past_time)
+
+        self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
 
     def test_countdown(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
@@ -1283,3 +1294,38 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def test_players(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
         self.assertEqual(len(match.players), 10)
+
+    def test_get_by_team_id(self):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+
+        result1 = PreMatch.get_by_team_id(self.team1.id)
+        self.assertEqual(match, result1)
+
+        result2 = PreMatch.get_by_team_id(self.team2.id)
+        self.assertEqual(match, result2)
+
+        result3 = PreMatch.get_by_team_id(self.team1.id, self.team2.id)
+        self.assertEqual(match, result3)
+
+    def test_delete_all_keys(self):
+        match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertGreaterEqual(len(cache.keys(f'{match.cache_key}*')), 1)
+
+        PreMatch.delete(match.id)
+        self.assertGreaterEqual(len(cache.keys(f'{match.cache_key}*')), 0)
+
+    def test_get_all(self):
+        all_matches = PreMatch.get_all()
+        self.assertEqual(len(all_matches), 0)
+
+        PreMatch.create(self.team1.id, self.team2.id)
+        all_matches = PreMatch.get_all()
+        self.assertEqual(len(all_matches), 1)
+
+    def test_get_by_player_id(self):
+        PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.get_by_player_id(player_id=self.user_1.id)
+        self.assertIsNotNone(pre_match)
+
+        pre_match = PreMatch.get_by_player_id(player_id=self.user_15.id)
+        self.assertIsNone(pre_match)

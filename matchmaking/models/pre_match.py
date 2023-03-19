@@ -36,6 +36,7 @@ class PreMatchConfig:
     READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
     READY_PLAYERS_MIN: int = settings.MATCH_READY_PLAYERS_MIN
     STATES = {
+        'canceled': -2,
         'idle': -1,
         'pre_start': 0,
         'lock_in': 1,
@@ -51,16 +52,16 @@ class PreMatch(BaseModel):
 
     The Redis db keys from this model are described below:
 
-    [key] __mm:match:[match_id] <str> [team1_id:team2_id]
+    [key] __mm:match:[match_id] [team1_id:team2_id]
     Stores a match with teams ids.
 
-    [key] __mm:match:[match_id]:ready_time <datetime>
+    [key] __mm:match:[match_id]:ready_time
     Stores the datetime that a match was ready for players to confirm their seats.
 
-    [key] __mm:match:[match_id]:ready_count <int>
-    Holds the amount of players that are ready to play before we create the PreMatch.
+    [set] __mm:match:[match_id]:ready_players_ids
+    Stores which players are ready.
 
-    [key] __mm:match:[match_id]:players_in <int>
+    [key] __mm:match:[match_id]:players_in
     Holds the amount of players that are in the pre match so the countdown of ready starts.
     """
 
@@ -77,13 +78,19 @@ class PreMatch(BaseModel):
         if self.players_in < PreMatchConfig.READY_PLAYERS_MIN:
             return PreMatchConfig.STATES.get('pre_start')
         elif (
-            self.countdown
+            self.countdown is not None
             and self.countdown >= PreMatchConfig.READY_COUNTDOWN_GAP
-            and self.players_ready < PreMatchConfig.READY_PLAYERS_MIN
+            and len(self.players_ready) < PreMatchConfig.READY_PLAYERS_MIN
         ):
             return PreMatchConfig.STATES.get('lock_in')
-        elif self.players_ready == PreMatchConfig.READY_PLAYERS_MIN:
+        elif len(self.players_ready) == PreMatchConfig.READY_PLAYERS_MIN:
             return PreMatchConfig.STATES.get('ready')
+        elif (
+            self.countdown is not None
+            and self.countdown <= PreMatchConfig.READY_COUNTDOWN_GAP
+            and len(self.players_ready) < PreMatchConfig.READY_PLAYERS_MIN
+        ):
+            return PreMatchConfig.STATES.get('canceled')
         else:
             return PreMatchConfig.STATES.get('idle')
 
@@ -96,13 +103,12 @@ class PreMatch(BaseModel):
             return PreMatchConfig.READY_COUNTDOWN - elapsed_time
 
     @property
-    def players_ready(self) -> int:
-        if self.countdown and self.countdown > 0:
-            count = cache.get(f'{self.cache_key}:ready_count')
-            if count:
-                return int(count)
+    def players_ready(self) -> list[User]:
+        players_ids = cache.smembers(f'{self.cache_key}:ready_players_ids')
+        if players_ids:
+            return [User.objects.get(pk=player_id) for player_id in players_ids]
 
-        return 0
+        return []
 
     @property
     def players_in(self) -> int:
@@ -165,22 +171,64 @@ class PreMatch(BaseModel):
         result = cache.get(cache_key)
         if not result:
             raise PreMatchException(_('PreMatch not found.'))
+        return PreMatch(id=id)
 
-        team1_id = result.split(':')[0]
-        team2_id = result.split(':')[1]
-        return PreMatch(team1_id=team1_id, team2_id=team2_id, id=id)
+    @staticmethod
+    def get_by_team_id(team1_id: str, team2_id: str = None):
+        matches_keys = cache.keys(f'{PreMatchConfig.CACHE_PREFIX}*')
+        for key in matches_keys:
+            match_id = key.split(':')[2]
+            value = cache.get(key)
+            if team2_id:
+                if value == f'{team1_id}:{team2_id}':
+                    return PreMatch(id=match_id)
+            else:
+                if team1_id in value:
+                    return PreMatch(id=match_id)
+
+    @staticmethod
+    def get_all():
+        pre_matches_keys = cache.keys(f'{PreMatchConfig.CACHE_PREFIX}*')
+        result = []
+        for pre_match_key in pre_matches_keys:
+            pre_match_id = pre_match_key.split(':')[2]
+            pre_match = PreMatch.get_by_id(pre_match_id)
+            result.append(pre_match)
+
+        return result
+
+    @staticmethod
+    def get_by_player_id(player_id: int):
+        for pre_match in PreMatch.get_all():
+            players_ids = [player.id for player in pre_match.players]
+            if player_id in players_ids:
+                return pre_match
+
+        return None
 
     def start_players_ready_countdown(self):
         cache.set(f'{self.cache_key}:ready_time', timezone.now().isoformat())
 
-    def set_player_ready(self):
+    def set_player_ready(self, user_id: int):
         if not self.state == PreMatchConfig.STATES.get('lock_in'):
             raise PreMatchException(_('PreMatch is not ready for ready players.'))
 
-        cache.incr(f'{self.cache_key}:ready_count')
+        cache.sadd(f'{self.cache_key}:ready_players_ids', user_id)
 
     def set_player_lock_in(self):
         if not self.state == PreMatchConfig.STATES.get('pre_start'):
             raise PreMatchException(_('PreMatch is not ready to lock in players.'))
 
         cache.incr(f'{self.cache_key}:players_in')
+
+    @staticmethod
+    def delete(id: str, pipe=None):
+        pre_match = PreMatch(id=id)
+        keys = cache.keys(f'{pre_match.cache_key}:*')
+        if len(keys) >= 1:
+            if pipe:
+                pipe.delete(*keys)
+                pipe.delete(pre_match.cache_key)
+            else:
+                cache.delete(*keys)
+                cache.delete(pre_match.cache_key)

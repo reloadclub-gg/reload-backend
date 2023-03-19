@@ -31,6 +31,7 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'is_online': self.user.is_online,
             'status': self.user.status,
             'lobby': LobbySchema.from_orm(self.user.account.lobby).dict(),
+            'steam_url': self.user.steam_user.profileurl,
         }
 
         self.assertDictEqual(payload, expected_payload)
@@ -68,6 +69,8 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
                 schemas.LobbyInviteSchema.from_orm(x).dict()
                 for x in self.user.account.lobby_invites_sent
             ],
+            'pre_match': self.user.account.pre_match,
+            'steam_url': self.user.steam_user.profileurl,
         }
 
         self.assertDictEqual(payload, expected_payload)

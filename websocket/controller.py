@@ -4,8 +4,8 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema, UserSchema
-from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
-from matchmaking.models import Lobby, LobbyInvite
+from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
+from matchmaking.models import Lobby, LobbyInvite, PreMatch
 
 from .utils import ws_send
 
@@ -45,8 +45,7 @@ def friendlist_add(friend: User):
 def lobby_update(lobbies: List[Lobby]):
     for lobby in lobbies:
         payload = LobbySchema.from_orm(lobby).dict()
-        groups = lobby.players_ids
-        async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=groups)
+        async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=lobby.players_ids)
 
 
 def lobby_player_invite(invite: LobbyInvite):
@@ -66,6 +65,10 @@ def lobby_player_refuse_invite(invite: LobbyInvite):
 
 
 def lobby_invites_update(lobby: Lobby, expired: bool = False):
+    """
+    Event called when an invite gets updated.
+    If invite is expired we send an action to remove invite from user invites list.
+    """
     for invite in lobby.invites:
         payload = LobbyInviteSchema.from_orm(invite).dict()
         action = 'ws_updateInvite' if not expired else 'ws_removeInvite'
@@ -73,8 +76,46 @@ def lobby_invites_update(lobby: Lobby, expired: bool = False):
 
 
 def user_lobby_invites_expire(user: User):
+    """
+    Event called to remove all invites from a user.
+    """
     invites = user.account.lobby_invites_sent + user.account.lobby_invites
     for invite in invites:
         payload = LobbyInviteSchema.from_orm(invite).dict()
-        action = 'ws_removeInvite'
-        async_to_sync(ws_send)(action, payload, groups=[invite.to_id, invite.from_id])
+        async_to_sync(ws_send)(
+            'ws_removeInvite', payload, groups=[invite.to_id, invite.from_id]
+        )
+
+
+def pre_match(pre_match: PreMatch):
+    """
+    This event is triggered to create or update a pre match on client.
+    """
+    payload = PreMatchSchema.from_orm(pre_match).dict()
+
+    for player in pre_match.players:
+        payload['user_ready'] = player in pre_match.players_ready
+        async_to_sync(ws_send)('ws_preMatch', payload, groups=[player.id])
+
+
+def match_cancel(pre_match: PreMatch):
+    """
+    This event is triggered to cancel a pre match on client.
+    """
+    groups = [player.id for player in pre_match.players]
+    async_to_sync(ws_send)('ws_preMatchCancel', None, groups=groups)
+
+
+def match_cancel_warn(lobby: Lobby):
+    """
+    We use this event to warn players from a lobby that didn't get ready on pre match.
+    """
+    async_to_sync(ws_send)('ws_preMatchCancelWarn', None, groups=lobby.players_ids)
+
+
+def restart_queue(lobby: Lobby):
+    """
+    Event to request that ready lobbies get in the queue again. This usually happens
+    after a pre match gets canceled.
+    """
+    async_to_sync(ws_send)('ws_restartQueue', None, groups=lobby.players_ids)

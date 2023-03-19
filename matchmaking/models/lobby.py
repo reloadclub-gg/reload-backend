@@ -272,7 +272,7 @@ class Lobby(BaseModel):
                     or is_owner
                 )
 
-                if not to_lobby.seats:
+                if not to_lobby.seats and to_lobby.owner_id != player_id:
                     raise LobbyException(_('Lobby is full.'))
 
                 if not can_join:

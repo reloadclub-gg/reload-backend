@@ -5,7 +5,7 @@ from ninja import Schema
 
 from steam import Steam
 
-from ..models import Lobby, LobbyInvite
+from ..models import Lobby, LobbyInvite, PreMatch, PreMatchConfig
 
 User = get_user_model()
 
@@ -16,8 +16,9 @@ class LobbyPlayerSchema(Schema):
     username: Optional[str]
     avatar: Optional[dict]
     is_online: Optional[bool]
-    level: Optional[str]
+    level: Optional[int]
     status: Optional[str]
+    steam_url: Optional[str]
 
     class Config:
         model = User
@@ -41,6 +42,10 @@ class LobbyPlayerSchema(Schema):
     @staticmethod
     def resolve_level(obj):
         return obj.account.level
+
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.steam_user.profileurl
 
 
 class LobbySchema(Schema):
@@ -94,3 +99,29 @@ class LobbyInviteSchema(Schema):
     @staticmethod
     def resolve_lobby(obj):
         return Lobby(owner_id=obj.lobby_id)
+
+
+class PreMatchSchema(Schema):
+    id: str
+    state: str
+    countdown: Optional[int]
+    players_ready_count: int
+    players_total: int
+    user_ready: Optional[bool] = False
+
+    class Config:
+        model = PreMatch
+
+    @staticmethod
+    def resolve_state(obj):
+        return list(PreMatchConfig.STATES.keys())[
+            list(PreMatchConfig.STATES.values()).index(obj.state)
+        ]
+
+    @staticmethod
+    def resolve_players_total(obj):
+        return len(obj.players)
+
+    @staticmethod
+    def resolve_players_ready_count(obj):
+        return len(obj.players_ready)

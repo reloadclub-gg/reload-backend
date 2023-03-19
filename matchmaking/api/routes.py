@@ -1,16 +1,15 @@
 from ninja import Router
 
 from accounts.api.authentication import VerifiedRequiredAuth
-from accounts.api.schemas import UserSchema
 
 from . import controller
 from .authorization import owner_required, participant_required
-from .schemas import LobbyInviteSchema, LobbySchema
+from .schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 
 router = Router(tags=['mm'])
 
 
-@router.patch('lobby/leave/', auth=VerifiedRequiredAuth(), response={200: UserSchema})
+@router.patch('lobby/leave/', auth=VerifiedRequiredAuth(), response={200: LobbySchema})
 def lobby_leave(request):
     return controller.lobby_leave(request.user)
 
@@ -41,8 +40,8 @@ def lobby_set_private(request, lobby_id: int):
     response={200: LobbySchema},
 )
 @owner_required
-def lobby_remove_player(request, lobby_id: int, user_id: int):
-    return controller.lobby_remove_player(lobby_id=lobby_id, user_id=user_id)
+def lobby_remove_player(request, user_id: int, lobby_id: int):
+    return controller.lobby_remove_player(user_id, lobby_id)
 
 
 @router.post(
@@ -114,11 +113,19 @@ def lobby_cancel_queue(request, lobby_id: int):
     return controller.lobby_cancel_queue(lobby_id)
 
 
-@router.patch('match/{match_id}/player-lock-in/', auth=VerifiedRequiredAuth())
+@router.patch(
+    'match/{match_id}/player-lock-in/',
+    auth=VerifiedRequiredAuth(),
+    response={200: PreMatchSchema},
+)
 def match_player_lock_in(request, match_id: str):
-    return controller.match_player_lock_in(user=request.user, match_id=match_id)
+    return controller.match_player_lock_in(user=request.user, pre_match_id=match_id)
 
 
-@router.patch('match/{match_id}/player-ready/', auth=VerifiedRequiredAuth())
+@router.patch(
+    'match/{match_id}/player-ready/',
+    auth=VerifiedRequiredAuth(),
+    response={200: PreMatchSchema},
+)
 def match_player_ready(request, match_id: str):
-    return controller.match_player_ready(user=request.user, match_id=match_id)
+    return controller.match_player_ready(user=request.user, pre_match_id=match_id)
