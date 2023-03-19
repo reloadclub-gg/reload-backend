@@ -188,7 +188,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.user_4.auth.add_session()
         self.user_5.auth.add_session()
         lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
+        lobby_2 = Lobby.create(self.user_2.id)
         Lobby.create(self.user_3.id)
         Lobby.create(self.user_4.id)
         Lobby.create(self.user_5.id)
@@ -199,6 +199,8 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         Lobby.move(self.user_5.id, lobby_1.id)
 
         controller.lobby_leave(self.user_1)
+        self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(lobby_2.players_count, 4)
 
     def test_lobby_start_queue(self):
         lobby = Lobby.create(self.user_1.id)
