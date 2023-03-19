@@ -149,20 +149,25 @@ def lobby_leave(user: User) -> User:
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    ws_controller.lobby_update(lobbies_update)
+    ws_controller.user_status_change(user)
+    notified_players_ids = []
+
     if new_lobby:
         lobbies_update.append(new_lobby)
         for user_id in new_lobby.players_ids:
+            notified_players_ids.append(user_id)
             ws_controller.user_status_change(User.objects.get(pk=user_id))
             ws_controller.user_update(User.objects.get(pk=user_id))
 
     current_lobby_players = [
-        User.objects.get(pk=player_id) for player_id in current_lobby.players_ids
+        User.objects.get(pk=player_id)
+        for player_id in current_lobby.players_ids
+        if player_id not in notified_players_ids
     ]
     for player in current_lobby_players:
         ws_controller.user_status_change(player)
         ws_controller.user_update(player)
-    ws_controller.lobby_update(lobbies_update)
-    ws_controller.user_status_change(user)
 
     return user
 
