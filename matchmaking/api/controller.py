@@ -36,8 +36,13 @@ def lobby_move(user: User, lobby_id: int, inviter_user: User = None) -> Lobby:
 
     ws_controller.lobby_update(lobbies_update)
 
-    if old_lobby.players_count == 1 or (not derived_lobby and old_lobby.id == user.id):
+    if old_lobby.players_count == 1 or (
+        not derived_lobby and old_lobby.owner_id == user.id
+    ):
         ws_controller.user_status_change(user)
+        if old_lobby.owner_id != user.id:
+            owner = User.objects.get(pk=old_lobby.owner_id)
+            ws_controller.user_status_change(owner)
 
     if update_inviter_status:
         owner = User.objects.get(pk=new_lobby.owner_id)
