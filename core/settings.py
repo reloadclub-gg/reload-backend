@@ -244,6 +244,7 @@ REDIS_USERNAME = config('REDIS_USERNAME', default='default')
 REDIS_PASSWORD = config('REDIS_PASSWORD', default='')
 REDIS_APP_DB = config('REDIS_APP_DB', default=0, cast=int)
 REDIS_SSL = config('REDIS_SSL', default=False, cast=bool)
+REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 
 
 # Sentry Settings
@@ -263,9 +264,8 @@ if config('SENTRY_DSN', default=None):
 
 # Channels Settings
 CHANNEL_REDIS_DB = config('CHANNEL_REDIS_DB', default=10, cast=int)
-CHANNEL_REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 CHANNEL_REDIS_CONN_STR = '{}://{}:{}@{}:{}/{}'.format(
-    CHANNEL_REDIS_CONN_PROTOCOL,
+    REDIS_CONN_PROTOCOL,
     REDIS_USERNAME,
     REDIS_PASSWORD,
     REDIS_HOST,
@@ -282,7 +282,14 @@ CHANNEL_LAYERS = {
 # Celery Settings
 CELERY_TIMEZONE = 'America/Sao_Paulo'
 CELERY_REDIS_DB = config('CELERY_REDIS_DB', default=11, cast=int)
-CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{CELERY_REDIS_DB}'
+CELERY_BROKER_URL = '{}://{}:{}@{}:{}/{}'.format(
+    REDIS_CONN_PROTOCOL,
+    REDIS_USERNAME,
+    REDIS_PASSWORD,
+    REDIS_HOST,
+    REDIS_PORT,
+    CELERY_REDIS_DB,
+)
 
 # Websocket Application Settings
 GROUP_NAME_PREFIX = 'app'
