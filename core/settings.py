@@ -37,7 +37,6 @@ SITE_URL_SUFFIX = f':{SITE_URL_PORT}' if SITE_URL_PORT else ''
 SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
 
 INSTALLED_APPS = [
-    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -293,46 +292,6 @@ CELERY_BROKER_URL = '{}://{}:{}@{}:{}/{}'.format(
 
 # Websocket Application Settings
 GROUP_NAME_PREFIX = 'app'
-
-JAZZMIN_SETTINGS = {
-    'site_title': 'Reload Admin',
-    'site_header': 'Reload',
-    'site_brand': 'Reload',
-    'site_logo': 'brand/logo_white.png',
-    'login_logo': 'brand/logo.png',
-    'site_icon': 'brand/favicon.ico',
-    'welcome_sign': 'Welcome to the Reload Admin',
-    'copyright': '3C.gg',
-    'show_sidebar': True,
-    'order_with_respect_to': [
-        'appsettings',
-        'accounts',
-        'accounts.account',
-        'accounts.user',
-        'accounts.userlogin',
-        'accounts.invite',
-        'social_django',
-    ],
-    'icons': {
-        'appsettings.appsettings': 'fas fa-cogs',
-        'accounts.account': 'fas fa-users',
-        'accounts.user': 'fas fa-user',
-        'accounts.userlogin': 'fas fa-sign-in-alt',
-        'accounts.invite': 'fas fa-door-open',
-        'social_django.association': 'fas fa-network-wired',
-        'social_django.usersocialauth': 'fab fa-steam',
-    },
-    'show_ui_builder': DEBUG,
-    'custom_links': {
-        'appsettings': [
-            {
-                'name': 'Emails',
-                'url': 'admin:appsettings_appsettings_emails',
-                'icon': 'fas fa-at',
-            }
-        ]
-    },
-}
 
 # Team & Match Settings
 TEAM_READY_PLAYERS_MIN = (
