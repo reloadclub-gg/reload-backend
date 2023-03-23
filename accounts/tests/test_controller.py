@@ -134,10 +134,6 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertIsNone(user_offline.account.lobby)
         self.assertFalse(user_offline.is_online)
 
-    def test_logout_lobby_owner(self):
-        # TODO
-        pass
-
     def test_logout_other_lobby(self):
         self.user.auth.add_session()
         self.user.account.is_verified = True
@@ -175,9 +171,12 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         self.user_5.auth.add_session()
         self.user_6.auth.add_session()
 
-    @mock.patch('accounts.api.controller.user_lobby_invites_expire')
-    @mock.patch('accounts.api.controller.lobby_update')
-    def test_logout_lobby_owner(self, lobby_update, user_lobby_invites_expire):
+    @mock.patch('accounts.api.controller.user_status_change_task.delay')
+    @mock.patch('accounts.api.controller.user_lobby_invites_expire_task.delay')
+    @mock.patch('accounts.api.controller.lobby_update_task.delay')
+    def test_logout_lobby_owner(
+        self, lobby_update, user_lobby_invites_expire, user_status_change
+    ):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
         Lobby.create(self.user_3.id)
@@ -193,5 +192,6 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         Lobby.move(self.user_5.id, lobby_1.id)
 
         controller.logout(self.user_1)
-        lobby_update.assert_called_once()
         user_lobby_invites_expire.assert_called_once()
+        lobby_update.assert_called_once()
+        user_status_change.assert_called_once()

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Novo arquivo `tasks` no package de websocket que expõe as tarefas como middleware para que o código possa chamar os eventos WS tanto como tarefas quanto como métodos normais dependendo do caso.
+
 ### Fixed
 
 - Código de verificação de e-mail estava _hardcoded_ no template de e-mail. Substituímos pelo código certo, individual e único para cada usuário (https://github.com/3C-gg/reload-backend/issues/299).
@@ -18,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Atualiza bilbioteca redis-py para última release.
 - Altera manifestos do k8s para usar Ingress e Nginx ao invés do webserver padrão do Django (https://github.com/3C-gg/reload-backend/issues/304).
 - Altera alguns termos "gta-mm" pra "reload".
+- Controllers de API passam a enviar chamadas de WS em segundo plano usando tarefas do _Celery_ (https://github.com/3C-gg/reload-backend/issues/310).
 
 ### Removed
 

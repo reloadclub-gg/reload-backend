@@ -6,11 +6,11 @@ from ninja.errors import HttpError
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
 from matchmaking.models import Lobby
-from websocket.controller import (
-    friendlist_add,
-    lobby_update,
-    user_lobby_invites_expire,
-    user_status_change,
+from websocket.tasks import (
+    friendlist_add_task,
+    lobby_update_task,
+    user_lobby_invites_expire_task,
+    user_status_change_task,
 )
 
 from .. import utils
@@ -62,15 +62,15 @@ def login(request, token: str) -> Auth:
 
 
 def logout(user: User) -> User:
-    user_lobby_invites_expire(user)
+    user_lobby_invites_expire_task.delay(user.id)
     lobby = user.account.lobby
     if lobby:
         new_lobby = Lobby.move(user.id, user.id, remove=True)
         if new_lobby:
-            lobby_update([new_lobby])
+            lobby_update_task.delay([new_lobby.id])
 
     user.auth.expire_session(seconds=0)
-    user_status_change(user)
+    user_status_change_task.delay(user.id)
 
     return user
 
@@ -148,7 +148,7 @@ def verify_account(user: User, verification_token: str) -> User:
     if not user.date_email_update:
         utils.send_welcome_mail(user.email)
 
-    friendlist_add(user)
+    friendlist_add_task.delay(user.id)
     return user
 
 
@@ -180,11 +180,11 @@ def update_email(user: User, email: str) -> User:
         user.email, user.steam_user.username, user.auth.token
     )
 
-    user_status_change(user)
+    user_status_change_task.delay(user.id)
     lobby = user.account.lobby
     if lobby:
         lobby.move(user.id, user.id, remove=True)
         if lobby.players_count > 0:
-            lobby_update([lobby])
+            lobby_update_task.delay([lobby.id])
 
     return user
