@@ -210,7 +210,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(lobby_1.players_count, 1)
         self.assertEqual(lobby_2.players_count, 4)
 
-    @mock.patch('websocket.controller.user_status_change')
+    @mock.patch('matchmaking.api.controller.user_status_change_task.delay')
     def test_lobby_move(self, mock_status_change):
         Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
@@ -219,7 +219,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         controller.lobby_move(self.user_1, lobby_2.id)
         self.assertEqual(mock_status_change.call_count, 2)
 
-    @mock.patch('websocket.controller.user_status_change')
+    @mock.patch('matchmaking.api.controller.user_status_change_task.delay')
     def test_lobby_move_derived(self, mock_status_change):
         self.user_3.auth.add_session()
 
@@ -231,7 +231,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_3 = Lobby.create(self.user_3.id)
         lobby_3.invite(self.user_3.id, self.user_1.id)
         controller.lobby_move(self.user_1, lobby_3.id)
-        mock_status_change.assert_called_once()
+        self.assertEqual(mock_status_change.call_count, 2)
 
     def test_lobby_start_queue(self):
         lobby = Lobby.create(self.user_1.id)
@@ -262,7 +262,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         team = Team.get_by_lobby_id(lobby2.id)
         self.assertIsNotNone(team)
 
-    @mock.patch('websocket.controller.pre_match')
+    @mock.patch('matchmaking.api.controller.pre_match_task.delay')
     def test_lobby_start_queue_and_find_match(self, mocker):
         self.user_1.auth.add_session()
         self.user_2.auth.add_session()
@@ -305,7 +305,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertTrue(team2 in match.teams)
 
         mocker.assert_called_once()
-        mocker.assert_called_with(match)
+        mocker.assert_called_with(match.id)
 
     def test_queueing_should_delete_all_invites(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -396,7 +396,7 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         controller.match_player_lock_in(self.user_10, match.id)
         self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
 
-    @mock.patch('websocket.controller.pre_match')
+    @mock.patch('matchmaking.api.controller.pre_match_task.delay')
     def test_match_player_ready(self, mocker):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
 
@@ -423,7 +423,7 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         controller.match_player_ready(self.user_10, pre_match.id)
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('ready'))
         self.assertEqual(mocker.call_count, 10)
-        mocker.assert_called_with(pre_match)
+        mocker.assert_called_with(pre_match.id)
 
     def test_create_match(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)

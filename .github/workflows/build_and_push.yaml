@@ -32,4 +32,5 @@ jobs:
             .
       - name: Push image
         run: |
-          docker push registry.digitalocean.com/gta-mm-k8s/api --all-tags
+          docker push registry.digitalocean.com/gta-mm-k8s/api:${GITHUB_SHA::7}
+          docker push registry.digitalocean.com/gta-mm-k8s/api:latest

@@ -43,6 +43,9 @@ def friendlist_add(friend: User):
 
 
 def lobby_update(lobbies: List[Lobby]):
+    """
+    Called when a lobby has updates.
+    """
     for lobby in lobbies:
         payload = LobbySchema.from_orm(lobby).dict()
         async_to_sync(ws_send)('ws_lobbyUpdate', payload, groups=lobby.players_ids)

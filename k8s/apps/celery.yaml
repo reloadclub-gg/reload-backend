@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: celery-worker
+  template:
+    metadata:
+      labels:
+        pod: celery-worker
+    spec:
+      containers:
+        - name: celery-worker
+          image: registry.digitalocean.com/gta-mm-k8s/api:latest
+          command: ["pipenv", "run", "celery_worker"]
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: api-staging-env
+      imagePullSecrets:
+        - name: gta-mm-k8s

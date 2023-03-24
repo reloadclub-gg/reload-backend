@@ -257,7 +257,6 @@ if config('SENTRY_DSN', default=None):
         send_default_pii=True,
         environment=ENVIRONMENT,
         attach_stacktrace=True,
-        debug=DEBUG,
     )
 
 
