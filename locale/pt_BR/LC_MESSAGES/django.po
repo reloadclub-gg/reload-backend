@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-14 18:10-0300\n"
+"POT-Creation-Date: 2023-03-24 16:57-0300\n"
 "PO-Revision-Date: 2023-01-28 00:05-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,20 +27,20 @@ msgstr "Usuário já possui uma conta."
 msgid "User must be invited."
 msgstr "Usuário deve ser convidado."
 
-#: accounts/api/controller.py:125 accounts/api/schemas.py:175
+#: accounts/api/controller.py:125 accounts/api/schemas.py:195
 msgid "Invalid verification token."
 msgstr "Código de verificação inválido."
 
-#: accounts/api/schemas.py:138 accounts/api/schemas.py:185
+#: accounts/api/schemas.py:158 accounts/api/schemas.py:205
 msgid "E-mail must be unique."
 msgstr "O e-mail informado já está sendo utilizado."
 
-#: accounts/api/schemas.py:143 accounts/api/schemas.py:148
+#: accounts/api/schemas.py:163 accounts/api/schemas.py:168
 msgid "User must read and agree with our Terms and Policy."
 msgstr ""
 "Usuário precisa ler e aceitar os Termos de Uso e a Política de Privacidade."
 
-#: accounts/api/schemas.py:167
+#: accounts/api/schemas.py:187
 msgid "One of e-mail or verification_token must have a value."
 msgstr "É preciso informar ao menos o e-mail ou o código de verificação."
 
@@ -48,16 +48,16 @@ msgstr "É preciso informar ao menos o e-mail ou o código de verificação."
 msgid "Steam account not found."
 msgstr "Conta Steam não encontrada."
 
-#: accounts/models/account.py:103
+#: accounts/models/account.py:107
 #, python-brace-format
 msgid "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
 msgstr "Máximo número de convites atingido ({self.MAX_INVITES_PER_ACCOUNT})."
 
-#: accounts/models/account.py:107
+#: accounts/models/account.py:111
 msgid "Accepted invites cannot be modified."
 msgstr "Convites aceitos não podem ser modificados."
 
-#: accounts/models/account.py:110
+#: accounts/models/account.py:114
 msgid "An invite already exists for this email."
 msgstr "Já existe um convite para este e-mail."
 
@@ -418,7 +418,15 @@ msgstr "Não autorizado."
 msgid "Internationalization works."
 msgstr "A internacionalização está funcionando."
 
-#: matchmaking/api/controller.py:231
+#: matchmaking/api/controller.py:73
+msgid "User must be in provided lobby to leave from it."
+msgstr "Usuário precisa estar no lobby para sair dele."
+
+#: matchmaking/api/controller.py:157
+msgid "Can't accept an invite from the same lobby."
+msgstr "Não é possível aceitar um convite para o lobby em que já está."
+
+#: matchmaking/api/controller.py:262
 #, fuzzy
 #| msgid "Lobby already on a team."
 msgid "Player already set as ready."
@@ -478,23 +486,25 @@ msgstr "Usuário já foi convidado."
 msgid "Owner cannot be removed."
 msgstr "O dono não pode ser removido."
 
-#: matchmaking/models/pre_match.py:159
+#: matchmaking/models/pre_match.py:158
 msgid "All teams must be ready in order to create a PreMatch."
-msgstr ""
+msgstr "Todos os times precisam estar prontos para criar uma partida."
 
-#: matchmaking/models/pre_match.py:174
+#: matchmaking/models/pre_match.py:173
 #, fuzzy
 #| msgid "Team not found."
 msgid "PreMatch not found."
 msgstr "Time não encontrado."
 
-#: matchmaking/models/pre_match.py:195
+#: matchmaking/models/pre_match.py:214
 msgid "PreMatch is not ready for ready players."
-msgstr "Partida ainda não está pronta para receber pedidos de jogadores prontos."
+msgstr ""
+"Partida ainda não está pronta para receber pedidos de jogadores prontos."
 
-#: matchmaking/models/pre_match.py:201
+#: matchmaking/models/pre_match.py:220
 msgid "PreMatch is not ready to lock in players."
-msgstr "Partida ainda não está pronta para receber pedidos de jogadores a participar."
+msgstr ""
+"Partida ainda não está pronta para receber pedidos de jogadores a participar."
 
 #: matchmaking/models/team.py:178 matchmaking/models/team.py:190
 msgid "Team not found."

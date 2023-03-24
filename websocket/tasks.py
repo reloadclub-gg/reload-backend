@@ -41,8 +41,10 @@ def lobby_player_invite_task(lobby_id: int, invite_id: int):
 
 @shared_task
 def lobby_player_refuse_invite_task(lobby_id: int, invite_id: int):
+    lobby = Lobby(owner_id=lobby_id)
     invite = LobbyInvite.get(lobby_id, invite_id)
-    controller.lobby_player_refuse_invite_task(invite)
+    lobby.delete_invite(invite_id)
+    controller.lobby_player_refuse_invite(invite)
 
 
 @shared_task
