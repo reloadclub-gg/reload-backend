@@ -88,8 +88,6 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
 
 
 def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
-    lobby = Lobby(owner_id=lobby_id)
-
     try:
         invite = LobbyInvite.get(lobby_id, invite_id)
         lobby_player_refuse_invite_task.delay(lobby_id, invite_id)
