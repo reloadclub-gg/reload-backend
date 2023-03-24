@@ -93,7 +93,6 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
     try:
         invite = LobbyInvite.get(lobby_id, invite_id)
         lobby_player_refuse_invite_task.delay(lobby_id, invite_id)
-        lobby.delete_invite(invite_id)
     except (LobbyException, LobbyInviteException) as exc:
         raise HttpError(400, str(exc))
 
