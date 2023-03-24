@@ -231,7 +231,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby_3 = Lobby.create(self.user_3.id)
         lobby_3.invite(self.user_3.id, self.user_1.id)
         controller.lobby_move(self.user_1, lobby_3.id)
-        self.assertEqual(mock_status_change.call_count, 2)
+        self.assertEqual(mock_status_change.call_count, 3)
 
     def test_lobby_start_queue(self):
         lobby = Lobby.create(self.user_1.id)

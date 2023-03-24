@@ -43,11 +43,11 @@ def lobby_move(user: User, lobby_id: int, inviter_user: User = None) -> Lobby:
         lobbies_update.append(derived_lobby.id)
 
     lobby_update_task.delay(lobbies_update)
+    user_status_change_task.delay(user.id)
 
     if old_lobby.players_count == 1 or (
         not derived_lobby and old_lobby.owner_id == user.id
     ):
-        user_status_change_task.delay(user.id)
         if old_lobby.owner_id != user.id:
             user_status_change_task.delay(old_lobby.owner_id)
 
