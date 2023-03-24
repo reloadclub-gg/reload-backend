@@ -376,7 +376,8 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
 
 class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
-    def test_match_player_lock_in(self):
+    @mock.patch('matchmaking.api.controller.cancel_match_after_countdown.apply_async')
+    def test_match_player_lock_in(self, mocker):
         match = PreMatch.create(self.team1.id, self.team2.id)
         self.assertEqual(match.players_in, 0)
 
@@ -395,6 +396,7 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(match.state, PreMatchConfig.STATES.get('pre_start'))
         controller.match_player_lock_in(self.user_10, match.id)
         self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
+        mocker.assert_called_once()
 
     @mock.patch('matchmaking.api.controller.pre_match_task.delay')
     def test_match_player_ready(self, mocker):

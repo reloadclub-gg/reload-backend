@@ -2,10 +2,11 @@ import logging
 import os
 
 import celery
+from django.conf import settings
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
-app = celery.Celery('gta')
+app = celery.Celery('gta', CELERY_ALWAYS_EAGER=settings.TEST_MODE)
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.beat_schedule = {}
