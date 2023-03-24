@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Novo arquivo `tasks` no package de websocket que expõe as tarefas como middleware para que o código possa chamar os eventos WS tanto como tarefas quanto como métodos normais dependendo do caso.
 - Serviço do _Celery_ no _Kubernetes_.
+- Serviço do _Celery_ no Github Workflow (https://github.com/3C-gg/reload-backend/issues/317).
 
 ### Fixed
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera manifestos do k8s para usar Ingress e Nginx ao invés do webserver padrão do Django (https://github.com/3C-gg/reload-backend/issues/304).
 - Altera alguns termos "gta-mm" pra "reload".
 - Controllers de API passam a enviar chamadas de WS em segundo plano usando tarefas do _Celery_ (https://github.com/3C-gg/reload-backend/issues/310).
+- Celery agora está configuração `CELERY_ALWAYS_EAGER` ligada para testes.
 
 ### Removed
 
