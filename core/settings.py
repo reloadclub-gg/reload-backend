@@ -303,3 +303,11 @@ MATCH_READY_COUNTDOWN = (
     30 if TEST_MODE else config('MATCH_READY_COUNTDOWN', default=30, cast=int)
 )
 MATCH_READY_COUNTDOWN_GAP = config('MATCH_READY_COUNTDOWN_GAP', default=-4, cast=int)
+MATCHES_LIMIT_PER_SERVER = config('MATCHES_LIMIT_PER_SERVER', default=20, cast=int)
+MATCHES_LIMIT_PER_SERVER_GAP = config(
+    'MATCHES_LIMIT_PER_SERVER_GAP', default=5, cast=int
+)
+
+
+# Other App Settings
+APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)

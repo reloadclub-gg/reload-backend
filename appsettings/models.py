@@ -26,7 +26,7 @@ class AppSettings(models.Model):
         verbose_name_plural = 'App Settings'
 
     @staticmethod
-    def get(name):
+    def get(name, default=None):
         config = AppSettings.objects.filter(name=name)
         if config:
             config = config[0]
@@ -39,13 +39,13 @@ class AppSettings(models.Model):
             else:
                 raise Exception('Unknown kind')
 
-        return None
+        return default
 
     @staticmethod
     def set_text(name: str, value: str) -> AppSettings:
         try:
-            return AppSettings.objects.create(
-                kind=AppSettings.TEXT, name=name, value=str(value)
+            return AppSettings.objects.update_or_create(
+                kind=AppSettings.TEXT, name=name, defaults={'value': str(value)}
             )
         except Exception as exc:
             raise exc
@@ -56,8 +56,8 @@ class AppSettings(models.Model):
             value = ''
 
         try:
-            return AppSettings.objects.create(
-                kind=AppSettings.BOOLEAN, name=name, value=str(value)
+            return AppSettings.objects.update_or_create(
+                kind=AppSettings.BOOLEAN, name=name, defaults={'value': str(value)}
             )
         except Exception as exc:
             raise exc
@@ -65,8 +65,8 @@ class AppSettings(models.Model):
     @staticmethod
     def set_int(name: str, value: int) -> AppSettings:
         try:
-            return AppSettings.objects.create(
-                kind=AppSettings.INTEGER, name=name, value=str(value)
+            return AppSettings.objects.update_or_create(
+                kind=AppSettings.INTEGER, name=name, defaults={'value': str(value)}
             )
         except Exception as exc:
             raise exc
