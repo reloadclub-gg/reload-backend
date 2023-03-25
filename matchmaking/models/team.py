@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 import secrets
 from math import ceil
 from statistics import mean
@@ -136,6 +137,15 @@ class Team(BaseModel):
         Return team type and mode.
         """
         return self.lobbies[0].lobby_type, self.lobbies[0].mode
+
+    @property
+    def name(self) -> str:
+        """
+        Return team name defined randomly between owners in lobbies
+        """
+        owners_ids = [lobby.owner_id for lobby in self.lobbies]
+        owner_chosen_id = random.choice(owners_ids)
+        return User.objects.get(pk=owner_chosen_id).steam_user.username
 
     @staticmethod
     def overall_match(team, lobby) -> bool:
