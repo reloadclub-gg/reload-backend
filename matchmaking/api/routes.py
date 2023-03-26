@@ -83,7 +83,9 @@ def lobby_refuse_invite(request, lobby_id: int, invite_id: str):
 def lobby_change_type_and_mode(
     request, lobby_id: int, lobby_type: str, lobby_mode: int
 ):
-    return controller.lobby_change_type_and_mode(lobby_id, lobby_type, lobby_mode)
+    return controller.lobby_change_type_and_mode(
+        lobby_id, lobby_type, lobby_mode, request.user
+    )
 
 
 @router.patch(
@@ -100,7 +102,7 @@ def lobby_enter(request, lobby_id: int):
 )
 @owner_required
 def lobby_start_queue(request, lobby_id: int):
-    return controller.lobby_start_queue(lobby_id)
+    return controller.lobby_start_queue(lobby_id, request.user)
 
 
 @router.patch(
