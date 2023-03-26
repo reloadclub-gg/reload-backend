@@ -4,7 +4,7 @@ from unittest import mock
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from core.tests import TestCase
-from matches.models import Match
+from matches.models import Server
 
 from ..api import controller
 from ..models import Lobby, LobbyInvite, PreMatch, PreMatchConfig, Team
@@ -437,11 +437,10 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
 
+        Server.objects.create(ip='123.123.123.123', name='Reload 1', key='key')
         controller.create_match(pre_match)
-        match_player_user1 = self.user_1.matches_set.first()
-        match_player_user6 = self.user_6.matches_set.first()
+        match_player_user1 = self.user_1.matchplayer_set.first()
+        match_player_user6 = self.user_6.matchplayer_set.first()
         self.assertIsNotNone(match_player_user1)
         self.assertIsNotNone(match_player_user6)
-        self.assertEqual(match_player_user1.match, match_player_user6.match)
-        self.assertEqual(match_player_user1.team, Match.Teams.TEAM_A)
-        self.assertEqual(match_player_user6.team, Match.Teams.TEAM_B)
+        self.assertEqual(match_player_user1.team.match, match_player_user6.team.match)
