@@ -99,8 +99,12 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
 
 
 def lobby_change_type_and_mode(
-    lobby_id: int, lobby_type: str, lobby_mode: int
+    lobby_id: int, lobby_type: str, lobby_mode: int, user: User
 ) -> Lobby:
+
+    if user.account.match:
+        raise HttpError(403, _('Can\'t change lobby mode or type while in a match.'))
+
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -178,7 +182,10 @@ def lobby_leave(user: User) -> Lobby:
     return lobby_move(user, to_lobby.id)
 
 
-def lobby_start_queue(lobby_id: int) -> Lobby:
+def lobby_start_queue(lobby_id: int, user: User) -> Lobby:
+    if user.account.match:
+        raise HttpError(403, _('Can\'t start queue while in a match.'))
+
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -226,6 +233,10 @@ def lobby_cancel_queue(lobby_id: int) -> Lobby:
 
 
 def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
+
+    if user.account.match:
+        raise HttpError(403, _('Can\'t lock in for a new match while in a match.'))
+
     try:
         pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:
@@ -251,6 +262,10 @@ def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
 
 
 def match_player_ready(user: User, pre_match_id: str) -> PreMatch:
+
+    if user.account.match:
+        raise HttpError(403, _('Can\'t ready in for a new match while in a match.'))
+
     try:
         pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:

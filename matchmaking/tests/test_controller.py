@@ -1,10 +1,11 @@
 from datetime import datetime
 from unittest import mock
 
+from model_bakery import baker
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from core.tests import TestCase
-from matches.models import Server
+from matches.models import Match, MatchPlayer, MatchTeam, Server
 
 from ..api import controller
 from ..models import Lobby, LobbyInvite, PreMatch, PreMatchConfig, Team
@@ -121,10 +122,16 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(lobby.mode, 5)
         self.assertEqual(lobby.lobby_type, 'competitive')
 
-        controller.lobby_change_type_and_mode(lobby.id, 'custom', 20)
+        controller.lobby_change_type_and_mode(lobby.id, 'custom', 20, self.user_1)
 
         self.assertEqual(lobby.mode, 20)
         self.assertEqual(lobby.lobby_type, 'custom')
+
+        with self.assertRaises(HttpError):
+            match = baker.make(Match)
+            team = baker.make(MatchTeam, match=match)
+            baker.make(MatchPlayer, user=self.user_1, team=team)
+            controller.lobby_change_type_and_mode(lobby.id, 'custom', 20, self.user_1)
 
     @mock.patch(
         'matchmaking.models.Lobby.queue',
@@ -137,7 +144,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(lobby.lobby_type, 'competitive')
 
         with self.assertRaises(HttpError):
-            controller.lobby_change_type_and_mode(lobby.id, 'custom', 20)
+            controller.lobby_change_type_and_mode(lobby.id, 'custom', 20, self.user_1)
 
     def test_lobby_enter(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -236,10 +243,15 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def test_lobby_start_queue(self):
         lobby = Lobby.create(self.user_1.id)
         self.assertFalse(lobby.queue)
-
-        controller.lobby_start_queue(lobby.id)
-
+        controller.lobby_start_queue(lobby.id, self.user_1)
         self.assertTrue(lobby.queue)
+
+        controller.lobby_cancel_queue(lobby.id)
+        with self.assertRaises(HttpError):
+            match = baker.make(Match)
+            team = baker.make(MatchTeam, match=match)
+            baker.make(MatchPlayer, user=self.user_1, team=team)
+            controller.lobby_start_queue(lobby.id, self.user_1)
 
     def test_lobby_start_queue_with_queued(self):
         lobby = Lobby.create(self.user_1.id)
@@ -247,18 +259,18 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         lobby.start_queue()
 
         with self.assertRaises(HttpError):
-            controller.lobby_start_queue(lobby.id)
+            controller.lobby_start_queue(lobby.id, self.user_1)
 
     def test_lobby_start_queue_and_find(self):
         self.assertEqual(Team.get_all(), [])
         lobby = Lobby.create(self.user_1.id)
-        controller.lobby_start_queue(lobby.id)
+        controller.lobby_start_queue(lobby.id, self.user_1)
 
         team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
         self.assertIsNone(team)
 
         lobby2 = Lobby.create(self.user_2.id)
-        controller.lobby_start_queue(lobby2.id)
+        controller.lobby_start_queue(lobby2.id, self.user_2)
         team = Team.get_by_lobby_id(lobby2.id)
         self.assertIsNotNone(team)
 
@@ -296,8 +308,8 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         Lobby.move(self.user_9.id, lobby2.id)
         Lobby.move(self.user_10.id, lobby2.id)
 
-        controller.lobby_start_queue(lobby1.id)
-        controller.lobby_start_queue(lobby2.id)
+        controller.lobby_start_queue(lobby1.id, self.user_1)
+        controller.lobby_start_queue(lobby2.id, self.user_2)
         team1 = Team.get_by_lobby_id(lobby1.id)
         team2 = Team.get_by_lobby_id(lobby2.id)
         match = PreMatch.get_by_team_id(team1.id)
@@ -326,7 +338,7 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
             ],
         )
 
-        controller.lobby_start_queue(lobby_1.id)
+        controller.lobby_start_queue(lobby_1.id, self.user_1)
 
         self.assertEqual(
             lobby_1.get_invites_by_from_player_id(self.user_2.id),
@@ -345,17 +357,17 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def test_lobby_cancel_queue_team(self):
         # don't create the team yet beacuse it only has one lobby
         lobby = Lobby.create(self.user_1.id)
-        controller.lobby_start_queue(lobby.id)
+        controller.lobby_start_queue(lobby.id, self.user_1)
 
         # creates the team by adding all queued lobbies => lobby2 and lobby1
         lobby2 = Lobby.create(self.user_2.id)
-        controller.lobby_start_queue(lobby2.id)
+        controller.lobby_start_queue(lobby2.id, self.user_2)
 
         # do not create a new team, but add this lobby into the existent team instead
         # because it has the seats available and match all other requirements
         self.user_3.auth.add_session()
         lobby3 = Lobby.create(self.user_3.id)
-        controller.lobby_start_queue(lobby3.id)
+        controller.lobby_start_queue(lobby3.id, self.user_3)
 
         team = Team.get_by_lobby_id(lobby2.id)
         self.assertEqual(team.players_count, 3)
@@ -398,6 +410,16 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
         mocker.assert_called_once()
 
+    def test_match_player_lock_in_while_in_match(self):
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertEqual(pre_match.players_in, 0)
+
+        with self.assertRaises(HttpError):
+            match = baker.make(Match)
+            team = baker.make(MatchTeam, match=match)
+            baker.make(MatchPlayer, user=self.user_1, team=team)
+            controller.match_player_lock_in(self.user_1, match.id)
+
     @mock.patch('matchmaking.api.controller.pre_match_task.delay')
     def test_match_player_ready(self, mocker):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
@@ -426,6 +448,18 @@ class MatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(pre_match.state, PreMatchConfig.STATES.get('ready'))
         self.assertEqual(mocker.call_count, 10)
         mocker.assert_called_with(pre_match.id)
+
+    def test_match_player_ready_while_in_match(self):
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        for _ in range(0, 10):
+            pre_match.set_player_lock_in()
+        pre_match.start_players_ready_countdown()
+
+        with self.assertRaises(HttpError):
+            match = baker.make(Match)
+            team = baker.make(MatchTeam, match=match)
+            baker.make(MatchPlayer, user=self.user_1, team=team)
+            controller.match_player_ready(self.user_1, match.id)
 
     def test_create_match(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
