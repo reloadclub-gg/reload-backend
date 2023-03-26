@@ -51,6 +51,9 @@ class Server(models.Model):
 
         return None
 
+    def __str__(self):
+        return f'{self.name} - {self.ip}'
+
 
 class Match(models.Model):
     class Status(models.IntegerChoices):
@@ -134,6 +137,11 @@ class Match(models.Model):
         """
         return MatchPlayer.objects.filter(Q(team=self.team_a) | Q(team=self.team_b))
 
+    def __str__(self):
+        if self.team_a and self.team_b:
+            return f'#{self.id} - {self.team_a.name} vs {self.team_b.name}'
+        return f'#{self.id} - waiting for team creation'
+
 
 class MatchTeam(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
@@ -146,6 +154,9 @@ class MatchTeam(models.Model):
         Fetch and return all players that are in team.
         """
         return MatchPlayer.objects.filter(team=self)
+
+    def __str__(self):
+        return f'#{self.id} - {self.name}'
 
 
 class MatchPlayer(models.Model):
@@ -288,3 +299,6 @@ class MatchPlayer(models.Model):
         if self.hit_shots > 0:
             return float('{:0.2f}'.format(self.other_shots / self.hit_shots))
         return float(0)
+
+    def __str__(self):
+        return f'{self.user.steam_user.username}'
