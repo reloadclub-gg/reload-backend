@@ -1,5 +1,6 @@
 from accounts.api import schemas
 from core.tests import TestCase
+from matches.api.schemas import MatchSchema
 from matchmaking.api.schemas import LobbySchema
 from matchmaking.models import Lobby
 from steam import Steam
@@ -32,6 +33,9 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'status': self.user.status,
             'lobby': LobbySchema.from_orm(self.user.account.lobby).dict(),
             'steam_url': self.user.steam_user.profileurl,
+            'match': MatchSchema.from_orm(self.user.account.match)
+            if self.user.account.match
+            else None,
         }
 
         self.assertDictEqual(payload, expected_payload)
@@ -71,6 +75,9 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             ],
             'pre_match': self.user.account.pre_match,
             'steam_url': self.user.steam_user.profileurl,
+            'match': MatchSchema.from_orm(self.user.account.match)
+            if self.user.account.match
+            else None,
         }
 
         self.assertDictEqual(payload, expected_payload)

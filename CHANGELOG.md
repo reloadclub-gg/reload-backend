@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Propriedades adicionadas ao modelo `Match`: `team_a`, `team_b`, `teams`, `winner`.
 - Adiciona campo `server_ip` ao esquema API de `Match` (https://github.com/3C-gg/reload-backend/issues/321).
 - Chamada websocket para client ao criar `Match` (https://github.com/3C-gg/reload-backend/issues/326).
+- Adiciona admin para modelos de `matches`.
+- Adiciona `__str__` para modelos de `matches` para que sejam mais facilmente identificados no admin.
 
 ### Fixed
 
@@ -44,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera campo `team` do modelo `MatchPlayer` deixando de ser uma string e passando a ser uma relação com o novo model `MatchTeam`.
 - Altera propriedade `rounds` do modelo `Match` para refletir mudanças incorporadas pelo modelo `MatchTeam`.
 - Criação de partida no controller API de `matchmaking` para refletir novos modelos.
+- Altera campo `status` no esquema API de `Match` para retornar uma string correspondente ao valor inteiro.
 
 ### Removed
 
