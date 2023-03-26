@@ -48,6 +48,7 @@ class MatchSchema(ModelSchema):
     end_date: Optional[str] = None
     rounds: int
     winner_id: Optional[int] = None
+    status: str
 
     class Config:
         model = Match
@@ -78,3 +79,12 @@ class MatchSchema(ModelSchema):
         if obj.winner:
             return obj.winner.id
         return None
+
+    @staticmethod
+    def resolve_status(obj):
+        if obj.status == Match.Status.LOADING:
+            return 'loading'
+        elif obj.status == Match.Status.RUNNING:
+            return 'running'
+        else:
+            return 'finished'

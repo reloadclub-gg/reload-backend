@@ -9,6 +9,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from core.utils import generate_random_string
+from matches.models import Match, MatchPlayer
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
 from steam import Steam
 
@@ -86,6 +87,21 @@ class Account(models.Model):
     @property
     def pre_match(self) -> PreMatch:
         return PreMatch.get_by_player_id(self.user.id)
+
+    @property
+    def match(self) -> Match:
+        qs = MatchPlayer.objects.filter(user=self.user).exclude(
+            team__match__status=Match.Status.FINISHED
+        )
+        if len(qs) > 1:
+            # TODO send alert to admin
+            raise ValidationError(_('User should not be in more then one match.'))
+
+        match_player = qs.first()
+        if match_player:
+            return match_player.team.match
+
+        return None
 
 
 class Invite(models.Model):

@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
+from matches.api.schemas import MatchSchema
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 from steam import Steam
 
@@ -22,6 +23,7 @@ class FriendAccountSchema(ModelSchema):
     status: Optional[str]
     lobby: Optional[LobbySchema]
     steam_url: Optional[str]
+    match: Optional[MatchSchema] = None
 
     class Config:
         model = Account
@@ -70,6 +72,7 @@ class AccountSchema(ModelSchema):
     lobby_invites_sent: Optional[List[LobbyInviteSchema]]
     pre_match: Optional[PreMatchSchema] = None
     steam_url: Optional[str]
+    match: Optional[MatchSchema] = None
 
     class Config:
         model = Account
