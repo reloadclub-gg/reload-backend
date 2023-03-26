@@ -13,12 +13,19 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
         baker.make(MatchTeam, match=match)
         payload = schemas.MatchSchema.from_orm(match).dict()
 
+        if match.status == Match.Status.LOADING:
+            status = 'loading'
+        elif match.status == Match.Status.RUNNING:
+            status = 'running'
+        else:
+            status = 'finished'
+
         expected_payload = {
             'id': match.id,
             'create_date': match.create_date.isoformat(),
             'start_date': match.start_date.isoformat() if match.start_date else None,
             'end_date': match.end_date.isoformat() if match.end_date else None,
-            'status': match.status,
+            'status': status,
             'game_type': match.game_type,
             'game_mode': match.game_mode,
             'server_ip': match.server.ip,
@@ -79,13 +86,20 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
         baker.make(MatchPlayer, user=self.user_9, team=team_b)
         baker.make(MatchPlayer, user=self.user_10, team=team_b)
 
+        if match.status == Match.Status.LOADING:
+            status = 'loading'
+        elif match.status == Match.Status.RUNNING:
+            status = 'running'
+        else:
+            status = 'finished'
+
         payload = schemas.MatchSchema.from_orm(match).dict()
         expected_payload = {
             'id': match.id,
             'create_date': match.create_date.isoformat(),
             'start_date': match.start_date.isoformat() if match.start_date else None,
             'end_date': match.end_date.isoformat() if match.end_date else None,
-            'status': match.status,
+            'status': status,
             'game_type': match.game_type,
             'game_mode': match.game_mode,
             'server_ip': match.server.ip,
