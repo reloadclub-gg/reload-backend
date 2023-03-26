@@ -3,6 +3,7 @@ from typing import List
 from celery import shared_task
 from django.contrib.auth import get_user_model
 
+from matches.models import Match
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
 from websocket import controller
 
@@ -81,3 +82,9 @@ def match_cancel_warn_task(lobby_id: int):
 def restart_queue_task(lobby_id: int):
     lobby = Lobby(owner_id=lobby_id)
     controller.restart_queue(lobby)
+
+
+@shared_task
+def match_task(match_id: int):
+    match = Match.objects.get(pk=match_id)
+    controller.match(match)
