@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Novo arquivo `tasks` no package de websocket que expõe as tarefas como middleware para que o código possa chamar os eventos WS tanto como tarefas quanto como métodos normais dependendo do caso.
 - Serviço do _Celery_ no _Kubernetes_.
 - Serviço do _Celery_ no Github Workflow (https://github.com/3C-gg/reload-backend/issues/317).
+- Dois novos serviços/configs ao AppSettings que ditam os limites de partidas nos servidores: `matches_limit_per_server` e `matches_limit_per_server_gap`.
+- Três novas configuações default: `MATCHES_LIMIT_PER_SERVER`, `MATCHES_LIMIT_PER_SERVER_GAP` e `APP_INVITE_REQUIRED`.
+- Nova propriedade `name` na entidade `Team` que é salva no Redis. Com essa prop podemos identificar os times mais facilmente e separá-los na criação da partida.
+- Modelo `Server` para guardar informações sobre os servidores FiveM.
+- Modelo `MatchTeam` para salvar dados relativos aos times de uma partida.
+- Item de carga inicial local no banco de um servidor para testes.
+- Docstrings para campos calculados do modelo `MatchPlayer`.
+- Propriedades adicionadas ao modelo `Match`: `team_a`, `team_b`, `teams`, `winner`.
+- Adiciona campo `server_ip` ao esquema API de `Match` (https://github.com/3C-gg/reload-backend/issues/321).
 
 ### Fixed
 
@@ -20,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ajusta string de conexão do Celery com o Redis quando a conexão for via SSL.
 - Evento de recusado não estava sendo enviado para quem convidou, fazendo com que o convite ficasse "vivo" no client até o próximo carregamento do banco (https://github.com/3C-gg/reload-backend/issues/315).
 - Evento que atualiza status do usuário não estava sendo disparado ao sair de um lobby (https://github.com/3C-gg/reload-backend/issues/319).
+- AppSettings não era capaz de atualizar valores nos métodos de `set`. Com essa correção, ele atualiza os valores de uma config caso a encontre. Caso não encontre, ele cria uma nova com os valores recebidos.
 
 ### Changed
 
@@ -28,11 +38,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera alguns termos "gta-mm" pra "reload".
 - Controllers de API passam a enviar chamadas de WS em segundo plano usando tarefas do _Celery_ (https://github.com/3C-gg/reload-backend/issues/310).
 - Celery agora está configuração `CELERY_ALWAYS_EAGER` ligada para testes.
+- Esquema API de `Match` agora devolve um _JSON_ adequado com os valores aninhados: Partida > Times > Jogadores.
+- Altera campo `leg_shots` para `other_shots` que simboliza tiros em outras partes do corpo que não peitoral/tórax e cabeça.
+- Altera campo `team` do modelo `MatchPlayer` deixando de ser uma string e passando a ser uma relação com o novo model `MatchTeam`.
+- Altera propriedade `rounds` do modelo `Match` para refletir mudanças incorporadas pelo modelo `MatchTeam`.
+- Criação de partida no controller API de `matchmaking` para refletir novos modelos.
 
 ### Removed
 
 - Django Jazzmin foi removido devido a falta de suporte na renderização de ícones e imagens, o que tornava a utilização do admin mais difícil (https://github.com/3C-gg/reload-backend/issues/303).
 - Removido level debug da lib Sentry.
+- Remove campo `match` do modelo `MatchPlayer`.
+- Remove campos de pontuação dos times (`team_a_score` e `team_b_score`) do modelo `Match`.
+- Remove campo `winner_team` do modelo `Match`, que agora passa a ser um campo calculado.
 
 ## [023c3eb - 19/03/2023]
 

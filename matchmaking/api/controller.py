@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
-from matches.models import Match, MatchPlayer
+from matches.models import Match, MatchPlayer, Server
 from websocket.tasks import (
     lobby_invites_update_task,
     lobby_player_invite_task,
@@ -270,16 +270,32 @@ def match_player_ready(user: User, pre_match_id: str) -> PreMatch:
 
 
 def create_match(pre_match) -> Match:
+    server = Server.get_idle()
+    if not server:
+        # TODO send alert (email, etc) to admins
+        # TODO send alert to client app
+        return
+
     game_type, game_mode = pre_match.teams[0].type_mode
-    match = Match.objects.create(game_type=game_type, game_mode=game_mode)
+    match = Match.objects.create(
+        server=server, game_type=game_type, game_mode=game_mode
+    )
+
+    pre_team1, pre_team2 = pre_match.teams
+    team1 = match.matchteam_set.create(name=pre_team1.name)
+    team2 = match.matchteam_set.create(name=pre_team2.name)
 
     for user in pre_match.team1_players:
-        MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_A)
+        MatchPlayer.objects.create(user=user, team=team1)
 
     for user in pre_match.team2_players:
-        MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_B)
+        MatchPlayer.objects.create(user=user, team=team2)
 
     # TODO start match on the FiveM server
     # (https://github.com/3C-gg/reload-backend/issues/243)
+
+    if server.is_almost_full:
+        # TODO send alert (email, etc) to admins
+        pass
 
     return match
