@@ -8,6 +8,7 @@ from websocket.tasks import (
     lobby_player_invite_task,
     lobby_player_refuse_invite_task,
     lobby_update_task,
+    match_task,
     pre_match_task,
     user_status_change_task,
     user_update_task,
@@ -293,6 +294,10 @@ def create_match(pre_match) -> Match:
 
     # TODO start match on the FiveM server
     # (https://github.com/3C-gg/reload-backend/issues/243)
+
+    match_task.delay(match.id)
+    for match_player in match.players:
+        user_status_change_task.delay(match_player.user.id)
 
     if server.is_almost_full:
         # TODO send alert (email, etc) to admins

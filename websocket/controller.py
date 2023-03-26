@@ -4,6 +4,8 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema, UserSchema
+from matches.api.schemas import MatchSchema
+from matches.models import Match
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
 
@@ -122,3 +124,16 @@ def restart_queue(lobby: Lobby):
     after a pre match gets canceled.
     """
     async_to_sync(ws_send)('ws_restartQueue', None, groups=lobby.players_ids)
+
+
+def match(match: Match):
+    """
+    This event is triggered to create or update a match on client.
+    """
+    payload = MatchSchema.from_orm(match).dict()
+
+    async_to_sync(ws_send)(
+        'ws_match',
+        payload,
+        groups=[match_player.user.id for match_player in match.players],
+    )

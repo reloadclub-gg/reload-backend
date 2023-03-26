@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docstrings para campos calculados do modelo `MatchPlayer`.
 - Propriedades adicionadas ao modelo `Match`: `team_a`, `team_b`, `teams`, `winner`.
 - Adiciona campo `server_ip` ao esquema API de `Match` (https://github.com/3C-gg/reload-backend/issues/321).
+- Chamada websocket para client ao criar `Match` (https://github.com/3C-gg/reload-backend/issues/326).
 
 ### Fixed
 
