@@ -15,6 +15,7 @@ jobs:
       DATABASE_PASSWORD: postgres
       DATABASE_USER: root
       DATABASE_NAME: github_job
+      # CELERY_BROKER_URL: redis://default@redis:6379
     services:
       db:
         image: postgres:14
@@ -39,13 +40,15 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      celery:
-        image: celery
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+      # celery:
+      #   image: celery
+      #   options: >-
+      #     --health-cmd "celery -A core.celery.app status"
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
+      #   env:
+      #     CELERY_BROKER_URL: ${{ env.CELERY_BROKER_URL }}
 
     steps:
       - uses: actions/checkout@v3
