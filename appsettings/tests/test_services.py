@@ -7,6 +7,8 @@ from ..services import (
     check_invite_required,
     matches_limit_per_server,
     matches_limit_per_server_gap,
+    player_max_level,
+    player_max_level_points,
 )
 
 
@@ -29,3 +31,13 @@ class CheckInviteRequiredTestCase(TestCase):
         )
         AppSettings.set_int('Matches Limit Gap', 1)
         self.assertEqual(matches_limit_per_server_gap(), 1)
+
+    def test_player_max_level(self):
+        self.assertEqual(player_max_level(), settings.PLAYER_MAX_LEVEL)
+        AppSettings.set_int('Player Max Level', 1)
+        self.assertEqual(player_max_level(), 1)
+
+    def test_player_max_level_points(self):
+        self.assertEqual(player_max_level_points(), settings.PLAYER_MAX_LEVEL_POINTS)
+        AppSettings.set_int('Player Max Level Points', 1)
+        self.assertEqual(player_max_level_points(), 1)

@@ -13,3 +13,11 @@ def matches_limit_per_server():
 
 def matches_limit_per_server_gap():
     return AppSettings.get('Matches Limit Gap', settings.MATCHES_LIMIT_PER_SERVER_GAP)
+
+
+def player_max_level():
+    return AppSettings.get('Player Max Level', settings.PLAYER_MAX_LEVEL)
+
+
+def player_max_level_points():
+    return AppSettings.get('Player Max Level Points', settings.PLAYER_MAX_LEVEL_POINTS)
