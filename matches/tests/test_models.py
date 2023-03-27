@@ -51,3 +51,71 @@ class MatchesModelsTestCase(mixins.TeamsMixin, TestCase):
         player.afk = 3
         player.save()
         self.assertEqual(player.rounds_played, match.rounds - player.afk)
+
+
+class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.server = baker.make(Server)
+        self.match = baker.make(Match, server=self.server, status=Match.Status.FINISHED)
+        self.team1 = self.match.matchteam_set.create(name=self.team1.name, score=10)
+        self.team2 = self.match.matchteam_set.create(name=self.team2.name, score=8)
+        self.match
+
+    def test_points_earned(self):
+        player = baker.make(
+            MatchPlayer,
+            team=self.team1,
+            kills=25,
+            deaths=9,
+            assists=6,
+            plants=3,
+            defuses=4,
+        )
+        self.assertEqual(player.points_earned, 30)
+        player.team = self.team2
+        player.save()
+        self.assertEqual(player.points_earned, -10)
+
+        player = baker.make(
+            MatchPlayer,
+            team=self.team1,
+            kills=13,
+            deaths=10,
+            assists=3,
+            plants=2,
+            defuses=3,
+        )
+        self.assertEqual(player.points_earned, 21)
+        player.team = self.team2
+        player.save()
+        self.assertEqual(player.points_earned, -14)
+
+        player = baker.make(
+            MatchPlayer,
+            team=self.team1,
+            kills=8,
+            deaths=13,
+            assists=2,
+            plants=2,
+            defuses=1,
+        )
+        self.assertEqual(player.points_earned, 10)
+        player.team = self.team2
+        player.save()
+        self.assertEqual(player.points_earned, -20)
+
+        player = baker.make(
+            MatchPlayer,
+            team=self.team1,
+            kills=13,
+            deaths=10,
+            assists=3,
+            plants=2,
+            defuses=3,
+            afk=3,
+        )
+        self.assertEqual(player.points_earned, 12)
+        player.team = self.team2
+        player.save()
+        self.assertEqual(player.points_earned, -23)
