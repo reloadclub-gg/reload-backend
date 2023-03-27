@@ -8,12 +8,15 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils.translation import gettext as _
 
+from appsettings.services import player_max_level, player_max_level_points
+from core.redis import RedisClient
 from core.utils import generate_random_string
 from matches.models import Match, MatchPlayer
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
 from steam import Steam
 
 User = get_user_model()
+cache = RedisClient()
 
 
 class Account(models.Model):
@@ -102,6 +105,89 @@ class Account(models.Model):
             return match_player.team.match
 
         return None
+
+    @property
+    def second_chance_lvl(self) -> bool:
+        return cache.sismember('__accounts:second_chance_lvl_users', self.user.id)
+
+    def set_second_chance_lvl(self):
+        """
+        Add user_id in a Redis set of users that
+        can get to 0 points and play another match
+        """
+        cache.sadd('__accounts:second_chance_lvl_users', self.user.id)
+
+    def remove_second_chance_lvl(self):
+        """
+        Remove user_id in a Redis set of users that
+        can get to 0 points and play another match
+        """
+        cache.srem('__accounts:second_chance_lvl_users', self.user.id)
+
+    def set_level_points(self, level_points):
+        """
+        This method is meant for give/take level_points to/from a particular user account.
+        Some rules should be followed:
+        - player should get to next level upon reach max points of current level
+            - the remaning points should be increased on the next level
+        - if player is on max level, it should not get to next level, thus it doesn't exist
+        - if player is on min level (0), it should not get to prev level, thus it doesn't exist
+        - if player reaches 0 points of a level, it should get another chance
+        to stay on that level before get to a prev level
+        - if a player reaches 0 points or less  2 times in a row, then it should get
+        to prev level if applicable
+        """
+        max_points = player_max_level_points()
+        max_lvl = player_max_level()
+
+        if level_points > max_points or level_points < (max_points * -1):
+            raise ValidationError(
+                _('Level points should never exceed max level points.')
+            )
+
+        if level_points + self.level_points >= max_points:
+            # Player get to next level upon max points reached
+            if self.level == max_lvl:
+                # If player is on max level, it should not get to next level,
+                # thus it doesn't exist
+                self.level_points += level_points
+                self.save()
+            else:
+                # The remaning points should be increased on the next level
+                self.level += 1
+                self.level_points = (
+                    level_points + self.level_points - settings.PLAYER_MAX_LEVEL_POINTS
+                )
+                self.set_second_chance_lvl()
+                self.save()
+        elif level_points + self.level_points <= 0:
+            # Player get to prev level upon min points reached - if applicable
+            if self.level == 0:
+                # If player is on min level (0), it should not get to prev level,
+                # thus it doesn't exist
+                self.level_points = 0
+                self.save()
+            else:
+                if self.second_chance_lvl:
+                    # If player reaches 0 points of a level,
+                    # it should get another chance to stay on that level
+                    # before get to a prev level
+                    self.remove_second_chance_lvl()
+                    self.level_points = 0
+                    self.save()
+                else:
+                    # If a player reaches 0 points or less 2 times in a row,
+                    # then it should get to prev level
+                    self.level -= 1
+                    self.level_points = max_points + (level_points + self.level_points)
+                    self.set_second_chance_lvl()
+                    self.save()
+        else:
+            # If there isn't any change on levels, just in points,
+            # we just incr the points
+            self.level_points += level_points
+            self.set_second_chance_lvl()
+            self.save()
 
 
 class Invite(models.Model):

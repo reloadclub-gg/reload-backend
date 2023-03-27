@@ -300,5 +300,44 @@ class MatchPlayer(models.Model):
             return float('{:0.2f}'.format(self.other_shots / self.hit_shots))
         return float(0)
 
+    @property
+    def points_earned(self) -> int:
+        """
+        How many level points this player won in a match.
+        """
+        if self.team.match.status != Match.Status.FINISHED:
+            return None
+
+        if self.rounds_played > 0:
+            step1 = (self.assists / 10) if self.assists > 0 else 0
+            step2 = self.plants * 2
+            step3 = self.defuses * 1.2
+            step4 = self.kills - self.deaths
+            result1 = step1 + step2 + step3 + step4
+            result1 = int(round(result1))
+
+            if self.team.match.winner == self.team:
+                result2 = int(round(result1 + 10))
+                # if result2 is lesser then 20 or greater then 30 on victory,
+                # adjust it to 20 or 30
+                if result2 < 10:
+                    result2 = 10
+                elif result2 > 30:
+                    result2 = 30
+            else:
+                result2 = int(round(result1 - 25))
+                # if result2 is lesser then -20 or greater then -10 on defeat,
+                # adjust it to -20 or -10
+                if result2 < -20:
+                    result2 = -20
+                elif result2 > -10:
+                    result2 = -10
+
+            # Apply afk penalties
+            level_points = result2 - self.afk * 3
+            return level_points
+
+        return 0
+
     def __str__(self):
         return f'{self.user.steam_user.username}'

@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chamada websocket para client ao criar `Match` (https://github.com/3C-gg/reload-backend/issues/326).
 - Adiciona admin para modelos de `matches`.
 - Adiciona `__str__` para modelos de `matches` para que sejam mais facilmente identificados no admin.
+- Adiciona método que adiciona Pontos de Nível (PNs) numa conta de usuário. Esse cálculo permite determinar se o jogador deve subir ou cair de Nível, ou se ele permanece no Nível atual alterando apenas seus PNs (https://github.com/3C-gg/reload-backend/issues/298).
+- Adiciona cálculo de Pontos de Nível (PNs) ganhos no modelo `MatchPlayer`. Esse cálculo determina a quantidade de PNs que esse player deve ganhar em uma partda.
+- Adiciona dois serviços no `AppConfig` e suas respectivas configs padrão do sistema: `PLAYER_MAX_LEVEL` e `PLAYER_MAX_LEVEL_POINTS`.
 
 ### Fixed
 

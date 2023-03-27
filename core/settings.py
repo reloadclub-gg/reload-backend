@@ -311,3 +311,5 @@ MATCHES_LIMIT_PER_SERVER_GAP = config(
 
 # Other App Settings
 APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)
+PLAYER_MAX_LEVEL = config('PLAYER_MAX_LEVEL', default=50, cast=int)
+PLAYER_MAX_LEVEL_POINTS = config('PLAYER_MAX_LEVEL_POINTS', default=100, cast=int)

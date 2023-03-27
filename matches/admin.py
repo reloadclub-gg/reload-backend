@@ -63,8 +63,12 @@ class MatchPlayerAdmin(admin.ModelAdmin):
         'deaths',
         'assists',
         'afk',
+        'points_earned',
     )
     search_fields = ('user__email', 'user__steam_user__username', 'team__name')
 
     def match(self, obj):
         return obj.team.match
+
+    def points_earned(self, obj):
+        return obj.points_earned

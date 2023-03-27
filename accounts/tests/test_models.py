@@ -91,6 +91,42 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         f1.auth.add_session()
         self.assertEqual(len(self.user.account.online_friends), 1)
 
+    def test_set_level_points(self):
+        account = baker.make(models.Account, user=self.user)
+        self.assertEqual(account.level, 0)
+        self.assertEqual(account.level_points, 0)
+        self.assertFalse(account.second_chance_lvl)
+
+        account.set_level_points(35)
+        self.assertEqual(account.level, 0)
+        self.assertEqual(account.level_points, 35)
+        self.assertTrue(account.second_chance_lvl)
+
+        account.set_level_points(90)
+        self.assertEqual(account.level, 1)
+        self.assertEqual(account.level_points, 25)
+        self.assertTrue(account.second_chance_lvl)
+
+        account.set_level_points(-30)
+        self.assertEqual(account.level, 1)
+        self.assertEqual(account.level_points, 0)
+        self.assertFalse(account.second_chance_lvl)
+
+        account.set_level_points(-15)
+        self.assertEqual(account.level, 0)
+        self.assertEqual(account.level_points, 85)
+        self.assertTrue(account.second_chance_lvl)
+
+        account.set_level_points(-90)
+        self.assertEqual(account.level, 0)
+        self.assertEqual(account.level_points, 0)
+
+        with self.assertRaises(ValidationError):
+            account.set_level_points(310)
+
+        with self.assertRaises(ValidationError):
+            account.set_level_points(-310)
+
 
 class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
     def test_invite_create_limit_reached(self):
