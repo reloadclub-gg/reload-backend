@@ -27,7 +27,13 @@ class FriendAccountSchema(ModelSchema):
 
     class Config:
         model = Account
-        model_exclude = ['id', 'user', 'verification_token', 'is_verified']
+        model_exclude = [
+            'id',
+            'user',
+            'verification_token',
+            'is_verified',
+            'report_points',
+        ]
 
     @staticmethod
     def resolve_id(obj):
@@ -76,7 +82,7 @@ class AccountSchema(ModelSchema):
 
     class Config:
         model = Account
-        model_exclude = ['id', 'user', 'verification_token']
+        model_exclude = ['id', 'user', 'verification_token', 'report_points']
 
     @staticmethod
     def resolve_steamid(obj):

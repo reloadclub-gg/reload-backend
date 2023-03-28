@@ -245,3 +245,35 @@ class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):
         auth.add_session()
         auth.expire_session()
         self.assertEqual(auth.sessions_ttl, AuthConfig.CACHE_TTL_SESSIONS)
+
+
+class AccountsReportModelTestCase(mixins.UserWithFriendsMixin, TestCase):
+    def test_report(self):
+        self.assertEqual(self.friend1.account.report_points, 0)
+        self.account.report_set.create(
+            target=self.friend1.account, subject=models.Report.Subject.HATE_SPEECH
+        )
+        self.assertEqual(self.friend1.account.report_points, 1)
+        self.account.report_set.create(
+            target=self.friend1.account, subject=models.Report.Subject.HATE_SPEECH
+        )
+        self.assertEqual(self.friend1.account.report_points, 1)
+
+
+class AccountsReportAnalysisModelTestCase(mixins.UserWithFriendsMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        superuser = models.User.objects.create_superuser(
+            email='admin@3c.gg', password='adminadmin'
+        )
+        utils.create_social_auth(superuser)
+        self.admin = baker.make(models.Account, user=superuser)
+
+    def test_report_analysis(self):
+        self.account.report_points = 18
+        self.account.save()
+
+        models.ReportAnalysis.objects.create(
+            analyst=self.admin, account=self.account, restriction_time=12
+        )
+        self.assertEqual(self.friend1.account.report_points, 0)
