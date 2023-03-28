@@ -1,21 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: api-ingress
+  name: reoad-api-ingress
   annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    networking.gke.io/managed-certificates: "reload-api"
 spec:
-  tls:
-    - hosts:
-        - api.dev.reloadclub.gg
-      secretName: api-tls
   rules:
     - host: api.dev.reloadclub.gg
       http:
         paths:
-          - pathType: Prefix
-            path: "/"
+          - pathType: ImplementationSpecific
             backend:
               service:
                 name: api-service
