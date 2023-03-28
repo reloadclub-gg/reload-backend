@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import cached_property
 from typing import List
 
@@ -32,6 +34,7 @@ class Account(models.Model):
         validators=[MinLengthValidator(VERIFICATION_TOKEN_LENGTH)],
         max_length=VERIFICATION_TOKEN_LENGTH,
     )
+    report_points = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if self._state.adding:

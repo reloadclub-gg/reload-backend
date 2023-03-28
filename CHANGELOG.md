@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adiciona método que adiciona Pontos de Nível (PNs) numa conta de usuário. Esse cálculo permite determinar se o jogador deve subir ou cair de Nível, ou se ele permanece no Nível atual alterando apenas seus PNs (https://github.com/3C-gg/reload-backend/issues/298).
 - Adiciona cálculo de Pontos de Nível (PNs) ganhos no modelo `MatchPlayer`. Esse cálculo determina a quantidade de PNs que esse player deve ganhar em uma partda.
 - Adiciona dois serviços no `AppConfig` e suas respectivas configs padrão do sistema: `PLAYER_MAX_LEVEL` e `PLAYER_MAX_LEVEL_POINTS`.
+- Adiciona modelos do sistema de report (https://github.com/3C-gg/reload-backend/issues/338).
 
 ### Fixed
 
