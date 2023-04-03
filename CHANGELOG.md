@@ -7,15 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Novo arquivo `tasks` no package de websocket que expõe as tarefas como middleware para que o código possa chamar os eventos WS tanto como tarefas quanto como métodos normais dependendo do caso.
+- Serviço do _Celery_ no _Kubernetes_.
+- Serviço do _Celery_ no Github Workflow (https://github.com/3C-gg/reload-backend/issues/317).
+- Dois novos serviços/configs ao AppSettings que ditam os limites de partidas nos servidores: `matches_limit_per_server` e `matches_limit_per_server_gap`.
+- Três novas configuações default: `MATCHES_LIMIT_PER_SERVER`, `MATCHES_LIMIT_PER_SERVER_GAP` e `APP_INVITE_REQUIRED`.
+- Nova propriedade `name` na entidade `Team` que é salva no Redis. Com essa prop podemos identificar os times mais facilmente e separá-los na criação da partida.
+- Modelo `Server` para guardar informações sobre os servidores FiveM.
+- Modelo `MatchTeam` para salvar dados relativos aos times de uma partida.
+- Item de carga inicial local no banco de um servidor para testes.
+- Docstrings para campos calculados do modelo `MatchPlayer`.
+- Propriedades adicionadas ao modelo `Match`: `team_a`, `team_b`, `teams`, `winner`.
+- Adiciona campo `server_ip` ao esquema API de `Match` (https://github.com/3C-gg/reload-backend/issues/321).
+- Chamada websocket para client ao criar `Match` (https://github.com/3C-gg/reload-backend/issues/326).
+- Adiciona admin para modelos de `matches`.
+- Adiciona `__str__` para modelos de `matches` para que sejam mais facilmente identificados no admin.
+- Adiciona método que adiciona Pontos de Nível (PNs) numa conta de usuário. Esse cálculo permite determinar se o jogador deve subir ou cair de Nível, ou se ele permanece no Nível atual alterando apenas seus PNs (https://github.com/3C-gg/reload-backend/issues/298).
+- Adiciona cálculo de Pontos de Nível (PNs) ganhos no modelo `MatchPlayer`. Esse cálculo determina a quantidade de PNs que esse player deve ganhar em uma partda.
+- Adiciona dois serviços no `AppConfig` e suas respectivas configs padrão do sistema: `PLAYER_MAX_LEVEL` e `PLAYER_MAX_LEVEL_POINTS`.
+- Adiciona modelos do sistema de report (https://github.com/3C-gg/reload-backend/issues/338).
+
 ### Fixed
 
 - Código de verificação de e-mail estava _hardcoded_ no template de e-mail. Substituímos pelo código certo, individual e único para cada usuário (https://github.com/3C-gg/reload-backend/issues/299).
 - Em um caso específico, onde tinham 2 players em um lobby e o player convidado (que não é o dono) sai ou é expulso, o dono do lobby não estava tendo seu status de "Em grupo" para "Online" atualizado para seus amigos. Uma vez que ele estava em grupo, e com a saída do convidado ele ficou num lobby vazio, começamos a disparar esse evento para o dono do lobby (https://github.com/3C-gg/reload-backend/issues/301).
 - Ajusta string de conexão do Celery com o Redis quando a conexão for via SSL.
+- Evento de recusado não estava sendo enviado para quem convidou, fazendo com que o convite ficasse "vivo" no client até o próximo carregamento do banco (https://github.com/3C-gg/reload-backend/issues/315).
+- Evento que atualiza status do usuário não estava sendo disparado ao sair de um lobby (https://github.com/3C-gg/reload-backend/issues/319).
+- AppSettings não era capaz de atualizar valores nos métodos de `set`. Com essa correção, ele atualiza os valores de uma config caso a encontre. Caso não encontre, ele cria uma nova com os valores recebidos.
+- Impede que usuários iniciem uma busca por partidas caso já estejam em uma partida. Além disso, também protege a marcação de `lockin` e `ready` em pré partidas, além da mudança de modo/tipo de lobby (https://github.com/3C-gg/reload-backend/issues/329).
 
 ### Changed
 
 - Atualiza bilbioteca redis-py para última release.
+- Altera manifestos do k8s para usar Ingress e Nginx ao invés do webserver padrão do Django (https://github.com/3C-gg/reload-backend/issues/304).
+- Altera alguns termos "gta-mm" pra "reload".
+- Controllers de API passam a enviar chamadas de WS em segundo plano usando tarefas do _Celery_ (https://github.com/3C-gg/reload-backend/issues/310).
+- Celery agora está configuração `CELERY_ALWAYS_EAGER` ligada para testes.
+- Esquema API de `Match` agora devolve um _JSON_ adequado com os valores aninhados: Partida > Times > Jogadores.
+- Altera campo `leg_shots` para `other_shots` que simboliza tiros em outras partes do corpo que não peitoral/tórax e cabeça.
+- Altera campo `team` do modelo `MatchPlayer` deixando de ser uma string e passando a ser uma relação com o novo model `MatchTeam`.
+- Altera propriedade `rounds` do modelo `Match` para refletir mudanças incorporadas pelo modelo `MatchTeam`.
+- Criação de partida no controller API de `matchmaking` para refletir novos modelos.
+- Altera campo `status` no esquema API de `Match` para retornar uma string correspondente ao valor inteiro.
+
+### Removed
+
+- Django Jazzmin foi removido devido a falta de suporte na renderização de ícones e imagens, o que tornava a utilização do admin mais difícil (https://github.com/3C-gg/reload-backend/issues/303).
+- Removido level debug da lib Sentry.
+- Remove campo `match` do modelo `MatchPlayer`.
+- Remove campos de pontuação dos times (`team_a_score` e `team_b_score`) do modelo `Match`.
+- Remove campo `winner_team` do modelo `Match`, que agora passa a ser um campo calculado.
 
 ## [023c3eb - 19/03/2023]
 

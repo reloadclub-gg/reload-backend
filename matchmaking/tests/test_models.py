@@ -6,6 +6,7 @@ from unittest import mock
 from django.conf import settings
 from django.utils import timezone
 
+from accounts.models import User
 from core.redis import RedisClient
 from core.tests import TestCase, cache
 
@@ -1040,6 +1041,22 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         cache.set(f'{self.lobby1.cache_key}:queue', elapsed_time)
         opponent = team.get_opponent_team()
         self.assertEqual(opponent, team1)
+
+    def test_name(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        Lobby.move(self.user_3.id, self.lobby1.id)
+        Lobby.move(self.user_4.id, self.lobby1.id)
+        Lobby.move(self.user_5.id, self.lobby1.id)
+        self.lobby1.start_queue()
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+        players_ids = [lobby.players_ids for lobby in team1.lobbies][0]
+        players_usernames = [
+            User.objects.get(pk=player_id).steam_user.username
+            for player_id in players_ids
+        ]
+        self.assertIsNotNone(team1.name)
+        self.assertTrue(team1.name in players_usernames)
 
 
 class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):

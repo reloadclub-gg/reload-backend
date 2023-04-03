@@ -48,5 +48,13 @@
         "datetime_created": "2021-10-23T16:57:47.632Z",
         "datetime_updated": "2021-10-23T16:57:47.632Z"
     }
+},
+{
+    "model": "matches.server",
+    "fields": {
+        "ip": "123.123.123.123",
+        "name": "Reload 1",
+        "key": "cfxk_HsCmXG2qkRi9vcZRMHsn_1iOCW5"
+    }
 }
 ]

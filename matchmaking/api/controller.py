@@ -2,8 +2,17 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
-from matches.models import Match, MatchPlayer
-from websocket import controller as ws_controller
+from matches.models import Match, MatchPlayer, Server
+from websocket.tasks import (
+    lobby_invites_update_task,
+    lobby_player_invite_task,
+    lobby_player_refuse_invite_task,
+    lobby_update_task,
+    match_task,
+    pre_match_task,
+    user_status_change_task,
+    user_update_task,
+)
 
 from ..models import (
     Lobby,
@@ -23,7 +32,7 @@ User = get_user_model()
 def lobby_move(user: User, lobby_id: int, inviter_user: User = None) -> Lobby:
     old_lobby = user.account.lobby
     new_lobby = Lobby(owner_id=lobby_id)
-    lobbies_update = [old_lobby, new_lobby]
+    lobbies_update = [old_lobby.id, new_lobby.id]
     update_inviter_status = new_lobby.players_count == 1
 
     try:
@@ -32,25 +41,26 @@ def lobby_move(user: User, lobby_id: int, inviter_user: User = None) -> Lobby:
         raise HttpError(400, str(exc))
 
     if derived_lobby:
-        lobbies_update.append(derived_lobby)
+        lobbies_update.append(derived_lobby.id)
 
-    ws_controller.lobby_update(lobbies_update)
+    lobby_update_task.delay(lobbies_update)
+    user_status_change_task.delay(user.id)
 
     if old_lobby.players_count == 1 or (
         not derived_lobby and old_lobby.owner_id == user.id
     ):
-        ws_controller.user_status_change(user)
         if old_lobby.owner_id != user.id:
-            owner = User.objects.get(pk=old_lobby.owner_id)
-            ws_controller.user_status_change(owner)
+            user_status_change_task.delay(old_lobby.owner_id)
+
+    if derived_lobby and derived_lobby.players_count == 1:
+        user_status_change_task.delay(derived_lobby.owner_id)
 
     if update_inviter_status:
-        owner = User.objects.get(pk=new_lobby.owner_id)
-        ws_controller.user_status_change(owner)
+        user_status_change_task.delay(new_lobby.owner_id)
 
-    ws_controller.user_update(user)
+    user_update_task.delay(user.id)
     if inviter_user:
-        ws_controller.user_update(inviter_user)
+        user_update_task.delay(inviter_user.id)
 
     return new_lobby
 
@@ -71,7 +81,7 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
 
     try:
         invite = lobby.invite(from_user_id, to_user_id)
-        ws_controller.lobby_player_invite(invite)
+        lobby_player_invite_task.delay(lobby_id, invite.id)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
@@ -79,12 +89,9 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
 
 
 def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
-    lobby = Lobby(owner_id=lobby_id)
-
     try:
         invite = LobbyInvite.get(lobby_id, invite_id)
-        ws_controller.lobby_player_refuse_invite(invite)
-        lobby.delete_invite(invite_id)
+        lobby_player_refuse_invite_task.delay(lobby_id, invite_id)
     except (LobbyException, LobbyInviteException) as exc:
         raise HttpError(400, str(exc))
 
@@ -92,8 +99,12 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
 
 
 def lobby_change_type_and_mode(
-    lobby_id: int, lobby_type: str, lobby_mode: int
+    lobby_id: int, lobby_type: str, lobby_mode: int, user: User
 ) -> Lobby:
+
+    if user.account.match:
+        raise HttpError(403, _('Can\'t change lobby mode or type while in a match.'))
+
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -102,7 +113,7 @@ def lobby_change_type_and_mode(
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    ws_controller.lobby_update([lobby])
+    lobby_update_task.delay([lobby.id])
 
     return lobby
 
@@ -115,14 +126,14 @@ def lobby_enter(user: User, lobby_id: int) -> Lobby:
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    ws_controller.lobby_update([lobby])
-    ws_controller.user_status_change(user)
-    ws_controller.lobby_invites_update(lobby)
+    lobby_update_task.delay([lobby.id])
+    user_status_change_task.delay(user.id)
+    lobby_invites_update_task.delay(lobby.id)
 
     lobby_players = [User.objects.get(pk=player_id) for player_id in lobby.players_ids]
     for player in lobby_players:
-        ws_controller.user_status_change(player)
-        ws_controller.user_update(player)
+        user_status_change_task.delay(player.id)
+        user_update_task.delay(player.id)
 
     return lobby
 
@@ -130,7 +141,7 @@ def lobby_enter(user: User, lobby_id: int) -> Lobby:
 def set_public(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     lobby.set_public()
-    ws_controller.lobby_update([lobby])
+    lobby_update_task.delay([lobby.id])
 
     return lobby
 
@@ -138,7 +149,7 @@ def set_public(lobby_id: int) -> Lobby:
 def set_private(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     lobby.set_private()
-    ws_controller.lobby_update([lobby])
+    lobby_update_task.delay([lobby.id])
 
     return lobby
 
@@ -171,7 +182,10 @@ def lobby_leave(user: User) -> Lobby:
     return lobby_move(user, to_lobby.id)
 
 
-def lobby_start_queue(lobby_id: int) -> Lobby:
+def lobby_start_queue(lobby_id: int, user: User) -> Lobby:
+    if user.account.match:
+        raise HttpError(403, _('Can\'t start queue while in a match.'))
+
     lobby = Lobby(owner_id=lobby_id)
 
     try:
@@ -179,12 +193,12 @@ def lobby_start_queue(lobby_id: int) -> Lobby:
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    ws_controller.lobby_update([lobby])
-    ws_controller.lobby_invites_update(lobby, expired=True)
+    lobby_update_task.delay([lobby.id])
+    lobby_invites_update_task.delay(lobby.id, expired=True)
     for invite in lobby.invites:
         lobby.delete_invite(invite.id)
     for user_id in lobby.players_ids:
-        ws_controller.user_status_change(User.objects.get(pk=user_id))
+        user_status_change_task.delay(user_id)
 
     team = Team.find(lobby) or Team.build(lobby)
     if team and team.ready:
@@ -193,12 +207,12 @@ def lobby_start_queue(lobby_id: int) -> Lobby:
             lobbies = team.lobbies + opponent.lobbies
             for lobby in lobbies:
                 lobby.cancel_queue()
-                ws_controller.lobby_update(lobbies)
+                lobby_update_task.delay([lobby.id for lobby in lobbies])
 
             pre_match = PreMatch.create(team.id, opponent.id)
-            ws_controller.pre_match(pre_match)
+            pre_match_task.delay(pre_match.id)
             for user in pre_match.players:
-                ws_controller.user_status_change(user)
+                user_status_change_task.delay(user.id)
 
     return lobby
 
@@ -207,9 +221,9 @@ def lobby_cancel_queue(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     lobby.cancel_queue()
 
-    ws_controller.lobby_update([lobby])
+    lobby_update_task.delay([lobby.id])
     for user_id in lobby.players_ids:
-        ws_controller.user_status_change(User.objects.get(pk=user_id))
+        user_status_change_task.delay(user_id)
 
     team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
     if team:
@@ -219,6 +233,10 @@ def lobby_cancel_queue(lobby_id: int) -> Lobby:
 
 
 def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
+
+    if user.account.match:
+        raise HttpError(403, _('Can\'t lock in for a new match while in a match.'))
+
     try:
         pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:
@@ -230,7 +248,7 @@ def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
     pre_match.set_player_lock_in()
     if pre_match.players_in >= PreMatchConfig.READY_PLAYERS_MIN:
         pre_match.start_players_ready_countdown()
-        ws_controller.pre_match(pre_match)
+        pre_match_task.delay(pre_match.id)
         # delay task to check if countdown is over to READY_COUNTDOWN seconds
         # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
         cancel_match_after_countdown.apply_async(
@@ -244,6 +262,10 @@ def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
 
 
 def match_player_ready(user: User, pre_match_id: str) -> PreMatch:
+
+    if user.account.match:
+        raise HttpError(403, _('Can\'t ready in for a new match while in a match.'))
+
     try:
         pre_match = PreMatch.get_by_id(pre_match_id)
     except PreMatchException:
@@ -256,7 +278,7 @@ def match_player_ready(user: User, pre_match_id: str) -> PreMatch:
         raise HttpError(400, _('Player already set as ready.'))
 
     pre_match.set_player_ready(user.id)
-    ws_controller.pre_match(pre_match)
+    pre_match_task.delay(pre_match.id)
     if len(pre_match.players_ready) >= PreMatchConfig.READY_PLAYERS_MIN:
         create_match(pre_match)
 
@@ -264,16 +286,36 @@ def match_player_ready(user: User, pre_match_id: str) -> PreMatch:
 
 
 def create_match(pre_match) -> Match:
+    server = Server.get_idle()
+    if not server:
+        # TODO send alert (email, etc) to admins
+        # TODO send alert to client app
+        return
+
     game_type, game_mode = pre_match.teams[0].type_mode
-    match = Match.objects.create(game_type=game_type, game_mode=game_mode)
+    match = Match.objects.create(
+        server=server, game_type=game_type, game_mode=game_mode
+    )
+
+    pre_team1, pre_team2 = pre_match.teams
+    team1 = match.matchteam_set.create(name=pre_team1.name)
+    team2 = match.matchteam_set.create(name=pre_team2.name)
 
     for user in pre_match.team1_players:
-        MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_A)
+        MatchPlayer.objects.create(user=user, team=team1)
 
     for user in pre_match.team2_players:
-        MatchPlayer.objects.create(user=user, match=match, team=Match.Teams.TEAM_B)
+        MatchPlayer.objects.create(user=user, team=team2)
 
     # TODO start match on the FiveM server
     # (https://github.com/3C-gg/reload-backend/issues/243)
+
+    match_task.delay(match.id)
+    for match_player in match.players:
+        user_status_change_task.delay(match_player.user.id)
+
+    if server.is_almost_full:
+        # TODO send alert (email, etc) to admins
+        pass
 
     return match

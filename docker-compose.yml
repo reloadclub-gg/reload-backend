@@ -44,4 +44,4 @@ services:
 
 volumes:
   db:
-    name: gta_db
+    name: reload_db
