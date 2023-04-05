@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-deployment
-  namespace: default
   labels:
     app: api-deployment
 spec:
@@ -24,6 +23,3 @@ spec:
                 name: api-staging-env
           ports:
             - containerPort: 80
-
-      imagePullSecrets:
-        - name: do-container-registry
