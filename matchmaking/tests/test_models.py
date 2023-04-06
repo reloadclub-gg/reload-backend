@@ -9,12 +9,15 @@ from django.utils import timezone
 from accounts.models import User
 from core.redis import RedisClient
 from core.tests import TestCase, cache
+from core.utils import generate_random_string, str_to_timezone
 
 from ..models import (
     Lobby,
     LobbyException,
     LobbyInvite,
     LobbyInviteException,
+    Player,
+    PlayerException,
     PreMatch,
     PreMatchConfig,
     PreMatchException,
@@ -680,7 +683,6 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertFalse(Lobby.is_owner(lobby.id, self.user_2.id))
 
     def test_delete_all_keys(self):
-        cache = RedisClient()
         lobby = Lobby.create(self.user_1.id)
         self.assertGreaterEqual(
             len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 1
@@ -690,6 +692,17 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(
             len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 0
         )
+
+    def test_start_queue(self):
+        lobby = Lobby.create(self.user_1.id)
+        self.assertIsNone(lobby.queue)
+
+        lobby.start_queue()
+        self.assertIsNotNone(lobby.queue)
+
+        player = Player.get_by_user_id(self.user_1.id)
+        self.assertIsNotNone(player)
+        self.assertEqual(player.user_id, self.user_1.id)
 
 
 class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
@@ -1347,3 +1360,69 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         pre_match = PreMatch.get_by_player_id(player_id=self.user_15.id)
         self.assertIsNone(pre_match)
+
+
+class PlayerModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+    def test_create(self):
+        player = Player.create(self.user_1.id)
+        self.assertIsNotNone(player)
+        self.assertEqual(player.user_id, self.user_1.id)
+        self.assertTrue(cache.sismember('__mm:players', self.user_1.id))
+
+    def test_get_all(self):
+        Player.create(self.user_1.id)
+        Player.create(self.user_2.id)
+        Player.create(self.user_3.id)
+
+        self.assertEqual(len(Player.get_all()), 3)
+
+    def test_get_by_user_id(self):
+        Player.create(self.user_2.id)
+
+        with self.assertRaises(PlayerException):
+            Player.get_by_user_id(self.user_1.id)
+
+        player = Player.get_by_user_id(self.user_2.id)
+        self.assertEqual(self.user_2.id, player.user_id)
+
+    def test_dodge_add(self):
+        player = Player.create(self.user_1.id)
+        self.assertEqual(player.dodges, 0)
+        player.dodge_add()
+        self.assertEqual(player.dodges, 1)
+        player.dodge_add()
+        self.assertEqual(player.dodges, 2)
+
+    def test_dodge_clear(self):
+        player = Player.create(self.user_1.id)
+        player.dodge_add()
+        player.dodge_add()
+        self.assertEqual(player.dodges, 2)
+        player.dodge_clear()
+        self.assertEqual(player.dodges, 0)
+
+    def test_latest_dodge(self):
+        player = Player.create(self.user_1.id)
+        cache.zadd(
+            f'{player.cache_key}:dodges',
+            {'2023-04-06T16:40:31.610866+00:00': 1680800659.26437},
+        )
+        self.assertEqual(
+            player.latest_dodge, str_to_timezone('2023-04-06T16:40:31.610866+00:00')
+        )
+
+        cache.zadd(
+            f'{player.cache_key}:dodges',
+            {'2023-05-06T16:40:31.610866+00:00': 1780800659.26437},
+        )
+        cache.zadd(
+            f'{player.cache_key}:dodges',
+            {'2023-06-06T16:40:31.610866+00:00': 1880800659.26437},
+        )
+        cache.zadd(
+            f'{player.cache_key}:dodges',
+            {'2023-03-06T16:40:31.610866+00:00': 1980800659.26437},
+        )
+        self.assertEqual(
+            player.latest_dodge, str_to_timezone('2023-03-06T16:40:31.610866+00:00')
+        )

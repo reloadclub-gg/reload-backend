@@ -313,3 +313,6 @@ MATCHES_LIMIT_PER_SERVER_GAP = config(
 APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)
 PLAYER_MAX_LEVEL = config('PLAYER_MAX_LEVEL', default=50, cast=int)
 PLAYER_MAX_LEVEL_POINTS = config('PLAYER_MAX_LEVEL_POINTS', default=100, cast=int)
+PLAYER_DODGES_EXPIRE_TIME = config(
+    'PLAYER_DODGES_EXPIRE_TIME', default=60 * 60 * 24 * 7, cast=int
+)  # 1 semana (7 dias)
