@@ -1335,7 +1335,8 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         all_matches = PreMatch.get_all()
         self.assertEqual(len(all_matches), 0)
 
-        PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match.start_players_ready_countdown()
         all_matches = PreMatch.get_all()
         self.assertEqual(len(all_matches), 1)
 
