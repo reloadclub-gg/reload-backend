@@ -65,6 +65,7 @@ class LobbySchema(Schema):
     seats: int
     queue: Optional[str]
     queue_time: Optional[int]
+    restriction_countdown: Optional[int]
 
     class Config:
         model = Lobby

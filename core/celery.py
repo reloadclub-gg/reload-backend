@@ -2,6 +2,7 @@ import logging
 import os
 
 import celery
+from celery.schedules import crontab
 from django.conf import settings
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
@@ -9,7 +10,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 app = celery.Celery('gta', CELERY_ALWAYS_EAGER=settings.TEST_MODE)
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-app.conf.beat_schedule = {}
+app.conf.beat_schedule = {
+    'clear_dodges': {
+        'task': 'matchmaking.tasks.clear_dodges',
+        'schedule': crontab(minute=0, hour=0),
+    },
+}
 
 
 @celery.signals.after_setup_logger.connect

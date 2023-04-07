@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adiciona cálculo de Pontos de Nível (PNs) ganhos no modelo `MatchPlayer`. Esse cálculo determina a quantidade de PNs que esse player deve ganhar em uma partda.
 - Adiciona dois serviços no `AppConfig` e suas respectivas configs padrão do sistema: `PLAYER_MAX_LEVEL` e `PLAYER_MAX_LEVEL_POINTS`.
 - Adiciona modelos do sistema de report (https://github.com/3C-gg/reload-backend/issues/338).
+- Adiciona teste no Redis para garantir que o método retornado pela transação funcione.
+- Cria modelo de `Player` no Redis.
+- Adiciona sistema de penalidade/restrição de fila por dodges (https://github.com/3C-gg/reload-backend/issues/275).
 
 ### Fixed
 
@@ -38,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Evento que atualiza status do usuário não estava sendo disparado ao sair de um lobby (https://github.com/3C-gg/reload-backend/issues/319).
 - AppSettings não era capaz de atualizar valores nos métodos de `set`. Com essa correção, ele atualiza os valores de uma config caso a encontre. Caso não encontre, ele cria uma nova com os valores recebidos.
 - Impede que usuários iniciem uma busca por partidas caso já estejam em uma partida. Além disso, também protege a marcação de `lockin` e `ready` em pré partidas, além da mudança de modo/tipo de lobby (https://github.com/3C-gg/reload-backend/issues/329).
+- Estávamos entrando em deadlock de transação ao tentar deletar convites dos usuários enquanto tentávamos mover eles para seus antigos lobbies. Consertamos esse problema, de maneira a não usar uma transação dentro de outra.
+- Método `get_all` no modelo `PreMatch` estava pegando todas as chaves existentes com o pattern fornecido. Corrigido para que o método traga somente as chaves de `PreMatch` e não as de apoio.
 
 ### Changed
 

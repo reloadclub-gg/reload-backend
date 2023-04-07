@@ -57,6 +57,7 @@ class LobbySchemaTestCase(mixins.VerifiedPlayersMixin, TestCase):
             'seats': 4,
             'queue': None,
             'queue_time': None,
+            'restriction_countdown': None,
         }
 
         self.assertDictEqual(payload, expected_payload)
@@ -88,6 +89,7 @@ class LobbySchemaTestCase(mixins.VerifiedPlayersMixin, TestCase):
             'seats': 3,
             'queue': None,
             'queue_time': None,
+            'restriction_countdown': None,
         }
 
         self.assertDictEqual(payload, expected_payload)
