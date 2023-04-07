@@ -13,7 +13,7 @@ from ..models import (
     Team,
     TeamException,
 )
-from ..tasks import cancel_match_after_countdown
+from ..tasks import cancel_match_after_countdown, clear_dodges
 from . import mixins
 
 cache = RedisClient()
@@ -48,3 +48,22 @@ class MMTasksTestCase(mixins.TeamsMixin, TestCase):
         with self.assertRaises(TeamException):
             Team.get_by_id(self.team1.id)
             Team.get_by_id(self.team2.id)
+
+    def test_clear_dodges(self):
+        player = Player.create(self.user_1.id)
+        clear_dodges()
+        self.assertEqual(player.dodges, 0)
+
+        cache.zadd(
+            f'{player.cache_key}:dodges',
+            {'2023-04-06T16:40:31.610866+00:00': 1680800659.26437},
+        )
+        clear_dodges()
+        self.assertEqual(player.dodges, 1)
+
+        cache.zadd(
+            f'{player.cache_key}:dodges',
+            {'2023-03-31T16:40:31.610866+00:00': 1680800759.26437},
+        )
+        clear_dodges()
+        self.assertEqual(player.dodges, 0)

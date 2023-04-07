@@ -2,6 +2,7 @@ import time
 
 from celery import shared_task
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from core.redis import RedisClient
 from matchmaking.models import Player, PreMatch, PreMatchConfig
@@ -48,3 +49,12 @@ def cancel_match_after_countdown(pre_match_id: str):
         team1.delete()
         team2.delete()
         PreMatch.delete(pre_match.id)
+
+
+@shared_task
+def clear_dodges():
+    players = Player.get_all()
+    last_week = timezone.now() - timezone.timedelta(days=7)
+    for player in players:
+        if player.latest_dodge and player.latest_dodge <= last_week:
+            player.dodge_clear()
