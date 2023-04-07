@@ -64,3 +64,20 @@ class TestWatchError(TestCase):
         self.assertEqual(
             '2022-04-28T18:21:17.852892+00:00', cache.get('__mm:lobby:1:queue')
         )
+
+    def test_watching_returning_value(self):
+        def transaction_pre(pipe):
+            return pipe.smembers('__mm:lobby:1:players')
+
+        def transaction_operations(pipe, pre_result):
+            pipe.set('__mm:lobby:1:queue', timezone.now().isoformat())
+
+            return {'status': 'ok'}
+
+        return cache.protected_handler(
+            transaction_operations,
+            '__mm:lobby:1:players',
+            max_retries=1,
+            pre_func=transaction_pre,
+            value_from_callable=True,
+        )
