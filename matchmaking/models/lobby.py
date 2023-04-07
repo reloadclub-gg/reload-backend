@@ -427,6 +427,10 @@ class Lobby(BaseModel):
         if self.queue:
             raise LobbyException(_('Lobby is queued.'))
 
+        for user_id in self.players_ids:
+            if Player.get_by_user_id(user_id=user_id).lock_date:
+                raise LobbyException(_('Can\'t start queue due to player restriction.'))
+
         def transaction_operations(pipe, pre_result):
             pipe.set(f'{self.cache_key}:queue', timezone.now().isoformat())
 

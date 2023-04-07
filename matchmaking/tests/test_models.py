@@ -695,14 +695,27 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
     def test_start_queue(self):
         lobby = Lobby.create(self.user_1.id)
-        self.assertIsNone(lobby.queue)
+        lobby.set_public()
+        Lobby.create(self.user_2.id)
+        Lobby.create(self.user_3.id)
+        Lobby.create(self.user_4.id)
+        Lobby.move(self.user_2.id, lobby.id)
+        Lobby.move(self.user_3.id, lobby.id)
+        Lobby.move(self.user_4.id, lobby.id)
 
+        self.assertIsNone(lobby.queue)
         lobby.start_queue()
         self.assertIsNotNone(lobby.queue)
+        lobby.cancel_queue()
 
-        player = Player.get_by_user_id(self.user_1.id)
-        self.assertIsNotNone(player)
-        self.assertEqual(player.user_id, self.user_1.id)
+        player = Player.get_by_user_id(self.user_3.id)
+        player.dodge_add()
+        player.dodge_add()
+        lobby.start_queue()
+
+        player.dodge_add()
+        with self.assertRaises(LobbyException):
+            lobby.start_queue()
 
 
 class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
