@@ -7,9 +7,8 @@ from django.conf import settings
 from django.utils import timezone
 
 from accounts.models import User
-from core.redis import RedisClient
 from core.tests import TestCase, cache
-from core.utils import generate_random_string, str_to_timezone
+from core.utils import str_to_timezone
 
 from ..models import (
     Lobby,
