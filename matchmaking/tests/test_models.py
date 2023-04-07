@@ -717,6 +717,29 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         with self.assertRaises(LobbyException):
             lobby.start_queue()
 
+    def test_restriction_countdown(self):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.set_public()
+        Lobby.create(self.user_2.id)
+        Lobby.move(self.user_2.id, lobby.id)
+
+        self.assertIsNone(lobby.restriction_countdown)
+
+        player1 = Player.get_by_user_id(user_id=self.user_1.id)
+        delta = timezone.timedelta(minutes=15)
+        cache.set(
+            f'{player1.cache_key}:queue_lock',
+            (timezone.now() + delta).isoformat(),
+        )
+
+        player2 = Player.get_by_user_id(user_id=self.user_2.id)
+        delta = timezone.timedelta(minutes=5)
+        cache.set(
+            f'{player2.cache_key}:queue_lock',
+            (timezone.now() + delta).isoformat(),
+        )
+        self.assertEqual(lobby.restriction_countdown, player1.lock_countdown)
+
 
 class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
     def setUp(self) -> None:

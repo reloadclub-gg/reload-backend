@@ -170,6 +170,19 @@ class Lobby(BaseModel):
         """
         return self.mode
 
+    @property
+    def restriction_countdown(self) -> int:
+        """
+        Return the greatest player restriction countdown in seconds.
+        """
+        lock_countdowns = [
+            Player(user_id=player_id).lock_countdown
+            for player_id in self.players_ids
+            if Player(user_id=player_id).lock_countdown
+        ]
+        if lock_countdowns:
+            return max(lock_countdowns)
+
     @staticmethod
     def get_current(player_id: int) -> Lobby:
         """

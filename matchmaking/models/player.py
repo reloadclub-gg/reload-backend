@@ -79,7 +79,7 @@ class Player(BaseModel):
     @property
     def lock_countdown(self) -> int:
         """
-        Return the countdown for the queue restriction end.
+        Return the countdown, in seconds, for the queue restriction end.
         """
         if self.lock_date:
             return (self.lock_date - timezone.now()).seconds
