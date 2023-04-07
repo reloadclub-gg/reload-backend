@@ -236,7 +236,6 @@ class Lobby(BaseModel):
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
         from_lobby = Lobby(owner_id=from_lobby_id)
         to_lobby = Lobby(owner_id=to_lobby_id)
-        new_lobby = None
 
         def transaction_pre(pipe):
             if not pipe.get(from_lobby.cache_key) or not pipe.get(to_lobby.cache_key):
@@ -309,7 +308,7 @@ class Lobby(BaseModel):
 
             invites_from_player = from_lobby.get_invites_by_from_player_id(player_id)
             for invite in invites_from_player:
-                from_lobby.delete_invite(invite.id)
+                pipe.srem(f'{from_lobby.cache_key}:invites', invite.id)
 
             if remove:
                 Lobby.delete(to_lobby.id, pipe=pipe)
@@ -317,7 +316,7 @@ class Lobby(BaseModel):
 
             return new_lobby
 
-        new_lobby = cache.protected_handler(
+        return cache.protected_handler(
             transaction_operations,
             f'{from_lobby.cache_key}:players',
             f'{from_lobby.cache_key}:queue',
@@ -328,8 +327,6 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
             value_from_callable=True,
         )
-
-        return new_lobby
 
     def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:
         """
