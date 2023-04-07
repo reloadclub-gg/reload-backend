@@ -1393,6 +1393,22 @@ class PlayerModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         player.dodge_add()
         self.assertEqual(player.dodges, 2)
 
+        player.dodge_add()
+        self.assertEqual(player.dodges, 3)
+
+        ttl = cache.ttl(f'{player.cache_key}:dodges')
+        self.assertEqual(ttl, Player.Config.DODGES_EXPIRE_TIME)
+
+        self.assertIsNotNone(player.lock_date)
+
+        with self.assertRaises(PlayerException):
+            player.dodge_add()
+
+        cache.delete(f'{player.cache_key}:queue_lock')
+
+        player.dodge_add()
+        self.assertEqual(player.dodges, 4)
+
     def test_dodge_clear(self):
         player = Player.create(self.user_1.id)
         player.dodge_add()
@@ -1426,3 +1442,17 @@ class PlayerModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertEqual(
             player.latest_dodge, str_to_timezone('2023-03-06T16:40:31.610866+00:00')
         )
+
+    def test_delete(self):
+        Player.create(user_id=self.user_1.id)
+        Player.delete(self.user_1.id)
+        self.assertFalse(cache.sismember('__mm:players', self.user_1.id))
+
+    def test_lock_countdown(self):
+        player = Player.create(user_id=self.user_1.id)
+        delta = timezone.timedelta(minutes=15)
+        cache.set(
+            f'{player.cache_key}:queue_lock',
+            (timezone.now() + delta).isoformat(),
+        )
+        self.assertEqual(player.lock_countdown, 60 * 15 - 1)

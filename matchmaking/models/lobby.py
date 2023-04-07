@@ -12,6 +12,7 @@ from core.redis import RedisClient
 from core.utils import str_to_timezone
 
 from .invite import LobbyInvite
+from .player import Player
 
 cache = RedisClient()
 User = get_user_model()
@@ -214,6 +215,8 @@ class Lobby(BaseModel):
         cache.set(f'{lobby.cache_key}:type', lobby_type)
         cache.set(f'{lobby.cache_key}:mode', mode)
         cache.sadd(f'{lobby.cache_key}:players', owner_id)
+
+        Player.create(user_id=owner_id)
 
         return lobby
 
@@ -535,6 +538,10 @@ class Lobby(BaseModel):
     @staticmethod
     def delete(lobby_id: int, pipe=None):
         lobby = Lobby(owner_id=lobby_id)
+
+        for player_id in lobby.players_ids:
+            Player.delete(player_id)
+
         keys = cache.keys(f'{lobby.cache_key}:*')
         if len(keys) >= 1:
             if pipe:
