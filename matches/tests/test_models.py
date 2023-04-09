@@ -2,7 +2,7 @@ from model_bakery import baker
 
 from appsettings.models import AppSettings
 from core.tests import TestCase
-from matches.models import Match, MatchPlayer, Server
+from matches.models import Match, MatchPlayer, MatchPlayerStats, Server
 from matchmaking.tests import mixins
 
 
@@ -46,11 +46,11 @@ class MatchesModelsTestCase(mixins.TeamsMixin, TestCase):
         team1.save()
         team2.score = 9
         team2.save()
-        self.assertEqual(match.rounds, player.rounds_played)
+        self.assertEqual(match.rounds, player.stats.rounds_played)
 
-        player.afk = 3
-        player.save()
-        self.assertEqual(player.rounds_played, match.rounds - player.afk)
+        player.stats.afk = 3
+        player.stats.save()
+        self.assertEqual(player.stats.rounds_played, match.rounds - player.stats.afk)
 
 
 class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
@@ -60,18 +60,20 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         self.match = baker.make(Match, server=self.server, status=Match.Status.FINISHED)
         self.team1 = self.match.matchteam_set.create(name=self.team1.name, score=10)
         self.team2 = self.match.matchteam_set.create(name=self.team2.name, score=8)
-        self.match
 
     def test_points_earned(self):
         player = baker.make(
             MatchPlayer,
             team=self.team1,
+        )
+        MatchPlayerStats.objects.filter(player=player).update(
             kills=25,
             deaths=9,
             assists=6,
             plants=3,
             defuses=4,
         )
+        player.refresh_from_db()
         self.assertEqual(player.points_earned, 30)
         player.team = self.team2
         player.save()
@@ -80,12 +82,15 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         player = baker.make(
             MatchPlayer,
             team=self.team1,
+        )
+        MatchPlayerStats.objects.filter(player=player).update(
             kills=13,
             deaths=10,
             assists=3,
             plants=2,
             defuses=3,
         )
+        player.refresh_from_db()
         self.assertEqual(player.points_earned, 21)
         player.team = self.team2
         player.save()
@@ -94,12 +99,15 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         player = baker.make(
             MatchPlayer,
             team=self.team1,
+        )
+        MatchPlayerStats.objects.filter(player=player).update(
             kills=8,
             deaths=13,
             assists=2,
             plants=2,
             defuses=1,
         )
+        player.refresh_from_db()
         self.assertEqual(player.points_earned, 10)
         player.team = self.team2
         player.save()
@@ -108,6 +116,8 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         player = baker.make(
             MatchPlayer,
             team=self.team1,
+        )
+        MatchPlayerStats.objects.filter(player=player).update(
             kills=13,
             deaths=10,
             assists=3,
@@ -115,6 +125,7 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
             defuses=3,
             afk=3,
         )
+        player.refresh_from_db()
         self.assertEqual(player.points_earned, 12)
         player.team = self.team2
         player.save()

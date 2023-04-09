@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adiciona teste no Redis para garantir que o método retornado pela transação funcione.
 - Cria modelo de `Player` no Redis.
 - Adiciona sistema de penalidade/restrição de fila por dodges (https://github.com/3C-gg/reload-backend/issues/275).
+- Cria modelo `MatchPlayerStats` no db para salvar as estatísticas do jogador.
+- Adiciona endpoint de detalhe de partida (https://github.com/3C-gg/reload-backend/issues/342).
 
 ### Fixed
 
@@ -57,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera propriedade `rounds` do modelo `Match` para refletir mudanças incorporadas pelo modelo `MatchTeam`.
 - Criação de partida no controller API de `matchmaking` para refletir novos modelos.
 - Altera campo `status` no esquema API de `Match` para retornar uma string correspondente ao valor inteiro.
+- Com a criação do modelo `MatchPlayerStats` o modelo `MatchPlayer` agora possui menos campos e cálculos, restando apenas a propriedade `points_earned`.
 
 ### Removed
 

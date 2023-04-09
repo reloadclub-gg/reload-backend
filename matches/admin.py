@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Match, MatchPlayer, MatchTeam, Server
+from .models import Match, MatchPlayer, MatchPlayerStats, MatchTeam, Server
 
 
 @admin.register(Server)
@@ -59,16 +59,31 @@ class MatchPlayerAdmin(admin.ModelAdmin):
         'user',
         'team',
         'match',
-        'kills',
-        'deaths',
-        'assists',
-        'afk',
-        'points_earned',
     )
     search_fields = ('user__email', 'user__steam_user__username', 'team__name')
 
     def match(self, obj):
         return obj.team.match
+
+
+@admin.register(MatchPlayerStats)
+class MatchPlayerStatsAdmin(admin.ModelAdmin):
+    list_display = (
+        'player',
+        'match',
+        'kills',
+        'deaths',
+        'assists',
+        'afk',
+    )
+    search_fields = (
+        'player__user__email',
+        'player__user__steam_user__username',
+        'player__team__name',
+    )
+
+    def match(self, obj):
+        return obj.player.team.match
 
     def points_earned(self, obj):
         return obj.points_earned

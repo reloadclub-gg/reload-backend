@@ -2,13 +2,26 @@ from typing import List, Optional
 
 from ninja import ModelSchema
 
-from ..models import Match, MatchPlayer, MatchTeam
+from steam import Steam
+
+from ..models import Match, MatchPlayer, MatchPlayerStats, MatchTeam
+
+
+class MatchPlayerStatsSchema(ModelSchema):
+    class Config:
+        model = MatchPlayerStats
+        model_exclude = ['player', 'id']
 
 
 class MatchPlayerSchema(ModelSchema):
     match_id: int
     team_id: int
     user_id: int
+    username: str
+    level: int
+    avatar: dict
+    points_earned: int = None
+    stats: MatchPlayerStatsSchema
 
     class Config:
         model = MatchPlayer
@@ -25,6 +38,22 @@ class MatchPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_team_id(obj):
         return obj.team.id
+
+    @staticmethod
+    def resolve_username(obj):
+        return obj.user.steam_user.username
+
+    @staticmethod
+    def resolve_level(obj):
+        return obj.user.account.level
+
+    @staticmethod
+    def resolve_avatar(obj):
+        return {
+            'small': Steam.build_avatar_url(obj.user.steam_user.avatarhash),
+            'medium': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium'),
+            'large': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'full'),
+        }
 
 
 class MatchTeamSchema(ModelSchema):
