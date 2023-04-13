@@ -1,11 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: managed-cert-ingress
+  name: api-ingress
   annotations:
     kubernetes.io/ingress.global-static-ip-name: reload-api-ip
     networking.gke.io/managed-certificates: managed-cert
-    kubernetes.io/ingress.class: "gce"
 spec:
   defaultBackend:
     service:
