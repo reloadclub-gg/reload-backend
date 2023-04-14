@@ -15,7 +15,6 @@ echo "Iniciando deploy para $ENVIRONMENT..."
 
 kubectl delete secret api-$ENVIRONMENT-env
 kubectl create secret generic api-$ENVIRONMENT-env --from-env-file=.env.$ENVIRONMENT
-kubectl apply -f k8s/apps/api.yaml
 kubectl rollout restart deployment/api-deployment
 kubectl rollout status deployment/api-deployment
 sleep 3
