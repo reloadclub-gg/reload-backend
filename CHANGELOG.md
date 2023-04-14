@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Impede que usuários iniciem uma busca por partidas caso já estejam em uma partida. Além disso, também protege a marcação de `lockin` e `ready` em pré partidas, além da mudança de modo/tipo de lobby (https://github.com/3C-gg/reload-backend/issues/329).
 - Estávamos entrando em deadlock de transação ao tentar deletar convites dos usuários enquanto tentávamos mover eles para seus antigos lobbies. Consertamos esse problema, de maneira a não usar uma transação dentro de outra.
 - Método `get_all` no modelo `PreMatch` estava pegando todas as chaves existentes com o pattern fornecido. Corrigido para que o método traga somente as chaves de `PreMatch` e não as de apoio.
+- Corrige teste `matchmaking.tests.test_tasks.MMTasksTestCase.test_clear_dodges` que não estava passando pois estava setando datas hardcoded. Agora o teste roda com datas dinâmicas.
 
 ### Changed
 
