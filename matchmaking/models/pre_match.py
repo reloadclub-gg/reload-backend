@@ -191,9 +191,10 @@ class PreMatch(BaseModel):
         pre_matches_keys = cache.keys(f'{PreMatchConfig.CACHE_PREFIX}*')
         result = []
         for pre_match_key in pre_matches_keys:
-            pre_match_id = pre_match_key.split(':')[2]
-            pre_match = PreMatch.get_by_id(pre_match_id)
-            result.append(pre_match)
+            if len(pre_match_key.split(':')) == 3:
+                pre_match_id = pre_match_key.split(':')[2]
+                pre_match = PreMatch.get_by_id(pre_match_id)
+                result.append(pre_match)
 
         return result
 

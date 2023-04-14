@@ -2,9 +2,10 @@ import time
 
 from celery import shared_task
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from core.redis import RedisClient
-from matchmaking.models import PreMatch, PreMatchConfig
+from matchmaking.models import Player, PreMatch, PreMatchConfig
 from websocket import controller as ws_controller
 
 cache = RedisClient()
@@ -39,10 +40,21 @@ def cancel_match_after_countdown(pre_match_id: str):
                 ws_controller.restart_queue(lobby)
             else:
                 ws_controller.match_cancel_warn(lobby)
-                # TODO apply some penalty to players with consecutive dodges
-                # https://github.com/3C-gg/reload-backend/issues/275
+                for player_id in lobby.players_ids:
+                    if player_id not in ready_players_ids:
+                        player = Player.get_by_user_id(player_id)
+                        player.dodge_add()
 
         # delete the pre_match and teams from Redis
         team1.delete()
         team2.delete()
         PreMatch.delete(pre_match.id)
+
+
+@shared_task
+def clear_dodges():
+    players = Player.get_all()
+    last_week = timezone.now() - timezone.timedelta(days=7)
+    for player in players:
+        if player.latest_dodge and player.latest_dodge <= last_week:
+            player.dodge_clear()

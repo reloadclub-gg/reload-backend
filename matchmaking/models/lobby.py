@@ -12,6 +12,7 @@ from core.redis import RedisClient
 from core.utils import str_to_timezone
 
 from .invite import LobbyInvite
+from .player import Player
 
 cache = RedisClient()
 User = get_user_model()
@@ -169,6 +170,19 @@ class Lobby(BaseModel):
         """
         return self.mode
 
+    @property
+    def restriction_countdown(self) -> int:
+        """
+        Return the greatest player restriction countdown in seconds.
+        """
+        lock_countdowns = [
+            Player(user_id=player_id).lock_countdown
+            for player_id in self.players_ids
+            if Player(user_id=player_id).lock_countdown
+        ]
+        if lock_countdowns:
+            return max(lock_countdowns)
+
     @staticmethod
     def get_current(player_id: int) -> Lobby:
         """
@@ -215,6 +229,8 @@ class Lobby(BaseModel):
         cache.set(f'{lobby.cache_key}:mode', mode)
         cache.sadd(f'{lobby.cache_key}:players', owner_id)
 
+        Player.create(user_id=owner_id)
+
         return lobby
 
     # flake8: noqa: C901
@@ -236,7 +252,6 @@ class Lobby(BaseModel):
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
         from_lobby = Lobby(owner_id=from_lobby_id)
         to_lobby = Lobby(owner_id=to_lobby_id)
-        new_lobby = None
 
         def transaction_pre(pipe):
             if not pipe.get(from_lobby.cache_key) or not pipe.get(to_lobby.cache_key):
@@ -309,7 +324,7 @@ class Lobby(BaseModel):
 
             invites_from_player = from_lobby.get_invites_by_from_player_id(player_id)
             for invite in invites_from_player:
-                from_lobby.delete_invite(invite.id)
+                pipe.srem(f'{from_lobby.cache_key}:invites', invite.id)
 
             if remove:
                 Lobby.delete(to_lobby.id, pipe=pipe)
@@ -317,7 +332,7 @@ class Lobby(BaseModel):
 
             return new_lobby
 
-        new_lobby = cache.protected_handler(
+        return cache.protected_handler(
             transaction_operations,
             f'{from_lobby.cache_key}:players',
             f'{from_lobby.cache_key}:queue',
@@ -328,8 +343,6 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
             value_from_callable=True,
         )
-
-        return new_lobby
 
     def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:
         """
@@ -426,6 +439,10 @@ class Lobby(BaseModel):
         """
         if self.queue:
             raise LobbyException(_('Lobby is queued.'))
+
+        for user_id in self.players_ids:
+            if Player.get_by_user_id(user_id=user_id).lock_date:
+                raise LobbyException(_('Can\'t start queue due to player restriction.'))
 
         def transaction_operations(pipe, pre_result):
             pipe.set(f'{self.cache_key}:queue', timezone.now().isoformat())
@@ -538,6 +555,10 @@ class Lobby(BaseModel):
     @staticmethod
     def delete(lobby_id: int, pipe=None):
         lobby = Lobby(owner_id=lobby_id)
+
+        for player_id in lobby.players_ids:
+            Player.delete(player_id)
+
         keys = cache.keys(f'{lobby.cache_key}:*')
         if len(keys) >= 1:
             if pipe:

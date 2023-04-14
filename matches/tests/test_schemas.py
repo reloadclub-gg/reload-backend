@@ -4,6 +4,7 @@ from core.tests import TestCase
 from matches.api import schemas
 from matches.models import Match, MatchPlayer, MatchTeam
 from matchmaking.tests import mixins
+from steam import Steam
 
 
 class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
@@ -46,28 +47,44 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
             'user_id': match_player.user.id,
             'team_id': match_player.team.id,
             'match_id': match_player.team.match.id,
-            'kills': 0,
-            'deaths': 0,
-            'assists': 0,
-            'damage': 0,
-            'hs_kills': 0,
-            'afk': 0,
-            'plants': 0,
-            'defuses': 0,
-            'double_kills': 0,
-            'triple_kills': 0,
-            'quadra_kills': 0,
-            'aces': 0,
-            'clutch_v1': 0,
-            'clutch_v2': 0,
-            'clutch_v3': 0,
-            'clutch_v4': 0,
-            'clutch_v5': 0,
-            'firstkills': 0,
-            'shots_fired': 0,
-            'head_shots': 0,
-            'chest_shots': 0,
-            'other_shots': 0,
+            'username': match_player.user.steam_user.username,
+            'level': match_player.user.account.level,
+            'avatar': {
+                'small': Steam.build_avatar_url(
+                    match_player.user.steam_user.avatarhash
+                ),
+                'medium': Steam.build_avatar_url(
+                    match_player.user.steam_user.avatarhash, 'medium'
+                ),
+                'large': Steam.build_avatar_url(
+                    match_player.user.steam_user.avatarhash, 'full'
+                ),
+            },
+            'points_earned': match_player.points_earned,
+            'stats': {
+                'kills': 0,
+                'deaths': 0,
+                'assists': 0,
+                'damage': 0,
+                'hs_kills': 0,
+                'afk': 0,
+                'plants': 0,
+                'defuses': 0,
+                'double_kills': 0,
+                'triple_kills': 0,
+                'quadra_kills': 0,
+                'aces': 0,
+                'clutch_v1': 0,
+                'clutch_v2': 0,
+                'clutch_v3': 0,
+                'clutch_v4': 0,
+                'clutch_v5': 0,
+                'firstkills': 0,
+                'shots_fired': 0,
+                'head_shots': 0,
+                'chest_shots': 0,
+                'other_shots': 0,
+            },
         }
         self.assertDictEqual(payload, expected_payload)
 
