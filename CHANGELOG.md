@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adiciona sistema de penalidade/restrição de fila por dodges (https://github.com/3C-gg/reload-backend/issues/275).
 - Cria modelo `MatchPlayerStats` no db para salvar as estatísticas do jogador.
 - Adiciona endpoint de detalhe de partida (https://github.com/3C-gg/reload-backend/issues/342).
+- URL `/health-check` para o health check do Ingress do GKE .
+- Adiciona middleware para permitir que `/health-check` seja aberta para o Mundo ("`ALLOWED_HOSTS` excempt").
 
 ### Fixed
 
@@ -59,7 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera propriedade `rounds` do modelo `Match` para refletir mudanças incorporadas pelo modelo `MatchTeam`.
 - Criação de partida no controller API de `matchmaking` para refletir novos modelos.
 - Altera campo `status` no esquema API de `Match` para retornar uma string correspondente ao valor inteiro.
-- Com a criação do modelo `MatchPlayerStats` o modelo `MatchPlayer` agora possui menos campos e cálculos, restando apenas a propriedade `points_earned`.
+- # Com a criação do modelo `MatchPlayerStats` o modelo `MatchPlayer` agora possui menos campos e cálculos, restando apenas a propriedade `points_earned`.
+- Faz com que jobs do GH workflow em `lint_and_test.yaml` iniciem somente após a validação dos jobs em `check_changelog.yaml`.
+- Altera GH workflow `build_and_push.yaml` para que reflita repositórios de imagens do Docker do GCP ao invés da Digital Ocean.
 
 ### Removed
 
@@ -68,6 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove campo `match` do modelo `MatchPlayer`.
 - Remove campos de pontuação dos times (`team_a_score` e `team_b_score`) do modelo `Match`.
 - Remove campo `winner_team` do modelo `Match`, que agora passa a ser um campo calculado.
+- Remove etapa do deploy que aplicava instrução do `Deployment`.
+- Remove arquivos antigos de instruções de cluster na Digital Ocean.
 
 ## [023c3eb - 19/03/2023]
 

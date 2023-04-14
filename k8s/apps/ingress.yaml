@@ -3,21 +3,11 @@ kind: Ingress
 metadata:
   name: api-ingress
   annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.global-static-ip-name: reload-api-ip
+    networking.gke.io/managed-certificates: managed-cert
 spec:
-  tls:
-    - hosts:
-        - api.dev.reloadclub.gg
-      secretName: api-tls
-  rules:
-    - host: api.dev.reloadclub.gg
-      http:
-        paths:
-          - pathType: Prefix
-            path: "/"
-            backend:
-              service:
-                name: api-service
-                port:
-                  number: 80
+  defaultBackend:
+    service:
+      name: api-service
+      port:
+        number: 80
