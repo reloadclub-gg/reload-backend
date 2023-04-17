@@ -165,6 +165,13 @@ class Match(models.Model):
         self.start_date = timezone.now()
         self.save()
 
+    def ready(self):
+        if self.status != Match.Status.LOADING:
+            raise ValidationError(_('Unable to mark match as ready while not loading.'))
+
+        self.status = Match.Status.READY
+        self.save()
+
 
 class MatchTeam(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
