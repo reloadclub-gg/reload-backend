@@ -96,8 +96,9 @@ class Account(models.Model):
 
     @property
     def match(self) -> Match:
+        exclude_statues = [Match.Status.FINISHED, Match.Status.CANCELLED]
         qs = MatchPlayer.objects.filter(user=self.user).exclude(
-            team__match__status=Match.Status.FINISHED
+            team__match__status__in=exclude_statues
         )
         if len(qs) > 1:
             # TODO send alert to admin
