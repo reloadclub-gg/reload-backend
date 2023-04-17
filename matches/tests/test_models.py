@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from model_bakery import baker
 
 from appsettings.models import AppSettings
@@ -66,6 +67,12 @@ class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
         self.assertIsNone(self.match.end_date)
         self.assertEqual(self.user_1.account.level, 0)
         self.assertEqual(self.user_1.account.level_points, 0)
+
+        with self.assertRaises(ValidationError):
+            self.match.finish()
+
+        self.match.status = Match.Status.RUNNING
+        self.match.save()
 
         self.match.finish()
         self.assertEqual(self.match.status, Match.Status.FINISHED)

@@ -3,9 +3,11 @@ from __future__ import annotations
 from typing import List
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from appsettings.services import matches_limit_per_server, matches_limit_per_server_gap
 
@@ -143,6 +145,9 @@ class Match(models.Model):
         return f'#{self.id} - waiting for team creation'
 
     def finish(self):
+        if self.status != Match.Status.RUNNING:
+            raise ValidationError(_('Unable to finish match while not running.'))
+
         self.status = Match.Status.FINISHED
         self.end_date = timezone.now()
         self.save()
