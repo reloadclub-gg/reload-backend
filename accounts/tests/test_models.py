@@ -6,7 +6,7 @@ from model_bakery import baker
 from social_django.models import UserSocialAuth
 
 from core.tests import TestCase, cache
-from matches.models import Match, MatchPlayer, MatchTeam, Server
+from matches.models import Match, MatchPlayer, Server
 from matchmaking.models import Lobby
 from matchmaking.tests.mixins import TeamsMixin
 
