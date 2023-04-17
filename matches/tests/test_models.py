@@ -93,6 +93,13 @@ class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(self.match.status, Match.Status.RUNNING)
         self.assertIsNotNone(self.match.start_date)
 
+    def test_ready(self):
+        self.match.ready()
+        self.assertEqual(self.match.status, Match.Status.READY)
+
+        with self.assertRaises(ValidationError):
+            self.match.ready()
+
 
 class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
     def setUp(self):
