@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django_object_actions import DjangoObjectActions, action
 
 from .models import Match, MatchPlayer, MatchPlayerStats, MatchTeam, Server
 
@@ -17,7 +18,7 @@ class ServerAdmin(admin.ModelAdmin):
 
 
 @admin.register(Match)
-class MatchAdmin(admin.ModelAdmin):
+class MatchAdmin(DjangoObjectActions, admin.ModelAdmin):
     list_display = (
         'id',
         'server',
@@ -41,6 +42,23 @@ class MatchAdmin(admin.ModelAdmin):
             return f'{obj.team_a.name} {obj.team_a.score} x {obj.team_b.score} {obj.team_b.name}'
 
         return '- 0 x 0 -'
+
+    @action(label='Finalizar', description='Finaliza a partida')
+    def end_match(self, request, obj):
+        obj.finish()
+
+    change_actions = ('end_match',)
+
+    def get_change_actions(self, request, object_id, form_url):
+        actions = super(MatchAdmin, self).get_change_actions(
+            request, object_id, form_url
+        )
+        actions = list(actions)
+        obj = self.model.objects.get(pk=object_id)
+        if obj.status == Match.Status.FINISHED:
+            actions.remove('end_match')
+
+        return actions
 
 
 @admin.register(MatchTeam)
