@@ -6,7 +6,9 @@ from model_bakery import baker
 from social_django.models import UserSocialAuth
 
 from core.tests import TestCase, cache
+from matches.models import Match, MatchPlayer, Server
 from matchmaking.models import Lobby
+from matchmaking.tests.mixins import TeamsMixin
 
 from .. import models, utils
 from ..models.auth import AuthConfig
@@ -126,6 +128,33 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
 
         with self.assertRaises(ValidationError):
             account.set_level_points(-310)
+
+
+class AccountsAccountMatchModelTestCase(TeamsMixin, TestCase):
+    def test_match(self):
+        server = baker.make(Server)
+        match = baker.make(Match, server=server, status=Match.Status.LOADING)
+        team1 = match.matchteam_set.create(name=self.team1.name)
+        match.matchteam_set.create(name=self.team2.name)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+
+        self.assertEqual(self.user_1.account.match, match)
+
+        match.status = Match.Status.CANCELLED
+        match.save()
+        self.assertIsNone(self.user_1.account.match)
+
+        match.status = Match.Status.FINISHED
+        match.save()
+        self.assertIsNone(self.user_1.account.match)
+
+        match.status = Match.Status.RUNNING
+        match.save()
+        self.assertEqual(self.user_1.account.match, match)
+
+        match.status = Match.Status.READY
+        match.save()
+        self.assertEqual(self.user_1.account.match, match)
 
 
 class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):

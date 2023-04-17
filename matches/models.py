@@ -63,6 +63,7 @@ class Match(models.Model):
         READY = 1
         RUNNING = 2
         FINISHED = 3
+        CANCELLED = 4
 
     class GameType(models.TextChoices):
         CUSTOM = 'custom'
@@ -170,6 +171,15 @@ class Match(models.Model):
             raise ValidationError(_('Unable to mark match as ready while not loading.'))
 
         self.status = Match.Status.READY
+        self.save()
+
+    def cancel(self):
+        error_statuses = [Match.Status.FINISHED, Match.Status.CANCELLED]
+        if self.status in error_statuses:
+            raise ValidationError(_('Unable to cancel match after is finished.'))
+
+        self.status = Match.Status.CANCELLED
+        self.end_date = timezone.now()
         self.save()
 
 
