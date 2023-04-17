@@ -3,9 +3,11 @@ from __future__ import annotations
 from typing import List
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from appsettings.services import matches_limit_per_server, matches_limit_per_server_gap
 
@@ -58,8 +60,9 @@ class Server(models.Model):
 class Match(models.Model):
     class Status(models.IntegerChoices):
         LOADING = 0
-        RUNNING = 1
-        FINISHED = 2
+        READY = 1
+        RUNNING = 2
+        FINISHED = 3
 
     class GameType(models.TextChoices):
         CUSTOM = 'custom'
@@ -143,6 +146,9 @@ class Match(models.Model):
         return f'#{self.id} - waiting for team creation'
 
     def finish(self):
+        if self.status != Match.Status.RUNNING:
+            raise ValidationError(_('Unable to finish match while not running.'))
+
         self.status = Match.Status.FINISHED
         self.end_date = timezone.now()
         self.save()
@@ -150,6 +156,14 @@ class Match(models.Model):
         for player in self.players:
             player.user.account.set_level_points(player.points_earned)
             player.user.account.save()
+
+    def start(self):
+        if self.status != Match.Status.READY:
+            raise ValidationError(_('Unable to start match while not ready.'))
+
+        self.status = Match.Status.RUNNING
+        self.start_date = timezone.now()
+        self.save()
 
 
 class MatchTeam(models.Model):

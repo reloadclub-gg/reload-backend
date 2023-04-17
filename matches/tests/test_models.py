@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from model_bakery import baker
 
 from appsettings.models import AppSettings
@@ -67,6 +68,12 @@ class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(self.user_1.account.level, 0)
         self.assertEqual(self.user_1.account.level_points, 0)
 
+        with self.assertRaises(ValidationError):
+            self.match.finish()
+
+        self.match.status = Match.Status.RUNNING
+        self.match.save()
+
         self.match.finish()
         self.assertEqual(self.match.status, Match.Status.FINISHED)
         self.assertIsNotNone(self.match.end_date)
@@ -74,6 +81,17 @@ class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(
             self.user_1.account.level_points, self.match.players[0].points_earned
         )
+
+    def test_start(self):
+        self.assertIsNone(self.match.start_date)
+        with self.assertRaises(ValidationError):
+            self.match.start()
+
+        self.match.status = Match.Status.READY
+        self.match.save()
+        self.match.start()
+        self.assertEqual(self.match.status, Match.Status.RUNNING)
+        self.assertIsNotNone(self.match.start_date)
 
 
 class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
