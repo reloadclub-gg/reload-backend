@@ -60,8 +60,9 @@ class Server(models.Model):
 class Match(models.Model):
     class Status(models.IntegerChoices):
         LOADING = 0
-        RUNNING = 1
-        FINISHED = 2
+        READY = 1
+        RUNNING = 2
+        FINISHED = 3
 
     class GameType(models.TextChoices):
         CUSTOM = 'custom'
@@ -155,6 +156,14 @@ class Match(models.Model):
         for player in self.players:
             player.user.account.set_level_points(player.points_earned)
             player.user.account.save()
+
+    def start(self):
+        if self.status != Match.Status.READY:
+            raise ValidationError(_('Unable to start match while not ready.'))
+
+        self.status = Match.Status.RUNNING
+        self.start_date = timezone.now()
+        self.save()
 
 
 class MatchTeam(models.Model):

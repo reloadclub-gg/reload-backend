@@ -82,6 +82,17 @@ class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
             self.user_1.account.level_points, self.match.players[0].points_earned
         )
 
+    def test_start(self):
+        self.assertIsNone(self.match.start_date)
+        with self.assertRaises(ValidationError):
+            self.match.start()
+
+        self.match.status = Match.Status.READY
+        self.match.save()
+        self.match.start()
+        self.assertEqual(self.match.status, Match.Status.RUNNING)
+        self.assertIsNotNone(self.match.start_date)
+
 
 class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
     def setUp(self):
