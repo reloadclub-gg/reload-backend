@@ -5,6 +5,7 @@ from typing import List
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from appsettings.services import matches_limit_per_server, matches_limit_per_server_gap
 
@@ -140,6 +141,15 @@ class Match(models.Model):
         if self.team_a and self.team_b:
             return f'#{self.id} - {self.team_a.name} vs {self.team_b.name}'
         return f'#{self.id} - waiting for team creation'
+
+    def finish(self):
+        self.status = Match.Status.FINISHED
+        self.end_date = timezone.now()
+        self.save()
+
+        for player in self.players:
+            player.user.account.set_level_points(player.points_earned)
+            player.user.account.save()
 
 
 class MatchTeam(models.Model):

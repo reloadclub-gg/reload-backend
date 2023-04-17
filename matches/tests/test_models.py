@@ -60,6 +60,21 @@ class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
             list(self.team1.players) + list(self.team2.players),
         )
 
+    def test_finish(self):
+        baker.make(MatchPlayer, team=self.team1, user=self.user_1)
+        self.assertEqual(self.match.status, Match.Status.LOADING)
+        self.assertIsNone(self.match.end_date)
+        self.assertEqual(self.user_1.account.level, 0)
+        self.assertEqual(self.user_1.account.level_points, 0)
+
+        self.match.finish()
+        self.assertEqual(self.match.status, Match.Status.FINISHED)
+        self.assertIsNotNone(self.match.end_date)
+        self.assertEqual(self.user_1.account.level, 0)
+        self.assertEqual(
+            self.user_1.account.level_points, self.match.players[0].points_earned
+        )
+
 
 class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
     def setUp(self):
