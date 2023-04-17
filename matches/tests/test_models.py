@@ -26,20 +26,39 @@ class MatchesServerModelTestCase(mixins.TeamsMixin, TestCase):
 
 
 class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
-    def test_match_model(self):
-        server = baker.make(Server)
-        match = baker.make(Match, server=server)
-        team1 = match.matchteam_set.create(name=self.team1.name)
-        team2 = match.matchteam_set.create(name=self.team2.name)
-        self.assertIsNone(match.winner)
+    def setUp(self):
+        super().setUp()
+        self.server = baker.make(Server)
+        self.match = baker.make(Match, server=self.server)
+        self.team1 = self.match.matchteam_set.create(name=self.team1.name)
+        self.team2 = self.match.matchteam_set.create(name=self.team2.name)
 
-        team1.score = 8
-        team1.save()
-        team2.score = 9
-        team2.save()
+    def test_teams(self):
+        self.assertCountEqual(self.match.teams, [self.team1, self.team2])
+        self.assertEqual(self.match.team_a, self.match.teams[0], self.team1)
+        self.assertEqual(self.match.team_b, self.match.teams[1], self.team2)
 
-        self.assertEqual(match.rounds, 17)
-        self.assertEqual(match.winner, team2)
+    def test_rounds(self):
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 9
+        self.team2.save()
+
+        self.assertEqual(self.match.rounds, 17)
+
+    def test_winner(self):
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 10
+        self.team2.save()
+        self.assertEqual(self.match.winner, self.team2)
+
+    def test_players(self):
+        baker.make(MatchPlayer, team=self.team1, user=self.user_1)
+        self.assertEqual(
+            list(self.match.players),
+            list(self.team1.players) + list(self.team2.players),
+        )
 
 
 class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
