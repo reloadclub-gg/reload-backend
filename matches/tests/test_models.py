@@ -100,6 +100,19 @@ class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
         with self.assertRaises(ValidationError):
             self.match.ready()
 
+    def test_cancel(self):
+        self.match.cancel()
+        self.assertEqual(self.match.status, Match.Status.CANCELLED)
+
+        with self.assertRaises(ValidationError):
+            self.match.cancel()
+
+        self.match.status = Match.Status.FINISHED
+        self.match.save()
+
+        with self.assertRaises(ValidationError):
+            self.match.cancel()
+
 
 class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
     def setUp(self):

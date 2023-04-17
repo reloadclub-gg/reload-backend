@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Método de marcar a partida como cancelada no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/360).
 - Método de marcar a partida como pronta no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/358).
 - Adiciona algumas traduções faltantes.
 - Método de iniciar partida no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/356).

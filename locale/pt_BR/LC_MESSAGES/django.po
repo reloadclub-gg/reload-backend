@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 16:40-0300\n"
+"POT-Creation-Date: 2023-04-17 18:32-0300\n"
 "PO-Revision-Date: 2023-01-28 00:05-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -64,24 +64,26 @@ msgstr "É preciso informar ao menos o e-mail ou o código de verificação."
 msgid "Steam account not found."
 msgstr "Conta Steam não encontrada."
 
-#: accounts/models/account.py:104
+#: accounts/models/account.py:105
 msgid "User should not be in more then one match."
 msgstr "Usuário não pode estar em mais de uma partida ao mesmo tempo."
 
-#: accounts/models/account.py:148
+#: accounts/models/account.py:149
 msgid "Level points should never exceed max level points."
-msgstr "Pontos de nível ganhos nunca devem exceder o número máximo permitido de Pontos de nível."
+msgstr ""
+"Pontos de nível ganhos nunca devem exceder o número máximo permitido de "
+"Pontos de nível."
 
-#: accounts/models/account.py:212
+#: accounts/models/account.py:213
 #, python-brace-format
 msgid "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
 msgstr "Máximo número de convites atingido ({self.MAX_INVITES_PER_ACCOUNT})."
 
-#: accounts/models/account.py:216
+#: accounts/models/account.py:217
 msgid "Accepted invites cannot be modified."
 msgstr "Convites aceitos não podem ser modificados."
 
-#: accounts/models/account.py:219
+#: accounts/models/account.py:220
 msgid "An invite already exists for this email."
 msgstr "Já existe um convite para este e-mail."
 
@@ -446,9 +448,25 @@ msgstr "Não autorizado."
 msgid "Internationalization works."
 msgstr "A internacionalização está funcionando."
 
-#: matches/models.py:149
+#: matches/models.py:151
 msgid "Unable to finish match while not running."
 msgstr "Não é possível finalizar uma partida que não foi iniciada."
+
+#: matches/models.py:163
+#, fuzzy
+#| msgid "Unable to finish match while not running."
+msgid "Unable to start match while not ready."
+msgstr "Não é possível iniciar uma partida que não está pronta."
+
+#: matches/models.py:171
+#, fuzzy
+#| msgid "Unable to finish match while not running."
+msgid "Unable to mark match as ready while not loading."
+msgstr "Não é possível finalizar uma partida que não foi iniciada."
+
+#: matches/models.py:179
+msgid "Unable to cancel match after is finished."
+msgstr "Não é possível cancelar uma partida depois de ser finalizada."
 
 #: matchmaking/api/controller.py:74
 msgid "User must be in provided lobby to leave from it."
@@ -456,7 +474,9 @@ msgstr "Usuário precisa estar no lobby para sair dele."
 
 #: matchmaking/api/controller.py:106
 msgid "Can't change lobby mode or type while in a match."
-msgstr "Não é possível alterar o tipo ou modo de um lobby enquanto estiver em uma partida."
+msgstr ""
+"Não é possível alterar o tipo ou modo de um lobby enquanto estiver em uma "
+"partida."
 
 #: matchmaking/api/controller.py:162
 msgid "Can't accept an invite from the same lobby."
@@ -468,11 +488,13 @@ msgstr "Não é possível entrar na fila enquanto estiver em uma partida."
 
 #: matchmaking/api/controller.py:238
 msgid "Can't lock in for a new match while in a match."
-msgstr "Não é possível entrar em uma nova partida enquanto estiver em uma partida."
+msgstr ""
+"Não é possível entrar em uma nova partida enquanto estiver em uma partida."
 
 #: matchmaking/api/controller.py:267
 msgid "Can't ready in for a new match while in a match."
-msgstr "Não é possível entrar em uma nova partida enquanto estiver em uma partida."
+msgstr ""
+"Não é possível entrar em uma nova partida enquanto estiver em uma partida."
 
 #: matchmaking/api/controller.py:278
 #, fuzzy
@@ -546,7 +568,8 @@ msgstr "Jogador não encontrado."
 
 #: matchmaking/models/player.py:126
 msgid "Player cannot dodge while in queue restriction."
-msgstr "Jogador não pode escapar de uma partida enquanto estiver em uma restrição."
+msgstr ""
+"Jogador não pode escapar de uma partida enquanto estiver em uma restrição."
 
 #: matchmaking/models/pre_match.py:158
 msgid "All teams must be ready in order to create a PreMatch."
