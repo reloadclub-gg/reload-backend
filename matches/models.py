@@ -5,6 +5,7 @@ from typing import List
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from appsettings.services import matches_limit_per_server, matches_limit_per_server_gap
 
@@ -12,7 +13,6 @@ User = get_user_model()
 
 
 class Server(models.Model):
-
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=32)
     key = models.TextField()
@@ -25,7 +25,7 @@ class Server(models.Model):
         to admins and client application instead.
         """
         limit = matches_limit_per_server()
-        return len(self.match_set.all()) == limit
+        return len(self.match_set.filter(status=Match.Status.RUNNING)) == limit
 
     @property
     def is_almost_full(self) -> bool:
@@ -36,7 +36,7 @@ class Server(models.Model):
         """
         limit = matches_limit_per_server()
         gap = matches_limit_per_server_gap()
-        return len(self.match_set.all()) == (limit - gap)
+        return len(self.match_set.filter(status=Match.Status.RUNNING)) == (limit - gap)
 
     @staticmethod
     def get_idle() -> Server:
@@ -142,6 +142,15 @@ class Match(models.Model):
             return f'#{self.id} - {self.team_a.name} vs {self.team_b.name}'
         return f'#{self.id} - waiting for team creation'
 
+    def finish(self):
+        self.status = Match.Status.FINISHED
+        self.end_date = timezone.now()
+        self.save()
+
+        for player in self.players:
+            player.user.account.set_level_points(player.points_earned)
+            player.user.account.save()
+
 
 class MatchTeam(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
@@ -198,7 +207,15 @@ class MatchPlayer(models.Model):
 
             # Apply afk penalties
             level_points = result2 - self.stats.afk * 3
-            return level_points
+
+            # If player account is at level 0 and has 0 level_points
+            # it should return 0 points_earned in case of losing game.
+            if (
+                level_points > 0
+                or self.user.account.level > 0
+                or self.user.account.level_points >= abs(level_points)
+            ):
+                return level_points
 
         return 0
 

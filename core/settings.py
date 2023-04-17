@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
-    'django_extensions',
+    'django_object_actions',
     'social_django',
     'ninja',
     'corsheaders',

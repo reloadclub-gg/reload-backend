@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona ação de finalizar partida no admin do modelo `Match`.
+- Adiciona método de finalizar partida no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/353).
+- Adiciona testes faltantes para modelo `Match`.
 - Novo arquivo `tasks` no package de websocket que expõe as tarefas como middleware para que o código possa chamar os eventos WS tanto como tarefas quanto como métodos normais dependendo do caso.
 - Serviço do _Celery_ no _Kubernetes_.
 - Serviço do _Celery_ no Github Workflow (https://github.com/3C-gg/reload-backend/issues/317).
@@ -38,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrigimos os métodos do modelo `Server` para garantir que os métodos que definem se o servidor está quase cheio ou cheio filtrem apenas partidas em andamento.
+- Corrigimos o cálculo de pontos (`points_earned`) de uma partida que estava retornando negativo mesmo que o usuário estivesse no nível 0 e com 0 pontos de nível.
 - Código de verificação de e-mail estava _hardcoded_ no template de e-mail. Substituímos pelo código certo, individual e único para cada usuário (https://github.com/3C-gg/reload-backend/issues/299).
 - Em um caso específico, onde tinham 2 players em um lobby e o player convidado (que não é o dono) sai ou é expulso, o dono do lobby não estava tendo seu status de "Em grupo" para "Online" atualizado para seus amigos. Uma vez que ele estava em grupo, e com a saída do convidado ele ficou num lobby vazio, começamos a disparar esse evento para o dono do lobby (https://github.com/3C-gg/reload-backend/issues/301).
 - Ajusta string de conexão do Celery com o Redis quando a conexão for via SSL.
