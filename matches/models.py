@@ -24,7 +24,7 @@ class Server(models.Model):
         to admins and client application instead.
         """
         limit = matches_limit_per_server()
-        return len(self.match_set.all()) == limit
+        return len(self.match_set.filter(status=Match.Status.RUNNING)) == limit
 
     @property
     def is_almost_full(self) -> bool:
@@ -35,7 +35,7 @@ class Server(models.Model):
         """
         limit = matches_limit_per_server()
         gap = matches_limit_per_server_gap()
-        return len(self.match_set.all()) == (limit - gap)
+        return len(self.match_set.filter(status=Match.Status.RUNNING)) == (limit - gap)
 
     @staticmethod
     def get_idle() -> Server:

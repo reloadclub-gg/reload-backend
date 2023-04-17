@@ -6,20 +6,26 @@ from matches.models import Match, MatchPlayer, MatchPlayerStats, Server
 from matchmaking.tests import mixins
 
 
-class MatchesModelsTestCase(mixins.TeamsMixin, TestCase):
+class MatchesServerModelTestCase(mixins.TeamsMixin, TestCase):
     def test_server_model(self):
         server = baker.make(Server)
         AppSettings.set_int('Matches Limit', 2)
         AppSettings.set_int('Matches Limit Gap', 1)
 
-        baker.make(Match, server=server)
+        baker.make(Match, server=server, status=Match.Status.FINISHED)
+        self.assertFalse(server.is_almost_full)
+        self.assertIsNotNone(Server.get_idle())
+
+        baker.make(Match, server=server, status=Match.Status.RUNNING)
         self.assertTrue(server.is_almost_full)
         self.assertIsNotNone(Server.get_idle())
 
-        baker.make(Match, server=server)
+        baker.make(Match, server=server, status=Match.Status.RUNNING)
         self.assertTrue(server.is_full)
         self.assertIsNone(Server.get_idle())
 
+
+class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
     def test_match_model(self):
         server = baker.make(Server)
         match = baker.make(Match, server=server)
@@ -34,23 +40,6 @@ class MatchesModelsTestCase(mixins.TeamsMixin, TestCase):
 
         self.assertEqual(match.rounds, 17)
         self.assertEqual(match.winner, team2)
-
-    def test_match_player_model(self):
-        server = baker.make(Server)
-        match = baker.make(Match, server=server)
-        team1 = match.matchteam_set.create(name=self.team1.name)
-        team2 = match.matchteam_set.create(name=self.team2.name)
-        player = baker.make(MatchPlayer, user=self.user_1, team=team1)
-
-        team1.score = 8
-        team1.save()
-        team2.score = 9
-        team2.save()
-        self.assertEqual(match.rounds, player.stats.rounds_played)
-
-        player.stats.afk = 3
-        player.stats.save()
-        self.assertEqual(player.stats.rounds_played, match.rounds - player.stats.afk)
 
 
 class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
@@ -174,3 +163,27 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         )
         player.refresh_from_db()
         self.assertEqual(player.points_earned, 30)
+
+
+class MatchesMatchPlayerStatsModelTestCase(mixins.TeamsMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.server = baker.make(Server)
+        self.match = baker.make(Match, server=self.server)
+        self.team1 = self.match.matchteam_set.create(name=self.team1.name)
+        self.team2 = self.match.matchteam_set.create(name=self.team2.name)
+
+    def test_rounds_played(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 9
+        self.team2.save()
+        self.assertEqual(player.stats.rounds_played, self.match.rounds)
+
+        player.stats.afk = 3
+        player.stats.save()
+        self.assertEqual(
+            player.stats.rounds_played, self.match.rounds - player.stats.afk
+        )
