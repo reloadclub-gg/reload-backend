@@ -62,9 +62,12 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         self.team2 = self.match.matchteam_set.create(name=self.team2.name, score=8)
 
     def test_points_earned(self):
+        self.user_1.account.level = 1
+        self.user_1.account.save()
         player = baker.make(
             MatchPlayer,
             team=self.team1,
+            user=self.user_1,
         )
         MatchPlayerStats.objects.filter(player=player).update(
             kills=25,
@@ -79,9 +82,12 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         player.save()
         self.assertEqual(player.points_earned, -10)
 
+        self.user_2.account.level = 1
+        self.user_2.account.save()
         player = baker.make(
             MatchPlayer,
             team=self.team1,
+            user=self.user_2,
         )
         MatchPlayerStats.objects.filter(player=player).update(
             kills=13,
@@ -96,9 +102,12 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         player.save()
         self.assertEqual(player.points_earned, -14)
 
+        self.user_3.account.level = 1
+        self.user_3.account.save()
         player = baker.make(
             MatchPlayer,
             team=self.team1,
+            user=self.user_3,
         )
         MatchPlayerStats.objects.filter(player=player).update(
             kills=8,
@@ -113,9 +122,12 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         player.save()
         self.assertEqual(player.points_earned, -20)
 
+        self.user_4.account.level = 1
+        self.user_4.account.save()
         player = baker.make(
             MatchPlayer,
             team=self.team1,
+            user=self.user_4,
         )
         MatchPlayerStats.objects.filter(player=player).update(
             kills=13,
@@ -130,3 +142,35 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         player.team = self.team2
         player.save()
         self.assertEqual(player.points_earned, -23)
+
+        self.user_5.account.level = 0
+        self.user_5.account.save()
+        player = baker.make(
+            MatchPlayer,
+            team=self.team2,
+            user=self.user_5,
+        )
+        MatchPlayerStats.objects.filter(player=player).update(
+            kills=7,
+            deaths=10,
+            assists=3,
+            plants=2,
+            defuses=1,
+        )
+        player.refresh_from_db()
+        self.assertEqual(player.points_earned, 0)
+
+        player = baker.make(
+            MatchPlayer,
+            team=self.team1,
+            user=self.user_6,
+        )
+        MatchPlayerStats.objects.filter(player=player).update(
+            kills=25,
+            deaths=9,
+            assists=6,
+            plants=3,
+            defuses=4,
+        )
+        player.refresh_from_db()
+        self.assertEqual(player.points_earned, 30)

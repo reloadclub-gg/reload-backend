@@ -12,7 +12,6 @@ User = get_user_model()
 
 
 class Server(models.Model):
-
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=32)
     key = models.TextField()
@@ -198,7 +197,15 @@ class MatchPlayer(models.Model):
 
             # Apply afk penalties
             level_points = result2 - self.stats.afk * 3
-            return level_points
+
+            # If player account is at level 0 and has 0 level_points
+            # it should return 0 points_earned in case of losing game.
+            if (
+                level_points > 0
+                or self.user.account.level > 0
+                or self.user.account.level_points >= abs(level_points)
+            ):
+                return level_points
 
         return 0
 
