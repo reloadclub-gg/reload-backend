@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from ninja import Schema
 
 from steam import Steam
@@ -85,6 +86,7 @@ class LobbyInviteSchema(Schema):
     lobby: LobbySchema
     from_player: LobbyPlayerSchema
     to_player: LobbyPlayerSchema
+    create_date: timezone.datetime
 
     class Config:
         model = LobbyInvite

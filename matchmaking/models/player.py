@@ -25,7 +25,7 @@ class Player(BaseModel):
     The Redis db keys from this model are described below:
 
     [set] __mm:players <user_id: int>
-    [set] __mm:player:[user_id]:dodges <timezone: str>
+    [zset] __mm:player:[user_id]:dodges <timezone: str, timezone>
     [set] __mm:player:[user_id]:queue_lock <timezone: str>
     """
 
