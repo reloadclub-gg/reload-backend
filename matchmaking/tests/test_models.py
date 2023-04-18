@@ -104,7 +104,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         Lobby.create(self.user_2.id)
 
         lobby_1.invite(self.user_1.id, self.user_2.id)
-        invites = list(cache.smembers(f'{lobby_1.cache_key}:invites'))
+        invites = list(cache.zrange(f'{lobby_1.cache_key}:invites', 0, -1))
         self.assertEqual(invites, [f'{self.user_1.id}:{self.user_2.id}'])
         self.assertEqual(
             lobby_1.invites,
@@ -152,7 +152,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         Lobby.move(self.user_2.id, lobby_1.id)
         current_moved_player_lobby = cache.get(lobby_2.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_1.id))
-        self.assertEqual(len(cache.smembers(f'{lobby_1.cache_key}:invites')), 0)
+        self.assertEqual(len(cache.zrange(f'{lobby_1.cache_key}:invites', 0, -1)), 0)
         self.assertEqual(lobby_2.players_ids, [])
         self.assertCountEqual(
             lobby_1.players_ids,
@@ -175,7 +175,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         current_moved_player_lobby = cache.get(lobby_3.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.smembers(f'{lobby_2.cache_key}:invites')), 0)
+        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
         self.assertEqual(lobby_3.players_ids, [])
         self.assertEqual(lobby_1.players_ids, [self.user_1.id])
         self.assertCountEqual(
@@ -201,7 +201,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         current_moved_player_lobby = cache.get(lobby_1.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.smembers(f'{lobby_2.cache_key}:invites')), 0)
+        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
         self.assertEqual(lobby_1.players_ids, [])
         self.assertEqual(new_lobby.id, lobby_3.id)
         self.assertEqual(lobby_3.players_ids, [self.user_3.id])
@@ -232,7 +232,7 @@ class LobbyModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         current_moved_player_lobby = cache.get(lobby_1.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.smembers(f'{lobby_2.cache_key}:invites')), 0)
+        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
         self.assertEqual(lobby_1.players_ids, [])
         self.assertCountEqual(
             new_lobby.players_ids,
@@ -1216,6 +1216,17 @@ class LobbyInviteModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
                 ),
             ],
         )
+
+    def test_create_date(self):
+        timestamp = timezone.now().timestamp()
+        cache.zadd(
+            f'{self.lobby1.cache_key}:invites',
+            {f'{self.user_1.id}:{self.user_2.id}': timestamp},
+        )
+        invite = LobbyInvite(
+            from_id=self.user_1.id, to_id=self.user_2.id, lobby_id=self.lobby1.id
+        )
+        self.assertEqual(invite.create_date, timezone.datetime.fromtimestamp(timestamp))
 
 
 class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):

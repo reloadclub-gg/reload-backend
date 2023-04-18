@@ -22,7 +22,7 @@ class TestWatchError(TestCase):
         cache.sadd('__mm:lobby:1:players', '4')
 
     def multi_noise(self):
-        cache.sadd('__mm:lobby:1:invites', '4')
+        cache.zadd('__mm:lobby:1:invites', {'4': timezone.now().timestamp()})
 
     def test_single_watching_key(self):
         def transaction_operations(pipe, _):

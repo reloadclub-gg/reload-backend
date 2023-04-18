@@ -30,7 +30,7 @@ class Lobby(BaseModel):
     [key] __mm:lobby:[player_id] <current_lobby_id>
     [set] __mm:lobby:[player_id]:players <(player_id,...)>
     [key] __mm:lobby:[player_id]:is_public <0|1>
-    [set] __mm:lobby:[player_id]:invites <(from_player_id:to_player_id,...)>
+    [zset] __mm:lobby:[player_id]:invites <(from_player_id:to_player_id,...)>
     [key] __mm:lobby:[player_id]:queue <datetime>
     [key] __mm:lobby:[player_id]:type <competitive|custom>
     [key] __mm:lobby:[player_id]:mode <1|5|20>
@@ -88,7 +88,9 @@ class Lobby(BaseModel):
         """
         Retrieve all unaccepted invites.
         """
-        invite_ids = sorted(list(cache.smembers(f'{self.cache_key}:invites')))
+        invite_ids = sorted(
+            list(cache.zrange(f'{self.cache_key}:invites', 0, -1))
+        )
         return [
             LobbyInvite.get(lobby_id=self.id, invite_id=invite_id)
             for invite_id in invite_ids
@@ -299,7 +301,7 @@ class Lobby(BaseModel):
                 pipe.set(f'{Lobby.Config.CACHE_PREFIX}:{player_id}', to_lobby.owner_id)
                 invite = to_lobby.get_invite_by_to_player_id(player_id)
                 if invite:
-                    pipe.srem(f'{to_lobby.cache_key}:invites', invite.id)
+                    pipe.zrem(f'{to_lobby.cache_key}:invites', invite.id)
 
             if len(from_lobby.non_owners_ids) > 0 and from_lobby.owner_id == player_id:
                 new_owner_id = min(from_lobby.non_owners_ids)
@@ -320,11 +322,11 @@ class Lobby(BaseModel):
                     )
                     invite = new_lobby.get_invite_by_to_player_id(other_player_id)
                     if invite:
-                        pipe.srem(f'{new_lobby.cache_key}:invites', invite)
+                        pipe.zrem(f'{new_lobby.cache_key}:invites', invite)
 
             invites_from_player = from_lobby.get_invites_by_from_player_id(player_id)
             for invite in invites_from_player:
-                pipe.srem(f'{from_lobby.cache_key}:invites', invite.id)
+                pipe.zrem(f'{from_lobby.cache_key}:invites', invite.id)
 
             if remove:
                 Lobby.delete(to_lobby.id, pipe=pipe)
@@ -392,7 +394,10 @@ class Lobby(BaseModel):
             if not invited.is_online:
                 raise LobbyException(_('Offline user.'))
 
-            pipe.sadd(f'{self.cache_key}:invites', f'{from_player_id}:{to_player_id}')
+            pipe.zadd(
+                f'{self.cache_key}:invites',
+                {f'{from_player_id}:{to_player_id}': timezone.now().timestamp()},
+            )
 
         cache.protected_handler(
             transaction_operations,
@@ -423,13 +428,13 @@ class Lobby(BaseModel):
         Invite should exist on lobby invites list
         Should return False if the requested invite_id isn't in the lobby invites list
         """
-        invite = cache.sismember(f'{self.cache_key}:invites', invite_id)
+        invite = cache.zscore(f'{self.cache_key}:invites', invite_id)
 
         if not invite:
             raise LobbyException(_('Invite not found.'))
 
         def transaction_operations(pipe, pre_result):
-            pipe.srem(f'{self.cache_key}:invites', invite_id)
+            pipe.zrem(f'{self.cache_key}:invites', invite_id)
 
         cache.protected_handler(transaction_operations, f'{self.cache_key}:invites')
 
