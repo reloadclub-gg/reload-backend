@@ -317,3 +317,6 @@ PLAYER_MAX_LEVEL_POINTS = config('PLAYER_MAX_LEVEL_POINTS', default=100, cast=in
 PLAYER_DODGES_EXPIRE_TIME = config(
     'PLAYER_DODGES_EXPIRE_TIME', default=60 * 60 * 24 * 7, cast=int
 )  # 1 semana (7 dias)
+PLAYER_MAX_LOSE_LEVEL_POINTS = config(
+    'PLAYER_MAX_LOSE_LEVEL_POINTS', default=-99, cast=int
+)
