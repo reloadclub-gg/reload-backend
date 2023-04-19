@@ -7,7 +7,9 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
-from appsettings.services import max_notification_history_count_per_player
+from appsettings.services import (
+    max_notification_history_count_per_player as notification_limit,
+)
 from core.redis import RedisClient
 from core.utils import str_to_timezone
 
@@ -49,7 +51,6 @@ class Notification(BaseModel):
 
     class Config:
         CACHE_PREFIX: str = '__mm:notifications'
-        MAX_NOTIFICATIONS_HISTORY: int = max_notification_history_count_per_player()
 
     @property
     def cache_key(self) -> str:
@@ -91,7 +92,7 @@ class Notification(BaseModel):
                 f'__mm:notifications:player:{self.to_user_id}', '-inf', '+inf'
             )
 
-            if notifications_count >= Notification.Config.MAX_NOTIFICATIONS_HISTORY:
+            if notifications_count >= notification_limit():
                 popped = cache.zpopmin(
                     f'__mm:notifications:player:{self.to_user_id}', 1
                 )
