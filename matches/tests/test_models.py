@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from model_bakery import baker
 
 from appsettings.models import AppSettings
+from appsettings.services import player_max_losing_level_points
 from core.tests import TestCase
 from matches.models import Match, MatchPlayer, MatchPlayerStats, Server
 from matchmaking.tests import mixins
@@ -235,6 +236,24 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         )
         player.refresh_from_db()
         self.assertEqual(player.points_earned, 30)
+
+        self.user_7.account.level = 1
+        self.user_7.account.save()
+        player = baker.make(
+            MatchPlayer,
+            team=self.team2,
+            user=self.user_7,
+        )
+        MatchPlayerStats.objects.filter(player=player).update(
+            kills=0,
+            deaths=4,
+            assists=0,
+            plants=0,
+            defuses=0,
+            afk=14,
+        )
+        player.refresh_from_db()
+        self.assertEqual(player.points_earned, player_max_losing_level_points())
 
 
 class MatchesMatchPlayerStatsModelTestCase(mixins.TeamsMixin, TestCase):

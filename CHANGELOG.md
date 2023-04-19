@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Nova carga de dados referentes a partidas e jogadores no `seed.json`.
+- Campos de pontos na visualização do admin no modelo `MatchPlayer`.
+- Limite no cálculo da quantidade de pontos que um jogador pode perder (https://github.com/3C-gg/reload-backend/issues/367).
+- Novo AppSettings e Config (`PLAYER_MAX_LOSE_LEVEL_POINTS`) que limitam a quantidade de pontos que um jogador pode perder.
 - Campo `create_date` no modelo `LobbyInvite` do Redis. Adiciona também esse campo no esquema `LobbyInviteSchema` (https://github.com/3C-gg/reload-backend/issues/363).
 - Método de marcar a partida como cancelada no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/360).
 - Método de marcar a partida como pronta no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/358).
