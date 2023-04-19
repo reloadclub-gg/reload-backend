@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campos `level` e `level_points` no esquema `MatchPlayerSchema` refletindo os dados históricos do modelo `MatchPlayer` (https://github.com/3C-gg/reload-backend/issues/364).
+- Campos `level` e `level_points` no modelo `MatchPlayer` para refletir esses dados do usuário no momento histórico daquela partida.
 - Nova carga de dados referentes a partidas e jogadores no `seed.json`.
 - Campos de pontos na visualização do admin no modelo `MatchPlayer`.
 - Limite no cálculo da quantidade de pontos que um jogador pode perder (https://github.com/3C-gg/reload-backend/issues/367).
@@ -83,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Remove migrations velhas que foram _squashed_ via `squash_migrations`.
 - Django Jazzmin foi removido devido a falta de suporte na renderização de ícones e imagens, o que tornava a utilização do admin mais difícil (https://github.com/3C-gg/reload-backend/issues/303).
 - Removido level debug da lib Sentry.
 - Remove campo `match` do modelo `MatchPlayer`.
