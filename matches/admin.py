@@ -81,6 +81,8 @@ class MatchPlayerAdmin(admin.ModelAdmin):
         'points_cap',
         'points_penalties',
         'points_earned',
+        'level',
+        'level_points',
     )
     search_fields = ('user__email', 'user__steam_user__username', 'team__name')
 

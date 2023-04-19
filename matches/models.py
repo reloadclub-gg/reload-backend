@@ -206,6 +206,8 @@ class MatchTeam(models.Model):
 class MatchPlayer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     team = models.ForeignKey(MatchTeam, on_delete=models.CASCADE)
+    level = models.IntegerField(editable=False)
+    level_points = models.IntegerField(editable=False)
 
     @property
     def points_base(self):
@@ -275,9 +277,14 @@ class MatchPlayer(models.Model):
 
     def save(self, *args, **kwargs):
         adding = True if self._state.adding else False
-        super().save(*args, **kwargs)
+
         if adding:
+            self.level = self.user.account.level
+            self.level_points = self.user.account.level_points
+            super().save(*args, **kwargs)
             MatchPlayerStats.objects.create(player=self)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.user.steam_user.username}'
