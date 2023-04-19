@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige token errada sendo enviada no e-mail de verificação (https://github.com/3C-gg/reload-backend/issues/352).
 - Ajusta retorno do `controlller` e `route` de recusar convite para que não tenha nenhum retorno visto que existe uma deleção.
 - Adiciona uma proteção que previne uma partida de ser finalizada se não tiver sido iniciada.
 - Corrigimos os métodos do modelo `Server` para garantir que os métodos que definem se o servidor está quase cheio ou cheio filtrem apenas partidas em andamento.

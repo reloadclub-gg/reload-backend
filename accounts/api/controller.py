@@ -108,7 +108,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     user.save()
     Account.objects.create(user=user)
     utils.send_verify_account_mail(
-        user.email, user.steam_user.username, user.auth.token
+        user.email, user.steam_user.username, user.account.verification_token
     )
     return user
 
@@ -177,7 +177,7 @@ def update_email(user: User, email: str) -> User:
     user.account.save()
 
     utils.send_verify_account_mail(
-        user.email, user.steam_user.username, user.auth.token
+        user.email, user.steam_user.username, user.account.verification_token
     )
 
     user_status_change_task.delay(user.id)

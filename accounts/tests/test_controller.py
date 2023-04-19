@@ -61,7 +61,8 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertIsNotNone(user.social_auth)
         self.assertIsNotNone(user.steam_user.steamid)
 
-    def test_signup(self):
+    @mock.patch('accounts.utils.send_verify_account_mail')
+    def test_signup(self, mocker):
         invite = baker.make(Invite, owned_by=self.account, email='invited@email.com')
         user = baker.make(User, email=invite.email)
         utils.create_social_auth(user)
@@ -72,17 +73,26 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertTrue(hasattr(user, 'account'))
         self.assertIsNotNone(invite.datetime_accepted)
 
+        mocker.assert_called_once()
+        mocker.assert_called_once_with(
+            user.email, user.steam_user.username, user.account.verification_token
+        )
+
     def test_signup_not_invited(self):
         AppSettings.set_bool('Invite Required', True)
         user = baker.make(User)
         with self.assertRaises(HttpError):
             controller.signup(user, email=user.email)
 
-    def test_verify_account(self):
+    @mock.patch('accounts.utils.send_welcome_mail')
+    def test_verify_account(self, mocker):
         controller.verify_account(self.user, self.user.account.verification_token)
         self.user.refresh_from_db()
         self.assertTrue(self.user.account.is_verified)
         self.assertIsNone(self.user.auth.sessions)
+
+        mocker.assert_called_once()
+        mocker.assert_called_once_with(self.user.email)
 
     def test_verify_account_already_verified(self):
         self.user.account.is_verified = True
@@ -90,7 +100,8 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         with self.assertRaises(HttpError):
             controller.verify_account(self.user, self.user.account.verification_token)
 
-    def test_inactivate(self):
+    @mock.patch('accounts.utils.send_inactivation_mail')
+    def test_inactivate(self, mocker):
         self.user.auth.add_session()
         self.user.account.is_verified = True
         self.user.account.save()
@@ -100,7 +111,11 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertFalse(self.user.is_active)
         self.assertIsNotNone(self.user.date_inactivation)
 
-    def test_update_email(self):
+        mocker.assert_called_once()
+        mocker.assert_called_once_with(self.user.email)
+
+    @mock.patch('accounts.utils.send_verify_account_mail')
+    def test_update_email(self, mocker):
         self.user.account.is_verified = True
         self.user.account.save()
         self.user.auth.add_session()
@@ -108,6 +123,13 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.update_email(self.user, 'new@email.com')
         self.assertFalse(self.user.account.is_verified)
         self.assertEqual(self.user.email, 'new@email.com')
+
+        mocker.assert_called_once()
+        mocker.assert_called_once_with(
+            self.user.email,
+            self.user.steam_user.username,
+            self.user.account.verification_token,
+        )
 
     @mock.patch(
         'accounts.utils.send_verify_account_mail',
