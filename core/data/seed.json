@@ -649,7 +649,9 @@
         "pk": 1,
         "fields": {
             "user": 2,
-            "team": 1
+            "team": 1,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -657,7 +659,9 @@
         "pk": 2,
         "fields": {
             "user": 3,
-            "team": 1
+            "team": 1,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -665,7 +669,9 @@
         "pk": 3,
         "fields": {
             "user": 4,
-            "team": 1
+            "team": 1,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -673,7 +679,9 @@
         "pk": 4,
         "fields": {
             "user": 5,
-            "team": 1
+            "team": 1,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -681,7 +689,9 @@
         "pk": 5,
         "fields": {
             "user": 6,
-            "team": 1
+            "team": 1,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -689,7 +699,9 @@
         "pk": 6,
         "fields": {
             "user": 7,
-            "team": 2
+            "team": 2,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -697,7 +709,9 @@
         "pk": 7,
         "fields": {
             "user": 8,
-            "team": 2
+            "team": 2,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -705,7 +719,9 @@
         "pk": 8,
         "fields": {
             "user": 9,
-            "team": 2
+            "team": 2,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -713,7 +729,9 @@
         "pk": 9,
         "fields": {
             "user": 11,
-            "team": 2
+            "team": 2,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -721,7 +739,9 @@
         "pk": 10,
         "fields": {
             "user": 10,
-            "team": 2
+            "team": 2,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -729,7 +749,9 @@
         "pk": 11,
         "fields": {
             "user": 11,
-            "team": 4
+            "team": 4,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -737,7 +759,9 @@
         "pk": 12,
         "fields": {
             "user": 2,
-            "team": 3
+            "team": 3,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -745,7 +769,9 @@
         "pk": 13,
         "fields": {
             "user": 3,
-            "team": 3
+            "team": 3,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -753,7 +779,9 @@
         "pk": 14,
         "fields": {
             "user": 4,
-            "team": 3
+            "team": 3,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -761,7 +789,9 @@
         "pk": 15,
         "fields": {
             "user": 5,
-            "team": 3
+            "team": 3,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -769,7 +799,9 @@
         "pk": 16,
         "fields": {
             "user": 6,
-            "team": 3
+            "team": 3,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -777,7 +809,9 @@
         "pk": 17,
         "fields": {
             "user": 7,
-            "team": 4
+            "team": 4,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -785,7 +819,9 @@
         "pk": 18,
         "fields": {
             "user": 8,
-            "team": 4
+            "team": 4,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -793,7 +829,9 @@
         "pk": 20,
         "fields": {
             "user": 9,
-            "team": 4
+            "team": 4,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
@@ -801,7 +839,9 @@
         "pk": 21,
         "fields": {
             "user": 10,
-            "team": 4
+            "team": 4,
+            "level": 1,
+            "level_points": 0
         }
     },
     {
