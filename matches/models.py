@@ -9,7 +9,11 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from appsettings.services import matches_limit_per_server, matches_limit_per_server_gap
+from appsettings.services import (
+    matches_limit_per_server,
+    matches_limit_per_server_gap,
+    player_max_losing_level_points,
+)
 
 User = get_user_model()
 
@@ -204,6 +208,51 @@ class MatchPlayer(models.Model):
     team = models.ForeignKey(MatchTeam, on_delete=models.CASCADE)
 
     @property
+    def points_base(self):
+        """
+        Base calculation on top of player stats to determine how many points
+        that player will earn after match.
+        """
+        assists = (self.stats.assists / 10) if self.stats.assists > 0 else 0
+        plants = self.stats.plants * 2
+        defuses = self.stats.defuses * 1.2
+        kd = self.stats.kills - self.stats.deaths
+        return int(round(assists + plants + defuses + kd))
+
+    @property
+    def points_cap(self):
+        """
+        Cap points so winners earn min of 10 and max of 30 points
+        and losers min of -10 and max of -20.
+        """
+        if self.team.match.winner == self.team:
+            if self.points_base + 10 < 10:
+                return 10
+            elif self.points_base + 10 > 30:
+                return 30
+            else:
+                return self.points_base + 10
+        else:
+            if self.points_base - 25 > -10:
+                return -10
+            elif self.points_base - 25 < -20:
+                return -20
+            else:
+                return self.points_base - 25
+
+    @property
+    def points_penalties(self):
+        """
+        The penalty is applied after all calculations, and the maximum that it can
+        reach is the value at `appsettings.services.player_max_losing_level_points`.
+        """
+        afk_penalty = self.stats.afk**2
+        if self.points_cap - afk_penalty > player_max_losing_level_points():
+            return self.points_cap - afk_penalty
+
+        return player_max_losing_level_points()
+
+    @property
     def points_earned(self) -> int:
         """
         How many level points this player won in a match.
@@ -211,42 +260,16 @@ class MatchPlayer(models.Model):
         if self.team.match.status != Match.Status.FINISHED:
             return None
 
-        if self.stats.rounds_played > 0:
-            step1 = (self.stats.assists / 10) if self.stats.assists > 0 else 0
-            step2 = self.stats.plants * 2
-            step3 = self.stats.defuses * 1.2
-            step4 = self.stats.kills - self.stats.deaths
-            result1 = step1 + step2 + step3 + step4
-            result1 = int(round(result1))
+        points = self.points_cap
+        if self.stats.afk:
+            points = self.points_penalties
 
-            if self.team.match.winner == self.team:
-                result2 = int(round(result1 + 10))
-                # if result2 is lesser then 20 or greater then 30 on victory,
-                # adjust it to 20 or 30
-                if result2 < 10:
-                    result2 = 10
-                elif result2 > 30:
-                    result2 = 30
-            else:
-                result2 = int(round(result1 - 25))
-                # if result2 is lesser then -20 or greater then -10 on defeat,
-                # adjust it to -20 or -10
-                if result2 < -20:
-                    result2 = -20
-                elif result2 > -10:
-                    result2 = -10
-
-            # Apply afk penalties
-            level_points = result2 - self.stats.afk * 3
-
-            # If player account is at level 0 and has 0 level_points
-            # it should return 0 points_earned in case of losing game.
-            if (
-                level_points > 0
-                or self.user.account.level > 0
-                or self.user.account.level_points >= abs(level_points)
-            ):
-                return level_points
+        if (
+            points > 0
+            or self.user.account.level > 0
+            or self.user.account.level_points >= abs(points)
+        ):
+            return points
 
         return 0
 
