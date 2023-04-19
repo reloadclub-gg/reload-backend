@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona esquema de notificações no esquema de conta.
+- Esquema de notificações `NotificationSchema`.
+- Propriedade `notifications` e método `notify` ao modelo `Account`.
+- Ícone de broadcast aos arquivos estáticos.
+- App de notificações, incluindo modelo de cache `Notification` e testes (https://github.com/3C-gg/reload-backend/issues/355).
+- Novo AppSettings e Config (`MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER`) que limita a quantidade de notificações de cada usuário que guardamos no Redis.
 - Campos `level` e `level_points` no esquema `MatchPlayerSchema` refletindo os dados históricos do modelo `MatchPlayer` (https://github.com/3C-gg/reload-backend/issues/364).
 - Campos `level` e `level_points` no modelo `MatchPlayer` para refletir esses dados do usuário no momento histórico daquela partida.
 - Nova carga de dados referentes a partidas e jogadores no `seed.json`.
