@@ -1,5 +1,3 @@
-from django.utils import timezone
-
 from core.tests import TestCase
 from matchmaking.tests.mixins import VerifiedPlayersMixin
 from steam import Steam
