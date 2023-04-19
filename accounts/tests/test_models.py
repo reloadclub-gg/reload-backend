@@ -10,7 +10,6 @@ from core.tests import TestCase, cache
 from matches.models import Match, MatchPlayer, Server
 from matchmaking.models import Lobby
 from matchmaking.tests.mixins import TeamsMixin
-from notifications.models import Notification
 
 from .. import models, utils
 from ..models.auth import AuthConfig

@@ -3,6 +3,7 @@ from core.tests import TestCase
 from matches.api.schemas import MatchSchema
 from matchmaking.api.schemas import LobbySchema
 from matchmaking.models import Lobby
+from notifications.api.schemas import NotificationSchema
 from steam import Steam
 
 from . import mixins
@@ -78,6 +79,10 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'match': MatchSchema.from_orm(self.user.account.match)
             if self.user.account.match
             else None,
+            'notifications': [
+                NotificationSchema.from_orm(x).dict()
+                for x in self.user.account.notifications
+            ],
         }
 
         self.assertDictEqual(payload, expected_payload)
