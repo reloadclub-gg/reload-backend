@@ -77,11 +77,27 @@ class MatchPlayerAdmin(admin.ModelAdmin):
         'user',
         'team',
         'match',
+        'points_base',
+        'points_cap',
+        'points_penalties',
+        'points_earned',
     )
     search_fields = ('user__email', 'user__steam_user__username', 'team__name')
 
     def match(self, obj):
         return obj.team.match
+
+    def points_base(self, obj):
+        return obj.points_base
+
+    def points_cap(self, obj):
+        return obj.points_cap
+
+    def points_penalties(self, obj):
+        return obj.points_penalties
+
+    def points_earned(self, obj):
+        return obj.points_earned
 
 
 @admin.register(MatchPlayerStats)
