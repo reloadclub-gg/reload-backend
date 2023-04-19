@@ -14,7 +14,6 @@ from core.redis import RedisClient
 from core.utils import str_to_timezone
 
 cache = RedisClient()
-
 User = get_user_model()
 
 
