@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'matchmaking.apps.MatchmakingConfig',
     'appsettings.apps.AppSettingsConfig',
     'matches.apps.MatchesConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 if ENVIRONMENT == LOCAL:
