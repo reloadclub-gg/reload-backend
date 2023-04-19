@@ -7,8 +7,10 @@ from ..services import (
     check_invite_required,
     matches_limit_per_server,
     matches_limit_per_server_gap,
+    max_notification_history_count_per_player,
     player_max_level,
     player_max_level_points,
+    player_max_losing_level_points,
 )
 
 
@@ -41,3 +43,18 @@ class CheckInviteRequiredTestCase(TestCase):
         self.assertEqual(player_max_level_points(), settings.PLAYER_MAX_LEVEL_POINTS)
         AppSettings.set_int('Player Max Level Points', 1)
         self.assertEqual(player_max_level_points(), 1)
+
+    def test_player_max_losing_level_points(self):
+        self.assertEqual(
+            player_max_losing_level_points(), settings.PLAYER_MAX_LOSE_LEVEL_POINTS
+        )
+        AppSettings.set_int('Player Max Losing Level Points', 1)
+        self.assertEqual(player_max_losing_level_points(), 1)
+
+    def test_max_notification_history_count_per_player(self):
+        self.assertEqual(
+            max_notification_history_count_per_player(),
+            settings.MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER,
+        )
+        AppSettings.set_int('Max Notification Count Per Player', 1)
+        self.assertEqual(max_notification_history_count_per_player(), 1)

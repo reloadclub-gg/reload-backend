@@ -1,6 +1,7 @@
 from unittest import mock
 
 from django.core.exceptions import ValidationError
+from django.templatetags.static import static
 from django.utils import timezone
 from model_bakery import baker
 from social_django.models import UserSocialAuth
@@ -128,6 +129,17 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
 
         with self.assertRaises(ValidationError):
             account.set_level_points(-310)
+
+    def test_notifications(self):
+        account = baker.make(models.Account, user=self.user)
+        self.assertEqual(len(account.notifications), 0)
+
+        n = account.notify(
+            content='New notification', avatar=static('icons/broadcast.png')
+        )
+        self.assertEqual(len(account.notifications), 1)
+
+        self.assertEqual(account.notifications[0].id, n.id)
 
 
 class AccountsAccountMatchModelTestCase(TeamsMixin, TestCase):

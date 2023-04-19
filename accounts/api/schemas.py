@@ -7,6 +7,7 @@ from ninja import ModelSchema, Schema
 
 from matches.api.schemas import MatchSchema
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
+from notifications.api.schemas import NotificationSchema
 from steam import Steam
 
 from ..models import Account
@@ -79,6 +80,7 @@ class AccountSchema(ModelSchema):
     pre_match: Optional[PreMatchSchema] = None
     steam_url: Optional[str]
     match: Optional[MatchSchema] = None
+    notifications: Optional[List[NotificationSchema]] = None
 
     class Config:
         model = Account

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'matchmaking.apps.MatchmakingConfig',
     'appsettings.apps.AppSettingsConfig',
     'matches.apps.MatchesConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 if ENVIRONMENT == LOCAL:
@@ -319,4 +320,7 @@ PLAYER_DODGES_EXPIRE_TIME = config(
 )  # 1 semana (7 dias)
 PLAYER_MAX_LOSE_LEVEL_POINTS = config(
     'PLAYER_MAX_LOSE_LEVEL_POINTS', default=-99, cast=int
+)
+MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER = config(
+    'MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER', default=10, cast=int
 )
