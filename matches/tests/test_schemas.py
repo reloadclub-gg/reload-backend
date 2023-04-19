@@ -48,7 +48,6 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
             'team_id': match_player.team.id,
             'match_id': match_player.team.match.id,
             'username': match_player.user.steam_user.username,
-            'level': match_player.user.account.level,
             'avatar': {
                 'small': Steam.build_avatar_url(
                     match_player.user.steam_user.avatarhash
@@ -61,6 +60,8 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
                 ),
             },
             'points_earned': match_player.points_earned,
+            'level': match_player.level,
+            'level_points': match_player.level_points,
             'stats': {
                 'kills': 0,
                 'deaths': 0,
