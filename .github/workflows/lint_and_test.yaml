@@ -56,6 +56,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    needs: check_migrations
     env:
       DJANGO_SECRET_KEY: unsafe_secret_key
       REDIS_HOST: localhost
@@ -104,6 +105,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: lint
     env:
       DJANGO_SECRET_KEY: unsafe_secret_key
       REDIS_HOST: localhost

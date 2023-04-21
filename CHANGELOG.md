@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Método `online_users` no modelo `Users` para trazer todos os usuários online.
+- Envio de notificações de sistema para usuários ativos ou online pelo admin (https://github.com/3C-gg/reload-backend/issues/372).
+- Modelo `SystemNotification` para salvar notificações de sistema enviadas para usuários da plataforma.
+- Método `create_system_notifications` no modelo `Notification` para criar notificações de sistema.
 - Adiciona esquema de notificações no esquema de conta.
 - Esquema de notificações `NotificationSchema`.
 - Propriedade `notifications` e método `notify` ao modelo `Account`.
