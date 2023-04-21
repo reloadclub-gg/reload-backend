@@ -3,10 +3,6 @@ name: Build and Deploy to GKE
 on:
   workflow_call:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Lint & Test"]
-    types:
-      - completed
   push:
     branches: [staging]
 
