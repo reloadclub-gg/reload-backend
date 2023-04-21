@@ -5,7 +5,7 @@ from matchmaking.tests.mixins import VerifiedPlayersMixin
 from steam import Steam
 
 from .api.schemas import NotificationSchema
-from .models import Notification, NotificationError
+from .models import Notification, NotificationError, SystemNotification
 
 
 class NotificationsNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
@@ -125,6 +125,19 @@ class NotificationsNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(n1.to_user_id, self.user_1.id)
         self.assertEqual(n2.to_user_id, self.user_2.id)
         self.assertEqual(n3.to_user_id, self.user_4.id)
+
+
+class NotificationsSystemNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
+    def test_system_notification_to_users_changed_signal(self):
+        n = SystemNotification(content='Sys Notification')
+        n.save()
+        n.to_users.set([self.user_1, self.user_2])
+
+        user1_notifications = Notification.get_all_by_user_id(self.user_1.id)
+        user2_notifications = Notification.get_all_by_user_id(self.user_2.id)
+
+        self.assertEqual(len(user1_notifications), 1)
+        self.assertEqual(len(user2_notifications), 1)
 
 
 class NotificationsSchemasTestCase(VerifiedPlayersMixin, TestCase):
