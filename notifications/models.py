@@ -120,6 +120,17 @@ class Notification(BaseModel):
         return int(count) if count else 0
 
     @staticmethod
+    def create_system_notifications(
+        content: str, avatar: str, to_user_ids: List[int]
+    ) -> List[int]:
+        notification_ids = list()
+        for to_id in to_user_ids:
+            n = Notification.create(content, avatar, to_id)
+            notification_ids.append(n.id)
+
+        return notification_ids
+
+    @staticmethod
     def create(
         content: str,
         avatar: str,
