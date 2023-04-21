@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import List
 
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.db.models.signals import m2m_changed
+from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
@@ -19,6 +22,19 @@ User = get_user_model()
 
 class NotificationError(Exception):
     pass
+
+
+class SystemNotification(models.Model):
+    to_users = models.ManyToManyField(User, blank=True)
+    content = models.TextField()
+    create_date = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def avatar(self):
+        return static('icons/broadcast.png')
+
+    def __str__(self) -> str:
+        return self.content
 
 
 class Notification(BaseModel):
@@ -120,6 +136,17 @@ class Notification(BaseModel):
         return int(count) if count else 0
 
     @staticmethod
+    def create_system_notifications(
+        content: str, avatar: str, to_user_ids: List[int]
+    ) -> List[int]:
+        notification_ids = list()
+        for to_id in to_user_ids:
+            n = Notification.create(content, avatar, to_id)
+            notification_ids.append(n.id)
+
+        return notification_ids
+
+    @staticmethod
     def create(
         content: str,
         avatar: str,
@@ -149,3 +176,22 @@ class Notification(BaseModel):
             raise NotificationError(_('Notification not found.'))
 
         return Notification(**result)
+
+
+def system_notification_to_users_changed(sender, instance, action, **kwargs):
+    if action == 'post_add':
+        to_users = list(
+            User.objects.filter(pk__in=kwargs.get('pk_set')).values_list(
+                'pk', flat=True
+            )
+        )
+        Notification.create_system_notifications(
+            content=instance.content,
+            avatar=instance.avatar,
+            to_user_ids=to_users,
+        )
+
+
+m2m_changed.connect(
+    system_notification_to_users_changed, sender=SystemNotification.to_users.through
+)

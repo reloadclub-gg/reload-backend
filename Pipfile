@@ -30,7 +30,6 @@ daphne = "*"
 django-jazzmin = "*"
 django-rosetta = "*"
 ipython = "*"
-django-object-actions = "*"
 
 [dev-packages]
 
