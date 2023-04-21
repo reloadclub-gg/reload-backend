@@ -243,6 +243,11 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         self.assertFalse(self.user.is_active)
         self.assertIsNotNone(self.user.date_inactivation)
 
+    def test_online_users(self):
+        self.assertEqual(len(models.User.online_users()), 0)
+        self.user.auth.add_session()
+        self.assertEqual(len(models.User.online_users()), 1)
+
 
 class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):
     def test_token_init(self):
