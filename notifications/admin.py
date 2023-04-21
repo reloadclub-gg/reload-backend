@@ -1,9 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.http import HttpResponseRedirect
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django_object_actions import DjangoObjectActions, action
 
 from . import forms, models
 
@@ -11,7 +8,7 @@ User = get_user_model()
 
 
 @admin.register(models.SystemNotification)
-class SystemNotificationAdmin(DjangoObjectActions, admin.ModelAdmin):
+class SystemNotificationAdmin(admin.ModelAdmin):
     list_display = ('content', 'create_date', 'notified_users')
     ordering = ('create_date',)
     filter_horizontal = ('to_users',)
@@ -45,18 +42,3 @@ class SystemNotificationAdmin(DjangoObjectActions, admin.ModelAdmin):
                 )
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
-
-    @action(label=_('All active users'), description=_('List all active users'))
-    def filter_active_users(self, request, obj):
-        return HttpResponseRedirect(
-            reverse('admin:notifications_systemnotification_change', args=(obj.id,))
-        )
-
-    @action(label=_('Online users'), description=_('List online users'))
-    def filter_online_users(self, request, obj):
-        return HttpResponseRedirect(
-            reverse('admin:notifications_systemnotification_change', args=(obj.id,))
-            + '?online=1'
-        )
-
-    change_actions = ('filter_online_users', 'filter_active_users')
