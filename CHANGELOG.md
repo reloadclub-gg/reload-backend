@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Método `online_users` no modelo `Users` para trazer todos os usuários online.
+- Envio de notificações de sistema para usuários ativos ou online pelo admin (https://github.com/3C-gg/reload-backend/issues/372).
+- Modelo `SystemNotification` para salvar notificações de sistema enviadas para usuários da plataforma.
+- Método `create_system_notifications` no modelo `Notification` para criar notificações de sistema.
+- Adiciona esquema de notificações no esquema de conta.
+- Esquema de notificações `NotificationSchema`.
+- Propriedade `notifications` e método `notify` ao modelo `Account`.
+- Ícone de broadcast aos arquivos estáticos.
+- App de notificações, incluindo modelo de cache `Notification` e testes (https://github.com/3C-gg/reload-backend/issues/355).
+- Novo AppSettings e Config (`MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER`) que limita a quantidade de notificações de cada usuário que guardamos no Redis.
+- Campos `level` e `level_points` no esquema `MatchPlayerSchema` refletindo os dados históricos do modelo `MatchPlayer` (https://github.com/3C-gg/reload-backend/issues/364).
+- Campos `level` e `level_points` no modelo `MatchPlayer` para refletir esses dados do usuário no momento histórico daquela partida.
+- Nova carga de dados referentes a partidas e jogadores no `seed.json`.
+- Campos de pontos na visualização do admin no modelo `MatchPlayer`.
+- Limite no cálculo da quantidade de pontos que um jogador pode perder (https://github.com/3C-gg/reload-backend/issues/367).
+- Novo AppSettings e Config (`PLAYER_MAX_LOSE_LEVEL_POINTS`) que limitam a quantidade de pontos que um jogador pode perder.
+- Campo `create_date` no modelo `LobbyInvite` do Redis. Adiciona também esse campo no esquema `LobbyInviteSchema` (https://github.com/3C-gg/reload-backend/issues/363).
+- Método de marcar a partida como cancelada no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/360).
+- Método de marcar a partida como pronta no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/358).
+- Adiciona algumas traduções faltantes.
+- Método de iniciar partida no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/356).
+- Adiciona ação de finalizar partida no admin do modelo `Match`.
+- Adiciona método de finalizar partida no modelo `Match` (https://github.com/3C-gg/reload-backend/issues/353).
+- Adiciona testes faltantes para modelo `Match`.
 - Novo arquivo `tasks` no package de websocket que expõe as tarefas como middleware para que o código possa chamar os eventos WS tanto como tarefas quanto como métodos normais dependendo do caso.
 - Serviço do _Celery_ no _Kubernetes_.
 - Serviço do _Celery_ no Github Workflow (https://github.com/3C-gg/reload-backend/issues/317).
@@ -38,6 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige token errada sendo enviada no e-mail de verificação (https://github.com/3C-gg/reload-backend/issues/352).
+- Ajusta retorno do `controlller` e `route` de recusar convite para que não tenha nenhum retorno visto que existe uma deleção.
+- Adiciona uma proteção que previne uma partida de ser finalizada se não tiver sido iniciada.
+- Corrigimos os métodos do modelo `Server` para garantir que os métodos que definem se o servidor está quase cheio ou cheio filtrem apenas partidas em andamento.
+- Corrigimos o cálculo de pontos (`points_earned`) de uma partida que estava retornando negativo mesmo que o usuário estivesse no nível 0 e com 0 pontos de nível.
 - Código de verificação de e-mail estava _hardcoded_ no template de e-mail. Substituímos pelo código certo, individual e único para cada usuário (https://github.com/3C-gg/reload-backend/issues/299).
 - Em um caso específico, onde tinham 2 players em um lobby e o player convidado (que não é o dono) sai ou é expulso, o dono do lobby não estava tendo seu status de "Em grupo" para "Online" atualizado para seus amigos. Uma vez que ele estava em grupo, e com a saída do convidado ele ficou num lobby vazio, começamos a disparar esse evento para o dono do lobby (https://github.com/3C-gg/reload-backend/issues/301).
 - Ajusta string de conexão do Celery com o Redis quando a conexão for via SSL.
@@ -67,6 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Remove lib `django_object_actions` que estava causando erro nas actions do Github.
+- Remove migrations velhas que foram _squashed_ via `squash_migrations`.
 - Django Jazzmin foi removido devido a falta de suporte na renderização de ícones e imagens, o que tornava a utilização do admin mais difícil (https://github.com/3C-gg/reload-backend/issues/303).
 - Removido level debug da lib Sentry.
 - Remove campo `match` do modelo `MatchPlayer`.

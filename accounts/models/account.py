@@ -15,6 +15,7 @@ from core.redis import RedisClient
 from core.utils import generate_random_string
 from matches.models import Match, MatchPlayer
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
+from notifications.models import Notification
 from steam import Steam
 
 User = get_user_model()
@@ -96,8 +97,9 @@ class Account(models.Model):
 
     @property
     def match(self) -> Match:
+        exclude_statues = [Match.Status.FINISHED, Match.Status.CANCELLED]
         qs = MatchPlayer.objects.filter(user=self.user).exclude(
-            team__match__status=Match.Status.FINISHED
+            team__match__status__in=exclude_statues
         )
         if len(qs) > 1:
             # TODO send alert to admin
@@ -112,6 +114,15 @@ class Account(models.Model):
     @property
     def second_chance_lvl(self) -> bool:
         return cache.sismember('__accounts:second_chance_lvl_users', self.user.id)
+
+    @property
+    def notifications(self) -> List[Notification]:
+        return Notification.get_all_by_user_id(self.user.id)
+
+    def notify(self, content, avatar, from_user_id=None):
+        return Notification.create(
+            content, avatar, from_user_id=from_user_id, to_user_id=self.user.id
+        )
 
     def set_second_chance_lvl(self):
         """

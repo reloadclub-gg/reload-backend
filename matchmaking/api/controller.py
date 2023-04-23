@@ -90,18 +90,15 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
 
 def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
     try:
-        invite = LobbyInvite.get(lobby_id, invite_id)
+        LobbyInvite.get(lobby_id, invite_id)
         lobby_player_refuse_invite_task.delay(lobby_id, invite_id)
     except (LobbyException, LobbyInviteException) as exc:
         raise HttpError(400, str(exc))
-
-    return invite
 
 
 def lobby_change_type_and_mode(
     lobby_id: int, lobby_type: str, lobby_mode: int, user: User
 ) -> Lobby:
-
     if user.account.match:
         raise HttpError(403, _('Can\'t change lobby mode or type while in a match.'))
 
@@ -233,7 +230,6 @@ def lobby_cancel_queue(lobby_id: int) -> Lobby:
 
 
 def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
-
     if user.account.match:
         raise HttpError(403, _('Can\'t lock in for a new match while in a match.'))
 
@@ -262,7 +258,6 @@ def match_player_lock_in(user: User, pre_match_id: str) -> PreMatch:
 
 
 def match_player_ready(user: User, pre_match_id: str) -> PreMatch:
-
     if user.account.match:
         raise HttpError(403, _('Can\'t ready in for a new match while in a match.'))
 

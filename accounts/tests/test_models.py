@@ -1,12 +1,15 @@
 from unittest import mock
 
 from django.core.exceptions import ValidationError
+from django.templatetags.static import static
 from django.utils import timezone
 from model_bakery import baker
 from social_django.models import UserSocialAuth
 
 from core.tests import TestCase, cache
+from matches.models import Match, MatchPlayer, Server
 from matchmaking.models import Lobby
+from matchmaking.tests.mixins import TeamsMixin
 
 from .. import models, utils
 from ..models.auth import AuthConfig
@@ -127,6 +130,44 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         with self.assertRaises(ValidationError):
             account.set_level_points(-310)
 
+    def test_notifications(self):
+        account = baker.make(models.Account, user=self.user)
+        self.assertEqual(len(account.notifications), 0)
+
+        n = account.notify(
+            content='New notification', avatar=static('icons/broadcast.png')
+        )
+        self.assertEqual(len(account.notifications), 1)
+
+        self.assertEqual(account.notifications[0].id, n.id)
+
+
+class AccountsAccountMatchModelTestCase(TeamsMixin, TestCase):
+    def test_match(self):
+        server = baker.make(Server)
+        match = baker.make(Match, server=server, status=Match.Status.LOADING)
+        team1 = match.matchteam_set.create(name=self.team1.name)
+        match.matchteam_set.create(name=self.team2.name)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+
+        self.assertEqual(self.user_1.account.match, match)
+
+        match.status = Match.Status.CANCELLED
+        match.save()
+        self.assertIsNone(self.user_1.account.match)
+
+        match.status = Match.Status.FINISHED
+        match.save()
+        self.assertIsNone(self.user_1.account.match)
+
+        match.status = Match.Status.RUNNING
+        match.save()
+        self.assertEqual(self.user_1.account.match, match)
+
+        match.status = Match.Status.READY
+        match.save()
+        self.assertEqual(self.user_1.account.match, match)
+
 
 class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
     def test_invite_create_limit_reached(self):
@@ -201,6 +242,11 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         self.user.inactivate()
         self.assertFalse(self.user.is_active)
         self.assertIsNotNone(self.user.date_inactivation)
+
+    def test_online_users(self):
+        self.assertEqual(len(models.User.online_users()), 0)
+        self.user.auth.add_session()
+        self.assertEqual(len(models.User.online_users()), 1)
 
 
 class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):

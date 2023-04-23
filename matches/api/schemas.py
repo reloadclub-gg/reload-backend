@@ -18,9 +18,10 @@ class MatchPlayerSchema(ModelSchema):
     team_id: int
     user_id: int
     username: str
-    level: int
     avatar: dict
     points_earned: int = None
+    level: int
+    level_points: int
     stats: MatchPlayerStatsSchema
 
     class Config:

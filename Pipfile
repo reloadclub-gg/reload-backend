@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 django = "*"
 psycopg2-binary = "*"
-django-extensions = "*"
 coverage = "*"
 model-bakery = "*"
 flake8 = "*"

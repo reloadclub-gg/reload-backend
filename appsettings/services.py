@@ -21,3 +21,16 @@ def player_max_level():
 
 def player_max_level_points():
     return AppSettings.get('Player Max Level Points', settings.PLAYER_MAX_LEVEL_POINTS)
+
+
+def player_max_losing_level_points():
+    return AppSettings.get(
+        'Player Max Losing Level Points', settings.PLAYER_MAX_LOSE_LEVEL_POINTS
+    )
+
+
+def max_notification_history_count_per_player():
+    return AppSettings.get(
+        'Max Notification Count Per Player',
+        settings.MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER,
+    )

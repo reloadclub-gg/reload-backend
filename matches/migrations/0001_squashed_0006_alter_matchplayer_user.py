@@ -6,18 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-    replaces = [
-        ("matches", "0001_initial"),
-        ("matches", "0002_server_match_server"),
-        (
-            "matches",
-            "0003_remove_match_team_a_score_remove_match_team_b_score_and_more",
-        ),
-        ("matches", "0004_remove_matchplayer_match"),
-        ("matches", "0005_rename_leg_shots_matchplayer_other_shots"),
-        ("matches", "0006_alter_matchplayer_user"),
-    ]
-
     initial = True
 
     dependencies = [

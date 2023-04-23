@@ -3,16 +3,22 @@ from __future__ import annotations
 from typing import List
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
+from django.utils.translation import gettext as _
 
-from appsettings.services import matches_limit_per_server, matches_limit_per_server_gap
+from appsettings.services import (
+    matches_limit_per_server,
+    matches_limit_per_server_gap,
+    player_max_losing_level_points,
+)
 
 User = get_user_model()
 
 
 class Server(models.Model):
-
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=32)
     key = models.TextField()
@@ -25,7 +31,7 @@ class Server(models.Model):
         to admins and client application instead.
         """
         limit = matches_limit_per_server()
-        return len(self.match_set.all()) == limit
+        return len(self.match_set.filter(status=Match.Status.RUNNING)) == limit
 
     @property
     def is_almost_full(self) -> bool:
@@ -36,7 +42,7 @@ class Server(models.Model):
         """
         limit = matches_limit_per_server()
         gap = matches_limit_per_server_gap()
-        return len(self.match_set.all()) == (limit - gap)
+        return len(self.match_set.filter(status=Match.Status.RUNNING)) == (limit - gap)
 
     @staticmethod
     def get_idle() -> Server:
@@ -58,8 +64,10 @@ class Server(models.Model):
 class Match(models.Model):
     class Status(models.IntegerChoices):
         LOADING = 0
-        RUNNING = 1
-        FINISHED = 2
+        READY = 1
+        RUNNING = 2
+        FINISHED = 3
+        CANCELLED = 4
 
     class GameType(models.TextChoices):
         CUSTOM = 'custom'
@@ -142,6 +150,42 @@ class Match(models.Model):
             return f'#{self.id} - {self.team_a.name} vs {self.team_b.name}'
         return f'#{self.id} - waiting for team creation'
 
+    def finish(self):
+        if self.status != Match.Status.RUNNING:
+            raise ValidationError(_('Unable to finish match while not running.'))
+
+        self.status = Match.Status.FINISHED
+        self.end_date = timezone.now()
+        self.save()
+
+        for player in self.players:
+            player.user.account.set_level_points(player.points_earned)
+            player.user.account.save()
+
+    def start(self):
+        if self.status != Match.Status.READY:
+            raise ValidationError(_('Unable to start match while not ready.'))
+
+        self.status = Match.Status.RUNNING
+        self.start_date = timezone.now()
+        self.save()
+
+    def ready(self):
+        if self.status != Match.Status.LOADING:
+            raise ValidationError(_('Unable to mark match as ready while not loading.'))
+
+        self.status = Match.Status.READY
+        self.save()
+
+    def cancel(self):
+        error_statuses = [Match.Status.FINISHED, Match.Status.CANCELLED]
+        if self.status in error_statuses:
+            raise ValidationError(_('Unable to cancel match after is finished.'))
+
+        self.status = Match.Status.CANCELLED
+        self.end_date = timezone.now()
+        self.save()
+
 
 class MatchTeam(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
@@ -162,6 +206,53 @@ class MatchTeam(models.Model):
 class MatchPlayer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     team = models.ForeignKey(MatchTeam, on_delete=models.CASCADE)
+    level = models.IntegerField(editable=False)
+    level_points = models.IntegerField(editable=False)
+
+    @property
+    def points_base(self):
+        """
+        Base calculation on top of player stats to determine how many points
+        that player will earn after match.
+        """
+        assists = (self.stats.assists / 10) if self.stats.assists > 0 else 0
+        plants = self.stats.plants * 2
+        defuses = self.stats.defuses * 1.2
+        kd = self.stats.kills - self.stats.deaths
+        return int(round(assists + plants + defuses + kd))
+
+    @property
+    def points_cap(self):
+        """
+        Cap points so winners earn min of 10 and max of 30 points
+        and losers min of -10 and max of -20.
+        """
+        if self.team.match.winner == self.team:
+            if self.points_base + 10 < 10:
+                return 10
+            elif self.points_base + 10 > 30:
+                return 30
+            else:
+                return self.points_base + 10
+        else:
+            if self.points_base - 25 > -10:
+                return -10
+            elif self.points_base - 25 < -20:
+                return -20
+            else:
+                return self.points_base - 25
+
+    @property
+    def points_penalties(self):
+        """
+        The penalty is applied after all calculations, and the maximum that it can
+        reach is the value at `appsettings.services.player_max_losing_level_points`.
+        """
+        afk_penalty = self.stats.afk**2
+        if self.points_cap - afk_penalty > player_max_losing_level_points():
+            return self.points_cap - afk_penalty
+
+        return player_max_losing_level_points()
 
     @property
     def points_earned(self) -> int:
@@ -171,42 +262,29 @@ class MatchPlayer(models.Model):
         if self.team.match.status != Match.Status.FINISHED:
             return None
 
-        if self.stats.rounds_played > 0:
-            step1 = (self.stats.assists / 10) if self.stats.assists > 0 else 0
-            step2 = self.stats.plants * 2
-            step3 = self.stats.defuses * 1.2
-            step4 = self.stats.kills - self.stats.deaths
-            result1 = step1 + step2 + step3 + step4
-            result1 = int(round(result1))
+        points = self.points_cap
+        if self.stats.afk:
+            points = self.points_penalties
 
-            if self.team.match.winner == self.team:
-                result2 = int(round(result1 + 10))
-                # if result2 is lesser then 20 or greater then 30 on victory,
-                # adjust it to 20 or 30
-                if result2 < 10:
-                    result2 = 10
-                elif result2 > 30:
-                    result2 = 30
-            else:
-                result2 = int(round(result1 - 25))
-                # if result2 is lesser then -20 or greater then -10 on defeat,
-                # adjust it to -20 or -10
-                if result2 < -20:
-                    result2 = -20
-                elif result2 > -10:
-                    result2 = -10
-
-            # Apply afk penalties
-            level_points = result2 - self.stats.afk * 3
-            return level_points
+        if (
+            points > 0
+            or self.user.account.level > 0
+            or self.user.account.level_points >= abs(points)
+        ):
+            return points
 
         return 0
 
     def save(self, *args, **kwargs):
         adding = True if self._state.adding else False
-        super().save(*args, **kwargs)
+
         if adding:
+            self.level = self.user.account.level
+            self.level_points = self.user.account.level_points
+            super().save(*args, **kwargs)
             MatchPlayerStats.objects.create(player=self)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.user.steam_user.username}'

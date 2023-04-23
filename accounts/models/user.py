@@ -115,6 +115,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         return 'offline'
 
+    @staticmethod
+    def online_users():
+        active_users = User.objects.filter(
+            is_active=True, is_superuser=False, is_staff=False
+        )
+        online_users_ids = [user.id for user in active_users if user.is_online]
+        return active_users.filter(id__in=online_users_ids)
+
     def __str__(self):
         return self.email if self.email else str(self.id)
 

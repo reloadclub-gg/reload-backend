@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 16:57-0300\n"
-"PO-Revision-Date: 2023-01-28 00:05-0300\n"
+"POT-Creation-Date: 2023-04-21 15:09-0300\n"
+"PO-Revision-Date: 2023-04-21 15:17-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -19,47 +19,77 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Translated-Using: django-rosetta 0.9.8\n"
 
+#: accounts/admin.py:35
+msgid "Account"
+msgstr "Conta"
+
+#: accounts/admin.py:46
+msgid "Important Dates"
+msgstr "Datas Importantes"
+
+#: accounts/admin.py:48
+msgid "Statuses"
+msgstr "Status"
+
+#: accounts/admin.py:59
+msgid "Activation"
+msgstr "Ativação"
+
 #: accounts/api/controller.py:98
 msgid "User already has an account."
 msgstr "Usuário já possui uma conta."
 
-#: accounts/api/controller.py:103 matchmaking/models/lobby.py:279
+#: accounts/api/controller.py:103 matchmaking/models/lobby.py:296
 msgid "User must be invited."
 msgstr "Usuário deve ser convidado."
 
-#: accounts/api/controller.py:125 accounts/api/schemas.py:195
+#: accounts/api/controller.py:125 accounts/api/schemas.py:206
 msgid "Invalid verification token."
 msgstr "Código de verificação inválido."
 
-#: accounts/api/schemas.py:158 accounts/api/schemas.py:205
+#: accounts/api/schemas.py:169 accounts/api/schemas.py:216
 msgid "E-mail must be unique."
 msgstr "O e-mail informado já está sendo utilizado."
 
-#: accounts/api/schemas.py:163 accounts/api/schemas.py:168
+#: accounts/api/schemas.py:174 accounts/api/schemas.py:179
 msgid "User must read and agree with our Terms and Policy."
 msgstr ""
 "Usuário precisa ler e aceitar os Termos de Uso e a Política de Privacidade."
 
-#: accounts/api/schemas.py:187
+#: accounts/api/schemas.py:198
 msgid "One of e-mail or verification_token must have a value."
 msgstr "É preciso informar ao menos o e-mail ou o código de verificação."
 
-#: accounts/models/account.py:35
+#: accounts/models/account.py:43
 msgid "Steam account not found."
 msgstr "Conta Steam não encontrada."
 
-#: accounts/models/account.py:107
+#: accounts/models/account.py:106
+msgid "User should not be in more then one match."
+msgstr "Usuário não pode estar em mais de uma partida ao mesmo tempo."
+
+#: accounts/models/account.py:159
+msgid "Level points should never exceed max level points."
+msgstr ""
+"Pontos de nível ganhos nunca devem exceder o número máximo permitido de "
+"Pontos de nível."
+
+#: accounts/models/account.py:223
 #, python-brace-format
 msgid "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
 msgstr "Máximo número de convites atingido ({self.MAX_INVITES_PER_ACCOUNT})."
 
-#: accounts/models/account.py:111
+#: accounts/models/account.py:227
 msgid "Accepted invites cannot be modified."
 msgstr "Convites aceitos não podem ser modificados."
 
-#: accounts/models/account.py:114
+#: accounts/models/account.py:230
 msgid "An invite already exists for this email."
 msgstr "Já existe um convite para este e-mail."
+
+#: accounts/models/restriction.py:53
+msgid "In hours."
+msgstr "Em horas."
 
 #: appsettings/forms.py:17
 msgid "value is not integer"
@@ -395,8 +425,7 @@ msgstr "Tamanho para um {}."
 
 #: core/api/pydantic_messages.py:125
 msgid "could not parse value and unit from byte string"
-msgstr ""
-"Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
+msgstr "Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
 
 #: core/api/pydantic_messages.py:127
 msgid "could not interpret byte unit: {}"
@@ -410,114 +439,192 @@ msgstr "O valor do discriminador {} está faltando."
 msgid "No match for discriminator {}"
 msgstr "Nenhuma correspondência para o discriminador {}."
 
-#: core/api/routes.py:27
+#: core/api/routes.py:29
 msgid "Unauthorized."
 msgstr "Não autorizado."
 
-#: core/api/routes.py:33
+#: core/api/routes.py:35
 msgid "Internationalization works."
 msgstr "A internacionalização está funcionando."
 
-#: matchmaking/api/controller.py:73
+#: matches/models.py:155
+msgid "Unable to finish match while not running."
+msgstr "Não é possível finalizar uma partida que não foi iniciada."
+
+#: matches/models.py:167
+#| msgid "Unable to finish match while not running."
+msgid "Unable to start match while not ready."
+msgstr "Não é possível iniciar uma partida que não está pronta."
+
+#: matches/models.py:175
+#| msgid "Unable to finish match while not running."
+msgid "Unable to mark match as ready while not loading."
+msgstr "Não é possível marcar uma partida que não foi carregada como pronta."
+
+#: matches/models.py:183
+msgid "Unable to cancel match after is finished."
+msgstr "Não é possível cancelar uma partida depois de ser finalizada."
+
+#: matchmaking/api/controller.py:74
 msgid "User must be in provided lobby to leave from it."
 msgstr "Usuário precisa estar no lobby para sair dele."
 
-#: matchmaking/api/controller.py:157
+#: matchmaking/api/controller.py:103
+msgid "Can't change lobby mode or type while in a match."
+msgstr ""
+"Não é possível alterar o tipo ou modo de um lobby enquanto estiver em uma "
+"partida."
+
+#: matchmaking/api/controller.py:159
 msgid "Can't accept an invite from the same lobby."
 msgstr "Não é possível aceitar um convite para o lobby em que já está."
 
+#: matchmaking/api/controller.py:184
+msgid "Can't start queue while in a match."
+msgstr "Não é possível entrar na fila enquanto estiver em uma partida."
+
+#: matchmaking/api/controller.py:234
+msgid "Can't lock in for a new match while in a match."
+msgstr ""
+"Não é possível entrar em uma nova partida enquanto estiver em uma partida."
+
 #: matchmaking/api/controller.py:262
-#, fuzzy
+msgid "Can't ready in for a new match while in a match."
+msgstr ""
+"Não é possível entrar em uma nova partida enquanto estiver em uma partida."
+
+#: matchmaking/api/controller.py:273
 #| msgid "Lobby already on a team."
 msgid "Player already set as ready."
 msgstr "Jogador já foi marcado como pronto."
 
-#: matchmaking/models/invite.py:44 matchmaking/models/lobby.py:416
+#: matchmaking/models/invite.py:53 matchmaking/models/lobby.py:434
 msgid "Invite not found."
 msgstr "Convite não encontrado."
 
-#: matchmaking/models/lobby.py:189 matchmaking/models/lobby.py:249
-#: matchmaking/models/lobby.py:371
+#: matchmaking/models/lobby.py:205 matchmaking/models/lobby.py:266
+#: matchmaking/models/lobby.py:386
 msgid "User not found."
 msgstr "Usuário não encontrado."
 
-#: matchmaking/models/lobby.py:194 matchmaking/models/lobby.py:258
-#: matchmaking/models/lobby.py:376
+#: matchmaking/models/lobby.py:210 matchmaking/models/lobby.py:275
+#: matchmaking/models/lobby.py:391
 msgid "A verified account is required to perform this action."
 msgstr "Uma conta verificada é necessária para realizar esta ação."
 
-#: matchmaking/models/lobby.py:198 matchmaking/models/lobby.py:262
-#: matchmaking/models/lobby.py:380
+#: matchmaking/models/lobby.py:214 matchmaking/models/lobby.py:279
+#: matchmaking/models/lobby.py:395
 msgid "Offline user."
 msgstr "Usuário offline."
 
-#: matchmaking/models/lobby.py:201 matchmaking/models/lobby.py:474
+#: matchmaking/models/lobby.py:217 matchmaking/models/lobby.py:496
 msgid "The given type is not valid."
 msgstr "O tipo informado não é válido."
 
-#: matchmaking/models/lobby.py:207 matchmaking/models/lobby.py:488
+#: matchmaking/models/lobby.py:223 matchmaking/models/lobby.py:510
 msgid "The given mode is not valid."
 msgstr "O modo informado não é válido."
 
-#: matchmaking/models/lobby.py:243
+#: matchmaking/models/lobby.py:260
 msgid "Lobby not found."
 msgstr "Lobby não encontrado."
 
-#: matchmaking/models/lobby.py:265 matchmaking/models/lobby.py:347
-#: matchmaking/models/lobby.py:428 matchmaking/models/lobby.py:451
-#: matchmaking/models/lobby.py:460 matchmaking/models/lobby.py:471
-#: matchmaking/models/lobby.py:485
+#: matchmaking/models/lobby.py:282 matchmaking/models/lobby.py:362
+#: matchmaking/models/lobby.py:446 matchmaking/models/lobby.py:473
+#: matchmaking/models/lobby.py:482 matchmaking/models/lobby.py:493
+#: matchmaking/models/lobby.py:507
 msgid "Lobby is queued."
 msgstr "Lobby está em fila."
 
-#: matchmaking/models/lobby.py:276 matchmaking/models/lobby.py:344
+#: matchmaking/models/lobby.py:293 matchmaking/models/lobby.py:359
 msgid "Lobby is full."
 msgstr "Lobby está cheio."
 
-#: matchmaking/models/lobby.py:364
+#: matchmaking/models/lobby.py:379
 msgid "Invited user is already a lobby player."
 msgstr "Usuário convidado já faz parte do lobby."
 
-#: matchmaking/models/lobby.py:367
+#: matchmaking/models/lobby.py:382
 msgid "User already invited."
 msgstr "Usuário já foi convidado."
 
-#: matchmaking/models/lobby.py:494
+#: matchmaking/models/lobby.py:450
+msgid "Can't start queue due to player restriction."
+msgstr "Não foi possível iniciar a fila por causa de uma restrição."
+
+#: matchmaking/models/lobby.py:516
 msgid "Owner cannot be removed."
 msgstr "O dono não pode ser removido."
+
+#: matchmaking/models/player.py:110
+#| msgid "User not found."
+msgid "Player not found"
+msgstr "Jogador não encontrado."
+
+#: matchmaking/models/player.py:126
+msgid "Player cannot dodge while in queue restriction."
+msgstr ""
+"Jogador não pode escapar de uma partida enquanto estiver em uma restrição."
 
 #: matchmaking/models/pre_match.py:158
 msgid "All teams must be ready in order to create a PreMatch."
 msgstr "Todos os times precisam estar prontos para criar uma partida."
 
 #: matchmaking/models/pre_match.py:173
-#, fuzzy
 #| msgid "Team not found."
 msgid "PreMatch not found."
-msgstr "Time não encontrado."
+msgstr "Pré partida não encontrada."
 
-#: matchmaking/models/pre_match.py:214
+#: matchmaking/models/pre_match.py:215
 msgid "PreMatch is not ready for ready players."
 msgstr ""
 "Partida ainda não está pronta para receber pedidos de jogadores prontos."
 
-#: matchmaking/models/pre_match.py:220
+#: matchmaking/models/pre_match.py:221
 msgid "PreMatch is not ready to lock in players."
 msgstr ""
-"Partida ainda não está pronta para receber pedidos de jogadores a participar."
+"Partida ainda não está pronta para receber pedidos de jogadores a "
+"participar."
 
-#: matchmaking/models/team.py:178 matchmaking/models/team.py:190
+#: matchmaking/models/team.py:188 matchmaking/models/team.py:200
 msgid "Team not found."
 msgstr "Time não encontrado."
 
-#: matchmaking/models/team.py:204
+#: matchmaking/models/team.py:214
 msgid "Team players count exceeded."
 msgstr "A quantidade de jogadores em time foi excedida."
 
-#: matchmaking/models/team.py:218 matchmaking/models/team.py:244
+#: matchmaking/models/team.py:228 matchmaking/models/team.py:254
 msgid "Lobby already on a team."
 msgstr "O lobby já está em um time."
 
-#: matchmaking/models/team.py:222 matchmaking/models/team.py:248
+#: matchmaking/models/team.py:232 matchmaking/models/team.py:258
 msgid "Lobby not queued."
 msgstr "Lobby não está em fila."
+
+#: notifications/admin.py:36
+msgid "Notified users"
+msgstr "Usuários notificados"
+
+#: notifications/admin.py:49 notifications/forms.py:9
+msgid "All active users"
+msgstr "Usuários ativos"
+
+#: notifications/admin.py:49
+msgid "List all active users"
+msgstr "Lista todos os usuários ativos"
+
+#: notifications/admin.py:55 notifications/forms.py:10
+#| msgid "Offline user."
+msgid "Online users"
+msgstr "Usuários online"
+
+#: notifications/admin.py:55
+#| msgid "Offline user."
+msgid "List online users"
+msgstr "Lista todos os usuários online"
+
+#: notifications/models.py:185
+#| msgid "Invite not found."
+msgid "Notification not found."
+msgstr "Notificação não encontrada."
