@@ -3,6 +3,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from matches.models import Match, MatchPlayer, Server
+from notifications.models import Notification
 from websocket.tasks import (
     lobby_invites_update_task,
     lobby_player_invite_task,
@@ -10,6 +11,7 @@ from websocket.tasks import (
     lobby_update_task,
     match_task,
     pre_match_task,
+    send_notification_task,
     user_status_change_task,
     user_update_task,
 )
@@ -82,6 +84,11 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
     try:
         invite = lobby.invite(from_user_id, to_user_id)
         lobby_player_invite_task.delay(lobby_id, invite.id)
+        from_user_username = User.objects.get(pk=from_user_id).steam_user.username
+        notification = User.objects.get(pk=to_user_id).account.notify(
+            _(f'{from_user_username} invited you to a group.'), from_user_id
+        )
+        send_notification_task.delay(notification.id)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 

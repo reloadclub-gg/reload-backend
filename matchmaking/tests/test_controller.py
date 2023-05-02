@@ -6,6 +6,7 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 
 from core.tests import TestCase
 from matches.models import Match, MatchPlayer, MatchTeam, Server
+from notifications.models import Notification
 
 from ..api import controller
 from ..models import Lobby, LobbyInvite, PreMatch, PreMatchConfig, Team
@@ -46,18 +47,25 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         with self.assertRaises(HttpError):
             controller.lobby_remove_player(self.user_2.id, lobby_2.id)
 
-    def test_lobby_invite(self):
+    @mock.patch('matchmaking.api.controller.send_notification_task.delay')
+    def test_lobby_invite(self, mocker):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
 
         self.assertEqual(lobby_1.players_count, 1)
         self.assertEqual(lobby_2.players_count, 1)
 
+        self.assertEqual(len(Notification.get_all_by_user_id(self.user_2.id)), 0)
+
         controller.lobby_invite(
             lobby_id=lobby_1.id,
             from_user_id=self.user_1.id,
             to_user_id=self.user_2.id,
         )
+
+        notifications = Notification.get_all_by_user_id(self.user_2.id)
+        self.assertEqual(len(notifications), 1)
+        mocker.assert_called_once_with(notifications[0].id)
 
         self.assertEqual(
             lobby_1.invites,
