@@ -96,7 +96,8 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
         mock_move.assert_called_once()
 
-    def test_lobby_refuse_invite(self):
+    @mock.patch('matchmaking.api.controller.send_notification_task.delay')
+    def test_lobby_refuse_invite(self, mocker):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
         lobby_2.invite(lobby_2.id, lobby_1.id)
@@ -110,10 +111,15 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
             ],
         )
         self.assertEqual(lobby_1.players_count, 1)
+        self.assertEqual(len(Notification.get_all_by_user_id(self.user_2.id)), 0)
 
         controller.lobby_refuse_invite(
             lobby_id=lobby_2.id, invite_id=f'{self.user_2.id}:{self.user_1.id}'
         )
+        self.assertEqual(len(Notification.get_all_by_user_id(self.user_1.id)), 0)
+        notifications = Notification.get_all_by_user_id(self.user_2.id)
+        self.assertEqual(len(notifications), 1)
+        mocker.assert_called_once_with(notifications[0].id)
 
         self.assertListEqual(lobby_1.invites, [])
         self.assertEqual(lobby_1.players_count, 1)
