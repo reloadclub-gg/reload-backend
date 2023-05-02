@@ -8,6 +8,7 @@ from matches.api.schemas import MatchSchema
 from matches.models import Match
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
+from notifications.api.schemas import NotificationSchema
 
 from .utils import ws_send
 
@@ -136,4 +137,14 @@ def match(match: Match):
         'ws_match',
         payload,
         groups=[match_player.user.id for match_player in match.players],
+    )
+
+
+def new_notification(notification):
+    payload = NotificationSchema.from_orm(notification).dict()
+
+    async_to_sync(ws_send)(
+        'ws_newNotification',
+        payload,
+        groups=[notification.to_user_id],
     )

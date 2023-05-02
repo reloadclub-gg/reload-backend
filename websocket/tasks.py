@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 
 from matches.models import Match
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
+from notifications.models import Notification
 from websocket import controller
 
 User = get_user_model()
@@ -88,3 +89,9 @@ def restart_queue_task(lobby_id: int):
 def match_task(match_id: int):
     match = Match.objects.get(pk=match_id)
     controller.match(match)
+
+
+@shared_task
+def send_notification_task(notification_id: int):
+    notification = Notification.get_by_id(notification_id)
+    controller.new_notification(notification)
