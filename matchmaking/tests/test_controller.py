@@ -66,6 +66,9 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         notifications = Notification.get_all_by_user_id(self.user_2.id)
         self.assertEqual(len(notifications), 1)
         mocker.assert_called_once_with(notifications[0].id)
+        self.assertTrue(self.user_1.steam_user.username in notifications[0].content)
+        self.assertEqual(self.user_2.id, notifications[0].to_user_id)
+        self.assertEqual(self.user_1.id, notifications[0].from_user_id)
 
         self.assertEqual(
             lobby_1.invites,
@@ -76,12 +79,24 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
             ],
         )
 
-    def test_lobby_accept_invite(self):
+    @mock.patch('matchmaking.api.controller.send_notification_task.delay')
+    def test_lobby_accept_invite(self, mocker):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_2 = Lobby.create(self.user_2.id)
         invite = lobby_2.invite(lobby_2.id, lobby_1.id)
 
+        self.assertEqual(len(Notification.get_all_by_user_id(self.user_1.id)), 0)
+        self.assertEqual(len(Notification.get_all_by_user_id(self.user_2.id)), 0)
+
         controller.lobby_accept_invite(self.user_1, lobby_2.id, invite.id)
+
+        self.assertEqual(len(Notification.get_all_by_user_id(self.user_1.id)), 0)
+        notifications = Notification.get_all_by_user_id(self.user_2.id)
+        self.assertEqual(len(notifications), 1)
+        mocker.assert_called_once_with(notifications[0].id)
+        self.assertTrue(self.user_1.steam_user.username in notifications[0].content)
+        self.assertEqual(self.user_2.id, notifications[0].to_user_id)
+        self.assertEqual(self.user_1.id, notifications[0].from_user_id)
 
         self.assertListEqual(lobby_2.invites, [])
         self.assertEqual(lobby_2.players_count, 2)
@@ -120,6 +135,9 @@ class LobbyControllerTestCase(mixins.VerifiedPlayersMixin, TestCase):
         notifications = Notification.get_all_by_user_id(self.user_2.id)
         self.assertEqual(len(notifications), 1)
         mocker.assert_called_once_with(notifications[0].id)
+        self.assertTrue(self.user_1.steam_user.username in notifications[0].content)
+        self.assertEqual(self.user_2.id, notifications[0].to_user_id)
+        self.assertEqual(self.user_1.id, notifications[0].from_user_id)
 
         self.assertListEqual(lobby_1.invites, [])
         self.assertEqual(lobby_1.players_count, 1)

@@ -101,7 +101,7 @@ def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
         lobby_player_refuse_invite_task.delay(lobby_id, invite_id)
         from_user_username = User.objects.get(pk=invite.to_id).steam_user.username
         notification = User.objects.get(pk=invite.from_id).account.notify(
-            _(f'{from_user_username} refused your invite.'), invite.from_id
+            _(f'{from_user_username} refused your invite.'), invite.to_id
         )
         send_notification_task.delay(notification.id)
     except (LobbyException, LobbyInviteException) as exc:
@@ -181,6 +181,12 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
 
     inviter = User.objects.get(pk=lobby_invite.from_id)
     lobby_move(user, new_lobby.id, inviter_user=inviter)
+
+    from_user_username = User.objects.get(pk=user.id).steam_user.username
+    notification = User.objects.get(pk=inviter.id).account.notify(
+        _(f'{from_user_username} accepted your invite and joined your group.'), user.id
+    )
+    send_notification_task.delay(notification.id)
     return new_lobby
 
 
