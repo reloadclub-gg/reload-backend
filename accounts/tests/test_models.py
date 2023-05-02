@@ -134,11 +134,8 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         account = baker.make(models.Account, user=self.user)
         self.assertEqual(len(account.notifications), 0)
 
-        n = account.notify(
-            content='New notification', avatar=static('icons/broadcast.png')
-        )
+        n = account.notify(content='New notification')
         self.assertEqual(len(account.notifications), 1)
-
         self.assertEqual(account.notifications[0].id, n.id)
 
 

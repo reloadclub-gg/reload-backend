@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
 from appsettings.services import player_max_level, player_max_level_points
@@ -119,7 +120,13 @@ class Account(models.Model):
     def notifications(self) -> List[Notification]:
         return Notification.get_all_by_user_id(self.user.id)
 
-    def notify(self, content, avatar, from_user_id=None):
+    def notify(self, content, from_user_id=None):
+        if from_user_id:
+            from_user = User.objects.get(pk=from_user_id)
+            avatar = Steam.build_avatar_url(from_user.steam_user.avatarhash, 'medium')
+        else:
+            avatar = static('brand/logo_icon.png')
+
         return Notification.create(
             content, avatar, from_user_id=from_user_id, to_user_id=self.user.id
         )
