@@ -1,7 +1,6 @@
 from unittest import mock
 
 from django.core.exceptions import ValidationError
-from django.templatetags.static import static
 from django.utils import timezone
 from model_bakery import baker
 from social_django.models import UserSocialAuth

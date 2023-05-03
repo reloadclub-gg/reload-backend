@@ -24,9 +24,9 @@ def user_status_change_task(user_id: int):
 
 
 @shared_task
-def friendlist_add_task(friend_id: int):
+def friendlist_add_task(friend_id: int, groups: List[int]):
     user = User.objects.get(pk=friend_id)
-    controller.friendlist_add(user)
+    controller.friendlist_add(user, groups)
 
 
 @shared_task

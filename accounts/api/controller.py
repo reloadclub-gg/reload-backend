@@ -148,7 +148,15 @@ def verify_account(user: User, verification_token: str) -> User:
     if not user.date_email_update:
         utils.send_welcome_mail(user.email)
 
-    friendlist_add_task.delay(user.id)
+    friends_ids = []
+    for friend in user.account.online_friends:
+        friends_ids.append(friend.id)
+        notification = friend.notify(
+            _(f'Your friend {user.steam_user.username} just joined ReloadClub!'),
+            user.id,
+        )
+
+    friendlist_add_task.delay(user.id, groups=friends_ids)
     return user
 
 

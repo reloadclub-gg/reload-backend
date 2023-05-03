@@ -35,14 +35,13 @@ def user_status_change(user: User):
     async_to_sync(ws_send)('ws_userStatusChange', payload, groups=online_friends_ids)
 
 
-def friendlist_add(friend: User):
+def friendlist_add(friend: User, groups: List[int]):
     """
     Event called when a user signup and finishes the account verifying process.
     This should get the brand new user to appear into his online friends list.
     """
-    online_friends_ids = [account.user.id for account in friend.account.online_friends]
     payload = FriendAccountSchema.from_orm(friend.account).dict()
-    async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=online_friends_ids)
+    async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=groups)
 
 
 def lobby_update(lobbies: List[Lobby]):
