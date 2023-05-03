@@ -8,6 +8,7 @@ from matches.api.schemas import MatchSchema
 from matches.models import Match
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 from matchmaking.models import Lobby, LobbyInvite, PreMatch
+from notifications.api.schemas import NotificationSchema
 
 from .utils import ws_send
 
@@ -34,14 +35,13 @@ def user_status_change(user: User):
     async_to_sync(ws_send)('ws_userStatusChange', payload, groups=online_friends_ids)
 
 
-def friendlist_add(friend: User):
+def friendlist_add(friend: User, groups: List[int]):
     """
     Event called when a user signup and finishes the account verifying process.
     This should get the brand new user to appear into his online friends list.
     """
-    online_friends_ids = [account.user.id for account in friend.account.online_friends]
     payload = FriendAccountSchema.from_orm(friend.account).dict()
-    async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=online_friends_ids)
+    async_to_sync(ws_send)('ws_friendlistAdd', payload, groups=groups)
 
 
 def lobby_update(lobbies: List[Lobby]):
@@ -136,4 +136,14 @@ def match(match: Match):
         'ws_match',
         payload,
         groups=[match_player.user.id for match_player in match.players],
+    )
+
+
+def new_notification(notification):
+    payload = NotificationSchema.from_orm(notification).dict()
+
+    async_to_sync(ws_send)(
+        'ws_newNotification',
+        payload,
+        groups=[notification.to_user_id],
     )
