@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from ninja import Schema
 
 from steam import Steam
@@ -86,7 +85,7 @@ class LobbyInviteSchema(Schema):
     lobby: LobbySchema
     from_player: LobbyPlayerSchema
     to_player: LobbyPlayerSchema
-    create_date: timezone.datetime
+    create_date: str
 
     class Config:
         model = LobbyInvite
@@ -102,6 +101,10 @@ class LobbyInviteSchema(Schema):
     @staticmethod
     def resolve_lobby(obj):
         return Lobby(owner_id=obj.lobby_id)
+
+    @staticmethod
+    def resolve_create_date(obj):
+        return obj.create_date.isoformat()
 
 
 class PreMatchSchema(Schema):
