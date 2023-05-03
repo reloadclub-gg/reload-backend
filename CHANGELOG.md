@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Notificação via websocket quando um amigo se cadastra e valida sua conta na plataforma (https://github.com/3C-gg/reload-backend/issues/371).
+- Notificação via websocket ao aceitar um convite para um lobby (https://github.com/3C-gg/reload-backend/issues/371).
+- Notificação via websocket ao recusar um convite para um lobby (https://github.com/3C-gg/reload-backend/issues/371).
+- Notificação via websocket ao receber um novo convite para um lobby (https://github.com/3C-gg/reload-backend/issues/371).
 - Método `online_users` no modelo `Users` para trazer todos os usuários online.
 - Envio de notificações de sistema para usuários ativos ou online pelo admin (https://github.com/3C-gg/reload-backend/issues/372).
 - Modelo `SystemNotification` para salvar notificações de sistema enviadas para usuários da plataforma.
