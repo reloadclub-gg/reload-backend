@@ -3,7 +3,6 @@ from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from matches.models import Match, MatchPlayer, Server
-from notifications.models import Notification
 from websocket.tasks import (
     lobby_invites_update_task,
     lobby_player_invite_task,
