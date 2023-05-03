@@ -9,6 +9,7 @@ from matchmaking.models import Lobby
 from websocket.tasks import (
     friendlist_add_task,
     lobby_update_task,
+    send_notification_task,
     user_lobby_invites_expire_task,
     user_status_change_task,
 )
@@ -155,6 +156,7 @@ def verify_account(user: User, verification_token: str) -> User:
             _(f'Your friend {user.steam_user.username} just joined ReloadClub!'),
             user.id,
         )
+        send_notification_task.delay(notification.id)
 
     friendlist_add_task.delay(user.id, groups=friends_ids)
     return user
