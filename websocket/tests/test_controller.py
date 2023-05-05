@@ -1,5 +1,4 @@
 from asgiref.sync import sync_to_async
-from channels.testing import WebsocketCommunicator
 from django.contrib.auth import get_user_model
 from model_bakery import baker
 
@@ -15,7 +14,7 @@ from matchmaking.tests.mixins import TeamsMixin
 from notifications.api.schemas import NotificationSchema
 from notifications.models import Notification
 from steam import Steam
-from websocket import consumers, controller
+from websocket import controller
 
 User = get_user_model()
 
