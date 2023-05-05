@@ -137,6 +137,18 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(len(account.notifications), 1)
         self.assertEqual(account.notifications[0].id, n.id)
 
+    def test_highest_level(self):
+        account = baker.make(models.Account, user=self.user, level_points=80)
+        self.assertEqual(account.highest_level, 0)
+        account.set_level_points(80)
+        self.assertEqual(account.highest_level, 1)
+        account.set_level_points(80)
+        self.assertEqual(account.highest_level, 2)
+        account.set_level_points(-90)
+        self.assertEqual(account.highest_level, 2)
+        account.set_level_points(-90)
+        self.assertEqual(account.highest_level, 2)
+
 
 class AccountsAccountMatchModelTestCase(TeamsMixin, TestCase):
     def test_match(self):

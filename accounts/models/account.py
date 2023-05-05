@@ -31,6 +31,7 @@ class Account(models.Model):
     steamid = models.CharField(max_length=128)
     level = models.IntegerField(default=0)
     level_points = models.IntegerField(default=0)
+    highest_level = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=False)
     verification_token = models.CharField(
         validators=[MinLengthValidator(VERIFICATION_TOKEN_LENGTH)],
@@ -180,6 +181,11 @@ class Account(models.Model):
                     level_points + self.level_points - settings.PLAYER_MAX_LEVEL_POINTS
                 )
                 self.set_second_chance_lvl()
+
+                # Sets user highest_level if the new level is the highest
+                if self.level > self.highest_level:
+                    self.highest_level = self.level
+
                 self.save()
         elif level_points + self.level_points <= 0:
             # Player get to prev level upon min points reached - if applicable
