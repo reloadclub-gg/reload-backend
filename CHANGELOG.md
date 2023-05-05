@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ajusta envio de websockets para client e cria testes para garantir o funcionamento ideal (https://github.com/3C-gg/reload-backend/issues/380).
 - Alguns campos de esquemas da API estavam com valor tipado em `datetime`. Isso fazia com que o parseador da biblioteca de tarefas (Celery) não conseguisse converter esses valores em strings. Sendo assim, passamos a converter esses valores em strings (https://github.com/3C-gg/reload-backend/issues/379).
 - Corrige token errada sendo enviada no e-mail de verificação (https://github.com/3C-gg/reload-backend/issues/352).
 - Ajusta retorno do `controlller` e `route` de recusar convite para que não tenha nenhum retorno visto que existe uma deleção.

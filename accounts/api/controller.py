@@ -151,7 +151,7 @@ def verify_account(user: User, verification_token: str) -> User:
 
     friends_ids = []
     for friend in user.account.online_friends:
-        friends_ids.append(friend.id)
+        friends_ids.append(friend.user.id)
         notification = friend.notify(
             _(f'Your friend {user.steam_user.username} just joined ReloadClub!'),
             user.id,
