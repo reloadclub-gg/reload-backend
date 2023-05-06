@@ -176,6 +176,227 @@ class AccountsAccountMatchModelTestCase(TeamsMixin, TestCase):
         match.save()
         self.assertEqual(self.user_1.account.match, match)
 
+    def test_matches_played(self):
+        server = baker.make(Server)
+        self.assertEqual(len(self.user_1.account.matches_played), 0)
+
+        match = baker.make(Match, server=server, status=Match.Status.FINISHED)
+        team1 = match.matchteam_set.create(name=self.team1.name)
+        match.matchteam_set.create(name=self.team2.name)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(len(self.user_1.account.matches_played), 1)
+
+        match = baker.make(Match, server=server, status=Match.Status.RUNNING)
+        team1 = match.matchteam_set.create(name=self.team1.name)
+        match.matchteam_set.create(name=self.team2.name)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(len(self.user_1.account.matches_played), 1)
+
+        match.status = Match.Status.FINISHED
+        match.save()
+        self.assertEqual(len(self.user_1.account.matches_played), 2)
+
+    def test_match_wins(self):
+        server = baker.make(Server)
+        self.assertEqual(self.user_1.account.match_wins, 0)
+
+        match = baker.make(Match, server=server, status=Match.Status.FINISHED)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(self.user_1.account.match_wins, 1)
+
+        match = baker.make(Match, server=server, status=Match.Status.FINISHED)
+        match.matchteam_set.create(name=self.team1.name, score=10)
+        team2 = match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team2, user=self.user_1)
+        self.assertEqual(self.user_1.account.match_wins, 1)
+
+        match = baker.make(Match, server=server, status=Match.Status.FINISHED)
+        match.matchteam_set.create(name=self.team1.name, score=9)
+        team2 = match.matchteam_set.create(name=self.team2.name, score=11)
+        baker.make(MatchPlayer, team=team2, user=self.user_1)
+        self.assertEqual(self.user_1.account.match_wins, 2)
+
+        match.status = Match.Status.RUNNING
+        match.save()
+        self.assertEqual(self.user_1.account.match_wins, 1)
+
+    def test_get_latest_matches_results(self):
+        server = baker.make(Server)
+        results = self.user_1.account.get_latest_matches_results(amount=3)
+        self.assertEqual(results.count('V'), 0)
+        self.assertEqual(results.count('D'), 0)
+        self.assertEqual(results.count('N/A'), 3)
+
+        results = self.user_1.account.get_latest_matches_results()
+        self.assertEqual(results.count('N/A'), 5)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        results = self.user_1.account.get_latest_matches_results()
+        self.assertEqual(results.count('V'), 1)
+        self.assertEqual(results[0], 'V')
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        results = self.user_1.account.get_latest_matches_results()
+        self.assertEqual(results.count('V'), 2)
+        self.assertEqual(results[0], 'V')
+        self.assertEqual(results[1], 'V')
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=8)
+        match.matchteam_set.create(name=self.team2.name, score=10)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        results = self.user_1.account.get_latest_matches_results()
+        self.assertEqual(results.count('D'), 1)
+        self.assertEqual(results[0], 'D')
+
+        results = self.user_1.account.get_latest_matches_results(2)
+        self.assertEqual(results.count('V'), 1)
+        self.assertEqual(results[0], 'D')
+        self.assertEqual(results[1], 'V')
+        with self.assertRaises(IndexError):
+            self.assertEqual(results[2], 'V')
+
+    def test_highest_win_streak(self):
+        server = baker.make(Server)
+        self.assertEqual(self.user_1.account.highest_win_streak, 0)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(self.user_1.account.highest_win_streak, 1)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(self.user_1.account.highest_win_streak, 2)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=6)
+        match.matchteam_set.create(name=self.team2.name, score=10)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(self.user_1.account.highest_win_streak, 2)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(self.user_1.account.highest_win_streak, 2)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(self.user_1.account.highest_win_streak, 2)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(self.user_1.account.highest_win_streak, 3)
+
+    def test_get_most_stat_in_match(self):
+        server = baker.make(Server)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        match_player = baker.make(MatchPlayer, team=team1, user=self.user_1)
+        match_player.stats.kills = 10
+        match_player.stats.damage = 100
+        match_player.stats.save()
+        self.assertEqual(self.user_1.account.get_most_stat_in_match('kills'), 10)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match('damage'), 100)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        match_player = baker.make(MatchPlayer, team=team1, user=self.user_1)
+        match_player.stats.kills = 5
+        match_player.stats.damage = 50
+        match_player.stats.save()
+        self.assertEqual(self.user_1.account.get_most_stat_in_match('kills'), 10)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match('damage'), 100)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=6)
+        match_player = baker.make(MatchPlayer, team=team1, user=self.user_1)
+        match_player.stats.kills = 15
+        match_player.stats.damage = 150
+        match_player.stats.save()
+        self.assertEqual(self.user_1.account.get_most_stat_in_match('kills'), 15)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match('damage'), 150)
+
 
 class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
     def test_invite_create_limit_reached(self):
