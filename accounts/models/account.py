@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import cached_property
 from typing import List
 
 from django.conf import settings
@@ -31,6 +30,7 @@ class Account(models.Model):
     steamid = models.CharField(max_length=128)
     level = models.IntegerField(default=0)
     level_points = models.IntegerField(default=0)
+    highest_level = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=False)
     verification_token = models.CharField(
         validators=[MinLengthValidator(VERIFICATION_TOKEN_LENGTH)],
@@ -58,7 +58,7 @@ class Account(models.Model):
     def __str__(self):
         return self.user.email
 
-    @cached_property
+    @property
     def steam_friends(self) -> list:
         return Steam.get_player_friends(self.user.steam_user)
 
@@ -180,6 +180,11 @@ class Account(models.Model):
                     level_points + self.level_points - settings.PLAYER_MAX_LEVEL_POINTS
                 )
                 self.set_second_chance_lvl()
+
+                # Sets user highest_level if the new level is the highest
+                if self.level > self.highest_level:
+                    self.highest_level = self.level
+
                 self.save()
         elif level_points + self.level_points <= 0:
             # Player get to prev level upon min points reached - if applicable
@@ -209,6 +214,75 @@ class Account(models.Model):
             self.level_points += level_points
             self.set_second_chance_lvl()
             self.save()
+
+    def get_latest_matches_results(self, amount: int = 5) -> List[str]:
+        """
+        Returns a list with the last `amount` results.
+        List item can be "V" for victory, "D" for defeat or "N/A" for not available.
+        """
+        teams = [
+            match.get_user_team(self.user.id) for match in self.matches_played[:amount]
+        ]
+        played_results = [
+            'V' if team.match.winner.id == team.id else 'D' for team in teams
+        ]
+        not_available = ['N/A'] * (amount - len(played_results))
+        return played_results + not_available
+
+    def get_most_stat_in_match(self, stat_name: str):
+        matches_player = self.user.matchplayer_set.filter(
+            team__match__status=Match.Status.FINISHED
+        )
+        if matches_player:
+            return max(
+                [
+                    getattr(match_player.stats, stat_name)
+                    for match_player in matches_player
+                ]
+            )
+
+        return None
+
+    @property
+    def matches_played(self) -> List[Match]:
+        """
+        Returns all the finished matches a user played.
+        """
+        matches_ids = self.user.matchplayer_set.filter(
+            team__match__status=Match.Status.FINISHED
+        ).values_list('team__match__id', flat=True)
+
+        return Match.objects.filter(id__in=matches_ids).order_by('-end_date')
+
+    @property
+    def match_wins(self) -> int:
+        """
+        Get how many matches a user played and won.
+        """
+        return len(
+            [
+                match
+                for match in self.matches_played
+                if match.get_user_team(self.user.id).id == match.winner.id
+            ]
+        )
+
+    @property
+    def highest_win_streak(self) -> int:
+        teams = [match.get_user_team(self.user.id) for match in self.matches_played]
+        results = [team.match.winner.id == team.id for team in teams]
+
+        counter = 0
+        max = 0
+        for result in results:
+            if result:
+                counter += 1
+                if counter > max:
+                    max += 1
+            else:
+                counter = 0
+
+        return max
 
 
 class Invite(models.Model):
