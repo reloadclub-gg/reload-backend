@@ -6,6 +6,7 @@ from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
+from matches.models import Match
 from matchmaking.models import Lobby
 from websocket.tasks import (
     friendlist_add_task,
@@ -203,3 +204,8 @@ def update_email(user: User, email: str) -> User:
 
 def profile_detail(user_id: int) -> Account:
     return get_object_or_404(Account, user__id=user_id)
+
+
+def user_matches(user_id: int) -> Match:
+    account = get_object_or_404(Account, user__id=user_id)
+    return account.matches_played
