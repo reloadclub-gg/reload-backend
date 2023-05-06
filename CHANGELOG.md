@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint de listagem de partidas de um usuário (https://github.com/3C-gg/reload-backend/issues/388).
 - Adiciona rota (`accounts/profiles/`) e esquema (`ProfileSchema`) para API de perfil (https://github.com/3C-gg/reload-backend/issues/331).
 - Adiciona método para encontrar o time de um usuário recebido no modelo `Match`.
 - Novas propriedades e métodos no modelo `Account` relacionados as partidas do jogador e algumas estatísticas.
