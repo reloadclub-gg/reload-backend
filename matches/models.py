@@ -88,6 +88,9 @@ class Match(models.Model):
     game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)
 
+    class Meta:
+        ordering = ['-end_date']
+
     @property
     def team_a(self) -> MatchTeam:
         """
