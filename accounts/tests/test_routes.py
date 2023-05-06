@@ -247,3 +247,12 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.user.status, 'offline')
+
+    def test_profile_detail(self):
+        self.user.auth.create_token()
+        self.user.auth.add_session()
+        baker.make(Account, user=self.user, is_verified=True)
+        r = self.api.call(
+            'get', f'/profiles/{self.user.id}/', token=self.user.auth.token
+        )
+        self.assertEqual(r.status_code, 200)

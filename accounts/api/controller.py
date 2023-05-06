@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
@@ -198,3 +199,7 @@ def update_email(user: User, email: str) -> User:
             lobby_update_task.delay([lobby.id])
 
     return user
+
+
+def profile_detail(user_id: int) -> Account:
+    return get_object_or_404(Account, user__id=user_id)
