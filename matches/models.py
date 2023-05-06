@@ -189,6 +189,14 @@ class Match(models.Model):
         self.end_date = timezone.now()
         self.save()
 
+    def get_user_team(self, user_id: int) -> MatchTeam:
+        if user_id in [player.user_id for player in self.team_a.players]:
+            return self.team_a
+        elif user_id in [player.user_id for player in self.team_b.players]:
+            return self.team_b
+        else:
+            return None
+
 
 class MatchTeam(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
