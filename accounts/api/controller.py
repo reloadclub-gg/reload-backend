@@ -1,14 +1,17 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
+from matches.models import Match
 from matchmaking.models import Lobby
 from websocket.tasks import (
     friendlist_add_task,
     lobby_update_task,
+    send_notification_task,
     user_lobby_invites_expire_task,
     user_status_change_task,
 )
@@ -148,7 +151,16 @@ def verify_account(user: User, verification_token: str) -> User:
     if not user.date_email_update:
         utils.send_welcome_mail(user.email)
 
-    friendlist_add_task.delay(user.id)
+    friends_ids = []
+    for friend in user.account.online_friends:
+        friends_ids.append(friend.user.id)
+        notification = friend.notify(
+            _(f'Your friend {user.steam_user.username} just joined ReloadClub!'),
+            user.id,
+        )
+        send_notification_task.delay(notification.id)
+
+    friendlist_add_task.delay(user.id, groups=friends_ids)
     return user
 
 
@@ -188,3 +200,12 @@ def update_email(user: User, email: str) -> User:
             lobby_update_task.delay([lobby.id])
 
     return user
+
+
+def profile_detail(user_id: int) -> Account:
+    return get_object_or_404(Account, user__id=user_id)
+
+
+def user_matches(user_id: int) -> Match:
+    account = get_object_or_404(Account, user__id=user_id)
+    return account.matches_played

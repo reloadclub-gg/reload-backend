@@ -106,7 +106,7 @@ class LobbySchemaTestCase(mixins.VerifiedPlayersMixin, TestCase):
             'lobby': schemas.LobbySchema.from_orm(lobby_1).dict(),
             'from_player': schemas.LobbyPlayerSchema.from_orm(self.user_1).dict(),
             'to_player': schemas.LobbyPlayerSchema.from_orm(self.user_2).dict(),
-            'create_date': invite.create_date,
+            'create_date': invite.create_date.isoformat(),
         }
 
         self.assertDictEqual(payload, expected_payload)

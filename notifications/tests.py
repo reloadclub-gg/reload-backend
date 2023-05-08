@@ -154,8 +154,8 @@ class NotificationsSchemasTestCase(VerifiedPlayersMixin, TestCase):
             'to_user_id': n.to_user_id,
             'content': n.content,
             'avatar': n.avatar,
-            'create_date': n.create_date,
+            'create_date': n.create_date.isoformat(),
             'from_user_id': n.from_user_id,
-            'read_date': n.read_date,
+            'read_date': n.read_date.isoformat() if n.read_date else None,
         }
         self.assertEqual(expected_payload, payload)

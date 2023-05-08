@@ -88,6 +88,9 @@ class Match(models.Model):
     game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)
 
+    class Meta:
+        ordering = ['-end_date']
+
     @property
     def team_a(self) -> MatchTeam:
         """
@@ -185,6 +188,14 @@ class Match(models.Model):
         self.status = Match.Status.CANCELLED
         self.end_date = timezone.now()
         self.save()
+
+    def get_user_team(self, user_id: int) -> MatchTeam:
+        if user_id in [player.user_id for player in self.team_a.players]:
+            return self.team_a
+        elif user_id in [player.user_id for player in self.team_b.players]:
+            return self.team_b
+        else:
+            return None
 
 
 class MatchTeam(models.Model):

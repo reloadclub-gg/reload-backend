@@ -1,13 +1,18 @@
+from typing import List
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from ninja import Router
 from ninja.errors import Http404
+
+from matches.api.schemas import MatchSchema
 
 from . import controller
 from .authentication import VerifiedExemptAuth, VerifiedRequiredAuth
 from .schemas import (
     FakeSignUpSchema,
     FakeUserSchema,
+    ProfileSchema,
     SignUpSchema,
     UpdateUserEmailSchema,
     UserSchema,
@@ -67,3 +72,15 @@ def update_email(request, payload: UpdateUserEmailSchema):
 @router.patch('logout/', auth=VerifiedExemptAuth(), response={200: UserSchema})
 def logout(request):
     return controller.logout(request.user)
+
+
+@router.get(
+    'profiles/{user_id}/', auth=VerifiedRequiredAuth(), response={200: ProfileSchema}
+)
+def profile_detail(request, user_id: int):
+    return controller.profile_detail(user_id)
+
+
+@router.get('{user_id}/matches/', response={200: List[MatchSchema]})
+def user_matches(request, user_id: int):
+    return controller.user_matches(user_id)

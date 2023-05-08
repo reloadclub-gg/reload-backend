@@ -296,7 +296,7 @@
             "user": 2,
             "steamid": "281590623841816110",
             "level": 1,
-            "level_points": 0,
+            "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
             "report_points": 0
@@ -309,7 +309,7 @@
             "user": 3,
             "steamid": "809363647939633239",
             "level": 1,
-            "level_points": 0,
+            "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
             "report_points": 0
@@ -322,7 +322,7 @@
             "user": 4,
             "steamid": "673968025244387349",
             "level": 1,
-            "level_points": 0,
+            "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
             "report_points": 0
@@ -335,7 +335,7 @@
             "user": 5,
             "steamid": "632871291809089356",
             "level": 1,
-            "level_points": 0,
+            "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
             "report_points": 0
@@ -348,7 +348,7 @@
             "user": 6,
             "steamid": "725885787902004201",
             "level": 1,
-            "level_points": 0,
+            "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
             "report_points": 0

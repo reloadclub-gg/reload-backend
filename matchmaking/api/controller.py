@@ -10,6 +10,7 @@ from websocket.tasks import (
     lobby_update_task,
     match_task,
     pre_match_task,
+    send_notification_task,
     user_status_change_task,
     user_update_task,
 )
@@ -82,6 +83,11 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
     try:
         invite = lobby.invite(from_user_id, to_user_id)
         lobby_player_invite_task.delay(lobby_id, invite.id)
+        from_user_username = User.objects.get(pk=from_user_id).steam_user.username
+        notification = User.objects.get(pk=to_user_id).account.notify(
+            _(f'{from_user_username} invited you to a group.'), from_user_id
+        )
+        send_notification_task.delay(notification.id)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
@@ -90,8 +96,13 @@ def lobby_invite(lobby_id: int, from_user_id: int, to_user_id: int) -> LobbyInvi
 
 def lobby_refuse_invite(lobby_id: int, invite_id: str) -> LobbyInvite:
     try:
-        LobbyInvite.get(lobby_id, invite_id)
+        invite = LobbyInvite.get(lobby_id, invite_id)
         lobby_player_refuse_invite_task.delay(lobby_id, invite_id)
+        from_user_username = User.objects.get(pk=invite.to_id).steam_user.username
+        notification = User.objects.get(pk=invite.from_id).account.notify(
+            _(f'{from_user_username} refused your invite.'), invite.to_id
+        )
+        send_notification_task.delay(notification.id)
     except (LobbyException, LobbyInviteException) as exc:
         raise HttpError(400, str(exc))
 
@@ -169,6 +180,12 @@ def lobby_accept_invite(user: User, lobby_id: int, invite_id: str) -> Lobby:
 
     inviter = User.objects.get(pk=lobby_invite.from_id)
     lobby_move(user, new_lobby.id, inviter_user=inviter)
+
+    from_user_username = User.objects.get(pk=user.id).steam_user.username
+    notification = User.objects.get(pk=inviter.id).account.notify(
+        _(f'{from_user_username} accepted your invite and joined your group.'), user.id
+    )
+    send_notification_task.delay(notification.id)
     return new_lobby
 
 

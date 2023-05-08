@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint de listagem de partidas de um usuário (https://github.com/3C-gg/reload-backend/issues/388).
+- Adiciona rota (`accounts/profiles/`) e esquema (`ProfileSchema`) para API de perfil (https://github.com/3C-gg/reload-backend/issues/331).
+- Adiciona método para encontrar o time de um usuário recebido no modelo `Match`.
+- Novas propriedades e métodos no modelo `Account` relacionados as partidas do jogador e algumas estatísticas.
+- Modelo `Match` passa a retornar resultados de QuerySet ordenados pelo campo `end_date` decrescente.
+- Novo campo no modelo `Account` que guarda o maior level que o player já chegou.
+- Notificação via websocket quando um amigo se cadastra e valida sua conta na plataforma (https://github.com/3C-gg/reload-backend/issues/371).
+- Notificação via websocket ao aceitar um convite para um lobby (https://github.com/3C-gg/reload-backend/issues/371).
+- Notificação via websocket ao recusar um convite para um lobby (https://github.com/3C-gg/reload-backend/issues/371).
+- Notificação via websocket ao receber um novo convite para um lobby (https://github.com/3C-gg/reload-backend/issues/371).
 - Método `online_users` no modelo `Users` para trazer todos os usuários online.
 - Envio de notificações de sistema para usuários ativos ou online pelo admin (https://github.com/3C-gg/reload-backend/issues/372).
 - Modelo `SystemNotification` para salvar notificações de sistema enviadas para usuários da plataforma.
@@ -62,6 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ajusta envio de websockets para client e cria testes para garantir o funcionamento ideal (https://github.com/3C-gg/reload-backend/issues/380).
+- Alguns campos de esquemas da API estavam com valor tipado em `datetime`. Isso fazia com que o parseador da biblioteca de tarefas (Celery) não conseguisse converter esses valores em strings. Sendo assim, passamos a converter esses valores em strings (https://github.com/3C-gg/reload-backend/issues/379).
 - Corrige token errada sendo enviada no e-mail de verificação (https://github.com/3C-gg/reload-backend/issues/352).
 - Ajusta retorno do `controlller` e `route` de recusar convite para que não tenha nenhum retorno visto que existe uma deleção.
 - Adiciona uma proteção que previne uma partida de ser finalizada se não tiver sido iniciada.
@@ -80,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera link de convite do Discord nos e-mails (https://github.com/3C-gg/reload-backend/issues/377).
 - Atualiza bilbioteca redis-py para última release.
 - Altera manifestos do k8s para usar Ingress e Nginx ao invés do webserver padrão do Django (https://github.com/3C-gg/reload-backend/issues/304).
 - Altera alguns termos "gta-mm" pra "reload".
