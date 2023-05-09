@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
+from model_bakery import baker
 
+from appsettings.services import player_max_level_points
 from core.tests import TestCase
 
-from .. import utils
+from .. import models, utils
+from . import mixins
 
 User = get_user_model()
 
@@ -33,3 +36,28 @@ class AccountsTestUtilsTestCase(TestCase):
 
         extra_data = utils.generate_steam_extra_data(username='tester').get('player')
         self.assertEqual(extra_data.get('personaname'), 'tester')
+
+
+class AccountsUtilsWithUsersTestCase(mixins.UserOneMixin, TestCase):
+    def test_calc_level_and_points(self):
+        account = baker.make(models.Account, user=self.user)
+        points_earned = 30
+        level, level_points = utils.calc_level_and_points(
+            points_earned, account.level, account.level_points
+        )
+        self.assertEqual(level, account.level)
+        self.assertEqual(level_points, account.level_points + points_earned)
+
+        account.level = 1
+        account.level_points = 95
+        account.save()
+
+        points_earned = 30
+        level, level_points = utils.calc_level_and_points(
+            points_earned, account.level, account.level_points
+        )
+        self.assertEqual(level, account.level + 1)
+        self.assertEqual(
+            level_points,
+            account.level_points + points_earned - player_max_level_points(),
+        )

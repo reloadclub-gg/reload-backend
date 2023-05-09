@@ -18,6 +18,8 @@ from matchmaking.models import Lobby, LobbyInvite, PreMatch
 from notifications.models import Notification
 from steam import Steam
 
+from ..utils import calc_level_and_points
+
 User = get_user_model()
 cache = RedisClient()
 
@@ -145,76 +147,6 @@ class Account(models.Model):
         """
         cache.srem('__accounts:second_chance_lvl_users', self.user.id)
 
-    def set_level_points(self, level_points):
-        """
-        This method is meant for give/take level_points to/from a particular user account.
-        Some rules should be followed:
-        - player should get to next level upon reach max points of current level
-            - the remaning points should be increased on the next level
-        - if player is on max level, it should not get to next level, thus it doesn't exist
-        - if player is on min level (0), it should not get to prev level, thus it doesn't exist
-        - if player reaches 0 points of a level, it should get another chance
-        to stay on that level before get to a prev level
-        - if a player reaches 0 points or less  2 times in a row, then it should get
-        to prev level if applicable
-        """
-        max_points = player_max_level_points()
-        max_lvl = player_max_level()
-
-        if level_points > max_points or level_points < (max_points * -1):
-            raise ValidationError(
-                _('Level points should never exceed max level points.')
-            )
-
-        if level_points + self.level_points >= max_points:
-            # Player get to next level upon max points reached
-            if self.level == max_lvl:
-                # If player is on max level, it should not get to next level,
-                # thus it doesn't exist
-                self.level_points += level_points
-                self.save()
-            else:
-                # The remaning points should be increased on the next level
-                self.level += 1
-                self.level_points = (
-                    level_points + self.level_points - settings.PLAYER_MAX_LEVEL_POINTS
-                )
-                self.set_second_chance_lvl()
-
-                # Sets user highest_level if the new level is the highest
-                if self.level > self.highest_level:
-                    self.highest_level = self.level
-
-                self.save()
-        elif level_points + self.level_points <= 0:
-            # Player get to prev level upon min points reached - if applicable
-            if self.level == 0:
-                # If player is on min level (0), it should not get to prev level,
-                # thus it doesn't exist
-                self.level_points = 0
-                self.save()
-            else:
-                if self.second_chance_lvl:
-                    # If player reaches 0 points of a level,
-                    # it should get another chance to stay on that level
-                    # before get to a prev level
-                    self.remove_second_chance_lvl()
-                    self.level_points = 0
-                    self.save()
-                else:
-                    # If a player reaches 0 points or less 2 times in a row,
-                    # then it should get to prev level
-                    self.level -= 1
-                    self.level_points = max_points + (level_points + self.level_points)
-                    self.set_second_chance_lvl()
-                    self.save()
-        else:
-            # If there isn't any change on levels, just in points,
-            # we just incr the points
-            self.level_points += level_points
-            self.set_second_chance_lvl()
-            self.save()
-
     def get_latest_matches_results(self, amount: int = 5) -> List[str]:
         """
         Returns a list with the last `amount` results.
@@ -229,7 +161,7 @@ class Account(models.Model):
         not_available = ['N/A'] * (amount - len(played_results))
         return played_results + not_available
 
-    def get_most_stat_in_match(self, stat_name: str):
+    def get_most_stat_in_match(self, stat_name: str) -> int:
         matches_player = self.user.matchplayer_set.filter(
             team__match__status=Match.Status.FINISHED
         )
@@ -242,6 +174,20 @@ class Account(models.Model):
             )
 
         return None
+
+    def apply_points_earned(self, points_earned: int):
+        level, level_points = calc_level_and_points(
+            points_earned, self.level, self.level_points
+        )
+
+        if self.level != level:
+            self.level = level
+            # Sets user highest_level if the new level is the highest
+            if level > self.highest_level:
+                self.highest_level = level
+
+        self.level_points = level_points
+        self.save()
 
     @property
     def matches_played(self) -> List[Match]:
