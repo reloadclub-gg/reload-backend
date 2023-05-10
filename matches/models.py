@@ -162,8 +162,7 @@ class Match(models.Model):
         self.save()
 
         for player in self.players:
-            player.user.account.set_level_points(player.points_earned)
-            player.user.account.save()
+            player.user.account.apply_points_earned(player.points_earned)
 
     def start(self):
         if self.status != Match.Status.READY:

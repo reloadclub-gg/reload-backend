@@ -1,7 +1,8 @@
 from typing import List, Optional
 
-from ninja import ModelSchema
+from ninja import Field, ModelSchema
 
+from accounts.utils import calc_level_and_points
 from steam import Steam
 
 from ..models import Match, MatchPlayer, MatchPlayerStats, MatchTeam
@@ -13,20 +14,44 @@ class MatchPlayerStatsSchema(ModelSchema):
         model_exclude = ['player', 'id']
 
 
+class MatchPlayerProgressSchema(ModelSchema):
+    level_before: int = Field(None, alias='level')
+    level_after: int = None
+    level_points_before: int = Field(None, alias='level_points')
+    level_points_after: int = None
+    points_earned: int = None
+
+    class Config:
+        model = MatchPlayer
+        model_exclude = ['id', 'user', 'team', 'level', 'level_points']
+
+    @staticmethod
+    def resolve_level_after(obj):
+        if obj.points_earned:
+            return calc_level_and_points(
+                obj.points_earned, obj.level, obj.level_points
+            )[0]
+
+    @staticmethod
+    def resolve_level_points_after(obj):
+        if obj.points_earned:
+            return calc_level_and_points(
+                obj.points_earned, obj.level, obj.level_points
+            )[1]
+
+
 class MatchPlayerSchema(ModelSchema):
     match_id: int
     team_id: int
     user_id: int
     username: str
     avatar: dict
-    points_earned: int = None
-    level: int
-    level_points: int
     stats: MatchPlayerStatsSchema
+    progress: MatchPlayerProgressSchema
 
     class Config:
         model = MatchPlayer
-        model_exclude = ['user', 'team']
+        model_exclude = ['user', 'team', 'level', 'level_points']
 
     @staticmethod
     def resolve_user_id(obj):
@@ -45,16 +70,16 @@ class MatchPlayerSchema(ModelSchema):
         return obj.user.steam_user.username
 
     @staticmethod
-    def resolve_level(obj):
-        return obj.user.account.level
-
-    @staticmethod
     def resolve_avatar(obj):
         return {
             'small': Steam.build_avatar_url(obj.user.steam_user.avatarhash),
             'medium': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium'),
             'large': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'full'),
         }
+
+    @staticmethod
+    def resolve_progress(obj):
+        return MatchPlayerProgressSchema.from_orm(obj)
 
 
 class MatchTeamSchema(ModelSchema):

@@ -1,5 +1,6 @@
 from model_bakery import baker
 
+from accounts.utils import calc_level_and_points
 from core.tests import TestCase
 from matches.api import schemas
 from matches.models import Match, MatchPlayer, MatchTeam
@@ -37,9 +38,14 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
         self.assertDictEqual(payload, expected_payload)
 
     def test_match_player_schema(self):
-        match = baker.make(Match)
-        team = baker.make(MatchTeam, match=match)
+        self.user_1.account.level_points = 95
+        self.user_1.account.save()
+        match = baker.make(Match, status=Match.Status.READY)
+        team = baker.make(MatchTeam, match=match, score=10)
+        baker.make(MatchTeam, match=match)
         match_player = baker.make(MatchPlayer, team=team, user=self.user_1)
+        match.start()
+        match.finish()
 
         payload = schemas.MatchPlayerSchema.from_orm(match_player).dict()
         expected_payload = {
@@ -59,9 +65,21 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
                     match_player.user.steam_user.avatarhash, 'full'
                 ),
             },
-            'points_earned': match_player.points_earned,
-            'level': match_player.level,
-            'level_points': match_player.level_points,
+            'progress': {
+                'points_earned': match_player.points_earned,
+                'level_before': match_player.level,
+                'level_after': calc_level_and_points(
+                    match_player.points_earned,
+                    match_player.level,
+                    match_player.level_points,
+                )[0],
+                'level_points_before': match_player.level_points,
+                'level_points_after': calc_level_and_points(
+                    match_player.points_earned,
+                    match_player.level,
+                    match_player.level_points,
+                )[1],
+            },
             'stats': {
                 'kills': 0,
                 'deaths': 0,
@@ -140,5 +158,33 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
                 schemas.MatchPlayerSchema.from_orm(match_player)
                 for match_player in match.players
             ],
+        }
+        self.assertDictEqual(payload, expected_payload)
+
+    def test_match_player_progress_schema(self):
+        self.user_1.account.level_points = 95
+        self.user_1.account.save()
+        match = baker.make(Match, status=Match.Status.READY)
+        team = baker.make(MatchTeam, match=match, score=10)
+        baker.make(MatchTeam, match=match)
+        match_player = baker.make(MatchPlayer, team=team, user=self.user_1)
+        match.start()
+        match.finish()
+
+        payload = schemas.MatchPlayerProgressSchema.from_orm(match_player).dict()
+        expected_payload = {
+            'points_earned': match_player.points_earned,
+            'level_before': match_player.level,
+            'level_after': calc_level_and_points(
+                match_player.points_earned,
+                match_player.level,
+                match_player.level_points,
+            )[0],
+            'level_points_before': match_player.level_points,
+            'level_points_after': calc_level_and_points(
+                match_player.points_earned,
+                match_player.level,
+                match_player.level_points,
+            )[1],
         }
         self.assertDictEqual(payload, expected_payload)

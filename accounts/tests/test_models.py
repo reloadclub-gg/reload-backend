@@ -93,42 +93,6 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         f1.auth.add_session()
         self.assertEqual(len(self.user.account.online_friends), 1)
 
-    def test_set_level_points(self):
-        account = baker.make(models.Account, user=self.user)
-        self.assertEqual(account.level, 0)
-        self.assertEqual(account.level_points, 0)
-        self.assertFalse(account.second_chance_lvl)
-
-        account.set_level_points(35)
-        self.assertEqual(account.level, 0)
-        self.assertEqual(account.level_points, 35)
-        self.assertTrue(account.second_chance_lvl)
-
-        account.set_level_points(90)
-        self.assertEqual(account.level, 1)
-        self.assertEqual(account.level_points, 25)
-        self.assertTrue(account.second_chance_lvl)
-
-        account.set_level_points(-30)
-        self.assertEqual(account.level, 1)
-        self.assertEqual(account.level_points, 0)
-        self.assertFalse(account.second_chance_lvl)
-
-        account.set_level_points(-15)
-        self.assertEqual(account.level, 0)
-        self.assertEqual(account.level_points, 85)
-        self.assertTrue(account.second_chance_lvl)
-
-        account.set_level_points(-90)
-        self.assertEqual(account.level, 0)
-        self.assertEqual(account.level_points, 0)
-
-        with self.assertRaises(ValidationError):
-            account.set_level_points(310)
-
-        with self.assertRaises(ValidationError):
-            account.set_level_points(-310)
-
     def test_notifications(self):
         account = baker.make(models.Account, user=self.user)
         self.assertEqual(len(account.notifications), 0)
@@ -140,14 +104,22 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
     def test_highest_level(self):
         account = baker.make(models.Account, user=self.user, level_points=80)
         self.assertEqual(account.highest_level, 0)
-        account.set_level_points(80)
+        account.apply_points_earned(80)
         self.assertEqual(account.highest_level, 1)
-        account.set_level_points(80)
+        account.apply_points_earned(80)
         self.assertEqual(account.highest_level, 2)
-        account.set_level_points(-90)
+        account.apply_points_earned(-90)
         self.assertEqual(account.highest_level, 2)
-        account.set_level_points(-90)
+        account.apply_points_earned(-90)
         self.assertEqual(account.highest_level, 2)
+
+    def test_apply_points_earned(self):
+        account = baker.make(models.Account, user=self.user)
+        points_earned = 30
+
+        self.assertEqual(account.level_points, 0)
+        account.apply_points_earned(points_earned)
+        self.assertEqual(account.level_points, points_earned)
 
 
 class AccountsAccountMatchModelTestCase(TeamsMixin, TestCase):
