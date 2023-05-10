@@ -10,7 +10,6 @@ from django.db import models
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
-from appsettings.services import player_max_level, player_max_level_points
 from core.redis import RedisClient
 from core.utils import generate_random_string
 from matches.models import Match, MatchPlayer

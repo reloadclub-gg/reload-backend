@@ -9,7 +9,6 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from accounts.utils import calc_level_and_points
 from appsettings.services import (
     matches_limit_per_server,
     matches_limit_per_server_gap,
