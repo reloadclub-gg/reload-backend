@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from accounts.utils import calc_level_and_points
 from appsettings.services import (
     matches_limit_per_server,
     matches_limit_per_server_gap,
@@ -162,8 +163,7 @@ class Match(models.Model):
         self.save()
 
         for player in self.players:
-            player.user.account.set_level_points(player.points_earned)
-            player.user.account.save()
+            player.user.account.apply_points_earned(player.points_earned)
 
     def start(self):
         if self.status != Match.Status.READY:
