@@ -42,6 +42,8 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'match': MatchSchema.from_orm(self.user.account.match)
             if self.user.account.match
             else None,
+            'matches_played': len(self.user.account.matches_played),
+            'latest_matches_results': self.user.account.get_latest_matches_results(),
         }
 
         self.assertDictEqual(payload, expected_payload)
@@ -88,6 +90,8 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
                 NotificationSchema.from_orm(x).dict()
                 for x in self.user.account.notifications
             ],
+            'matches_played': len(self.user.account.matches_played),
+            'latest_matches_results': self.user.account.get_latest_matches_results(),
         }
 
         self.assertDictEqual(payload, expected_payload)

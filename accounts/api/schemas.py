@@ -28,6 +28,8 @@ class FriendAccountSchema(ModelSchema):
     lobby: Optional[LobbySchema]
     steam_url: Optional[str]
     match: Optional[MatchSchema] = None
+    matches_played: int
+    latest_matches_results: List[str]
 
     class Config:
         model = Account
@@ -72,6 +74,14 @@ class FriendAccountSchema(ModelSchema):
     def resolve_steam_url(obj):
         return obj.user.steam_user.profileurl
 
+    @staticmethod
+    def resolve_matches_played(obj):
+        return len(obj.matches_played)
+
+    @staticmethod
+    def resolve_latest_matches_results(obj):
+        return obj.get_latest_matches_results()
+
 
 class AccountSchema(ModelSchema):
     steamid: Optional[str]
@@ -85,6 +95,8 @@ class AccountSchema(ModelSchema):
     steam_url: Optional[str]
     match: Optional[MatchSchema] = None
     notifications: Optional[List[NotificationSchema]] = None
+    matches_played: int
+    latest_matches_results: List[str]
 
     class Config:
         model = Account
@@ -124,6 +136,14 @@ class AccountSchema(ModelSchema):
     @staticmethod
     def resolve_steam_url(obj):
         return obj.user.steam_user.profileurl
+
+    @staticmethod
+    def resolve_matches_played(obj):
+        return len(obj.matches_played)
+
+    @staticmethod
+    def resolve_latest_matches_results(obj):
+        return obj.get_latest_matches_results()
 
 
 class UserSchema(ModelSchema):
