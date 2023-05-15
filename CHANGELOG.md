@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campos `latest_matches_results` e `last_results` nos esquemas `FriendAccountSchema` e `AccountSchema` [#395](https://github.com/3C-gg/reload-backend/issues/395).
+- Esquema `MatchPlayerProgressSchema` para enviar o progresso do jogador em uma partida [#393](https://github.com/3C-gg/reload-backend/issues/393).
+- Método `calc_level_and_points` para calcular nível e pontos de nível a ganhar separado do modelo `Account`.
+
+### Changed
+
+- Chamada para aplicar os pontos ganhos dos players na finalização de uma partida. Alteramos o método chamado para refletir o novo método `calc_level_and_points`.
+
+### Removed
+
+- Método `set_level_points` que possuía uma lógica muito grande e complicada, misturando cálculos e operações de banco de dados no mesmo método.
+
+## [25a9fb5 - 8-5-2023]
+
+### Added
+
 - Endpoint de listagem de partidas de um usuário (https://github.com/3C-gg/reload-backend/issues/388).
 - Adiciona rota (`accounts/profiles/`) e esquema (`ProfileSchema`) para API de perfil (https://github.com/3C-gg/reload-backend/issues/331).
 - Adiciona método para encontrar o time de um usuário recebido no modelo `Match`.

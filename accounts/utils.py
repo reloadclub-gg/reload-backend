@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
+from django.utils.translation import gettext as _
 from model_bakery import baker
 from social_django.models import UserSocialAuth
 
+from appsettings.services import player_max_level, player_max_level_points
 from core.utils import generate_random_string, send_mail
 
 
@@ -79,3 +84,42 @@ def send_inactivation_mail(mail_to: str):
     )
 
     send_mail([mail_to], 'ReloadClub - Nos vemos em breve!', html_content)
+
+
+def calc_level_and_points(
+    points_earned: int, level: int, level_points: int
+) -> tuple(int):
+    """
+    Here we calculate the new level points of a user.
+    This method returns a tuple with the new level and the new level points: (X, Y).
+    """
+    max_points = player_max_level_points()
+    max_lvl = player_max_level()
+
+    if points_earned > max_points or points_earned < (max_points * -1):
+        raise ValidationError(_('Level points should never exceed max level points.'))
+
+    if points_earned + level_points >= max_points:
+        # Player get to next level upon max points reached
+        if level == max_lvl:
+            # If player is on max level, it should not get to next level,
+            # thus it doesn't exist
+            return (level, level_points + points_earned)
+        else:
+            # The remaning points should be increased on the next level
+            return (
+                level + 1,
+                points_earned + level_points - settings.PLAYER_MAX_LEVEL_POINTS,
+            )
+    elif points_earned + level_points <= 0:
+        # Player get to prev level upon min points reached - if applicable
+        if level == 0:
+            # If player is on min level (0), it should not get to prev level,
+            # thus it doesn't exist
+            return level, 0
+        else:
+            return (level - 1, max_points + points_earned + level_points)
+    else:
+        # If there isn't any change on levels, just in points,
+        # we just incr the points
+        return (level, level_points + points_earned)
