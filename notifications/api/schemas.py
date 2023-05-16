@@ -17,3 +17,7 @@ class NotificationSchema(Schema):
     @staticmethod
     def resolve_read_date(obj):
         return obj.read_date.isoformat() if obj.read_date else None
+
+
+class NotificationUpdateSchema(Schema):
+    read_date: str = None
