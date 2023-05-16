@@ -62,7 +62,7 @@ class NotificationsRoutesTestCase(VerifiedPlayersMixin, TestCase):
             'notification 2', static('icons/broadcast.png'), self.user_1.id
         )
 
-        r = self.api.call('patch', f'/read-all', token=self.user_1.auth.token)
+        r = self.api.call('patch', '/read-all', token=self.user_1.auth.token)
         self.assertEqual(r.status_code, 200)
         assert all(
             item.read_date is not None for item in self.user_1.account.notifications
