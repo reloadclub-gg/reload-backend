@@ -188,6 +188,10 @@ class Account(models.Model):
         self.level_points = level_points
         self.save()
 
+    def check_friendship(self, friend_account: Account) -> bool:
+        steam_friends_ids = [friend.get('steamid') for friend in self.steam_friends]
+        return friend_account.steamid in steam_friends_ids
+
     @property
     def matches_played(self) -> List[Match]:
         """

@@ -121,6 +121,41 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         account.apply_points_earned(points_earned)
         self.assertEqual(account.level_points, points_earned)
 
+    @mock.patch('steam.SteamClient.get_friends')
+    def test_check_friendship(self, mock_friends):
+        f1 = self.__create_friend()
+        f1_account = baker.make(models.Account, user=f1, is_verified=True)
+
+        f2 = self.__create_friend()
+        f2_account = baker.make(models.Account, user=f2, is_verified=True)
+
+        f3 = self.__create_friend()
+        f3_account = baker.make(models.Account, user=f3, is_verified=True)
+
+        mock_friends.return_value = [
+            {
+                'steamid': f1.steam_user.steamid,
+                'relationship': 'friend',
+                'friend_since': 1635963090,
+            },
+            {
+                'steamid': f2.steam_user.steamid,
+                'relationship': 'friend',
+                'friend_since': 1637350627,
+            },
+            {
+                'steamid': '12345678901234',
+                'relationship': 'friend',
+                'friend_since': 1637350627,
+            },
+        ]
+
+        account = baker.make(models.Account, user=self.user)
+        with self.settings(TEST_MODE=False):
+            self.assertTrue(account.check_friendship(f1_account))
+            self.assertTrue(account.check_friendship(f2_account))
+            self.assertFalse(account.check_friendship(f3_account))
+
 
 class AccountsAccountMatchModelTestCase(TeamsMixin, TestCase):
     def test_match(self):
