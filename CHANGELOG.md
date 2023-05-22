@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- API `Friends` para endpoints relativos a amigos [#402](https://github.com/3C-gg/reload-backend/issues/402).
+- Método `check_friendship` para testar se duas contas são amigas na Steam.
+- Rotas de API de Notificações [#378](https://github.com/3C-gg/reload-backend/issues/378).
 - Campos `latest_matches_results` e `last_results` nos esquemas `FriendAccountSchema` e `AccountSchema` [#395](https://github.com/3C-gg/reload-backend/issues/395).
 - Esquema `MatchPlayerProgressSchema` para enviar o progresso do jogador em uma partida [#393](https://github.com/3C-gg/reload-backend/issues/393).
 - Método `calc_level_and_points` para calcular nível e pontos de nível a ganhar separado do modelo `Account`.
