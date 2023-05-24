@@ -2,7 +2,6 @@ from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from model_bakery import baker
 
 from core.tests import TestCase
 from matchmaking.models import Lobby
@@ -42,7 +41,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.assertEqual(self.user.account.level, 35)
         self.assertEqual(self.user.account.level_points, 20)
 
-        l1 = self.user.userlogin_set.create(ip_address='1.1.1.1')
+        self.user.userlogin_set.create(ip_address='1.1.1.1')
         tasks.decr_level_from_inactivity()
         self.user.account.refresh_from_db()
         self.assertEqual(self.user.account.level, 35)
