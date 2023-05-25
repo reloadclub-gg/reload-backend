@@ -204,7 +204,7 @@ class Account(models.Model):
         return Match.objects.filter(id__in=matches_ids).order_by('-end_date')
 
     @property
-    def match_wins(self) -> int:
+    def matches_won(self) -> int:
         """
         Get how many matches a user played and won.
         """

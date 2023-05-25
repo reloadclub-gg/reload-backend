@@ -202,10 +202,6 @@ def update_email(user: User, email: str) -> User:
     return user
 
 
-def profile_detail(user_id: int) -> Account:
-    return get_object_or_404(Account, user__id=user_id)
-
-
 def user_matches(user_id: int) -> Match:
     account = get_object_or_404(Account, user__id=user_id)
     return account.matches_played
