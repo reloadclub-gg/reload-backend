@@ -3,7 +3,6 @@ from functools import reduce
 from typing import List
 
 from django.contrib.auth import get_user_model
-from django.utils.translation import gettext as _
 from ninja import ModelSchema
 
 from accounts.models import Account

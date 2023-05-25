@@ -8,8 +8,8 @@ from profiles.api import schemas
 from steam import Steam
 
 
-class AccountsMatchesSchemasTestCase(TeamsMixin, TestCase):
-    def test_profile(self):
+class ProfilesSchemasTestCase(TeamsMixin, TestCase):
+    def test_profile_schema(self):
         server = baker.make(Server)
         match = baker.make(
             Match,
