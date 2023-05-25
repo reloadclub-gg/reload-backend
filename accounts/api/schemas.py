@@ -1,5 +1,3 @@
-from collections import Counter
-from functools import reduce
 from typing import List, Optional
 
 import pydantic
@@ -7,8 +5,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
-from matches.api.schemas import MatchPlayerStatsSchema, MatchSchema
-from matches.models import Match, MatchPlayerStats
+from matches.api.schemas import MatchSchema
 from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
 from notifications.api.schemas import NotificationSchema
 from steam import Steam
@@ -245,76 +242,3 @@ class UpdateUserEmailSchema(Schema):
     def email_must_be_unique(cls, v):
         assert not User.objects.filter(email=v).exists(), _('E-mail must be unique.')
         return v
-
-
-class ProfileSchema(ModelSchema):
-    id: int
-    username: str
-    avatar: dict
-    status: str
-    matches_played: int
-    match_wins: int
-    highest_win_streak: int
-    latest_matches_results: List[str]
-    stats: dict
-
-    class Config:
-        model = Account
-        model_exclude = [
-            'id',
-            'user',
-            'verification_token',
-            'is_verified',
-            'report_points',
-            'steamid',
-        ]
-
-    @staticmethod
-    def resolve_id(obj):
-        return obj.user.id
-
-    @staticmethod
-    def resolve_username(obj):
-        return obj.user.steam_user.username
-
-    @staticmethod
-    def resolve_avatar(obj):
-        return {
-            'small': Steam.build_avatar_url(obj.user.steam_user.avatarhash),
-            'medium': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium'),
-            'large': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'full'),
-        }
-
-    @staticmethod
-    def resolve_status(obj):
-        return obj.user.status
-
-    @staticmethod
-    def resolve_matches_played(obj):
-        return len(obj.matches_played)
-
-    @staticmethod
-    def resolve_latest_matches_results(obj):
-        return obj.get_latest_matches_results()
-
-    @staticmethod
-    def resolve_stats(obj):
-        match_players_stats = [
-            MatchPlayerStatsSchema.from_orm(stat).dict()
-            for stat in MatchPlayerStats.objects.filter(
-                player__user__id=obj.user.id,
-                player__team__match__status=Match.Status.FINISHED,
-            )
-        ]
-
-        stats_sum = dict(
-            reduce(lambda a, b: a.update(b) or a, match_players_stats, Counter())
-        )
-
-        stats_sum.update(
-            {
-                'most_kills_in_a_match': obj.get_most_stat_in_match('kills'),
-                'most_damage_in_a_match': obj.get_most_stat_in_match('damage'),
-            }
-        )
-        return stats_sum
