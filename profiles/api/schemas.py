@@ -21,8 +21,8 @@ class ProfileSchema(ModelSchema):
     matches_won: int
     highest_win_streak: int
     latest_matches_results: List[str]
-    most_kills_in_a_match: int
-    most_damage_in_a_match: int
+    most_kills_in_a_match: int = None
+    most_damage_in_a_match: int = None
     stats: dict
 
     class Config:

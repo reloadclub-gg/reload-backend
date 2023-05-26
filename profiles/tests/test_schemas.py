@@ -57,6 +57,12 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
             'matches_won': self.user_1.account.matches_won,
             'highest_win_streak': self.user_1.account.highest_win_streak,
             'latest_matches_results': self.user_1.account.get_latest_matches_results(),
+            'most_kills_in_a_match': self.user_1.account.get_most_stat_in_match(
+                'kills'
+            ),
+            'most_damage_in_a_match': self.user_1.account.get_most_stat_in_match(
+                'damage'
+            ),
             'stats': {
                 'kills': kills_1 + kills_2,
                 'deaths': 0,
@@ -80,12 +86,18 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
                 'head_shots': 0,
                 'chest_shots': 0,
                 'other_shots': 0,
-                'most_kills_in_a_match': self.user_1.account.get_most_stat_in_match(
-                    'kills'
-                ),
-                'most_damage_in_a_match': self.user_1.account.get_most_stat_in_match(
-                    'damage'
-                ),
+                'rounds_played': 32,
+                'clutches': 0,
+                'shots_hit': 0,
+                'adr': 18.75,
+                'kdr': 25.0,
+                'kda': 25.0,
+                'ahk': 0,
+                'ahr': 0,
+                'accuracy': 0,
+                'head_accuracy': 0,
+                'chest_accuracy': 0,
+                'others_accuracy': 0,
             },
         }
 
