@@ -4,7 +4,7 @@ metadata:
   name: api-ingress
   annotations:
     kubernetes.io/ingress.global-static-ip-name: reload-api-ip
-    networking.gke.io/managed-certificates: managed-cert
+    networking.gke.io/managed-certificates: api-staging-cert
 spec:
   defaultBackend:
     service:

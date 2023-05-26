@@ -1,7 +1,7 @@
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
-  name: managed-cert
+  name: api-staging-cert
 spec:
   domains:
-    - api.dev.reloadclub.gg
+    - api.staging.reloadclub.gg
