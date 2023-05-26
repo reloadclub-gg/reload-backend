@@ -83,5 +83,5 @@ class ProfileSchema(ModelSchema):
         return obj.get_most_stat_in_match('kills')
 
     @staticmethod
-    def resolve_most_kills_in_a_match(obj):
+    def resolve_most_damage_in_a_match(obj):
         return obj.get_most_stat_in_match('damage')
