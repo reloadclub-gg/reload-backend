@@ -29,6 +29,7 @@ class Account(models.Model):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     steamid = models.CharField(max_length=128)
+    username = models.CharField(max_length=64)
     level = models.IntegerField(default=0)
     level_points = models.IntegerField(default=0)
     highest_level = models.IntegerField(default=0)
@@ -53,6 +54,7 @@ class Account(models.Model):
                 )
 
             self.steamid = self.user.steam_user.steamid
+            self.username = self.user.steam_user.username
 
         super(Account, self).save(*args, **kwargs)
 
