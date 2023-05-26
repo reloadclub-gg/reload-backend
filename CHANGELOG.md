@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Migrations antigas devido ao novo campo `username` adicionado no modelo `Accounts`.
 - Método `set_level_points` que possuía uma lógica muito grande e complicada, misturando cálculos e operações de banco de dados no mesmo método.
 
 ## [25a9fb5 - 8-5-2023]

@@ -1,22 +1,35 @@
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
-from social_django.models import UserSocialAuth
 
-User = get_user_model()
+from accounts.models import Account
 
 
-def detail(user_id: int = None, steamid: int = None):
-    user = None
+def detail(user_id: int = None, steamid: int = None, username: str = None) -> Account:
+    result = None
 
     if user_id:
-        user = get_object_or_404(User, pk=user_id, is_active=True)
+        result = get_object_or_404(
+            Account,
+            user__id=user_id,
+            user__is_active=True,
+            is_verified=True,
+        )
     elif steamid:
-        user = get_object_or_404(
-            UserSocialAuth, extra_data__player__steamid=steamid
-        ).user
+        result = get_object_or_404(
+            Account,
+            steamid=steamid,
+            user__is_active=True,
+            is_verified=True,
+        )
+    elif username:
+        result = get_object_or_404(
+            Account,
+            username=username,
+            user__is_active=True,
+            is_verified=True,
+        )
 
-    if hasattr(user, 'account') and user.account.is_verified:
-        return user.account
+    if result:
+        return result
 
     raise Http404()
