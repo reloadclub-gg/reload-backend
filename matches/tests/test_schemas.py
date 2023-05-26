@@ -80,30 +80,7 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
                     match_player.level_points,
                 )[1],
             },
-            'stats': {
-                'kills': 0,
-                'deaths': 0,
-                'assists': 0,
-                'damage': 0,
-                'hs_kills': 0,
-                'afk': 0,
-                'plants': 0,
-                'defuses': 0,
-                'double_kills': 0,
-                'triple_kills': 0,
-                'quadra_kills': 0,
-                'aces': 0,
-                'clutch_v1': 0,
-                'clutch_v2': 0,
-                'clutch_v3': 0,
-                'clutch_v4': 0,
-                'clutch_v5': 0,
-                'firstkills': 0,
-                'shots_fired': 0,
-                'head_shots': 0,
-                'chest_shots': 0,
-                'other_shots': 0,
-            },
+            'stats': schemas.MatchPlayerStatsSchema.from_orm(match_player.stats).dict(),
         }
         self.assertDictEqual(payload, expected_payload)
 
@@ -188,3 +165,52 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
             )[1],
         }
         self.assertDictEqual(payload, expected_payload)
+
+    def test_match_player_stats_schema(self):
+        self.user_1.account.level_points = 95
+        self.user_1.account.save()
+        match = baker.make(Match, status=Match.Status.READY)
+        team = baker.make(MatchTeam, match=match, score=10)
+        baker.make(MatchTeam, match=match)
+        match_player = baker.make(MatchPlayer, team=team, user=self.user_1)
+        match.start()
+        match.finish()
+
+        payload = schemas.MatchPlayerStatsSchema.from_orm(match_player.stats).dict()
+        expected_payload = {
+            'kills': match_player.stats.kills,
+            'deaths': match_player.stats.deaths,
+            'assists': match_player.stats.assists,
+            'damage': match_player.stats.damage,
+            'hs_kills': match_player.stats.hs_kills,
+            'afk': match_player.stats.afk,
+            'plants': match_player.stats.plants,
+            'defuses': match_player.stats.defuses,
+            'double_kills': match_player.stats.double_kills,
+            'triple_kills': match_player.stats.triple_kills,
+            'quadra_kills': match_player.stats.quadra_kills,
+            'aces': match_player.stats.aces,
+            'clutch_v1': match_player.stats.clutch_v1,
+            'clutch_v2': match_player.stats.clutch_v2,
+            'clutch_v3': match_player.stats.clutch_v3,
+            'clutch_v4': match_player.stats.clutch_v4,
+            'clutch_v5': match_player.stats.clutch_v5,
+            'firstkills': match_player.stats.firstkills,
+            'shots_fired': match_player.stats.shots_fired,
+            'head_shots': match_player.stats.head_shots,
+            'chest_shots': match_player.stats.chest_shots,
+            'other_shots': match_player.stats.other_shots,
+            'rounds_played': match_player.stats.rounds_played,
+            'clutches': match_player.stats.clutches,
+            'shots_hit': match_player.stats.shots_hit,
+            'adr': match_player.stats.adr,
+            'kdr': match_player.stats.kdr,
+            'kda': match_player.stats.kda,
+            'ahk': match_player.stats.ahk,
+            'ahr': match_player.stats.ahr,
+            'accuracy': match_player.stats.accuracy,
+            'head_accuracy': match_player.stats.head_accuracy,
+            'chest_accuracy': match_player.stats.chest_accuracy,
+            'others_accuracy': match_player.stats.others_accuracy,
+        }
+        self.assertEqual(payload, expected_payload)
