@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campos de estatísticas no esquema `MatchPlayerStatsSchema` [#412](https://github.com/3C-gg/reload-backend/issues/412)
 - Endpoints para a aplicação de perfis (`Profiles`) [#406](https://github.com/3C-gg/reload-backend/issues/406).
 - Rotina que decrementa o nível dos usuários após um período de inatividade [#389](https://github.com/3C-gg/reload-backend/issues/389).
 - API `Friends` para endpoints relativos a amigos [#402](https://github.com/3C-gg/reload-backend/issues/402).
