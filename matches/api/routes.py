@@ -21,5 +21,5 @@ def detail(request, match_id):
 
 @router.get('/', auth=VerifiedRequiredAuth(), response={200: List[MatchSchema]})
 @paginate(Pagination)
-def list(request):
-    return controller.get_user_matches(request.user)
+def list(request, user_id: int = None):
+    return controller.get_user_matches(request.user, user_id)

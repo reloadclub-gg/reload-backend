@@ -22,7 +22,8 @@ class APIClient(Client):
         url = ''
         url = self.base_path if self.base_path.endswith('/') else self.base_path + '/'
         url += path[1:] if path.startswith('/') else path
-        return url if url.endswith('/') else url + '/'
+        builded_path = url if url.endswith('/') or '?' in url else url + '/'
+        return builded_path
 
     def call(self, method, path, data=None, token=None):
         if hasattr(self, method):

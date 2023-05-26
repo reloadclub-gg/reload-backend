@@ -12,5 +12,5 @@ router = Router(tags=['profiles'])
 
 
 @router.get('/', auth=VerifiedRequiredAuth(), response={200: ProfileSchema})
-def detail(request, user_id: int = None, steamid: int = None):
-    return controller.detail(user_id, steamid)
+def detail(request, user_id: int = None, steamid: int = None, username: str = None):
+    return controller.detail(user_id, steamid, username)
