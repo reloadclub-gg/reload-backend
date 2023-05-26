@@ -340,11 +340,13 @@ class MatchPlayerStats(models.Model):
         Rounds wins on vs[N] situations.
         """
         return sum(
-            self.clutch_v1,
-            self.clutch_v2,
-            self.clutch_v3,
-            self.clutch_v4,
-            self.clutch_v5,
+            [
+                self.clutch_v1,
+                self.clutch_v2,
+                self.clutch_v3,
+                self.clutch_v4,
+                self.clutch_v5,
+            ]
         )
 
     @property
@@ -352,7 +354,7 @@ class MatchPlayerStats(models.Model):
         """
         All shots fired that hit a target.
         """
-        return sum(self.head_shots, self.chest_shots, self.lef_shots)
+        return sum([self.head_shots, self.chest_shots, self.other_shots])
 
     @property
     def frag(self) -> str:
@@ -412,7 +414,7 @@ class MatchPlayerStats(models.Model):
         Average accuracy per shot.
         """
         if self.shots_fired > 0:
-            return float('{:0.2f}'.format(self.hit_shots / self.shots_fired))
+            return float('{:0.2f}'.format(self.shots_hit / self.shots_fired))
         return float(0)
 
     @property
@@ -420,8 +422,8 @@ class MatchPlayerStats(models.Model):
         """
         Average accuracy per shot that hit a head.
         """
-        if self.hit_shots > 0:
-            return float('{:0.2f}'.format(self.head_shots / self.hit_shots))
+        if self.shots_hit > 0:
+            return float('{:0.2f}'.format(self.head_shots / self.shots_hit))
         return float(0)
 
     @property
@@ -429,8 +431,8 @@ class MatchPlayerStats(models.Model):
         """
         Average accuracy per shot that hit a chest/torax.
         """
-        if self.hit_shots > 0:
-            return float('{:0.2f}'.format(self.chest_shots / self.hit_shots))
+        if self.shots_hit > 0:
+            return float('{:0.2f}'.format(self.chest_shots / self.shots_hit))
         return float(0)
 
     @property
@@ -438,8 +440,8 @@ class MatchPlayerStats(models.Model):
         """
         Average accuracy per shot that hit other body parts.
         """
-        if self.hit_shots > 0:
-            return float('{:0.2f}'.format(self.other_shots / self.hit_shots))
+        if self.shots_hit > 0:
+            return float('{:0.2f}'.format(self.other_shots / self.shots_hit))
         return float(0)
 
     def __str__(self):

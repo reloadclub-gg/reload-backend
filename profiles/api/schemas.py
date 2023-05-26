@@ -21,6 +21,8 @@ class ProfileSchema(ModelSchema):
     matches_won: int
     highest_win_streak: int
     latest_matches_results: List[str]
+    most_kills_in_a_match: int = None
+    most_damage_in_a_match: int = None
     stats: dict
 
     class Config:
@@ -68,14 +70,18 @@ class ProfileSchema(ModelSchema):
             )
         ]
 
-        stats_sum = dict(
-            reduce(lambda a, b: a.update(b) or a, match_players_stats, Counter())
+        return dict(
+            reduce(
+                lambda a, b: a.update(b) or a,
+                match_players_stats,
+                Counter(),
+            )
         )
 
-        stats_sum.update(
-            {
-                'most_kills_in_a_match': obj.get_most_stat_in_match('kills'),
-                'most_damage_in_a_match': obj.get_most_stat_in_match('damage'),
-            }
-        )
-        return stats_sum
+    @staticmethod
+    def resolve_most_kills_in_a_match(obj):
+        return obj.get_most_stat_in_match('kills')
+
+    @staticmethod
+    def resolve_most_damage_in_a_match(obj):
+        return obj.get_most_stat_in_match('damage')
