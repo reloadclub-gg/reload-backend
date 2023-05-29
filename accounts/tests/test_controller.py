@@ -219,11 +219,6 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         lobby_update.assert_called_once()
         user_status_change.assert_called_once()
 
-    def test_profile_detail(self):
-        self.assertEqual(self.user_1.account, controller.profile_detail(self.user_1.id))
-        with self.assertRaises(Http404):
-            controller.profile_detail(597865)
-
     def test_user_matches(self):
         self.assertCountEqual(
             self.user_1.account.matches_played, controller.user_matches(self.user_1.id)

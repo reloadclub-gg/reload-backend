@@ -9,6 +9,19 @@ from ..models import Match, MatchPlayer, MatchPlayerStats, MatchTeam
 
 
 class MatchPlayerStatsSchema(ModelSchema):
+    rounds_played: int = None
+    clutches: int = None
+    shots_hit: int = None
+    adr: float = None
+    kdr: float = None
+    kda: float = None
+    ahk: float = None
+    ahr: float = None
+    accuracy: float = None
+    head_accuracy: float = None
+    chest_accuracy: float = None
+    others_accuracy: float = None
+
     class Config:
         model = MatchPlayerStats
         model_exclude = ['player', 'id']

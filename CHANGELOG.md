@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campos de estatísticas no esquema `MatchPlayerStatsSchema` [#412](https://github.com/3C-gg/reload-backend/issues/412)
+- Endpoints para a aplicação de perfis (`Profiles`) [#406](https://github.com/3C-gg/reload-backend/issues/406).
+- Rotina que decrementa o nível dos usuários após um período de inatividade [#389](https://github.com/3C-gg/reload-backend/issues/389).
 - API `Friends` para endpoints relativos a amigos [#402](https://github.com/3C-gg/reload-backend/issues/402).
 - Método `check_friendship` para testar se duas contas são amigas na Steam.
 - Rotas de API de Notificações [#378](https://github.com/3C-gg/reload-backend/issues/378).
@@ -22,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Migrations antigas devido ao novo campo `username` adicionado no modelo `Accounts`.
 - Método `set_level_points` que possuía uma lógica muito grande e complicada, misturando cálculos e operações de banco de dados no mesmo método.
 
 ## [25a9fb5 - 8-5-2023]

@@ -15,6 +15,10 @@ app.conf.beat_schedule = {
         'task': 'matchmaking.tasks.clear_dodges',
         'schedule': crontab(minute=0, hour=0),
     },
+    'decr_level_from_inactivity': {
+        'task': 'accounts.tasks.decr_level_from_inactivity',
+        'schedule': crontab(day_of_week='sunday'),
+    },
 }
 
 

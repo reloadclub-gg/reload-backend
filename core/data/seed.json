@@ -286,7 +286,8 @@
             "level_points": 0,
             "is_verified": true,
             "verification_token": "",
-            "report_points": 0
+            "report_points": 0,
+            "username": "admin"
         }
     },
     {
@@ -299,7 +300,8 @@
             "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player1"
         }
     },
     {
@@ -312,7 +314,8 @@
             "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player2"
         }
     },
     {
@@ -325,7 +328,8 @@
             "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player3"
         }
     },
     {
@@ -338,7 +342,8 @@
             "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player4"
         }
     },
     {
@@ -351,7 +356,8 @@
             "level_points": 10,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player5"
         }
     },
     {
@@ -364,7 +370,8 @@
             "level_points": 0,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player6"
         }
     },
     {
@@ -377,7 +384,8 @@
             "level_points": 0,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player7"
         }
     },
     {
@@ -390,7 +398,8 @@
             "level_points": 0,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player8"
         }
     },
     {
@@ -403,7 +412,8 @@
             "level_points": 0,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player9"
         }
     },
     {
@@ -416,7 +426,8 @@
             "level_points": 0,
             "is_verified": true,
             "verification_token": "debug0",
-            "report_points": 0
+            "report_points": 0,
+            "username": "player10"
         }
     },
     {
@@ -460,7 +471,7 @@
             "user": 2,
             "provider": "OUPmsRueHZpUDtVrwtnTBbuxQuFxWntJ",
             "uid": "TFromRtBnoLdKHiuQNtbhSDEnymTHlJzvfAgZisBodTuhVJrzhmYddyASOOOuvjNHoXXuJlyFvmlUWWNQzGLtIfkFnDcjNhMeyKNpkAtRqPzqWWCuESemXbLJuiCcIuiQXwFlvvBWIIhGPvUMOafQNTTVAFvvDiDksMNLgeZbpiZMurSgvFqSqQETYcFSSxhWuTGTGfDVmdkEtAZPPkQMBZIMkLPLCHIhwddYkBOvcpDoApHnYWumjCotyPWKRJ",
-            "extra_data": "{\"player\": {\"steamid\": \"281590623841816110\", \"personaname\": \"player1@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"281590623841816110\", \"personaname\": \"player1\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:29:36.527Z",
             "modified": "2023-04-19T15:29:36.527Z"
         }
@@ -472,7 +483,7 @@
             "user": 3,
             "provider": "jxqfthpzFknVNyIBvbdZkYqjvKZaTcYn",
             "uid": "LxHnXTqGRnPIsbDjRCTaiGOuuEvcgSDZOxhlqAhyJbEVgycuznEuJXwuGgQrNkOLWfJypmFeznTuxYCBXPDGgpuVDTFifdiXhLYqwdEjlsLTObaiBgiGowKXVhxQdGbooaWhMOebaSRQzwLuOgqkrXOisaSbGXMJneiwtsKrcrsRkhBotTFtxlrsUPreptppqCPLFEFwUWprjZJAKJTFctFkZOieEPEMUqeMsRjhWBQFZPaiqUnTbHzmUezRzFK",
-            "extra_data": "{\"player\": {\"steamid\": \"809363647939633239\", \"personaname\": \"player2@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"809363647939633239\", \"personaname\": \"player2\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:29:50.182Z",
             "modified": "2023-04-19T15:29:50.182Z"
         }
@@ -484,7 +495,7 @@
             "user": 4,
             "provider": "qMcdvogckgFlgpqtayHavoCjukMoGMHK",
             "uid": "FnHStfuyVDSoPqxctUurHVYmwQraGXPDfDGYgSJauzsGZUupzfhFYrrtvCtFROsqwFffKorbSYnMGbKlVdZyUEmIVkCqlEgSSgQJMBSDbLMQXaxVlNnzFSgNamOjLdbCRktLjffhpNwTeRmDIwTpBHsOeHKHukfUpaIQtwtOyjCdKCGcymSRAPNqmSSuQwLPyDqsxSiEVGDXielSXcovFVXhVYFMToBstlqWafyhcdFbDckNRAGnanMJbDKQEFe",
-            "extra_data": "{\"player\": {\"steamid\": \"673968025244387349\", \"personaname\": \"player3@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"673968025244387349\", \"personaname\": \"player3\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:30:02.965Z",
             "modified": "2023-04-19T15:30:02.965Z"
         }
@@ -496,7 +507,7 @@
             "user": 5,
             "provider": "BHGsOZIZjJeFFVjqufheMomMNcdKyIji",
             "uid": "OgrzfzQFZlJsWWMuQMBvuozYfNVasUStSNeperToWcnipvwUtNrcDlMypSdPhHeoYzcIaNwTGYTCdFEgCqbRCDWpevLeIDvIimWjnqOqWwQQRVsuHwSzuGfoOYiepAdXhWqQNutGxMPIkFuIRYrmSchEiaFxYrUnONnMiRNALxsbavFsCiirUTDrhYoshRZsthZYJGOXvrKDtuyRLuYMCnxsYbQoeMRxSeUxkatXbJTAzDOuJCnDLVYJkysPJiC",
-            "extra_data": "{\"player\": {\"steamid\": \"632871291809089356\", \"personaname\": \"player4@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"632871291809089356\", \"personaname\": \"player4\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:30:13.510Z",
             "modified": "2023-04-19T15:30:13.510Z"
         }
@@ -508,7 +519,7 @@
             "user": 6,
             "provider": "dlHzxEyobbXAukjHzDlNqGxpvhazaAwd",
             "uid": "lBtSgKZyXGJZmOyZDeSAYBaWprEgYCXdVvNdMlEpuiqDJfVJvBvElIiIOEQoZYPPbEOvORyudTkjiahOpyOcHEhLBDjumNJnkhBfpjeAXCTlfjrULURXDbxgGgTYJokccGwJfpcDLgtIyIFmQcWCZNzHHCZRlXIrKGYTjtBrcULVPOctFAHYiHDRhVECTTqIbGAgqxzocYsJMpNyfSRCBKccxSJhkCalXVJLZuQCVbqhMWikTHDFqqiDmASTPZm",
-            "extra_data": "{\"player\": {\"steamid\": \"725885787902004201\", \"personaname\": \"player5@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"725885787902004201\", \"personaname\": \"player5\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:30:26.083Z",
             "modified": "2023-04-19T15:30:26.083Z"
         }
@@ -520,7 +531,7 @@
             "user": 7,
             "provider": "CMZcKAEkWaCUWgUXjFLUcRAysncbwxEE",
             "uid": "ZqJRwxtUpVTenvUkIAPgeDswkxNAReSQCWLClCbSbLHUqcWJGqwARmErBqpuQToMgdQKdpYXZBCeOqQFSpaIzGEVoKyMGJjIRvTEFZRYzOVWimlMpyuzTpXMLSsAVzyIwMDfIzpQBDxNaixXERupTYlxfcuMZZNUzclmJTxeiPPByCLuDcESLWAnmRChabxxzVUWbxtsoEcgCkDDPYMTOafqpEhttYCOpwgVTkgrOMYtvyJTmugTVClgxjZUEaL",
-            "extra_data": "{\"player\": {\"steamid\": \"715582438505847277\", \"personaname\": \"player6@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"715582438505847277\", \"personaname\": \"player6\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:30:38.700Z",
             "modified": "2023-04-19T15:30:38.700Z"
         }
@@ -532,7 +543,7 @@
             "user": 8,
             "provider": "qHtdhYdomkWbqdCROMNpJRTvLQruYYJu",
             "uid": "WUFjOxNkoEQFqooISFpPNtuQJxKdqFLxZDRrWHlwuXCOiOibzaTwtAIkChmdHoZKyTezTTZzRICmhEUjHFqtSQauMqfoDeHHRyNKUtLdsCfotvDdzGBIvaQjZuOHFqQzLezwTxoZFvCQIdHTtmGuzslzpAAbkfLCRYEXUhlWJOJBrAKKSlZNiylvTGklipDTehBGjhWzmpcvnHuWjqnBJAumVmfVnwBLRFuvbtvHLoYDUqFqPXpWuZMMbxlqalJ",
-            "extra_data": "{\"player\": {\"steamid\": \"853671800239207891\", \"personaname\": \"player7@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"853671800239207891\", \"personaname\": \"player7\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:30:50.056Z",
             "modified": "2023-04-19T15:30:50.056Z"
         }
@@ -544,7 +555,7 @@
             "user": 9,
             "provider": "zNiVTRKhDVtEqmldLXMruGjuaFHbLwAr",
             "uid": "IOdqLPqZaVMackUwqoSDqWSYlpdXYBQmRAeiODtGDtajGfTQcIQguhFjBvqWQTZLJaRaEQKbSBgvoAtleyjJhouNcPAioyjbpLXXbPdXIynLfjTMNlevAORvvXRMnykbgjDhYVxkWXmcqAnsSkmLYvwosJsouPSaPMsiKFHfokXuXDpdjZcGYUDlzMgLbLLDMmRttWVjJhPdqcAvUPuvLFEbTckTRFxzpcbllSIuOsEqAmjoUSvlFgrugRTMbEW",
-            "extra_data": "{\"player\": {\"steamid\": \"584726463099759262\", \"personaname\": \"player8@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"584726463099759262\", \"personaname\": \"player8\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:31:01.630Z",
             "modified": "2023-04-19T15:31:01.630Z"
         }
@@ -556,7 +567,7 @@
             "user": 10,
             "provider": "LoraPTfjUogrjtUaEdJScchNhReHYnSZ",
             "uid": "AqCWEhOTTyacMuxfzwiBGguSBCwyEwECSrANKIoxQCuqzEgWSfcDALlxFhUKnQmCNREBkcxPUOszeVELQsDAtKRoDwKIhmyMTrYRoofnygJsnRJoDzrMGJrdfMTltIwGHrGwaqKpOCRLZIJJpfWrJecDnJdlAVbgmIyQqXWdiIHiuOMcPjXigpFRyGZrWmNsuBvaiAzIjNxSuLiUzkVzMHWXyBdwUTxbJDbJULnhAENEVMdvrLecwXMBLSHWinV",
-            "extra_data": "{\"player\": {\"steamid\": \"173782123187673210\", \"personaname\": \"player9@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"173782123187673210\", \"personaname\": \"player9\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:31:12.788Z",
             "modified": "2023-04-19T15:31:12.788Z"
         }
@@ -568,7 +579,7 @@
             "user": 11,
             "provider": "zkQvxDGXTpEcrDdmbWGTSEqWAbdTwZzz",
             "uid": "fNBXYDZtnGTejUNynWibNhPKwrcZHwbKgSSSgyFNeVyhBKpOOFiovTzEgOIrAoOkUUTWUHOEWxQzaRlRKBJbBeQWBlAgFYDbfgCuRDSSltNhAJWktExQpLFYayFjAJlAFeTVRMhZGKVqAJdumSBcxSnPjSbVNGSjbgDBlDEFCGkfccuzwcREuHnTonXFOkhuPuJEAfpqSFpjjPSNiomuwcTdjmRmjimzjVEMErgEgaFOyPoAdqHqCiVcSbWhJsw",
-            "extra_data": "{\"player\": {\"steamid\": \"982451441204984258\", \"personaname\": \"player10@reloadclub.gg\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"982451441204984258\", \"personaname\": \"player10\", \"communityvisibilitystate\": 3}}",
             "created": "2023-04-19T15:31:24.879Z",
             "modified": "2023-04-19T15:31:24.879Z"
         }
