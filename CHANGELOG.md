@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [ae47465 - 29-5-2023]
+
 ### Added
 
 - Campos de estatísticas no esquema `MatchPlayerStatsSchema` [#412](https://github.com/3C-gg/reload-backend/issues/412)
