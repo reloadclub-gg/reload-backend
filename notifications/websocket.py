@@ -1,5 +1,4 @@
 from asgiref.sync import async_to_sync
-from celery import shared_task
 from django.contrib.auth import get_user_model
 
 from websocket.utils import ws_send

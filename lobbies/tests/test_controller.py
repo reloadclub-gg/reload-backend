@@ -7,7 +7,7 @@ from matchmaking.tests.mixins import VerifiedPlayersMixin
 from notifications.models import Notification
 
 from ..api import controller, schemas
-from ..models import Lobby, LobbyInvite
+from ..models import Lobby
 
 
 class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):

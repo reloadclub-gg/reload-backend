@@ -1,11 +1,9 @@
 from unittest import mock
 
-from ninja.errors import AuthenticationError, Http404, HttpError
-
 from core.tests import APIClient, TestCase
 from matchmaking.tests.mixins import VerifiedPlayersMixin
 
-from ..models import Lobby, LobbyInvite
+from ..models import Lobby
 
 
 class LobbyRoutesTestCase(VerifiedPlayersMixin, TestCase):

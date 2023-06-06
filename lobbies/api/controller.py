@@ -69,7 +69,7 @@ def get_invite(user: User, invite_id: str) -> LobbyInvite:
     try:
         from_id = int(invite_id.split(':')[0])
         to_id = int(invite_id.split(':')[1])
-    except:
+    except ValueError:
         raise HttpError(422, _('Invalid invite id'))
 
     if user.id not in [from_id, to_id]:
