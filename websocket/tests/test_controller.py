@@ -6,10 +6,12 @@ from accounts.api.schemas import FriendAccountSchema, UserSchema
 from accounts.models import Account
 from accounts.tests.mixins import UserWithFriendsMixin
 from core.tests import TestCase
+from lobbies.api.schemas import LobbyInviteSchema, LobbySchema
+from lobbies.models import Lobby
 from matches.api.schemas import MatchSchema
 from matches.models import Match, Server
-from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
-from matchmaking.models import Lobby, PreMatch
+from matchmaking.api.schemas import PreMatchSchema
+from matchmaking.models import PreMatch
 from matchmaking.tests.mixins import TeamsMixin
 from notifications.api.schemas import NotificationSchema
 from notifications.models import Notification

@@ -5,8 +5,9 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
+from lobbies.api.schemas import LobbyInviteSchema, LobbySchema
 from matches.api.schemas import MatchSchema
-from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
+from matchmaking.api.schemas import PreMatchSchema
 from notifications.api.schemas import NotificationSchema
 from steam import Steam
 

@@ -3,7 +3,8 @@ from model_bakery import baker
 
 from accounts.models import Account
 from accounts.utils import create_social_auth
-from matchmaking.models import Lobby, Team
+from lobbies.models import Lobby
+from matchmaking.models import Team
 
 User = get_user_model()
 

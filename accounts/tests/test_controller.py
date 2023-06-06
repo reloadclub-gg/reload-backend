@@ -7,7 +7,7 @@ from ninja.errors import HttpError
 
 from appsettings.models import AppSettings
 from core.tests import TestCase
-from matchmaking.models import Lobby
+from lobbies.models import Lobby
 from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from .. import utils

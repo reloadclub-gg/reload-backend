@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from core.tests import TestCase
-from matchmaking.models import Lobby
+from lobbies.models import Lobby
 
 from .. import tasks
 from ..models import UserLogin
@@ -24,7 +24,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         tasks.watch_user_status_change(self.friend1.id)
         mock_user_status_change.assert_called_once()
 
-    @mock.patch('matchmaking.models.Lobby.move')
+    @mock.patch('lobbies.models.Lobby.move')
     def test_watch_user_status_change_to_offline_does_cancel_lobby(self, mock_quit):
         mock_quit.return_value = None
         self.user.auth.add_session()

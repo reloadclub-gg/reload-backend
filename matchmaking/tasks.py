@@ -5,7 +5,8 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from core.redis import RedisClient
-from matchmaking.models import Player, PreMatch, PreMatchConfig
+from lobbies.models import Player
+from matchmaking.models import PreMatch, PreMatchConfig
 from websocket import controller as ws_controller
 
 cache = RedisClient()

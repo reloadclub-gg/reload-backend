@@ -11,8 +11,7 @@ from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
 from core.redis import RedisClient
-
-from .lobby import Lobby
+from lobbies.models import Lobby
 
 cache = RedisClient()
 User = get_user_model()
@@ -234,10 +233,8 @@ class Team(BaseModel):
         not_ready = Team.get_all_not_ready()
         for team in not_ready:
             if team.players_count + lobby.players_count <= lobby.max_players:
-
                 # check if lobby and team type/mode matches
                 if team.type_mode == (lobby.lobby_type, lobby.mode):
-
                     if Team.overall_match(team, lobby):
                         team.add_lobby(lobby.id)
                         return team
@@ -281,7 +278,6 @@ class Team(BaseModel):
                 # check if lobbies have seats enough to merge
                 total_players = team.players_count + other_lobby.players_count
                 if total_players <= lobby.max_players:
-
                     # check if lobbies are in the same overall range
                     min_overall, max_overall = lobby.get_min_max_overall_by_queue_time()
                     if min_overall <= other_lobby.overall <= max_overall:

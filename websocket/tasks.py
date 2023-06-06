@@ -3,8 +3,9 @@ from typing import List
 from celery import shared_task
 from django.contrib.auth import get_user_model
 
+from lobbies.models import Lobby, LobbyInvite
 from matches.models import Match
-from matchmaking.models import Lobby, LobbyInvite, PreMatch
+from matchmaking.models import PreMatch
 from notifications.models import Notification
 from websocket import controller
 

@@ -2,7 +2,7 @@ from model_bakery import baker
 
 from appsettings.models import AppSettings
 from core.tests import APIClient, TestCase
-from matchmaking.models import Lobby
+from lobbies.models import Lobby
 
 from .. import utils
 from ..models import Account, Invite, User
