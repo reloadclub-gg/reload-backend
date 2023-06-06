@@ -88,9 +88,7 @@ class Lobby(BaseModel):
         """
         Retrieve all unaccepted invites.
         """
-        invite_ids = sorted(
-            list(cache.zrange(f'{self.cache_key}:invites', 0, -1))
-        )
+        invite_ids = sorted(list(cache.zrange(f'{self.cache_key}:invites', 0, -1)))
         return [
             LobbyInvite.get(lobby_id=self.id, invite_id=invite_id)
             for invite_id in invite_ids

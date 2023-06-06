@@ -12,8 +12,9 @@ from django.utils.translation import gettext as _
 
 from core.redis import RedisClient
 from core.utils import generate_random_string
+from lobbies.models import Lobby, LobbyInvite
 from matches.models import Match, MatchPlayer
-from matchmaking.models import Lobby, LobbyInvite, PreMatch
+from matchmaking.models import PreMatch
 from notifications.models import Notification
 from steam import Steam
 

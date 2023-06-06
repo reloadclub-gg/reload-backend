@@ -94,3 +94,12 @@ class LobbyInvite(BaseModel):
                 to_invites.append(invite)
 
         return to_invites
+
+    @staticmethod
+    def get_by_id(invite_id: str) -> LobbyInvite:
+        all_invites = LobbyInvite.get_all()
+        for invite in all_invites:
+            if invite_id == invite.id:
+                return invite
+
+        raise LobbyInviteException(_('Invite not found.'))

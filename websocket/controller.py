@@ -4,10 +4,12 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
 from accounts.api.schemas import FriendAccountSchema, UserSchema
+from lobbies.api.schemas import LobbyInviteSchema, LobbySchema
+from lobbies.models import Lobby, LobbyInvite
 from matches.api.schemas import MatchSchema
 from matches.models import Match
-from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
-from matchmaking.models import Lobby, LobbyInvite, PreMatch
+from matchmaking.api.schemas import PreMatchSchema
+from matchmaking.models import PreMatch
 from notifications.api.schemas import NotificationSchema
 
 from .utils import ws_send

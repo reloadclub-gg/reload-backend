@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
 
 from accounts.models import Account
+from lobbies.api.schemas import LobbySchema
 from matches.api.schemas import MatchSchema
-from matchmaking.api.schemas import LobbySchema
 from steam import Steam
 
 User = get_user_model()

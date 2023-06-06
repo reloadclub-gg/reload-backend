@@ -6,8 +6,8 @@ from model_bakery import baker
 from social_django.models import UserSocialAuth
 
 from core.tests import TestCase, cache
+from lobbies.models import Lobby
 from matches.models import Match, MatchPlayer, Server
-from matchmaking.models import Lobby
 from matchmaking.tests.mixins import TeamsMixin
 
 from .. import models, utils
@@ -461,7 +461,7 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         self.assertEqual(self.user.status, 'online')
 
         with mock.patch(
-            'matchmaking.models.lobby.Lobby.players_count',
+            'lobbies.models.lobby.Lobby.players_count',
             new_callable=mock.PropertyMock,
         ) as mocker:
             mocker.return_value = 2

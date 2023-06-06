@@ -9,16 +9,10 @@ from ..models import Lobby
 User = get_user_model()
 
 
-def is_lobby_participant(user: User, lobby_id: int) -> bool:
-    lobby = Lobby(owner_id=lobby_id)
-
-    return user.id in lobby.players_ids
-
-
 def owner_required(f: Callable) -> Callable:
     """
-    Decorator for routes that require a lobby owner.
-    The `is_lobby_owner` field set as `True` means the user is owner
+    Decorator for routes that requires the authenticated user
+    to be the lobby owner.
     """
 
     @wraps(f)
@@ -36,16 +30,17 @@ def owner_required(f: Callable) -> Callable:
 
 def participant_required(f: Callable) -> Callable:
     """
-    Decorator for routes that require a lobby participant.
-    The `is_lobby_participant` field set as `True` means the user is participant
+    Decorator for routes that requires the authenticated user
+    to be a lobby participant.
     """
 
     @wraps(f)
     def wrapper(*args, **kwds):
         request = args[0]
         lobby_id = kwds.get('lobby_id')
+        lobby = Lobby(owner_id=lobby_id)
 
-        if is_lobby_participant(request.user, lobby_id):
+        if request.user.id in lobby.players_ids:
             return f(*args, **kwds)
 
         raise AuthenticationError()

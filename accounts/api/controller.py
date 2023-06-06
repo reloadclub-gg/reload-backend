@@ -6,8 +6,8 @@ from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
+from lobbies.models import Lobby
 from matches.models import Match
-from matchmaking.models import Lobby
 from websocket.tasks import (
     friendlist_add_task,
     lobby_update_task,

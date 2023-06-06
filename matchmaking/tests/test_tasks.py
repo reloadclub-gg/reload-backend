@@ -4,15 +4,9 @@ from django.utils import timezone
 
 from core.redis import RedisClient
 from core.tests import TestCase
+from lobbies.models import Player
 
-from ..models import (
-    Player,
-    PreMatch,
-    PreMatchConfig,
-    PreMatchException,
-    Team,
-    TeamException,
-)
+from ..models import PreMatch, PreMatchConfig, PreMatchException, Team, TeamException
 from ..tasks import cancel_match_after_countdown, clear_dodges
 from . import mixins
 

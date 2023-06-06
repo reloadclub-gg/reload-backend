@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Arquivos relacionados a envio de websocket em seus respectivos pacotes (`friends`, `lobbies` e `notifications`).
+
+### Changed
+
+- Alteramos alguns endpoints relacionados ao `Lobby`.
+- Movemos toda parte de lobbies que ficavam em `matchmaking` para seu pacote exclusivo `lobbies`.
+
 ## [9cd6628 - 5-6-2023]
 
 ## [ae47465 - 29-5-2023]
