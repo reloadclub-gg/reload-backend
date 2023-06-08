@@ -46,6 +46,17 @@ def ws_lobby_owner_change(lobby_id: int):
     )
 
 
+def ws_create_invite(invite_id: str):
+    invite = get_invite(invite_id)
+    payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
+
+    return async_to_sync(ws_send)(
+        'invites/create',
+        payload,
+        groups=[invite.to_id],
+    )
+
+
 # @shared_task
 # def ws_player_leave() 'lobbies/player_leave'
 
