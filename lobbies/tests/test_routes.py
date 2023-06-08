@@ -3,7 +3,7 @@ from unittest import mock
 from core.tests import APIClient, TestCase
 from matchmaking.tests.mixins import VerifiedPlayersMixin
 
-from ..models import Lobby
+from ..models import Lobby, LobbyInvite
 
 
 class LobbyRoutesTestCase(VerifiedPlayersMixin, TestCase):
@@ -101,6 +101,26 @@ class LobbyRoutesTestCase(VerifiedPlayersMixin, TestCase):
             token=self.user_1.auth.token,
         )
         self.assertEqual(response.status_code, 400)
+
+    def test_invite_create(self):
+        lobby = Lobby.create(self.user_1.id)
+        Lobby.create(self.user_2.id)
+
+        response = self.api.call(
+            'post',
+            f'/invites/',
+            token=self.user_2.auth.token,
+            data={
+                'lobby_id': lobby.id,
+                'from_user_id': self.user_1.id,
+                'to_user_id': self.user_2.id,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+        invite = LobbyInvite.get_by_id(response.json().get('id'))
+        self.assertIsNotNone(invite)
+        self.assertEqual(invite.id, response.json().get('id'))
 
     def test_invite_delete_auth_error(self):
         lobby = Lobby.create(self.user_1.id)

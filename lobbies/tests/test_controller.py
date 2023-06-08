@@ -7,7 +7,7 @@ from matchmaking.tests.mixins import VerifiedPlayersMixin
 from notifications.models import Notification
 
 from ..api import controller, schemas
-from ..models import Lobby
+from ..models import Lobby, LobbyInvite
 
 
 class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
@@ -147,6 +147,22 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
     def test_get_invite_not_found(self):
         with self.assertRaises(Http404):
             controller.get_invite(self.user_1, f'{self.user_1.id}:2')
+
+    def test_create_invite(self):
+        created = controller.create_invite(
+            self.user_1,
+            schemas.LobbyInviteCreateSchema.from_orm(
+                {
+                    'lobby_id': self.user_1.account.lobby.id,
+                    'from_user_id': self.user_1.id,
+                    'to_user_id': self.user_2.id,
+                }
+            ),
+        )
+
+        invite = LobbyInvite.get_by_id(created.id)
+        self.assertIsNotNone(invite)
+        self.assertEqual(invite.id, created.id)
 
     @mock.patch('lobbies.api.controller.websocket.ws_delete_invite')
     @mock.patch('lobbies.api.controller.ws_new_notification')

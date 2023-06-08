@@ -174,3 +174,9 @@ class LobbyUpdateSchema(Schema):
     def check_any(cls, values):
         assert any(values)
         return values
+
+
+class LobbyInviteCreateSchema(Schema):
+    lobby_id: int
+    from_user_id: int
+    to_user_id: int

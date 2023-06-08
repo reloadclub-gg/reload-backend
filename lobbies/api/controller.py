@@ -9,7 +9,7 @@ from notifications.websocket import ws_new_notification
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
-from .schemas import LobbyUpdateSchema
+from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
 
 User = get_user_model()
 
@@ -159,3 +159,22 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
     if payload.cancel_queue:
         lobby.cancel_queue()
         return lobby
+
+
+def create_invite(user: User, payload: LobbyInviteCreateSchema):
+    lobby = get_lobby(payload.lobby_id)
+
+    try:
+        invite = lobby.invite(payload.from_user_id, payload.to_user_id)
+    except LobbyException as exc:
+        raise HttpError(400, exc)
+
+    websocket.ws_create_invite(invite.id)
+    invited = User.objects.get(pk=invite.to_id)
+    notification = invited.account.notify(
+        _(f'{user.account.username} invited you to a group.'),
+        user.id,
+    )
+    ws_new_notification(notification.id)
+
+    return invite
