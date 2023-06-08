@@ -108,7 +108,7 @@ class LobbyRoutesTestCase(VerifiedPlayersMixin, TestCase):
 
         response = self.api.call(
             'post',
-            f'/invites/',
+            '/invites/',
             token=self.user_2.auth.token,
             data={
                 'lobby_id': lobby.id,
