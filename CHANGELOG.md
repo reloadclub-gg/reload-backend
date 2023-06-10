@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alteramos alguns endpoints relacionados ao `Lobby`.
 - Movemos toda parte de lobbies que ficavam em `matchmaking` para seu pacote exclusivo `lobbies`.
 
+### Fixed
+
+- O endpoint de logout retornava o usuário, e isso demorava muito, pois ia na Steam pegar todos os amigos, etc. Consertamos para que o endpoint `/accounts/logout/` retorne apenas um objeto (`{detail: "ok"}`) já que o client não vai mais usar o objeto do usuário para nenhuma ação, uma vez que o usuário solicitou o logout [#422](https://github.com/3C-gg/reload-backend/issues/422).
+
 ## [9cd6628 - 5-6-2023]
 
 ## [ae47465 - 29-5-2023]

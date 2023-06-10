@@ -149,13 +149,11 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.user.account.is_verified = True
         self.user.account.save()
         Lobby.create(self.user.id)
-
         self.assertEqual(self.user.account.lobby.id, self.user.id)
 
-        user_offline = controller.logout(self.user)
-
-        self.assertIsNone(user_offline.account.lobby)
-        self.assertFalse(user_offline.is_online)
+        controller.logout(self.user)
+        self.assertIsNone(self.user.account.lobby)
+        self.assertFalse(self.user.is_online)
 
     def test_logout_other_lobby(self):
         self.user.auth.add_session()
