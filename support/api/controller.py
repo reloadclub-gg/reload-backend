@@ -1,3 +1,4 @@
+import os
 from smtplib import SMTPException
 from typing import List
 
@@ -38,7 +39,7 @@ def create_ticket(
             if file.size > 3000000:
                 raise HttpError(400, _('Attachment is too large (max 3MB).'))
 
-            with default_storage.open(f'tmp/{file.name}', 'wb+') as destination:
+            with default_storage.open(f'uploads/{file.name}', 'wb+') as destination:
                 for chunk in file.chunks():
                     destination.write(chunk)
                     email.attach_file(destination.name)
@@ -47,6 +48,10 @@ def create_ticket(
         email.send()
     except SMTPException as e:
         raise HttpError(400, e)
+
+    if files and not settings.TEST_MODE:
+        for file in files:
+            os.remove(os.path.join(settings.MEDIA_ROOT, 'uploads', file.name))
 
     return Ticket(
         subject=payload.subject,

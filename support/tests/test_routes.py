@@ -1,5 +1,7 @@
+import os
+
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.templatetags.static import static
 
 from accounts.tests.mixins import VerifiedAccountMixin
 from core.tests import APIClient, TestCase
@@ -14,17 +16,19 @@ class SupportRoutesTestCase(VerifiedAccountMixin, TestCase):
         self.user.auth.add_session()
         self.user.auth.create_token()
 
+    def tearDown(self):
+        file_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'upload_test_file.txt')
+        with open(file_path, 'w') as f:
+            f.write('')
+        return super().tearDown()
+
     def test_tickets_create(self):
         r = self.client.post(
             '/api/support/tickets/',
             data={
                 'subject': 'Ajuda',
                 'description': 'Some description',
-                'files': SimpleUploadedFile(
-                    static('tests/upload_file.txt'),
-                    b'a',
-                    content_type='image/txt',
-                ),
+                'files': SimpleUploadedFile('upload_test_file.txt', b'a' * 3000000),
             },
             format='multipart',
             HTTP_ACCEPT='application/json',
