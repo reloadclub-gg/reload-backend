@@ -1,4 +1,5 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.templatetags.static import static
 from ninja.errors import HttpError
 
 from accounts.tests.mixins import AccountOneMixin
@@ -21,7 +22,11 @@ class SupportControllerTestCase(AccountOneMixin, TestCase):
 
     def test_create_ticket_with_attachments(self):
         uploaded_files = [
-            SimpleUploadedFile('file.jpeg', b'a' * 3000000, content_type='image/jpeg')
+            SimpleUploadedFile(
+                static('tests/upload_file.txt'),
+                b'a' * 3000000,
+                content_type='image/txt',
+            )
             for i in range(3)
         ]
         ticket = controller.create_ticket(
@@ -37,7 +42,11 @@ class SupportControllerTestCase(AccountOneMixin, TestCase):
 
     def test_create_ticket_with_attachments_size_exceeded(self):
         uploaded_files = [
-            SimpleUploadedFile('file.jpeg', b'a' * 3000001, content_type='image/jpeg')
+            SimpleUploadedFile(
+                static('tests/upload_file.txt'),
+                b'a' * 3000001,
+                content_type='image/txt',
+            )
             for i in range(3)
         ]
 

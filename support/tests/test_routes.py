@@ -1,4 +1,5 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.templatetags.static import static
 
 from accounts.tests.mixins import VerifiedAccountMixin
 from core.tests import APIClient, TestCase
@@ -20,9 +21,9 @@ class SupportRoutesTestCase(VerifiedAccountMixin, TestCase):
                 'subject': 'Ajuda',
                 'description': 'Some description',
                 'files': SimpleUploadedFile(
-                    'file.jpeg',
-                    b'Content',
-                    content_type='image/jpeg',
+                    static('tests/upload_file.txt'),
+                    b'a',
+                    content_type='image/txt',
                 ),
             },
             format='multipart',
