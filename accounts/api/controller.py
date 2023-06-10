@@ -64,7 +64,7 @@ def login(request, token: str) -> Auth:
         return auth
 
 
-def logout(user: User) -> User:
+def logout(user: User) -> dict:
     user_lobby_invites_expire_task.delay(user.id)
     lobby = user.account.lobby
     if lobby:
@@ -75,7 +75,7 @@ def logout(user: User) -> User:
     user.auth.expire_session(seconds=0)
     user_status_change_task.delay(user.id)
 
-    return user
+    return {'detail': 'ok'}
 
 
 def create_fake_user(email: str) -> User:
