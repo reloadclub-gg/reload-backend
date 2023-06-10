@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint para coletar assuntos de tickets válidos: `GET /support/tickets/subjects/` [#427](https://github.com/3C-gg/reload-backend/issues/427).
+- Endpoint para criação de tickets no Freshdesk via e-mail: `POST /support/tickets/` [#427](https://github.com/3C-gg/reload-backend/issues/427).
+- Config `SUPPORT_EMAIL` para gravar e-mail de suporte para onde serão enviados solicitações de suporte.
 - Endpoint de criação de convite [#425](https://github.com/3C-gg/reload-backend/issues/425).
 - Arquivos relacionados a envio de websocket em seus respectivos pacotes (`friends`, `lobbies` e `notifications`).
 
 ### Changed
 
+- Client api de teste passa a receber campo `content_type` para alterar o tipo da solicitação quando necessário.
+- Client api de teste passa a receber campo `**extra` para receber headers customizados.
 - Alteramos alguns endpoints relacionados ao `Lobby`.
 - Movemos toda parte de lobbies que ficavam em `matchmaking` para seu pacote exclusivo `lobbies`.
 
