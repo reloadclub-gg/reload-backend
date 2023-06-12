@@ -2,7 +2,7 @@ from model_bakery import baker
 
 from appsettings.models import AppSettings
 from core.tests import APIClient, TestCase
-from matchmaking.models import Lobby
+from lobbies.models import Lobby
 
 from .. import utils
 from ..models import Account, Invite, User
@@ -247,3 +247,4 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.user.status, 'offline')
+        self.assertEqual(r.json().get('detail'), 'ok')

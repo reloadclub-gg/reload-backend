@@ -5,8 +5,9 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
+from lobbies.api.schemas import LobbyInviteSchema, LobbySchema
 from matches.api.schemas import MatchSchema
-from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema, PreMatchSchema
+from matchmaking.api.schemas import PreMatchSchema
 from notifications.api.schemas import NotificationSchema
 from steam import Steam
 
@@ -148,6 +149,7 @@ class UserSchema(ModelSchema):
     email: Optional[pydantic.EmailStr] = None
     is_online: bool = None
     status: str
+    lobby_id: int = None
 
     class Config:
         model = User
@@ -176,6 +178,14 @@ class UserSchema(ModelSchema):
             return obj.email
 
         return ''
+
+    @staticmethod
+    def resolve_lobby_id(obj):
+        if hasattr(obj, 'account'):
+            if obj.account.lobby:
+                return obj.account.lobby.id
+
+        return None
 
 
 class FakeUserSchema(UserSchema):

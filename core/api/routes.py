@@ -8,10 +8,12 @@ from ninja.pagination import paginate
 
 from accounts.api.routes import router as accounts_router
 from friends.api.routes import router as friends_router
+from lobbies.api.routes import router as lobbies_router
 from matches.api.routes import router as matches_router
 from matchmaking.api.routes import router as mm_router
 from notifications.api.routes import router as notifications_router
 from profiles.api.routes import router as profiles_router
+from support.api.routes import router as support_router
 
 from .pagination import Pagination
 
@@ -60,3 +62,5 @@ api.add_router("/matches/", matches_router)
 api.add_router("/notifications/", notifications_router)
 api.add_router("/friends/", friends_router)
 api.add_router("/profiles/", profiles_router)
+api.add_router("/lobbies/", lobbies_router)
+api.add_router("/support/", support_router)

@@ -1,8 +1,8 @@
 from accounts.api import schemas
 from core.tests import TestCase
+from lobbies.api.schemas import LobbySchema
+from lobbies.models import Lobby
 from matches.api.schemas import MatchSchema
-from matchmaking.api.schemas import LobbySchema
-from matchmaking.models import Lobby
 from notifications.api.schemas import NotificationSchema
 from steam import Steam
 
@@ -103,6 +103,7 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'account': schemas.AccountSchema.from_orm(self.user.account).dict(),
             'is_online': self.user.is_online,
             'status': self.user.status,
+            'lobby_id': self.user.account.lobby.id,
         }
 
         self.assertDictEqual(payload, expected_payload)

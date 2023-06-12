@@ -26,6 +26,7 @@ def generate_steam_extra_data(
             'steamid': steamid,
             'personaname': personaname,
             'communityvisibilitystate': communityvisibilitystate,
+            'profileurl': f'https://steamcommunity.com/profiles/{steamid}',
         }
     }
 
