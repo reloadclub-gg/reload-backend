@@ -103,6 +103,7 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'account': schemas.AccountSchema.from_orm(self.user.account).dict(),
             'is_online': self.user.is_online,
             'status': self.user.status,
+            'lobby_id': self.user.account.lobby.id,
         }
 
         self.assertDictEqual(payload, expected_payload)

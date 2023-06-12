@@ -149,6 +149,7 @@ class UserSchema(ModelSchema):
     email: Optional[pydantic.EmailStr] = None
     is_online: bool = None
     status: str
+    lobby_id: int = None
 
     class Config:
         model = User
@@ -177,6 +178,14 @@ class UserSchema(ModelSchema):
             return obj.email
 
         return ''
+
+    @staticmethod
+    def resolve_lobby_id(obj):
+        if hasattr(obj, 'account'):
+            if obj.account.lobby:
+                return obj.account.lobby.id
+
+        return None
 
 
 class FakeUserSchema(UserSchema):
