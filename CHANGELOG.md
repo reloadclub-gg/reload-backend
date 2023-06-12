@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [848718f - 12/6/2023]
+
 ### Added
 
 - Endpoint para coletar assuntos de tickets válidos: `GET /support/tickets/subjects/` [#427](https://github.com/3C-gg/reload-backend/issues/427).
