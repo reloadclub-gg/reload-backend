@@ -24,25 +24,17 @@ def get_invite(invite_id: str) -> models.LobbyInvite:
     return invite
 
 
-def ws_delete_invite(invite_id: str):
+def ws_delete_invite(invite_id: str, status: str):
     invite = get_invite(invite_id)
-    payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
+    payload = {
+        'invite': schemas.LobbyInviteSchema.from_orm(invite).dict(),
+        'status': status,
+    }
 
     return async_to_sync(ws_send)(
         'invites/delete',
         payload,
         groups=[invite.to_id, invite.from_id],
-    )
-
-
-def ws_lobby_owner_change(lobby_id: int):
-    lobby = models.Lobby(owner_id=lobby_id)
-    payload = schemas.LobbySchema.from_orm(lobby).dict()
-
-    return async_to_sync(ws_send)(
-        'lobbies/owner_change',
-        payload,
-        groups=lobby.players_ids,
     )
 
 
@@ -57,8 +49,22 @@ def ws_create_invite(invite_id: str):
     )
 
 
-# @shared_task
-# def ws_player_leave() 'lobbies/player_leave'
+def ws_player_update(lobby_id: int, player_id: int, action: str):
+    lobby = models.Lobby(owner_id=lobby_id)
+    user = User.objects.get(pk=player_id)
+    groups = [
+        lobby_player_id
+        for lobby_player_id in lobby.players_ids
+        if lobby_player_id != player_id
+    ]
+    action = 'player_join' if action == 'join' else 'player_leave'
+    payload = {
+        'player': schemas.LobbyPlayerSchema.from_orm(user).dict(),
+        'lobby': schemas.LobbySchema.from_orm(lobby).dict(),
+    }
 
-# @shared_task
-# def ws_player_join() 'lobbies/player_join'
+    return async_to_sync(ws_send)(
+        f'lobbies/{action}',
+        payload,
+        groups=groups or [],
+    )

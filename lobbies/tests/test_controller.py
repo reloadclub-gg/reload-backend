@@ -28,7 +28,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         Lobby.create(self.user_6.id)
         Lobby.create(self.user_7.id)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
+    @mock.patch('lobbies.api.controller.ws_friend_update')
     @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
     def test_player_move_single_to_group(self, mock_owner_change, mock_status_update):
         self.user_1.account.lobby.set_public()
@@ -36,7 +36,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_owner_change.assert_not_called()
         self.assertEqual(mock_status_update.call_count, 2)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
+    @mock.patch('lobbies.api.controller.ws_friend_update')
     @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
     def test_player_move_group_to_group(self, mock_owner_change, mock_status_update):
         self.user_1.account.lobby.set_public()
@@ -49,7 +49,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(mock_status_update.call_count, 1)
         mock_status_update.assert_called_once_with(self.user_1.id)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
+    @mock.patch('lobbies.api.controller.ws_friend_update')
     @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
     def test_player_move_group_owner_to_group(
         self,
@@ -67,7 +67,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_owner_change.assert_called_once()
         mock_status_update.assert_called_once_with(self.user_5.id)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
+    @mock.patch('lobbies.api.controller.ws_friend_update')
     @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
     def test_player_move_group_owner_to_single(
         self,
@@ -84,7 +84,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_owner_change.assert_called_once()
         mock_status_update.assert_called_once_with(self.user_1.id)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
+    @mock.patch('lobbies.api.controller.ws_friend_update')
     @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
     def test_player_move_group_to_single(self, mock_owner_change, mock_status_update):
         self.user_1.account.lobby.set_public()
