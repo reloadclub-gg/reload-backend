@@ -67,7 +67,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         ]
         mock_update_player.assert_has_calls(mock_calls)
         self.assertEqual(mock_update_lobby_id.call_count, 1)
-        mock_friend_update.assert_called_once_with(self.user_1.id)
+        mock_friend_update.assert_called_once_with(self.user_1)
 
     @mock.patch('lobbies.api.controller.ws_friend_update')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
@@ -93,7 +93,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
             mock.call(self.user_5.account.lobby.id, self.user_1.id, 'join'),
         ]
         mock_update_player.assert_has_calls(mock_calls)
-        mock_friend_update.assert_called_once_with(self.user_5.id)
+        mock_friend_update.assert_called_once_with(self.user_5)
 
     @mock.patch('lobbies.api.controller.ws_friend_update')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
@@ -113,7 +113,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
 
         mock_update_player.assert_called_once()
         self.assertEqual(mock_update_lobby_id.call_count, 4)
-        mock_friend_update.assert_called_once_with(self.user_1.id)
+        mock_friend_update.assert_called_once_with(self.user_1)
 
     @mock.patch('lobbies.api.controller.ws_friend_update')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
@@ -137,7 +137,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         ]
         mock_update_player.assert_has_calls(mock_calls)
         self.assertEqual(mock_update_lobby_id.call_count, 1)
-        mock_friend_update.assert_called_once_with(self.user_2.id)
+        mock_friend_update.assert_called_once_with(self.user_2)
 
     def test_player_move_error(self):
         with self.assertRaises(HttpError):
