@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Websocket `ws_friend_update` agora receber objeto `User` ao invés de `user_id: int`.
+- Websockets de `lobbies` agora recebem objetos ao invés de valores primitivos.
+- Websocket `ws_friend_update` agora recebe objeto `User` ao invés de `user_id: int`.
 
 ## [848718f - 12/6/2023]
 
