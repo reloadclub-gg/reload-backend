@@ -23,6 +23,8 @@ def player_move(user: User, lobby_id: int) -> Lobby:
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    ws_update_lobby_id(user.id, new_lobby.id)
+
     if remnants_lobby:
         for player_id in remnants_lobby.players_ids:
             ws_update_lobby_id(player_id, remnants_lobby.id)
@@ -31,10 +33,7 @@ def player_move(user: User, lobby_id: int) -> Lobby:
 
         if new_lobby.id == old_lobby.id:
             ws_friend_update(user.id)
-            ws_update_lobby_id(user.id, new_lobby.id)
             return new_lobby
-
-    ws_update_lobby_id(user.id, new_lobby.id)
 
     if old_lobby.players_count == 0 and new_lobby.players_count > 1:
         if not remnants_lobby:
