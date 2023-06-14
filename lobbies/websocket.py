@@ -49,7 +49,7 @@ def ws_create_invite(invite_id: str):
     )
 
 
-def ws_player_update(lobby_id: int, player_id: int, action: str):
+def ws_update_player(lobby_id: int, player_id: int, action: str):
     lobby = models.Lobby(owner_id=lobby_id)
     user = User.objects.get(pk=player_id)
     groups = [
@@ -67,4 +67,13 @@ def ws_player_update(lobby_id: int, player_id: int, action: str):
         f'lobbies/{action}',
         payload,
         groups=groups or [],
+    )
+
+
+def ws_update_lobby(lobby: models.Lobby):
+    payload = schemas.LobbySchema.from_orm(lobby).dict()
+    return async_to_sync(ws_send)(
+        'lobbies/update',
+        payload,
+        groups=lobby.players_ids,
     )

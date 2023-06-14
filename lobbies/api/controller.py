@@ -29,7 +29,7 @@ def player_move(user: User, lobby_id: int) -> Lobby:
         for player_id in remnants_lobby.players_ids:
             ws_update_lobby_id(player_id, remnants_lobby.id)
 
-        websocket.ws_player_update(remnants_lobby.id, user.id, 'leave')
+        websocket.ws_update_player(remnants_lobby.id, user.id, 'leave')
 
         if new_lobby.id == old_lobby.id:
             ws_friend_update(user.id)
@@ -45,8 +45,8 @@ def player_move(user: User, lobby_id: int) -> Lobby:
     elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
         ws_friend_update(user.id)
 
-    websocket.ws_player_update(old_lobby.id, user.id, 'leave')
-    websocket.ws_player_update(new_lobby.id, user.id, 'join')
+    websocket.ws_update_player(old_lobby.id, user.id, 'leave')
+    websocket.ws_update_player(new_lobby.id, user.id, 'join')
 
     return new_lobby
 
@@ -146,11 +146,11 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         except LobbyException as e:
             raise HttpError(400, e)
 
-        return lobby
-
-    if payload.cancel_queue:
+    elif payload.cancel_queue:
         lobby.cancel_queue()
-        return lobby
+
+    websocket.ws_update_lobby(lobby)
+    return lobby
 
 
 def create_invite(user: User, payload: LobbyInviteCreateSchema):
