@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chamadas websocket sempre que houver alterações no lobby (queue, etc) [#439](https://github.com/3C-gg/reload-backend/issues/439).
 - Chamadas websocket sempre que houver alterações na lista de jogadores de um lobby [#434](https://github.com/3C-gg/reload-backend/issues/434).
 
+### Changed
+
+- Websockets de `notifications` agora recebem objetos ao invés de valores primitivos.
+- Websockets de `lobbies` agora recebem objetos ao invés de valores primitivos.
+- Websocket `ws_friend_update` agora recebe objeto `User` ao invés de `user_id: int`.
+
 ## [848718f - 12/6/2023]
 
 ### Added

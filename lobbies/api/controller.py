@@ -29,24 +29,26 @@ def player_move(user: User, lobby_id: int) -> Lobby:
         for player_id in remnants_lobby.players_ids:
             ws_update_lobby_id(player_id, remnants_lobby.id)
 
-        websocket.ws_update_player(remnants_lobby.id, user.id, 'leave')
+        websocket.ws_update_player(remnants_lobby, user, 'leave')
 
         if new_lobby.id == old_lobby.id:
-            ws_friend_update(user.id)
+            ws_friend_update(user)
             return new_lobby
 
     if old_lobby.players_count == 0 and new_lobby.players_count > 1:
         if not remnants_lobby:
-            ws_friend_update(user.id)
-        ws_friend_update(new_lobby.owner_id)
+            ws_friend_update(user)
+        new_owner = User.objects.get(pk=new_lobby.owner_id)
+        ws_friend_update(new_owner)
 
     if user.id != old_lobby.owner_id and old_lobby.players_count == 1:
-        ws_friend_update(old_lobby.owner_id)
+        old_owner = User.objects.get(pk=old_lobby.owner_id)
+        ws_friend_update(old_owner)
     elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
-        ws_friend_update(user.id)
+        ws_friend_update(user)
 
-    websocket.ws_update_player(old_lobby.id, user.id, 'leave')
-    websocket.ws_update_player(new_lobby.id, user.id, 'join')
+    websocket.ws_update_player(old_lobby, user, 'leave')
+    websocket.ws_update_player(new_lobby, user, 'join')
 
     return new_lobby
 
@@ -102,7 +104,7 @@ def accept_invite(user: User, invite_id: str):
     if current_lobby.id == new_lobby.id:
         return
 
-    websocket.ws_delete_invite(invite.id, 'accepted')
+    websocket.ws_delete_invite(invite, 'accepted')
     player_move(user, new_lobby.id)
 
 
@@ -111,7 +113,7 @@ def refuse_invite(user: User, invite_id: str):
     if user.id != invite.to_id:
         raise AuthenticationError()
 
-    websocket.ws_delete_invite(invite.id, 'refused')
+    websocket.ws_delete_invite(invite, 'refused')
     lobby = Lobby(owner_id=invite.lobby_id)
     lobby.delete_invite(invite.id)
 
@@ -156,10 +158,13 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
 def create_invite(user: User, payload: LobbyInviteCreateSchema):
     lobby = get_lobby(payload.lobby_id)
 
+    if user.id != payload.from_user_id or user.id not in lobby.players_ids:
+        raise AuthenticationError()
+
     try:
         invite = lobby.invite(payload.from_user_id, payload.to_user_id)
     except LobbyException as exc:
         raise HttpError(400, exc)
 
-    websocket.ws_create_invite(invite.id)
+    websocket.ws_create_invite(invite)
     return invite

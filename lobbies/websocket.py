@@ -24,8 +24,7 @@ def get_invite(invite_id: str) -> models.LobbyInvite:
     return invite
 
 
-def ws_delete_invite(invite_id: str, status: str):
-    invite = get_invite(invite_id)
+def ws_delete_invite(invite: models.LobbyInvite, status: str):
     payload = {
         'invite': schemas.LobbyInviteSchema.from_orm(invite).dict(),
         'status': status,
@@ -38,8 +37,7 @@ def ws_delete_invite(invite_id: str, status: str):
     )
 
 
-def ws_create_invite(invite_id: str):
-    invite = get_invite(invite_id)
+def ws_create_invite(invite: models.LobbyInvite):
     payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
 
     return async_to_sync(ws_send)(
@@ -49,13 +47,11 @@ def ws_create_invite(invite_id: str):
     )
 
 
-def ws_update_player(lobby_id: int, player_id: int, action: str):
-    lobby = models.Lobby(owner_id=lobby_id)
-    user = User.objects.get(pk=player_id)
+def ws_update_player(lobby: models.Lobby, user: User, action: str):
     groups = [
         lobby_player_id
         for lobby_player_id in lobby.players_ids
-        if lobby_player_id != player_id
+        if lobby_player_id != user.id
     ]
     action = 'player_join' if action == 'join' else 'player_leave'
     payload = {
