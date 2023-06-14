@@ -9,8 +9,7 @@ from .models import Notification
 User = get_user_model()
 
 
-def ws_new_notification(notification_id: int):
-    notification = Notification.get_by_id(notification_id)
+def ws_new_notification(notification: Notification):
     payload = NotificationSchema.from_orm(notification).dict()
 
     return async_to_sync(ws_send)(
