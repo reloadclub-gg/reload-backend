@@ -1,28 +1,24 @@
-from typing import List, Optional
+from typing import List
 
 from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
 
 from accounts.models import Account
-from lobbies.api.schemas import LobbySchema
-from matches.api.schemas import MatchSchema
 from steam import Steam
 
 User = get_user_model()
 
 
 class FriendSchema(ModelSchema):
-    id: Optional[int]
-    steamid: Optional[str]
-    username: Optional[str]
-    avatar: Optional[dict]
-    is_online: Optional[bool]
-    status: Optional[str]
-    lobby: Optional[LobbySchema]
-    steam_url: Optional[str]
-    match: Optional[MatchSchema] = None
+    id: int
+    steamid: str
+    username: str
+    avatar: dict
+    status: str
+    steam_url: str
     matches_played: int
     latest_matches_results: List[str]
+    lobby_id: int = None
 
     class Config:
         model = Account
@@ -38,18 +34,6 @@ class FriendSchema(ModelSchema):
     @staticmethod
     def resolve_id(obj):
         return obj.user.id
-
-    @staticmethod
-    def resolve_is_online(obj):
-        return bool(obj.user.auth.sessions)
-
-    @staticmethod
-    def resolve_steamid(obj):
-        return obj.user.steam_user.steamid
-
-    @staticmethod
-    def resolve_username(obj):
-        return obj.user.steam_user.username
 
     @staticmethod
     def resolve_avatar(obj):
@@ -74,6 +58,13 @@ class FriendSchema(ModelSchema):
     @staticmethod
     def resolve_latest_matches_results(obj):
         return obj.get_latest_matches_results()
+
+    @staticmethod
+    def resolve_lobby_id(obj):
+        if obj.lobby:
+            return obj.lobby.id
+
+        return None
 
 
 class FriendListSchema(Schema):

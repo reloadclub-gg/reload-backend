@@ -22,11 +22,11 @@ class FriendsSchemasTestCase(VerifiedPlayersMixin, TestCase):
                     self.user_1.steam_user.avatarhash, 'full'
                 ),
             },
-            'is_online': self.user_1.is_online,
             'status': self.user_1.status,
-            'lobby': self.user_1.account.lobby,
+            'lobby_id': self.user_1.account.lobby.id
+            if self.user_1.account.lobby
+            else None,
             'steam_url': self.user_1.steam_user.profileurl,
-            'match': self.user_1.account.match,
             'matches_played': len(self.user_1.account.matches_played),
             'latest_matches_results': self.user_1.account.get_latest_matches_results(),
         }
