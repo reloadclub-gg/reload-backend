@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
 
 from accounts.models import Account
-from lobbies.api.schemas import LobbySchema
 from matches.api.schemas import MatchSchema
 from steam import Steam
 
@@ -18,7 +17,7 @@ class FriendSchema(ModelSchema):
     avatar: Optional[dict]
     is_online: Optional[bool]
     status: Optional[str]
-    lobby: Optional[LobbySchema]
+    lobby_id: int = None
     steam_url: Optional[str]
     match: Optional[MatchSchema] = None
     matches_played: int
@@ -74,6 +73,13 @@ class FriendSchema(ModelSchema):
     @staticmethod
     def resolve_latest_matches_results(obj):
         return obj.get_latest_matches_results()
+
+    @staticmethod
+    def resolve_lobby_id(obj):
+        if obj.lobby:
+            return obj.lobby.id
+
+        return None
 
 
 class FriendListSchema(Schema):

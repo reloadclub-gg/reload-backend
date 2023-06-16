@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Campo `lobby` passa a ser `lobby_id` no esquema `FriendSchema`[#437](https://github.com/3C-gg/reload-backend/issues/437).
 - Websockets de `notifications` agora recebem objetos ao invés de valores primitivos.
 - Websockets de `lobbies` agora recebem objetos ao invés de valores primitivos.
 - Websocket `ws_friend_update` agora recebe objeto `User` ao invés de `user_id: int`.
