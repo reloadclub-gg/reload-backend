@@ -4,9 +4,8 @@ from accounts.models import Auth
 from accounts.tasks import watch_user_status_change
 from core.redis import RedisClient
 from core.utils import get_url_param
+from friends.websocket import ws_friend_create_or_update
 from lobbies.models import Lobby
-
-from .controller import user_status_change
 
 User = get_user_model()
 cache = RedisClient()
@@ -50,7 +49,7 @@ def authenticate(scope: dict) -> User:
     user.auth.persist_session()
 
     if from_offline_status:
-        user_status_change(user)
+        ws_friend_create_or_update(user)
 
     if not user.account.lobby:
         Lobby.create(user.id)

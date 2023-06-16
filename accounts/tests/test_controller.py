@@ -192,11 +192,14 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         self.user_5.auth.add_session()
         self.user_6.auth.add_session()
 
-    @mock.patch('accounts.api.controller.user_status_change_task.delay')
-    @mock.patch('accounts.api.controller.user_lobby_invites_expire_task.delay')
-    @mock.patch('accounts.api.controller.lobby_update_task.delay')
+    @mock.patch('accounts.api.controller.ws_expire_player_invites')
+    @mock.patch('accounts.api.controller.ws_friend_create_or_update')
+    @mock.patch('accounts.api.controller.player_move')
     def test_logout_lobby_owner(
-        self, lobby_update, user_lobby_invites_expire, user_status_change
+        self,
+        mock_expire_player_invites,
+        mock_friend_create_or_update,
+        mock_player_move,
     ):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
@@ -213,9 +216,9 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         Lobby.move(self.user_5.id, lobby_1.id)
 
         controller.logout(self.user_1)
-        user_lobby_invites_expire.assert_called_once()
-        lobby_update.assert_called_once()
-        user_status_change.assert_called_once()
+        mock_expire_player_invites.assert_called_once()
+        mock_friend_create_or_update.assert_called_once()
+        mock_player_move.assert_called_once()
 
     def test_user_matches(self):
         self.assertCountEqual(

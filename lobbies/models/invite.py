@@ -103,3 +103,9 @@ class LobbyInvite(BaseModel):
                 return invite
 
         raise LobbyInviteException(_('Invite not found.'))
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> List[LobbyInvite]:
+        from_invites = LobbyInvite.get_by_from_user_id(user_id)
+        to_invites = LobbyInvite.get_by_to_user_id(user_id)
+        return from_invites + to_invites

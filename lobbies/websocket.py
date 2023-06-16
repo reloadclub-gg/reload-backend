@@ -103,3 +103,27 @@ def ws_update_lobby(lobby: models.Lobby):
         payload,
         groups=lobby.players_ids,
     )
+
+
+def ws_expire_player_invites(user: User):
+    """
+    Triggered upon a player disconnection from websocket. This will clean both
+    sent and received lobby invites from that player.
+
+    Cases:
+    - User logout.
+    - User loses all sessions (disconnect from websocket).
+
+    Payload:
+    lobbies.api.schemas.LobbyInviteSchema: list
+    """
+    invites = models.LobbyInvite.get_by_user_id(user.id)
+    results = list()
+    for invite in invites:
+        payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
+        results.append(
+            async_to_sync(ws_send)(
+                'invites/expire', payload, groups=[invite.to_id, invite.from_id]
+            )
+        )
+    return results
