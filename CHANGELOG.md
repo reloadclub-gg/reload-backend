@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Websockets de `lobbies` agora recebem objetos ao invés de valores primitivos.
 - Websocket `ws_friend_update` agora recebe objeto `User` ao invés de `user_id: int`.
 
+### Removed
+
+- Campos calculados do `FriendSchema` uma vez que eles estão disponíveis como campos de db.
+- Não obrigatoriedade de campos que são obrigatórios no esquema `FriendSchema`.
+- Campo `match` do esquema `FriendSchema` por não ser utilizado.
+
 ## [848718f - 12/6/2023]
 
 ### Added
