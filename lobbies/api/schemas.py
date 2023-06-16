@@ -180,3 +180,13 @@ class LobbyInviteCreateSchema(Schema):
     lobby_id: int
     from_user_id: int
     to_user_id: int
+
+
+class LobbyInviteWebsocketSchema(Schema):
+    invite: LobbyInviteSchema
+    status: str
+
+
+class LobbyPlayerWebsocketUpdate(Schema):
+    player: LobbyPlayerSchema
+    lobby: LobbySchema

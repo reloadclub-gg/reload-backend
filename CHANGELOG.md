@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Views de documentação de websockets em `/ws/docs` [#436](https://github.com/3C-gg/reload-backend/issues/436).
+- O package `websocket` agora é um app do Django.
+- Dois esquemas exclusivos para websockets: `LobbyInviteWebsocketSchema` e `LobbyPlayerWebsocketUpdate`. Esses dois esquemas facilitam o envio de dados para o client via ws e também servem para padronizar a documentação dos websockets.
 - Chamadas websocket sempre que houver alterações no lobby (queue, etc) [#439](https://github.com/3C-gg/reload-backend/issues/439).
 - Chamadas websocket sempre que houver alterações na lista de jogadores de um lobby [#434](https://github.com/3C-gg/reload-backend/issues/434).
 

@@ -31,3 +31,7 @@ if settings.DEBUG:
 
     if 'rosetta' in settings.INSTALLED_APPS:
         urlpatterns += [path('rosetta/', include('rosetta.urls'))]
+
+    urlpatterns += [
+        path('ws/', include('websocket.urls', namespace='websocket')),
+    ]
