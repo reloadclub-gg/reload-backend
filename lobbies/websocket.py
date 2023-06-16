@@ -26,7 +26,7 @@ def ws_delete_invite(invite: models.LobbyInvite, status: str):
             'invite': invite,
             'status': status,
         }
-    )
+    ).dict()
 
     return async_to_sync(ws_send)(
         'invites/delete',
@@ -77,7 +77,7 @@ def ws_update_player(lobby: models.Lobby, user: User, action: str):
             'player': user,
             'lobby': lobby,
         }
-    )
+    ).dict()
 
     return async_to_sync(ws_send)(
         f'lobbies/{action}',
