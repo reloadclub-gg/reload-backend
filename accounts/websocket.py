@@ -11,7 +11,8 @@ def ws_update_lobby_id(user_id: int, lobby_id: int):
     Cases:
     - User accepts an invite to join some lobby, leaving current lobby.
     - User leaves current lobby and returns to its original lobby.
-    - Lobby owner leaves its lobby, leaving that lobby with another owner, thus, another lobby as well. In this case, all users from that lobby get this update.
+    - Lobby owner leaves its lobby, leaving that lobby with another owner,
+    thus, another lobby as well. In this case, all users from that lobby get this update.
 
     Payload:
     int
