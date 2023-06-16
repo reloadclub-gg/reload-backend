@@ -459,7 +459,7 @@
             "user": 1,
             "provider": "steam",
             "uid": "000000000000000000",
-            "extra_data": "{\"player\": {\"avatar\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg\", \"steamid\": \"00000000000000\", \"realname\": \"Admin\", \"avatarfull\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg\", \"avatarhash\": \"5795ca73736bbd7de42ab1faf4581dda81987d63\", \"profileurl\": \"https://steamcommunity.com/id/killshotesports/\", \"personaname\": \"admin\", \"timecreated\": 1626458911, \"avatarmedium\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_medium.jpg\", \"personastate\": 0, \"profilestate\": 1, \"primaryclanid\": \"103582791429521408\", \"personastateflags\": 0, \"communityvisibilitystate\": 3}, \"auth_time\": 1644645334}",
+            "extra_data": "{\"player\": {\"avatar\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb.jpg\", \"steamid\": \"00000000000000\", \"realname\": \"Admin\", \"avatarfull\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg\", \"avatarhash\": \"5795ca73736bbd7de42ab1faf4581dda81987d63\", \"profileurl\": \"https://steamcommunity.com/id/killshotesports/\", \"personaname\": \"admin\", \"timecreated\": 1626458911, \"avatarmedium\": \"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars//fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_medium.jpg\", \"personastate\": 0, \"profilestate\": 1, \"primaryclanid\": \"103582791429521408\", \"personastateflags\": 0, \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}, \"auth_time\": 1644645334}",
             "created": "2022-02-12T05:55:34.847Z",
             "modified": "2022-02-12T05:55:34.851Z"
         }
@@ -471,7 +471,7 @@
             "user": 2,
             "provider": "OUPmsRueHZpUDtVrwtnTBbuxQuFxWntJ",
             "uid": "TFromRtBnoLdKHiuQNtbhSDEnymTHlJzvfAgZisBodTuhVJrzhmYddyASOOOuvjNHoXXuJlyFvmlUWWNQzGLtIfkFnDcjNhMeyKNpkAtRqPzqWWCuESemXbLJuiCcIuiQXwFlvvBWIIhGPvUMOafQNTTVAFvvDiDksMNLgeZbpiZMurSgvFqSqQETYcFSSxhWuTGTGfDVmdkEtAZPPkQMBZIMkLPLCHIhwddYkBOvcpDoApHnYWumjCotyPWKRJ",
-            "extra_data": "{\"player\": {\"steamid\": \"281590623841816110\", \"personaname\": \"player1\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"281590623841816110\", \"personaname\": \"player1\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:29:36.527Z",
             "modified": "2023-04-19T15:29:36.527Z"
         }
@@ -483,7 +483,7 @@
             "user": 3,
             "provider": "jxqfthpzFknVNyIBvbdZkYqjvKZaTcYn",
             "uid": "LxHnXTqGRnPIsbDjRCTaiGOuuEvcgSDZOxhlqAhyJbEVgycuznEuJXwuGgQrNkOLWfJypmFeznTuxYCBXPDGgpuVDTFifdiXhLYqwdEjlsLTObaiBgiGowKXVhxQdGbooaWhMOebaSRQzwLuOgqkrXOisaSbGXMJneiwtsKrcrsRkhBotTFtxlrsUPreptppqCPLFEFwUWprjZJAKJTFctFkZOieEPEMUqeMsRjhWBQFZPaiqUnTbHzmUezRzFK",
-            "extra_data": "{\"player\": {\"steamid\": \"809363647939633239\", \"personaname\": \"player2\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"809363647939633239\", \"personaname\": \"player2\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:29:50.182Z",
             "modified": "2023-04-19T15:29:50.182Z"
         }
@@ -495,7 +495,7 @@
             "user": 4,
             "provider": "qMcdvogckgFlgpqtayHavoCjukMoGMHK",
             "uid": "FnHStfuyVDSoPqxctUurHVYmwQraGXPDfDGYgSJauzsGZUupzfhFYrrtvCtFROsqwFffKorbSYnMGbKlVdZyUEmIVkCqlEgSSgQJMBSDbLMQXaxVlNnzFSgNamOjLdbCRktLjffhpNwTeRmDIwTpBHsOeHKHukfUpaIQtwtOyjCdKCGcymSRAPNqmSSuQwLPyDqsxSiEVGDXielSXcovFVXhVYFMToBstlqWafyhcdFbDckNRAGnanMJbDKQEFe",
-            "extra_data": "{\"player\": {\"steamid\": \"673968025244387349\", \"personaname\": \"player3\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"673968025244387349\", \"personaname\": \"player3\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:30:02.965Z",
             "modified": "2023-04-19T15:30:02.965Z"
         }
@@ -507,7 +507,7 @@
             "user": 5,
             "provider": "BHGsOZIZjJeFFVjqufheMomMNcdKyIji",
             "uid": "OgrzfzQFZlJsWWMuQMBvuozYfNVasUStSNeperToWcnipvwUtNrcDlMypSdPhHeoYzcIaNwTGYTCdFEgCqbRCDWpevLeIDvIimWjnqOqWwQQRVsuHwSzuGfoOYiepAdXhWqQNutGxMPIkFuIRYrmSchEiaFxYrUnONnMiRNALxsbavFsCiirUTDrhYoshRZsthZYJGOXvrKDtuyRLuYMCnxsYbQoeMRxSeUxkatXbJTAzDOuJCnDLVYJkysPJiC",
-            "extra_data": "{\"player\": {\"steamid\": \"632871291809089356\", \"personaname\": \"player4\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"632871291809089356\", \"personaname\": \"player4\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:30:13.510Z",
             "modified": "2023-04-19T15:30:13.510Z"
         }
@@ -519,7 +519,7 @@
             "user": 6,
             "provider": "dlHzxEyobbXAukjHzDlNqGxpvhazaAwd",
             "uid": "lBtSgKZyXGJZmOyZDeSAYBaWprEgYCXdVvNdMlEpuiqDJfVJvBvElIiIOEQoZYPPbEOvORyudTkjiahOpyOcHEhLBDjumNJnkhBfpjeAXCTlfjrULURXDbxgGgTYJokccGwJfpcDLgtIyIFmQcWCZNzHHCZRlXIrKGYTjtBrcULVPOctFAHYiHDRhVECTTqIbGAgqxzocYsJMpNyfSRCBKccxSJhkCalXVJLZuQCVbqhMWikTHDFqqiDmASTPZm",
-            "extra_data": "{\"player\": {\"steamid\": \"725885787902004201\", \"personaname\": \"player5\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"725885787902004201\", \"personaname\": \"player5\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:30:26.083Z",
             "modified": "2023-04-19T15:30:26.083Z"
         }
@@ -531,7 +531,7 @@
             "user": 7,
             "provider": "CMZcKAEkWaCUWgUXjFLUcRAysncbwxEE",
             "uid": "ZqJRwxtUpVTenvUkIAPgeDswkxNAReSQCWLClCbSbLHUqcWJGqwARmErBqpuQToMgdQKdpYXZBCeOqQFSpaIzGEVoKyMGJjIRvTEFZRYzOVWimlMpyuzTpXMLSsAVzyIwMDfIzpQBDxNaixXERupTYlxfcuMZZNUzclmJTxeiPPByCLuDcESLWAnmRChabxxzVUWbxtsoEcgCkDDPYMTOafqpEhttYCOpwgVTkgrOMYtvyJTmugTVClgxjZUEaL",
-            "extra_data": "{\"player\": {\"steamid\": \"715582438505847277\", \"personaname\": \"player6\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"715582438505847277\", \"personaname\": \"player6\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:30:38.700Z",
             "modified": "2023-04-19T15:30:38.700Z"
         }
@@ -543,7 +543,7 @@
             "user": 8,
             "provider": "qHtdhYdomkWbqdCROMNpJRTvLQruYYJu",
             "uid": "WUFjOxNkoEQFqooISFpPNtuQJxKdqFLxZDRrWHlwuXCOiOibzaTwtAIkChmdHoZKyTezTTZzRICmhEUjHFqtSQauMqfoDeHHRyNKUtLdsCfotvDdzGBIvaQjZuOHFqQzLezwTxoZFvCQIdHTtmGuzslzpAAbkfLCRYEXUhlWJOJBrAKKSlZNiylvTGklipDTehBGjhWzmpcvnHuWjqnBJAumVmfVnwBLRFuvbtvHLoYDUqFqPXpWuZMMbxlqalJ",
-            "extra_data": "{\"player\": {\"steamid\": \"853671800239207891\", \"personaname\": \"player7\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"853671800239207891\", \"personaname\": \"player7\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:30:50.056Z",
             "modified": "2023-04-19T15:30:50.056Z"
         }
@@ -555,7 +555,7 @@
             "user": 9,
             "provider": "zNiVTRKhDVtEqmldLXMruGjuaFHbLwAr",
             "uid": "IOdqLPqZaVMackUwqoSDqWSYlpdXYBQmRAeiODtGDtajGfTQcIQguhFjBvqWQTZLJaRaEQKbSBgvoAtleyjJhouNcPAioyjbpLXXbPdXIynLfjTMNlevAORvvXRMnykbgjDhYVxkWXmcqAnsSkmLYvwosJsouPSaPMsiKFHfokXuXDpdjZcGYUDlzMgLbLLDMmRttWVjJhPdqcAvUPuvLFEbTckTRFxzpcbllSIuOsEqAmjoUSvlFgrugRTMbEW",
-            "extra_data": "{\"player\": {\"steamid\": \"584726463099759262\", \"personaname\": \"player8\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"584726463099759262\", \"personaname\": \"player8\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:31:01.630Z",
             "modified": "2023-04-19T15:31:01.630Z"
         }
@@ -567,7 +567,7 @@
             "user": 10,
             "provider": "LoraPTfjUogrjtUaEdJScchNhReHYnSZ",
             "uid": "AqCWEhOTTyacMuxfzwiBGguSBCwyEwECSrANKIoxQCuqzEgWSfcDALlxFhUKnQmCNREBkcxPUOszeVELQsDAtKRoDwKIhmyMTrYRoofnygJsnRJoDzrMGJrdfMTltIwGHrGwaqKpOCRLZIJJpfWrJecDnJdlAVbgmIyQqXWdiIHiuOMcPjXigpFRyGZrWmNsuBvaiAzIjNxSuLiUzkVzMHWXyBdwUTxbJDbJULnhAENEVMdvrLecwXMBLSHWinV",
-            "extra_data": "{\"player\": {\"steamid\": \"173782123187673210\", \"personaname\": \"player9\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"173782123187673210\", \"personaname\": \"player9\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:31:12.788Z",
             "modified": "2023-04-19T15:31:12.788Z"
         }
@@ -579,7 +579,7 @@
             "user": 11,
             "provider": "zkQvxDGXTpEcrDdmbWGTSEqWAbdTwZzz",
             "uid": "fNBXYDZtnGTejUNynWibNhPKwrcZHwbKgSSSgyFNeVyhBKpOOFiovTzEgOIrAoOkUUTWUHOEWxQzaRlRKBJbBeQWBlAgFYDbfgCuRDSSltNhAJWktExQpLFYayFjAJlAFeTVRMhZGKVqAJdumSBcxSnPjSbVNGSjbgDBlDEFCGkfccuzwcREuHnTonXFOkhuPuJEAfpqSFpjjPSNiomuwcTdjmRmjimzjVEMErgEgaFOyPoAdqHqCiVcSbWhJsw",
-            "extra_data": "{\"player\": {\"steamid\": \"982451441204984258\", \"personaname\": \"player10\", \"communityvisibilitystate\": 3}}",
+            "extra_data": "{\"player\": {\"steamid\": \"982451441204984258\", \"personaname\": \"player10\", \"communityvisibilitystate\": 3, \"profileurl\": \"https://steamcommunity.com/profiles/783276758063212485\"}}",
             "created": "2023-04-19T15:31:24.879Z",
             "modified": "2023-04-19T15:31:24.879Z"
         }

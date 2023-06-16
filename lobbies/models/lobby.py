@@ -329,6 +329,9 @@ class Lobby(BaseModel):
             if remove:
                 Lobby.delete(to_lobby.id, pipe=pipe)
                 from_lobby.cancel_queue()
+                invites_to_player = LobbyInvite.get_by_to_user_id(player_id)
+                for invite in invites_to_player:
+                    pipe.zrem(f'__mm:lobby:{invite.lobby_id}:invites', invite.id)
 
             return new_lobby
 

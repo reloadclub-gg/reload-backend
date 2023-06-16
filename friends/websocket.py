@@ -8,7 +8,7 @@ from .api import schemas
 User = get_user_model()
 
 
-def ws_friend_update(user: User) -> schemas.FriendSchema:
+def ws_friend_create_or_update(user: User, action: str = 'update'):
     """
     Triggered everytime a user change its state. This sends an update
     about the user state to his online friends.
@@ -20,10 +20,16 @@ def ws_friend_update(user: User) -> schemas.FriendSchema:
     - User starts a match.
     - User is away due to being inactive for a period of time.
     - User doesn't refresh its sessions or expire them manually by logging out.
+    - User friend just signup, verified and became online.
 
     Payload:
     friends.api.schemas.FriendSchema: object
     """
+    if action not in ['update', 'create']:
+        raise ValueError('action param should be "update" or "create".')
+
     online_friends_ids = [account.user.id for account in user.account.online_friends]
     payload = schemas.FriendSchema.from_orm(user.account).dict()
-    return async_to_sync(ws_send)('friends/update', payload, groups=online_friends_ids)
+    return async_to_sync(ws_send)(
+        f'friends/{action}', payload, groups=online_friends_ids
+    )

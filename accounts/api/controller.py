@@ -6,13 +6,14 @@ from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
+from friends.websocket import ws_friend_create_or_update
+from lobbies.api.controller import player_move
 from lobbies.models import Lobby
+from lobbies.websocket import ws_expire_player_invites
 from matches.models import Match
 from websocket.tasks import (
-    friendlist_add_task,
     lobby_update_task,
     send_notification_task,
-    user_lobby_invites_expire_task,
     user_status_change_task,
 )
 
@@ -65,15 +66,12 @@ def login(request, token: str) -> Auth:
 
 
 def logout(user: User) -> dict:
-    user_lobby_invites_expire_task.delay(user.id)
-    lobby = user.account.lobby
-    if lobby:
-        new_lobby = Lobby.move(user.id, user.id, remove=True)
-        if new_lobby:
-            lobby_update_task.delay([new_lobby.id])
+    ws_expire_player_invites(user)
+    if hasattr(user, 'account') and user.account.lobby:
+        player_move(user, user.id, delete_lobby=True)
 
     user.auth.expire_session(seconds=0)
-    user_status_change_task.delay(user.id)
+    ws_friend_create_or_update(user)
 
     return {'detail': 'ok'}
 
@@ -160,7 +158,7 @@ def verify_account(user: User, verification_token: str) -> User:
         )
         send_notification_task.delay(notification.id)
 
-    friendlist_add_task.delay(user.id, groups=friends_ids)
+    ws_friend_create_or_update(user, 'create')
     return user
 
 

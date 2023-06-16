@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Envio de WS de expiração de convites quando usuário fizer logout `invites/expire`.
+- Envio de WS quando usuário se cadastrar `friends/create` [#444](https://github.com/3C-gg/reload-backend/issues/444).
+- Campo `profileurl` nos dados de inicialização pra testes locais (`seed.json`).
 - Views de documentação de websockets em `/ws/docs` [#436](https://github.com/3C-gg/reload-backend/issues/436).
 - O package `websocket` agora é um app do Django.
 - Dois esquemas exclusivos para websockets: `LobbyInviteWebsocketSchema` e `LobbyPlayerWebsocketUpdate`. Esses dois esquemas facilitam o envio de dados para o client via ws e também servem para padronizar a documentação dos websockets.
@@ -22,8 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Websockets de `lobbies` agora recebem objetos ao invés de valores primitivos.
 - Websocket `ws_friend_update` agora recebe objeto `User` ao invés de `user_id: int`.
 
+### Fixed
+
+- Os convites enviados para um usuário que fez logout estavam permanecendo no Redis. Removemos eles no logout do usuário, onde removemos também o seu lobby.
+
 ### Removed
 
+- Comentário de testes de tarefas em `accounts`.
 - Campos calculados do `FriendSchema` uma vez que eles estão disponíveis como campos de db.
 - Não obrigatoriedade de campos que são obrigatórios no esquema `FriendSchema`.
 - Campo `match` do esquema `FriendSchema` por não ser utilizado.

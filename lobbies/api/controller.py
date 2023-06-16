@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.websocket import ws_update_lobby_id
-from friends.websocket import ws_friend_update
+from friends.websocket import ws_friend_create_or_update
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
@@ -14,16 +14,41 @@ from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
 User = get_user_model()
 
 
-def player_move(user: User, lobby_id: int) -> Lobby:
+def handle_move_extra_websockets(
+    old_lobby: Lobby,
+    new_lobby: Lobby,
+    user: User,
+    delete_lobby: bool = False,
+    has_remnants: bool = False,
+):
+    if old_lobby.players_count == 0 and new_lobby.players_count > 1:
+        if not has_remnants:
+            ws_friend_create_or_update(user)
+        new_owner = User.objects.get(pk=new_lobby.owner_id)
+        ws_friend_create_or_update(new_owner)
+
+    if user.id != old_lobby.owner_id and old_lobby.players_count == 1:
+        old_owner = User.objects.get(pk=old_lobby.owner_id)
+        ws_friend_create_or_update(old_owner)
+    elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
+        ws_friend_create_or_update(user)
+
+    if not delete_lobby:
+        websocket.ws_update_player(old_lobby, user, 'leave')
+        websocket.ws_update_player(new_lobby, user, 'join')
+
+
+def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
     old_lobby = user.account.lobby
     new_lobby = Lobby(owner_id=lobby_id)
 
     try:
-        remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id)
+        remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id, remove=delete_lobby)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    ws_update_lobby_id(user.id, new_lobby.id)
+    if not delete_lobby:
+        ws_update_lobby_id(user.id, new_lobby.id)
 
     if remnants_lobby:
         for player_id in remnants_lobby.players_ids:
@@ -32,23 +57,16 @@ def player_move(user: User, lobby_id: int) -> Lobby:
         websocket.ws_update_player(remnants_lobby, user, 'leave')
 
         if new_lobby.id == old_lobby.id:
-            ws_friend_update(user)
+            ws_friend_create_or_update(user)
             return new_lobby
 
-    if old_lobby.players_count == 0 and new_lobby.players_count > 1:
-        if not remnants_lobby:
-            ws_friend_update(user)
-        new_owner = User.objects.get(pk=new_lobby.owner_id)
-        ws_friend_update(new_owner)
-
-    if user.id != old_lobby.owner_id and old_lobby.players_count == 1:
-        old_owner = User.objects.get(pk=old_lobby.owner_id)
-        ws_friend_update(old_owner)
-    elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
-        ws_friend_update(user)
-
-    websocket.ws_update_player(old_lobby, user, 'leave')
-    websocket.ws_update_player(new_lobby, user, 'join')
+    handle_move_extra_websockets(
+        old_lobby,
+        new_lobby,
+        user,
+        delete_lobby=delete_lobby,
+        has_remnants=bool(remnants_lobby),
+    )
 
     return new_lobby
 

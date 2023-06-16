@@ -4,11 +4,9 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from core.redis import RedisClient
-from websocket.controller import (
-    lobby_update,
-    user_lobby_invites_expire,
-    user_status_change,
-)
+from friends.websocket import ws_friend_create_or_update
+from lobbies.api.controller import player_move
+from lobbies.websocket import ws_expire_player_invites
 
 from .models import UserLogin
 
@@ -27,13 +25,11 @@ def watch_user_status_change(
     """
     user = User.objects.get(pk=user_id)
     if not user.is_online:
-        user_lobby_invites_expire(user)
+        ws_expire_player_invites(user)
         if user.account.lobby:
-            new_lobby = user.account.lobby.move(user.id, user.id, remove=True)
-            if new_lobby:
-                lobby_update([new_lobby])
+            player_move(user, user.id, delete_lobby=True)
 
-        user_status_change(user)
+        ws_friend_create_or_update(user)
 
 
 @shared_task
