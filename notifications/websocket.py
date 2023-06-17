@@ -16,6 +16,9 @@ def ws_new_notification(notification: Notification):
 
     Payload:
     notifications.api.schemas.NotificationSchema: object
+
+    Actions:
+    - notifications/add
     """
     payload = NotificationSchema.from_orm(notification).dict()
 

@@ -24,6 +24,10 @@ def ws_friend_create_or_update(user: User, action: str = 'update'):
 
     Payload:
     friends.api.schemas.FriendSchema: object
+
+    Actions:
+    - friends/update
+    - friends/create
     """
     if action not in ['update', 'create']:
         raise ValueError('action param should be "update" or "create".')

@@ -16,6 +16,9 @@ def ws_update_lobby_id(user_id: int, lobby_id: int):
 
     Payload:
     int
+
+    Actions:
+    - user/update_lobby_id
     """
     return async_to_sync(ws_send)(
         'user/update_lobby_id',
