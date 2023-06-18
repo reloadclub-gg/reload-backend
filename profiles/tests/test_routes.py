@@ -8,7 +8,7 @@ class ProfilesRoutesTestCase(VerifiedPlayersMixin, TestCase):
         super().setUp()
         self.api = APIClient('/api/profiles')
 
-    def test_detail(self):
+    def test_detail_user_id(self):
         self.user_1.auth.create_token()
         r = self.api.call(
             'get',
@@ -19,6 +19,9 @@ class ProfilesRoutesTestCase(VerifiedPlayersMixin, TestCase):
         expected_response = schemas.ProfileSchema.from_orm(self.user_2.account).dict()
         self.assertEqual(r.json(), expected_response)
 
+    def test_detail_steamid(self):
+        self.user_1.auth.create_token()
+
         r = self.api.call(
             'get',
             f'/?steamid={self.user_2.steam_user.steamid}',
@@ -27,6 +30,9 @@ class ProfilesRoutesTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(r.status_code, 200)
         expected_response = schemas.ProfileSchema.from_orm(self.user_2.account).dict()
         self.assertEqual(r.json(), expected_response)
+
+    def test_detail_username(self):
+        self.user_1.auth.create_token()
 
         r = self.api.call(
             'get',
@@ -58,6 +64,9 @@ class ProfilesRoutesTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(r.status_code, 200)
         expected_response = schemas.ProfileSchema.from_orm(self.user_2.account).dict()
         self.assertEqual(r.json(), expected_response)
+
+    def test_detail_not_found(self):
+        self.user_1.auth.create_token()
 
         r = self.api.call(
             'get',

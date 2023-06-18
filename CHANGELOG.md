@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo `lobby_id` no esquema `LobbyPlayerSchema` [#452](https://github.com/3C-gg/reload-backend/issues/452).
 - Actions das chamadas websocket nos docs [#447](https://github.com/3C-gg/reload-backend/issues/447).
 - Envio de WS de expiração de convites quando usuário fizer logout `invites/expire`.
 - Envio de WS quando usuário se cadastrar `friends/create` [#444](https://github.com/3C-gg/reload-backend/issues/444).
