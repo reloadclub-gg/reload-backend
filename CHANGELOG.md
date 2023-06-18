@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Retorno ao aceitar ou recusar convites [#454](https://github.com/3C-gg/reload-backend/issues/454).
 - Campo `lobby_id` no esquema `LobbyPlayerSchema` [#452](https://github.com/3C-gg/reload-backend/issues/452).
 - Actions das chamadas websocket nos docs [#447](https://github.com/3C-gg/reload-backend/issues/447).
 - Envio de WS de expiração de convites quando usuário fizer logout `invites/expire`.
