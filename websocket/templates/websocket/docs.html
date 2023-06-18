@@ -58,6 +58,13 @@
 							<h4><a href="#{{item.title}}__{{method.name}}"><code>{{method.name}}</code></a></h4>
 							<p>{{method.doc.overview}}</p>
 
+							<h5>Actions</h5>
+							<ul>
+								{% for action in method.doc.actions %}
+									<li><code>{{action}}</code></li>
+								{% endfor %}
+							</ul>
+
 
 							<h5>Cases</h5>
 							<ul>

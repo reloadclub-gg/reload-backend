@@ -20,6 +20,9 @@ def ws_delete_invite(invite: models.LobbyInvite, status: str):
 
     Payload:
     lobbies.api.schemas.LobbyInviteWebsocketSchema: object
+
+    Actions:
+    - invites/delete
     """
     payload = schemas.LobbyInviteWebsocketSchema.from_orm(
         {
@@ -44,6 +47,9 @@ def ws_create_invite(invite: models.LobbyInvite):
 
     Payload:
     lobbies.api.schemas.LobbyInviteSchema: object
+
+    Actions:
+    - invites/create
     """
     payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
 
@@ -65,6 +71,10 @@ def ws_update_player(lobby: models.Lobby, user: User, action: str):
 
     Payload:
     lobbies.api.schemas.LobbyPlayerWebsocketUpdate: object
+
+    Actions:
+    - lobbies/player_join
+    - lobbies/player_leave
     """
     groups = [
         lobby_player_id
@@ -96,6 +106,9 @@ def ws_update_lobby(lobby: models.Lobby):
 
     Payload:
     lobbies.api.schemas.LobbySchema: object
+
+    Actions:
+    - lobbies/update
     """
     payload = schemas.LobbySchema.from_orm(lobby).dict()
     return async_to_sync(ws_send)(
@@ -116,6 +129,9 @@ def ws_expire_player_invites(user: User):
 
     Payload:
     lobbies.api.schemas.LobbyInviteSchema: list
+
+    Actions:
+    - invites/expire
     """
     invites = models.LobbyInvite.get_by_user_id(user.id)
     results = list()

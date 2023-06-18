@@ -20,8 +20,11 @@ def generate_docs(ws, method):
     if not docstring:
         return {}
 
-    overview, cases, payload = (
-        docstring.replace('Cases:', '|').replace('Payload:', '|').split('|')
+    overview, cases, payload, actions = (
+        docstring.replace('Cases:', '|')
+        .replace('Payload:', '|')
+        .replace('Actions:', '|')
+        .split('|')
     )
     payload_split = payload.split(':')
     if len(payload_split) < 2:
@@ -42,6 +45,7 @@ def generate_docs(ws, method):
         'overview': overview,
         'cases': cases.split('- ')[1:],
         'payload': {'repr': payload_repr, 'type': payload_type},
+        'actions': actions.split('- ')[1:],
     }
 
 
