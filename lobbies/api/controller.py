@@ -120,10 +120,11 @@ def accept_invite(user: User, invite_id: str):
     new_lobby = Lobby(owner_id=invite.lobby_id)
 
     if current_lobby.id == new_lobby.id:
-        return
+        return {'status': None}
 
     websocket.ws_delete_invite(invite, 'accepted')
     player_move(user, new_lobby.id)
+    return {'status': 'accepted'}
 
 
 def refuse_invite(user: User, invite_id: str):
@@ -134,6 +135,7 @@ def refuse_invite(user: User, invite_id: str):
     websocket.ws_delete_invite(invite, 'refused')
     lobby = Lobby(owner_id=invite.lobby_id)
     lobby.delete_invite(invite.id)
+    return {'status': 'refused'}
 
 
 def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
