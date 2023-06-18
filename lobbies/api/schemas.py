@@ -27,6 +27,7 @@ class LobbyPlayerSchema(ModelSchema):
     most_damage_in_a_match: int = None
     steam_url: str
     status: str
+    lobby_id: int
 
     class Config:
         model = User
@@ -100,6 +101,10 @@ class LobbyPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_steam_url(obj):
         return obj.steam_user.profileurl
+
+    @staticmethod
+    def resolve_lobby_id(obj):
+        return obj.account.lobby.id
 
 
 class LobbySchema(Schema):

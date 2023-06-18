@@ -44,6 +44,7 @@ class LobbySchemaTestCase(VerifiedPlayersMixin, TestCase):
             ),
             'steam_url': self.user_1.steam_user.profileurl,
             'status': self.user_1.status,
+            'lobby_id': self.user_1.account.lobby.id,
         }
         self.assertDictEqual(payload, expected_payload)
 
