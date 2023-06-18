@@ -10,7 +10,7 @@ User = get_user_model()
 
 
 class FriendSchema(ModelSchema):
-    id: int
+    user_id: int
     steamid: str
     username: str
     avatar: dict
@@ -32,7 +32,7 @@ class FriendSchema(ModelSchema):
         ]
 
     @staticmethod
-    def resolve_id(obj):
+    def resolve_user_id(obj):
         return obj.user.id
 
     @staticmethod

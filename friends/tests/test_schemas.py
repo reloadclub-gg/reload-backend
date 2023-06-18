@@ -11,7 +11,7 @@ class FriendsSchemasTestCase(VerifiedPlayersMixin, TestCase):
             'steamid': self.user_1.account.steamid,
             'level': self.user_1.account.level,
             'level_points': self.user_1.account.level_points,
-            'id': self.user_1.id,
+            'user_id': self.user_1.id,
             'username': self.user_1.steam_user.username,
             'avatar': {
                 'small': Steam.build_avatar_url(self.user_1.steam_user.avatarhash),
