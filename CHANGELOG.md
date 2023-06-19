@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [46559aa - 19-06-2023]
+
 ### Added
 
 - Retorno ao aceitar ou recusar convites [#454](https://github.com/3C-gg/reload-backend/issues/454).
