@@ -1,16 +1,25 @@
 from asgiref.sync import async_to_sync
-from django.contrib.auth import get_user_model
 
 from websocket.utils import ws_send
 
 from .api.schemas import NotificationSchema
 from .models import Notification
 
-User = get_user_model()
 
+def ws_new_notification(notification: Notification):
+    """
+    Triggered everytime a user gets notified.
 
-def ws_new_notification(notification_id: int):
-    notification = Notification.get_by_id(notification_id)
+    Cases:
+    - Queues are down due to maintence.
+    - A user friend from Steam just registered.
+
+    Payload:
+    notifications.api.schemas.NotificationSchema: object
+
+    Actions:
+    - notifications/add
+    """
     payload = NotificationSchema.from_orm(notification).dict()
 
     return async_to_sync(ws_send)(

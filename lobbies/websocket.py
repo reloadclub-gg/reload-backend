@@ -9,24 +9,27 @@ from .api import schemas
 User = get_user_model()
 
 
-def get_invite(invite_id: str) -> models.LobbyInvite:
-    try:
-        int(invite_id.split(':')[0])
-        int(invite_id.split(':')[1])
-    except ValueError as e:
-        raise e
+def ws_delete_invite(invite: models.LobbyInvite, status: str):
+    """
+    Sends a delete invite event to client. The status represents
+    what happened to that invite.
 
-    try:
-        invite = models.LobbyInvite.get_by_id(invite_id)
-    except models.LobbyInviteException as e:
-        raise e
+    Cases:
+    - User accepts an invite.
+    - User refuses an invite.
 
-    return invite
+    Payload:
+    lobbies.api.schemas.LobbyInviteWebsocketSchema: object
 
-
-def ws_delete_invite(invite_id: str):
-    invite = get_invite(invite_id)
-    payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
+    Actions:
+    - invites/delete
+    """
+    payload = schemas.LobbyInviteWebsocketSchema.from_orm(
+        {
+            'invite': invite,
+            'status': status,
+        }
+    ).dict()
 
     return async_to_sync(ws_send)(
         'invites/delete',
@@ -35,19 +38,19 @@ def ws_delete_invite(invite_id: str):
     )
 
 
-def ws_lobby_owner_change(lobby_id: int):
-    lobby = models.Lobby(owner_id=lobby_id)
-    payload = schemas.LobbySchema.from_orm(lobby).dict()
+def ws_create_invite(invite: models.LobbyInvite):
+    """
+    Triggered when a user receives an invitation to join a lobby.
 
-    return async_to_sync(ws_send)(
-        'lobbies/owner_change',
-        payload,
-        groups=lobby.players_ids,
-    )
+    Cases:
+    - User gets invited by another user to join a different lobby.
 
+    Payload:
+    lobbies.api.schemas.LobbyInviteSchema: object
 
-def ws_create_invite(invite_id: str):
-    invite = get_invite(invite_id)
+    Actions:
+    - invites/create
+    """
     payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
 
     return async_to_sync(ws_send)(
@@ -57,8 +60,86 @@ def ws_create_invite(invite_id: str):
     )
 
 
-# @shared_task
-# def ws_player_leave() 'lobbies/player_leave'
+def ws_update_player(lobby: models.Lobby, user: User, action: str):
+    """
+    Triggered when a user joins or leaves a lobby. Is sent to all other
+    lobby players.
 
-# @shared_task
-# def ws_player_join() 'lobbies/player_join'
+    Cases:
+    - User leaves a lobby that has another players on it.
+    - User joins a lobby.
+
+    Payload:
+    lobbies.api.schemas.LobbyPlayerWebsocketUpdate: object
+
+    Actions:
+    - lobbies/player_join
+    - lobbies/player_leave
+    """
+    groups = [
+        lobby_player_id
+        for lobby_player_id in lobby.players_ids
+        if lobby_player_id != user.id
+    ]
+    action = 'player_join' if action == 'join' else 'player_leave'
+    payload = schemas.LobbyPlayerWebsocketUpdate.from_orm(
+        {
+            'player': user,
+            'lobby': lobby,
+        }
+    ).dict()
+
+    return async_to_sync(ws_send)(
+        f'lobbies/{action}',
+        payload,
+        groups=groups or [],
+    )
+
+
+def ws_update_lobby(lobby: models.Lobby):
+    """
+    Triggered everytime a lobby gets updated.
+
+    Cases:
+    - Lobby starts queue.
+    - Lobby cancel queue.
+
+    Payload:
+    lobbies.api.schemas.LobbySchema: object
+
+    Actions:
+    - lobbies/update
+    """
+    payload = schemas.LobbySchema.from_orm(lobby).dict()
+    return async_to_sync(ws_send)(
+        'lobbies/update',
+        payload,
+        groups=lobby.players_ids,
+    )
+
+
+def ws_expire_player_invites(user: User):
+    """
+    Triggered upon a player disconnection from websocket. This will clean both
+    sent and received lobby invites from that player.
+
+    Cases:
+    - User logout.
+    - User loses all sessions (disconnect from websocket).
+
+    Payload:
+    lobbies.api.schemas.LobbyInviteSchema: list
+
+    Actions:
+    - invites/expire
+    """
+    invites = models.LobbyInvite.get_by_user_id(user.id)
+    results = list()
+    for invite in invites:
+        payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
+        results.append(
+            async_to_sync(ws_send)(
+                'invites/expire', payload, groups=[invite.to_id, invite.from_id]
+            )
+        )
+    return results

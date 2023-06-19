@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
-from friends.websocket import ws_status_update
-from notifications.websocket import ws_new_notification
+from accounts.websocket import ws_update_lobby_id
+from friends.websocket import ws_friend_create_or_update
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
@@ -14,31 +14,59 @@ from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
 User = get_user_model()
 
 
-def player_move(user: User, lobby_id: int) -> Lobby:
+def handle_move_extra_websockets(
+    old_lobby: Lobby,
+    new_lobby: Lobby,
+    user: User,
+    delete_lobby: bool = False,
+    has_remnants: bool = False,
+):
+    if old_lobby.players_count == 0 and new_lobby.players_count > 1:
+        if not has_remnants:
+            ws_friend_create_or_update(user)
+        new_owner = User.objects.get(pk=new_lobby.owner_id)
+        ws_friend_create_or_update(new_owner)
+
+    if user.id != old_lobby.owner_id and old_lobby.players_count == 1:
+        old_owner = User.objects.get(pk=old_lobby.owner_id)
+        ws_friend_create_or_update(old_owner)
+    elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
+        ws_friend_create_or_update(user)
+
+    if not delete_lobby:
+        websocket.ws_update_player(old_lobby, user, 'leave')
+        websocket.ws_update_player(new_lobby, user, 'join')
+
+
+def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
     old_lobby = user.account.lobby
     new_lobby = Lobby(owner_id=lobby_id)
 
     try:
-        remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id)
+        remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id, remove=delete_lobby)
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
+    if not delete_lobby:
+        ws_update_lobby_id(user.id, new_lobby.id)
+
     if remnants_lobby:
-        websocket.ws_lobby_owner_change(remnants_lobby.id)
+        for player_id in remnants_lobby.players_ids:
+            ws_update_lobby_id(player_id, remnants_lobby.id)
+
+        websocket.ws_update_player(remnants_lobby, user, 'leave')
 
         if new_lobby.id == old_lobby.id:
-            ws_status_update(user.id)
+            ws_friend_create_or_update(user)
             return new_lobby
 
-    if old_lobby.players_count == 0 and new_lobby.players_count > 1:
-        if not remnants_lobby:
-            ws_status_update(user.id)
-        ws_status_update(new_lobby.owner_id)
-
-    if user.id != old_lobby.owner_id and old_lobby.players_count == 1:
-        ws_status_update(old_lobby.owner_id)
-    elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
-        ws_status_update(user.id)
+    handle_move_extra_websockets(
+        old_lobby,
+        new_lobby,
+        user,
+        delete_lobby=delete_lobby,
+        has_remnants=bool(remnants_lobby),
+    )
 
     return new_lobby
 
@@ -92,18 +120,11 @@ def accept_invite(user: User, invite_id: str):
     new_lobby = Lobby(owner_id=invite.lobby_id)
 
     if current_lobby.id == new_lobby.id:
-        return
+        return {'status': None}
 
-    websocket.ws_delete_invite(invite.id)
-
-    inviter = User.objects.get(pk=invite.from_id)
+    websocket.ws_delete_invite(invite, 'accepted')
     player_move(user, new_lobby.id)
-
-    notification = inviter.account.notify(
-        _(f'{user.account.username} accepted your invite and joined your group.'),
-        user.id,
-    )
-    ws_new_notification(notification.id)
+    return {'status': 'accepted'}
 
 
 def refuse_invite(user: User, invite_id: str):
@@ -111,17 +132,10 @@ def refuse_invite(user: User, invite_id: str):
     if user.id != invite.to_id:
         raise AuthenticationError()
 
-    inviter = User.objects.get(pk=invite.from_id)
-
-    notification = inviter.account.notify(
-        _(f'{user.account.username} refused your invite.'),
-        user.id,
-    )
-    ws_new_notification(notification.id)
-
-    websocket.ws_delete_invite(invite.id)
+    websocket.ws_delete_invite(invite, 'refused')
     lobby = Lobby(owner_id=invite.lobby_id)
     lobby.delete_invite(invite.id)
+    return {'status': 'refused'}
 
 
 def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
@@ -154,27 +168,23 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         except LobbyException as e:
             raise HttpError(400, e)
 
-        return lobby
-
-    if payload.cancel_queue:
+    elif payload.cancel_queue:
         lobby.cancel_queue()
-        return lobby
+
+    websocket.ws_update_lobby(lobby)
+    return lobby
 
 
 def create_invite(user: User, payload: LobbyInviteCreateSchema):
     lobby = get_lobby(payload.lobby_id)
+
+    if user.id != payload.from_user_id or user.id not in lobby.players_ids:
+        raise AuthenticationError()
 
     try:
         invite = lobby.invite(payload.from_user_id, payload.to_user_id)
     except LobbyException as exc:
         raise HttpError(400, exc)
 
-    websocket.ws_create_invite(invite.id)
-    invited = User.objects.get(pk=invite.to_id)
-    notification = invited.account.notify(
-        _(f'{user.account.username} invited you to a group.'),
-        user.id,
-    )
-    ws_new_notification(notification.id)
-
+    websocket.ws_create_invite(invite)
     return invite

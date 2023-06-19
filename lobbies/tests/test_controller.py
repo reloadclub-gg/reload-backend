@@ -4,7 +4,6 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 
 from core.tests import TestCase
 from matchmaking.tests.mixins import VerifiedPlayersMixin
-from notifications.models import Notification
 
 from ..api import controller, schemas
 from ..models import Lobby, LobbyInvite
@@ -28,33 +27,56 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         Lobby.create(self.user_6.id)
         Lobby.create(self.user_7.id)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
-    @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
-    def test_player_move_single_to_group(self, mock_owner_change, mock_status_update):
+    @mock.patch('lobbies.api.controller.ws_friend_create_or_update')
+    @mock.patch('lobbies.api.controller.websocket.ws_update_player')
+    @mock.patch('lobbies.api.controller.ws_update_lobby_id')
+    def test_player_move_single_to_group(
+        self,
+        mock_update_lobby_id,
+        mock_update_player,
+        mock_friend_update,
+    ):
         self.user_1.account.lobby.set_public()
         controller.player_move(self.user_2, self.user_1.account.lobby.id)
-        mock_owner_change.assert_not_called()
-        self.assertEqual(mock_status_update.call_count, 2)
+        mock_calls = [
+            mock.call(Lobby(owner_id=self.user_2.id), self.user_2, 'leave'),
+            mock.call(self.user_1.account.lobby, self.user_2, 'join'),
+        ]
+        mock_update_player.assert_has_calls(mock_calls)
+        self.assertEqual(mock_update_lobby_id.call_count, 1)
+        self.assertEqual(mock_friend_update.call_count, 2)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
-    @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
-    def test_player_move_group_to_group(self, mock_owner_change, mock_status_update):
+    @mock.patch('lobbies.api.controller.ws_friend_create_or_update')
+    @mock.patch('lobbies.api.controller.websocket.ws_update_player')
+    @mock.patch('lobbies.api.controller.ws_update_lobby_id')
+    def test_player_move_group_to_group(
+        self,
+        mock_update_lobby_id,
+        mock_update_player,
+        mock_friend_update,
+    ):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
 
         self.user_3.account.lobby.invite(self.user_3.id, self.user_2.id)
         controller.player_move(self.user_2, self.user_3.account.lobby.id)
 
-        mock_owner_change.assert_not_called()
-        self.assertEqual(mock_status_update.call_count, 1)
-        mock_status_update.assert_called_once_with(self.user_1.id)
+        mock_calls = [
+            mock.call(self.user_1.account.lobby, self.user_2, 'leave'),
+            mock.call(self.user_3.account.lobby, self.user_2, 'join'),
+        ]
+        mock_update_player.assert_has_calls(mock_calls)
+        self.assertEqual(mock_update_lobby_id.call_count, 1)
+        mock_friend_update.assert_called_once_with(self.user_1)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
-    @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
+    @mock.patch('lobbies.api.controller.ws_friend_create_or_update')
+    @mock.patch('lobbies.api.controller.websocket.ws_update_player')
+    @mock.patch('lobbies.api.controller.ws_update_lobby_id')
     def test_player_move_group_owner_to_group(
         self,
-        mock_owner_change,
-        mock_status_update,
+        mock_update_lobby_id,
+        mock_update_player,
+        mock_friend_update,
     ):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
@@ -64,15 +86,23 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         self.user_5.account.lobby.invite(self.user_5.id, self.user_1.id)
         controller.player_move(self.user_1, self.user_5.account.lobby.id)
 
-        mock_owner_change.assert_called_once()
-        mock_status_update.assert_called_once_with(self.user_5.id)
+        self.assertEqual(mock_update_lobby_id.call_count, 4)
+        mock_calls = [
+            mock.call(Lobby(owner_id=self.user_2.id), self.user_1, 'leave'),
+            mock.call(Lobby(owner_id=self.user_1.id), self.user_1, 'leave'),
+            mock.call(self.user_5.account.lobby, self.user_1, 'join'),
+        ]
+        mock_update_player.assert_has_calls(mock_calls)
+        mock_friend_update.assert_called_once_with(self.user_5)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
-    @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
+    @mock.patch('lobbies.api.controller.ws_friend_create_or_update')
+    @mock.patch('lobbies.api.controller.websocket.ws_update_player')
+    @mock.patch('lobbies.api.controller.ws_update_lobby_id')
     def test_player_move_group_owner_to_single(
         self,
-        mock_owner_change,
-        mock_status_update,
+        mock_update_lobby_id,
+        mock_update_player,
+        mock_friend_update,
     ):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
@@ -81,12 +111,19 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
 
         controller.player_move(self.user_1, self.user_1.account.lobby.id)
 
-        mock_owner_change.assert_called_once()
-        mock_status_update.assert_called_once_with(self.user_1.id)
+        mock_update_player.assert_called_once()
+        self.assertEqual(mock_update_lobby_id.call_count, 4)
+        mock_friend_update.assert_called_once_with(self.user_1)
 
-    @mock.patch('lobbies.api.controller.ws_status_update')
-    @mock.patch('lobbies.api.controller.websocket.ws_lobby_owner_change')
-    def test_player_move_group_to_single(self, mock_owner_change, mock_status_update):
+    @mock.patch('lobbies.api.controller.ws_friend_create_or_update')
+    @mock.patch('lobbies.api.controller.websocket.ws_update_player')
+    @mock.patch('lobbies.api.controller.ws_update_lobby_id')
+    def test_player_move_group_to_single(
+        self,
+        mock_update_lobby_id,
+        mock_update_player,
+        mock_friend_update,
+    ):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         Lobby.move(self.user_3.id, self.user_1.account.lobby.id)
@@ -94,8 +131,13 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
 
         controller.player_move(self.user_2, self.user_2.id)
 
-        mock_owner_change.assert_not_called()
-        mock_status_update.assert_called_once_with(self.user_2.id)
+        mock_calls = [
+            mock.call(Lobby(owner_id=self.user_1.id), self.user_2, 'leave'),
+            mock.call(self.user_2.account.lobby, self.user_2, 'join'),
+        ]
+        mock_update_player.assert_has_calls(mock_calls)
+        self.assertEqual(mock_update_lobby_id.call_count, 1)
+        mock_friend_update.assert_called_once_with(self.user_2)
 
     def test_player_move_error(self):
         with self.assertRaises(HttpError):
@@ -139,7 +181,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         with self.assertRaises(HttpError):
             controller.get_invite(self.user_1, 'some_id')
 
-    def test_get_invite_not_authorized(self):
+    def test_get_invite_unauthorized(self):
         created = self.user_1.account.lobby.invite(self.user_1.id, self.user_2.id)
         with self.assertRaises(AuthenticationError):
             controller.get_invite(self.user_3, created.id)
@@ -148,7 +190,8 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         with self.assertRaises(Http404):
             controller.get_invite(self.user_1, f'{self.user_1.id}:2')
 
-    def test_create_invite(self):
+    @mock.patch('lobbies.api.controller.websocket.ws_create_invite')
+    def test_create_invite(self, mock_create_invite):
         created = controller.create_invite(
             self.user_1,
             schemas.LobbyInviteCreateSchema.from_orm(
@@ -163,14 +206,41 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         invite = LobbyInvite.get_by_id(created.id)
         self.assertIsNotNone(invite)
         self.assertEqual(invite.id, created.id)
+        mock_create_invite.assert_called_once_with(invite)
+
+    @mock.patch('lobbies.api.controller.websocket.ws_create_invite')
+    def test_create_invite_unauthorized_other_user(self, mock_create_invite):
+        payload = schemas.LobbyInviteCreateSchema.from_orm(
+            {
+                'lobby_id': self.user_3.account.lobby.id,
+                'from_user_id': self.user_3.id,
+                'to_user_id': self.user_2.id,
+            }
+        )
+        with self.assertRaises(AuthenticationError):
+            controller.create_invite(self.user_1, payload)
+
+        mock_create_invite.assert_not_called()
+
+    @mock.patch('lobbies.api.controller.websocket.ws_create_invite')
+    def test_create_invite_unauthorized_wrong_lobby(self, mock_create_invite):
+        payload = schemas.LobbyInviteCreateSchema.from_orm(
+            {
+                'lobby_id': self.user_3.account.lobby.id,
+                'from_user_id': self.user_1.id,
+                'to_user_id': self.user_2.id,
+            }
+        )
+        with self.assertRaises(AuthenticationError):
+            controller.create_invite(self.user_1, payload)
+
+        mock_create_invite.assert_not_called()
 
     @mock.patch('lobbies.api.controller.websocket.ws_delete_invite')
-    @mock.patch('lobbies.api.controller.ws_new_notification')
     @mock.patch('lobbies.api.controller.player_move')
     def test_accept_invite(
         self,
         mock_player_move,
-        mock_new_notification,
         mock_delete_invite,
     ):
         created = self.user_1.account.lobby.invite(self.user_1.id, self.user_2.id)
@@ -178,31 +248,19 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_delete_invite.assert_called_once()
         mock_player_move.assert_called_once()
 
-        notifications = Notification.get_all_by_user_id(self.user_1.id)
-        self.assertEqual(len(notifications), 1)
-        self.assertEqual(notifications[0].to_user_id, self.user_1.id)
-        mock_new_notification.assert_called_once()
-
-    def test_accept_invite_not_authorized(self):
+    def test_accept_invite_unauthorized(self):
         created = self.user_1.account.lobby.invite(self.user_1.id, self.user_2.id)
         with self.assertRaises(AuthenticationError):
             controller.accept_invite(self.user_3, created.id)
 
     @mock.patch('lobbies.api.controller.websocket.ws_delete_invite')
-    @mock.patch('lobbies.api.controller.ws_new_notification')
     def test_refuse_invite(
         self,
-        mock_new_notification,
         mock_delete_invite,
     ):
         created = self.user_1.account.lobby.invite(self.user_1.id, self.user_2.id)
         controller.refuse_invite(self.user_2, created.id)
         mock_delete_invite.assert_called_once()
-
-        notifications = Notification.get_all_by_user_id(self.user_1.id)
-        self.assertEqual(len(notifications), 1)
-        self.assertEqual(notifications[0].to_user_id, self.user_1.id)
-        mock_new_notification.assert_called_once()
 
     @mock.patch('lobbies.api.controller.player_move')
     def test_delete_player(self, mock_player_move):
@@ -238,7 +296,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         )
         mock_player_move.assert_called_once_with(self.user_2, self.user_2.id)
 
-    def test_delete_player_kick_not_authorized(self):
+    def test_delete_player_kick_unauthorized(self):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         Lobby.move(self.user_3.id, self.user_1.account.lobby.id)
@@ -250,7 +308,8 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
                 self.user_3.id,
             )
 
-    def test_update_lobby_start_owner(self):
+    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
+    def test_update_lobby_start_owner(self, mock_update_lobby):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
@@ -262,8 +321,10 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
             payload,
         )
         self.assertIsNotNone(self.user_1.account.lobby.queue)
+        mock_update_lobby.assert_called_once_with(self.user_1.account.lobby)
 
-    def test_update_lobby_start_not_authorized(self):
+    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
+    def test_update_lobby_start_unauthorized(self, mock_update_lobby):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
@@ -275,7 +336,10 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
                 payload,
             )
 
-    def test_update_lobby_start_error(self):
+        mock_update_lobby.assert_not_called()
+
+    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
+    def test_update_lobby_start_error(self, mock_update_lobby):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         self.user_1.account.lobby.start_queue()
@@ -288,7 +352,10 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
                 payload,
             )
 
-    def test_update_lobby_cancel(self):
+        mock_update_lobby.assert_not_called()
+
+    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
+    def test_update_lobby_cancel(self, mock_update_lobby):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
@@ -322,3 +389,5 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
             payload,
         )
         self.assertIsNone(self.user_1.account.lobby.queue)
+        mock_update_lobby.assert_any_call(self.user_1.account.lobby)
+        self.assertEqual(mock_update_lobby.call_count, 4)
