@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Ao iniciar a fila de um lobby, o sistema agora monta ou encontra um time para aquele lobby, em seguida busca por um adversário, e, case encontre um, envia o websocket de partida encontrada [#457](https://github.com/3C-gg/reload-backend/issues/457).
+- Método `ws_match_found` ao websocket de matchmaking.
+
+### Changed
+
+- Model `Team` não utiliza mais a `TeamConfig.READY_PLAYERS_MIN`. Ao invés disso, pega esse valor direto de `django.conf.settings.TEAM_READY_PLAYERS_MIN`.
+
 ## [46559aa - 19-06-2023]
 
 ### Added
