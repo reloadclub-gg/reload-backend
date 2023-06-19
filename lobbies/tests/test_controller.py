@@ -3,6 +3,7 @@ from unittest import mock
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from core.tests import TestCase
+from matchmaking.models import Team
 from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from ..api import controller, schemas
@@ -309,7 +310,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
             )
 
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
-    def test_update_lobby_start_owner(self, mock_update_lobby):
+    def test_update_lobby_start_queue_owner(self, mock_update_lobby):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
@@ -324,7 +325,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_update_lobby.assert_called_once_with(self.user_1.account.lobby)
 
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
-    def test_update_lobby_start_unauthorized(self, mock_update_lobby):
+    def test_update_lobby_start_queue_unauthorized(self, mock_update_lobby):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
@@ -339,7 +340,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_update_lobby.assert_not_called()
 
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
-    def test_update_lobby_start_error(self, mock_update_lobby):
+    def test_update_lobby_start_queue_error(self, mock_update_lobby):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         self.user_1.account.lobby.start_queue()
@@ -355,7 +356,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_update_lobby.assert_not_called()
 
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
-    def test_update_lobby_cancel(self, mock_update_lobby):
+    def test_update_lobby_cancel_queue(self, mock_update_lobby):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
         payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
@@ -391,3 +392,37 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         self.assertIsNone(self.user_1.account.lobby.queue)
         mock_update_lobby.assert_any_call(self.user_1.account.lobby)
         self.assertEqual(mock_update_lobby.call_count, 4)
+
+    @mock.patch('lobbies.api.controller.ws_match_found')
+    def test_handle_match_found(self, mock_match_found):
+        with self.settings(TEAM_READY_PLAYERS_MIN=1):
+            self.user_1.account.lobby.start_queue()
+            team1 = Team.find(self.user_1.account.lobby) or Team.build(
+                self.user_1.account.lobby
+            )
+            self.user_2.account.lobby.start_queue()
+            team2 = Team.find(self.user_2.account.lobby) or Team.build(
+                self.user_2.account.lobby
+            )
+
+            controller.handle_match_found(team1, team2)
+            mock_match_found.assert_called_once()
+
+    @mock.patch('lobbies.api.controller.handle_match_found')
+    def test_update_lobby_start_queue_match_found(self, mock_match_found):
+        payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
+
+        with self.settings(TEAM_READY_PLAYERS_MIN=1):
+            controller.update_lobby(
+                self.user_1,
+                self.user_1.account.lobby.id,
+                payload,
+            )
+
+            controller.update_lobby(
+                self.user_2,
+                self.user_2.account.lobby.id,
+                payload,
+            )
+
+            mock_match_found.assert_called_once()

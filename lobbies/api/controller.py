@@ -6,6 +6,8 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.websocket import ws_update_lobby_id
 from friends.websocket import ws_friend_create_or_update
+from matchmaking.models import PreMatch, Team
+from matchmaking.websocket import ws_match_found
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
@@ -36,6 +38,15 @@ def handle_move_extra_websockets(
     if not delete_lobby:
         websocket.ws_update_player(old_lobby, user, 'leave')
         websocket.ws_update_player(new_lobby, user, 'join')
+
+
+def handle_match_found(team: Team, opponent: Team):
+    lobbies = team.lobbies + opponent.lobbies
+    for lobby in lobbies:
+        lobby.cancel_queue()
+
+    pre_match = PreMatch.create(team.id, opponent.id)
+    ws_match_found(pre_match)
 
 
 def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
@@ -167,6 +178,12 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
             lobby.start_queue()
         except LobbyException as e:
             raise HttpError(400, e)
+
+        team = Team.find(lobby) or Team.build(lobby)
+        if team and team.ready:
+            opponent = team.get_opponent_team()
+            if opponent and opponent.ready:
+                handle_match_found(team, opponent)
 
     elif payload.cancel_queue:
         lobby.cancel_queue()
