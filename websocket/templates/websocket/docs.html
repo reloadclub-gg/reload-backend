@@ -41,14 +41,22 @@
 					margin-bottom: 50px;
 					border-bottom: 1px solid #ddd;
 					padding-bottom: 50px;
+					flex: 1;
+					display: flex;
 				"
 			>
-				<h1>ReloadClub Websocket</h1>
-				<h2>Docs</h2>
+				<div style="flex: 1; display: flex; flex-direction: column">
+					<h1>ReloadClub Websocket</h1>
+					<h2>Docs</h2>
+				</div>
+
+				<div style="flex: 1; display: flex; justify-content: end; align-items: end;">
+					<a href="#" id="collapseBtn" onClick="handleToggleCollapseAll(event)">Abrir tudo</a>
+				</div>
 			</div>
 
 			{% for item in items %}
-				<div style="margin-top: 30px; margin-bottom: 30px; border: 1px solid #eee; padding: 20px; overflow: hidden; height: 90px">
+				<div style="margin-top: 30px; margin-bottom: 30px; border: 1px solid #eee; padding: 20px; overflow: hidden; height: 90px;" class="collapsable">
 					<div id="{{item.title}}" style="cursor: row-resize; padding-left: 20px; border-bottom: 1px solid #eee" onclick="handleClick(this)">
 						<h3><a href="#{{item.title}}">{{item.title}}</a></h3>
 					</div>
@@ -105,10 +113,33 @@
 		></script>
 
 		<script>
+
+			let collapsed = true
+
 			function handleClick(target) {
 				const height = target.parentElement.style.height
 				if (height === 'fit-content') target.parentElement.style.height = '90px'
 				else target.parentElement.style.height = 'fit-content'
+			}
+
+			function handleToggleCollapseAll(event) {
+
+				event.preventDefault()
+
+				const elements = document.querySelectorAll('.collapsable')
+				const link = document.getElementById('collapseBtn')
+
+				elements.forEach(element => {
+					if (collapsed) {
+						element.style.height = 'fit-content'
+						link.innerHTML = 'Fechar tudo'
+
+					} else {
+						element.style.height = '90px'
+						link.innerHTML = 'Abrir tudo'
+					}
+				})
+				collapsed = !collapsed
 			}
 
 			window.addEventListener("load", () => {
