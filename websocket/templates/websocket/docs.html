@@ -110,6 +110,15 @@
 				if (height === 'fit-content') target.parentElement.style.height = '90px'
 				else target.parentElement.style.height = 'fit-content'
 			}
+
+			window.addEventListener("load", () => {
+
+				if (window.location.hash) {
+					const anchorId = window.location.hash.replace('#', '').split('__')[0]
+					const element = document.getElementById(anchorId)
+					handleClick(element)
+				}
+			})
 		</script>
 	</body>
 </html>
