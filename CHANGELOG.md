@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Model `Team` não utiliza mais a `TeamConfig.READY_PLAYERS_MIN`. Ao invés disso, pega esse valor direto de `django.conf.settings.TEAM_READY_PLAYERS_MIN`.
 
+### Fixed
+
+- Documentação de websockets não abria corretamente contendo âncora na URl [#459](https://github.com/3C-gg/reload-backend/issues/459).
+
 ## [46559aa - 19-06-2023]
 
 ### Added
