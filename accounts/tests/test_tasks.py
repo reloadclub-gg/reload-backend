@@ -14,7 +14,7 @@ User = get_user_model()
 
 
 class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
-    @mock.patch('accounts.tasks.ws_friend_create_or_update')
+    @mock.patch('accounts.tasks.ws_friend_update_or_create')
     @mock.patch('accounts.tasks.ws_expire_player_invites')
     def test_watch_user_status_change_offline(
         self,

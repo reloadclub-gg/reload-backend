@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.websocket import ws_update_lobby_id
-from friends.websocket import ws_friend_create_or_update
+from friends.websocket import ws_friend_update_or_create
 from matchmaking.models import PreMatch, Team
 from matchmaking.websocket import ws_match_found
 
@@ -25,15 +25,15 @@ def handle_move_extra_websockets(
 ):
     if old_lobby.players_count == 0 and new_lobby.players_count > 1:
         if not has_remnants:
-            ws_friend_create_or_update(user)
+            ws_friend_update_or_create(user)
         new_owner = User.objects.get(pk=new_lobby.owner_id)
-        ws_friend_create_or_update(new_owner)
+        ws_friend_update_or_create(new_owner)
 
     if user.id != old_lobby.owner_id and old_lobby.players_count == 1:
         old_owner = User.objects.get(pk=old_lobby.owner_id)
-        ws_friend_create_or_update(old_owner)
+        ws_friend_update_or_create(old_owner)
     elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
-        ws_friend_create_or_update(user)
+        ws_friend_update_or_create(user)
 
     if not delete_lobby:
         websocket.ws_update_player(old_lobby, user, 'leave')
@@ -68,7 +68,7 @@ def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
         websocket.ws_update_player(remnants_lobby, user, 'leave')
 
         if new_lobby.id == old_lobby.id:
-            ws_friend_create_or_update(user)
+            ws_friend_update_or_create(user)
             return new_lobby
 
     handle_move_extra_websockets(
