@@ -8,7 +8,7 @@ from .api import schemas
 User = get_user_model()
 
 
-def ws_friend_create_or_update(user: User, action: str = 'update'):
+def ws_friend_update_or_create(user: User, action: str = 'update'):
     """
     Triggered everytime a user change its state. This sends an update
     about the user state to his online friends.
