@@ -193,7 +193,7 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         self.user_6.auth.add_session()
 
     @mock.patch('accounts.api.controller.ws_expire_player_invites')
-    @mock.patch('accounts.api.controller.ws_friend_create_or_update')
+    @mock.patch('accounts.api.controller.ws_friend_update_or_create')
     @mock.patch('accounts.api.controller.player_move')
     def test_logout_lobby_owner(
         self,
@@ -227,3 +227,48 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
 
         with self.assertRaises(Http404):
             controller.user_matches(597865)
+
+    @mock.patch('accounts.api.controller.ws_friend_update_or_create')
+    def test_auth(self, mock_friend_update_or_create):
+        self.user_1.auth.remove_session()
+        self.user_1.auth.expire_session(seconds=0)
+
+        controller.auth(self.user_1)
+        mock_friend_update_or_create.assert_called_once()
+        self.assertIsNotNone(self.user_1.auth.sessions)
+        self.assertIsNotNone(self.user_1.account.lobby)
+
+    @mock.patch('accounts.api.controller.ws_friend_update_or_create')
+    def test_auth_unverified(self, mock_friend_update_or_create):
+        self.user_1.account.is_verified = False
+        self.user_1.account.save()
+        self.user_1.refresh_from_db()
+
+        self.user_1.auth.remove_session()
+        self.user_1.auth.expire_session(seconds=0)
+
+        controller.auth(self.user_1)
+        mock_friend_update_or_create.assert_not_called()
+        self.assertIsNone(self.user_1.auth.sessions)
+        self.assertIsNone(self.user_1.account.lobby)
+
+    @mock.patch('accounts.api.controller.ws_friend_update_or_create')
+    def test_auth_no_account(self, mock_friend_update_or_create):
+        self.user_1.account.delete()
+        self.user_1.refresh_from_db()
+
+        self.user_1.auth.remove_session()
+        self.user_1.auth.expire_session(seconds=0)
+
+        controller.auth(self.user_1)
+        mock_friend_update_or_create.assert_not_called()
+        self.assertIsNone(self.user_1.auth.sessions)
+        self.assertFalse(hasattr(self.user_1, 'account'))
+
+    @mock.patch('accounts.api.controller.ws_friend_update_or_create')
+    def test_auth_with_session(self, mock_friend_update_or_create):
+        controller.auth(self.user_1)
+        mock_friend_update_or_create.assert_not_called()
+        self.assertIsNotNone(self.user_1.auth.sessions)
+        self.assertEqual(self.user_1.auth.sessions, 2)
+        self.assertIsNotNone(self.user_1.account.lobby)

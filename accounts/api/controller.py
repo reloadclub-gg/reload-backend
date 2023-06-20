@@ -6,7 +6,7 @@ from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.utils import generate_random_string, get_ip_address
-from friends.websocket import ws_friend_create_or_update
+from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import player_move
 from lobbies.models import Lobby
 from lobbies.websocket import ws_expire_player_invites
@@ -25,15 +25,17 @@ User = get_user_model()
 
 
 def auth(user: User):
-    if hasattr(user, 'account') and user.account.is_verified and not user.account.lobby:
+    if hasattr(user, 'account') and user.account.is_verified:
+        from_offline_status = False
         if user.auth.sessions is None:
-            user.auth.add_session()
+            from_offline_status = True
 
-        Lobby.create(user.id)
+        user.auth.add_session()
+        if from_offline_status:
+            ws_friend_update_or_create(user)
 
-        user.auth.remove_session()
-        if user.auth.sessions == 0:
-            user.auth.expire_session(0)
+        if not user.account.lobby:
+            Lobby.create(user.id)
 
     return user
 
@@ -71,7 +73,7 @@ def logout(user: User) -> dict:
         player_move(user, user.id, delete_lobby=True)
 
     user.auth.expire_session(seconds=0)
-    ws_friend_create_or_update(user)
+    ws_friend_update_or_create(user)
 
     return {'detail': 'ok'}
 
@@ -128,24 +130,6 @@ def verify_account(user: User, verification_token: str) -> User:
     user.account.is_verified = True
     user.account.save()
 
-    if user.auth.sessions is None:
-        # we just need to create a session to create a lobby
-        user.auth.add_session()
-        user.auth.persist_session()
-
-    if not user.account.lobby:
-        # we need to create a session in order to create a lobby
-        if user.auth.sessions is None:
-            user.auth.add_session()
-            user.auth.persist_session()
-
-        Lobby.create(user.id)
-
-        # then we can remove the session
-        user.auth.remove_session()
-        if user.auth.sessions == 0:
-            user.auth.expire_session(0)
-
     if not user.date_email_update:
         utils.send_welcome_mail(user.email)
 
@@ -158,7 +142,7 @@ def verify_account(user: User, verification_token: str) -> User:
         )
         send_notification_task.delay(notification.id)
 
-    ws_friend_create_or_update(user, 'create')
+    ws_friend_update_or_create(user, 'create')
     return user
 
 
