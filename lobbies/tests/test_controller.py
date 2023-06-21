@@ -74,7 +74,9 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_update_player.assert_has_calls(mock_calls)
         self.assertEqual(mock_update_lobby_id.call_count, 1)
         self.assertEqual(mock_update_lobby.call_count, 1)
-        mock_friend_update.assert_called_once_with(self.user_1)
+
+        mock_calls = [mock.call(self.user_1), mock.call(self.user_2)]
+        mock_friend_update.assert_has_calls(mock_calls)
 
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
@@ -125,7 +127,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
 
         mock_update_player.assert_called_once()
         self.assertEqual(mock_update_lobby_id.call_count, 4)
-        self.assertEqual(mock_update_lobby.call_count, 5)
+        self.assertEqual(mock_update_lobby.call_count, 4)
         mock_friend_update.assert_called_once_with(self.user_1)
 
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
