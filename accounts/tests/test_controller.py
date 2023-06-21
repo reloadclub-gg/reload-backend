@@ -86,14 +86,17 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
             controller.signup(user, email=user.email)
 
     @mock.patch('accounts.utils.send_welcome_mail')
-    def test_verify_account(self, mocker):
+    @mock.patch('accounts.api.controller.ws_new_notification')
+    def test_verify_account(self, mock_new_notification, mock_welcome_email):
         controller.verify_account(self.user, self.user.account.verification_token)
         self.user.refresh_from_db()
         self.assertTrue(self.user.account.is_verified)
         self.assertIsNone(self.user.auth.sessions)
 
-        mocker.assert_called_once()
-        mocker.assert_called_once_with(self.user.email)
+        mock_new_notification.assert_not_called()
+
+        mock_welcome_email.assert_called_once()
+        mock_welcome_email.assert_called_once_with(self.user.email)
 
     def test_verify_account_already_verified(self):
         self.user.account.is_verified = True
@@ -272,3 +275,19 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         self.assertIsNotNone(self.user_1.auth.sessions)
         self.assertEqual(self.user_1.auth.sessions, 2)
         self.assertIsNotNone(self.user_1.account.lobby)
+
+    @mock.patch('accounts.models.auth.Auth.add_session')
+    @mock.patch('accounts.models.auth.Auth.persist_session')
+    def test_auth_persists_session(self, mock_persist_session, mock_add_session):
+        controller.auth(self.user_1)
+        mock_persist_session.assert_called_once()
+        mock_add_session.assert_called_once()
+        self.assertEqual(self.user_1.auth.sessions_ttl, -1)
+
+    @mock.patch('accounts.api.controller.ws_new_notification')
+    def test_verify_account_with_online_friends(self, mock_new_notification):
+        self.user_1.account.is_verified = False
+        self.user_1.account.save()
+        self.user_1.refresh_from_db()
+        controller.verify_account(self.user_1, self.user_1.account.verification_token)
+        self.assertEqual(mock_new_notification.call_count, 5)

@@ -11,11 +11,8 @@ from lobbies.api.controller import player_move
 from lobbies.models import Lobby
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import Match
-from websocket.tasks import (
-    lobby_update_task,
-    send_notification_task,
-    user_status_change_task,
-)
+from notifications.websocket import ws_new_notification
+from websocket.tasks import lobby_update_task, user_status_change_task
 
 from .. import utils
 from ..models import Account, Auth, Invite, UserLogin
@@ -31,6 +28,7 @@ def auth(user: User):
             from_offline_status = True
 
         user.auth.add_session()
+        user.auth.persist_session()
         if from_offline_status:
             ws_friend_update_or_create(user)
 
@@ -140,7 +138,7 @@ def verify_account(user: User, verification_token: str) -> User:
             _(f'Your friend {user.steam_user.username} just joined ReloadClub!'),
             user.id,
         )
-        send_notification_task.delay(notification.id)
+        ws_new_notification(notification)
 
     ws_friend_update_or_create(user, 'create')
     return user
