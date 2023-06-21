@@ -60,14 +60,17 @@ def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
 
     if not delete_lobby:
         ws_update_lobby_id(user.id, new_lobby.id)
+        websocket.ws_update_lobby(new_lobby)
 
     if remnants_lobby:
         for player_id in remnants_lobby.players_ids:
             ws_update_lobby_id(player_id, remnants_lobby.id)
+            websocket.ws_update_lobby(remnants_lobby)
 
         websocket.ws_update_player(remnants_lobby, user, 'leave')
 
         if new_lobby.id == old_lobby.id:
+            websocket.ws_update_lobby(new_lobby)
             ws_friend_update_or_create(user)
             return new_lobby
 
