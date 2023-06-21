@@ -32,6 +32,7 @@ def handle_move_extra_websockets(
     if user.id != old_lobby.owner_id and old_lobby.players_count == 1:
         old_owner = User.objects.get(pk=old_lobby.owner_id)
         ws_friend_update_or_create(old_owner)
+        ws_friend_update_or_create(user)
     elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
         ws_friend_update_or_create(user)
 
@@ -67,10 +68,13 @@ def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
             ws_update_lobby_id(player_id, remnants_lobby.id)
             websocket.ws_update_lobby(remnants_lobby)
 
+        if remnants_lobby.players_count == 1:
+            player = User.objects.get(pk=remnants_lobby.owner_id)
+            ws_friend_update_or_create(player)
+
         websocket.ws_update_player(remnants_lobby, user, 'leave')
 
         if new_lobby.id == old_lobby.id:
-            websocket.ws_update_lobby(new_lobby)
             ws_friend_update_or_create(user)
             return new_lobby
 
