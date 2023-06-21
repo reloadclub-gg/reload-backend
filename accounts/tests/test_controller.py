@@ -272,3 +272,11 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         self.assertIsNotNone(self.user_1.auth.sessions)
         self.assertEqual(self.user_1.auth.sessions, 2)
         self.assertIsNotNone(self.user_1.account.lobby)
+
+    @mock.patch('accounts.models.auth.Auth.add_session')
+    @mock.patch('accounts.models.auth.Auth.persist_session')
+    def test_auth_persists_session(self, mock_persist_session, mock_add_session):
+        controller.auth(self.user_1)
+        mock_persist_session.assert_called_once()
+        mock_add_session.assert_called_once()
+        self.assertEqual(self.user_1.auth.sessions_ttl, -1)
