@@ -107,14 +107,6 @@ class AccountSchema(ModelSchema):
         ]
 
     @staticmethod
-    def resolve_steamid(obj):
-        return obj.user.steam_user.steamid
-
-    @staticmethod
-    def resolve_username(obj):
-        return obj.user.steam_user.username
-
-    @staticmethod
     def resolve_avatar(obj):
         return {
             'small': Steam.build_avatar_url(obj.user.steam_user.avatarhash),

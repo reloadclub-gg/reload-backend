@@ -31,7 +31,6 @@ def ws_friend_update_or_create(user: User, action: str = 'update'):
     """
     if action not in ['update', 'create']:
         raise ValueError('action param should be "update" or "create".')
-
     online_friends_ids = [account.user.id for account in user.account.online_friends]
     payload = schemas.FriendSchema.from_orm(user.account).dict()
     return async_to_sync(ws_send)(

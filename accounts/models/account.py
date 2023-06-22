@@ -63,22 +63,17 @@ class Account(models.Model):
         return self.user.email
 
     @property
-    def steam_friends(self) -> list:
-        return Steam.get_player_friends(self.user.steam_user)
-
-    @property
     def friends(self) -> list:
-        steam_friends_ids = [friend.get('steamid') for friend in self.steam_friends]
-
-        return [
-            account
-            for account in Account.objects.filter(
+        # If testing or debugging, everyone is friend of everyone
+        if settings.TEST_MODE or settings.DEBUG:
+            return Account.objects.filter(
                 user__is_active=True,
                 is_verified=True,
                 user__is_staff=False,
-                steamid__in=steam_friends_ids,
             ).exclude(user_id=self.user.id)
-        ]
+
+        friends_ids = cache.smembers(f'__friendlist:user:{self.user.id}')
+        return [Account.objects.get(user__id=friend_id) for friend_id in friends_ids]
 
     @property
     def online_friends(self) -> list:
@@ -192,7 +187,8 @@ class Account(models.Model):
         self.save()
 
     def check_friendship(self, friend_account: Account) -> bool:
-        steam_friends_ids = [friend.get('steamid') for friend in self.steam_friends]
+        steam_friends = Steam.get_player_friends(self.user.steam_user)
+        steam_friends_ids = [friend.get('steamid') for friend in steam_friends]
         return friend_account.steamid in steam_friends_ids
 
     @property

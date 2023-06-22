@@ -33,9 +33,11 @@ class FriendsSchemasTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(payload, expected_payload)
 
     def test_friend_list_schema(self):
+        self.user_2.auth.add_session()
+        self.user_3.auth.add_session()
         payload = FriendListSchema.from_orm(
             {
-                'online': self.user_1.account.friends,
+                'online': self.user_1.account.online_friends,
                 'offline': [
                     friend
                     for friend in self.user_1.account.friends
@@ -43,5 +45,5 @@ class FriendsSchemasTestCase(VerifiedPlayersMixin, TestCase):
                 ],
             }
         ).dict()
-        self.assertEqual(len(payload.get('online')), 15)
-        self.assertEqual(len(payload.get('offline')), 15)
+        self.assertEqual(len(payload.get('online')), 2)
+        self.assertEqual(len(payload.get('offline')), 13)

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Mudamos a lógica de amigos. Agora só vamos a Steam atualizar a lista de amigos quando o FE solicita o endpoint `friends/`. Esse endpoint vai à Steam e salva os amigos no Redis, a partir desse ponto, todas as chamadas para amigos são realizadas diretamente no cache. Quando um usuário se cadastra e verifica sua conta, a gente adiciona ele na lista de amigos de seus amigos no cache [#474](https://github.com/3C-gg/reload-backend/issues/474).
 - Campo `lobby_id` no esquema `LobbyPlayerSchema` agora pode ser nulo.
 - Lógica de mover player foi refatorada para termos melhor compreensão sobre ela e sobre os eventos disparados via websocket. Com isso, também mitigamos alguns websockets que não estavam sendo enviados ou estavam sendo erroneamente enviados para o FE [#465](https://github.com/3C-gg/reload-backend/issues/465).
 - Model `Team` não utiliza mais a `TeamConfig.READY_PLAYERS_MIN`. Ao invés disso, pega esse valor direto de `django.conf.settings.TEAM_READY_PLAYERS_MIN`.
