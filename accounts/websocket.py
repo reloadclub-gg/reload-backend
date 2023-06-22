@@ -1,27 +1,26 @@
 from asgiref.sync import async_to_sync
+from django.contrib.auth import get_user_model
 
 from websocket.utils import ws_send
 
+from .api import schemas
 
-def ws_update_lobby_id(user_id: int, lobby_id: int):
+User = get_user_model()
+
+
+def ws_update_user(user: User):
     """
-    Triggered everytime a user moves from one lobby to another.
-    This is sent to the user who moved.
+    Triggered everytime a user is updated.
 
     Cases:
-    - User accepts an invite to join some lobby, leaving current lobby.
-    - User leaves current lobby and returns to its original lobby.
-    - Lobby owner leaves its lobby, leaving that lobby with another owner,
-    thus, another lobby as well. In this case, all users from that lobby get this update.
+    - User moves from a lobby to another.
+    - User change its e-mail.
 
     Payload:
-    int
+    accounts.api.schemas.UserSchema: object
 
     Actions:
-    - user/update_lobby_id
+    - user/update
     """
-    return async_to_sync(ws_send)(
-        'user/update_lobby_id',
-        lobby_id,
-        groups=[user_id],
-    )
+    payload = schemas.UserSchema.from_orm(user).dict()
+    return async_to_sync(ws_send)('user/update', payload, groups=[user.id])
