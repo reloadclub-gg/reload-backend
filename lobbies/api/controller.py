@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
-from accounts.websocket import ws_update_lobby_id
+from accounts.websocket import ws_update_user
 from friends.websocket import ws_friend_update_or_create
 from matchmaking.models import PreMatch, Team
 from matchmaking.websocket import ws_match_found
@@ -16,29 +16,136 @@ from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
 User = get_user_model()
 
 
-def handle_move_extra_websockets(
-    old_lobby: Lobby,
+def handle_player_move_remnants(
     new_lobby: Lobby,
+    remnants_lobby: Lobby,
+    user: User,
+    delete_lobby: bool,
+):
+    # update lobbies objects for remnants lobby players
+    websocket.ws_update_lobby(remnants_lobby)
+
+    # send a "leave" signal so FE can handle a more specific event if necessary
+    websocket.ws_update_player(remnants_lobby, user, 'leave')
+
+    # if new lobby has the user moved or nobody else, the latter indicates
+    # that the lobby was removed, it means that user is returning to its original lobby
+    if new_lobby.players_count <= 1:
+        # if we receive delete_lobby == True, then we do nothing
+        # because this user just got offline or else
+        if not delete_lobby:
+            # replace the lobby object on FE with the new one
+            websocket.ws_update_lobby(new_lobby)
+
+            # send user status update to its online friends
+            ws_friend_update_or_create(user)
+
+            # send user update to user, so it can update
+            # its lobby_id and status
+            ws_update_user(user)
+
+    # if new lobby has other players
+    # then user that just got moved
+    else:
+        # replace the lobby object on FE with the new one
+        websocket.ws_update_lobby(new_lobby)
+
+        # we send a "join" signal so FE can handle
+        # a more specific event if necessary
+        websocket.ws_update_player(new_lobby, user, 'join')
+
+    # check if old lobby was left with just its owner, so we need
+    # to update its owner as well because before this move he was
+    # teaming and now he's  solo, and FE and their friends needs to know its new status
+    if remnants_lobby.players_count == 1:
+        remnants_lobby_owner = User.objects.get(id=remnants_lobby.owner_id)
+
+        # send user status update to its online friends
+        ws_friend_update_or_create(remnants_lobby_owner)
+
+        # update user so FE can get its new status and lobby_id
+        ws_update_user(remnants_lobby_owner)
+
+
+def handle_player_move_other_lobby(new_lobby: Lobby, old_lobby: Lobby, user: User):
+    # replace the lobby object on FE with the new one
+    websocket.ws_update_lobby(new_lobby)
+
+    # we send a "join" signal so FE can handle
+    # a more specific event if necessary
+    websocket.ws_update_player(new_lobby, user, 'join')
+
+    # if old lobby became empty, it means that user left its original lobby
+    # and is going to another lobby
+    if old_lobby.players_count == 0:
+        # send user status update to its online friends
+        ws_friend_update_or_create(user)
+
+        # send user update to user, so it can update
+        # its lobby_id and status
+        ws_update_user(user)
+
+    # if old lobby has more player then the user
+    # that just got moved
+    else:
+        # replace the lobby object on FE with the new one
+        # for those who were left in old lobby
+        websocket.ws_update_lobby(old_lobby)
+
+        # we send a "leave" signal so FE can handle
+        # a more specific event if necessary
+        websocket.ws_update_player(old_lobby, user, 'leave')
+
+    # if new lobby just got its second player we need
+    # to update its owner as well because before this move he was solo,
+    # so FE and their friends needs to know its new status
+    if new_lobby.players_count == 2:
+        new_lobby_owner = User.objects.get(id=new_lobby.owner_id)
+        # send user status update to its online friends
+        ws_friend_update_or_create(new_lobby_owner)
+
+        # send user update to user, so it can update
+        # its lobby_id and status
+        ws_update_user(new_lobby_owner)
+
+
+def handle_player_move_original_lobby(
+    new_lobby: Lobby,
+    old_lobby: Lobby,
     user: User,
     delete_lobby: bool = False,
-    has_remnants: bool = False,
 ):
-    if old_lobby.players_count == 0 and new_lobby.players_count > 1:
-        if not has_remnants:
-            ws_friend_update_or_create(user)
-        new_owner = User.objects.get(pk=new_lobby.owner_id)
-        ws_friend_update_or_create(new_owner)
+    # if we receive delete_lobby=True, it means that the system will delete that lobby,
+    # so isn't necessary to send any websocket update
+    if old_lobby.id != new_lobby.id:
+        # replace the lobby object on FE with the new one
+        # for those who were left in old lobby
+        websocket.ws_update_lobby(old_lobby)
 
-    if user.id != old_lobby.owner_id and old_lobby.players_count == 1:
-        old_owner = User.objects.get(pk=old_lobby.owner_id)
-        ws_friend_update_or_create(old_owner)
-        ws_friend_update_or_create(user)
-    elif user.id == new_lobby.owner_id and new_lobby.players_count == 1:
-        ws_friend_update_or_create(user)
-
-    if not delete_lobby:
+        # send a "leave" signal so FE can handle a more specific event if necessary
         websocket.ws_update_player(old_lobby, user, 'leave')
-        websocket.ws_update_player(new_lobby, user, 'join')
+
+        # check if old lobby was left with just its owner, so we need
+        # to update its owner as well because before this move he was
+        # teaming and now he's  solo, and FE and their friends needs to know its new status
+        if old_lobby.players_count == 1:
+            old_lobby_owner = User.objects.get(id=old_lobby.owner_id)
+
+            # send user status update to its online friends
+            ws_friend_update_or_create(old_lobby_owner)
+
+            # update user so FE can get its new status and lobby_id
+            ws_update_user(old_lobby_owner)
+
+        if not delete_lobby:
+            # send user status update to its online friends
+            ws_friend_update_or_create(user)
+
+            # update user so FE can get its new status and lobby_id
+            ws_update_user(user)
+
+            # update lobby so FE can replace the lobby object with a new one
+            websocket.ws_update_lobby(new_lobby)
 
 
 def handle_match_found(team: Team, opponent: Team):
@@ -59,32 +166,21 @@ def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
     except LobbyException as exc:
         raise HttpError(400, str(exc))
 
-    if not delete_lobby:
-        ws_update_lobby_id(user.id, new_lobby.id)
-        websocket.ws_update_lobby(new_lobby)
-
+    # if we got remnants_lobby, means that player was owner
+    # and there was other players left to move
     if remnants_lobby:
-        for player_id in remnants_lobby.players_ids:
-            ws_update_lobby_id(player_id, remnants_lobby.id)
-            websocket.ws_update_lobby(remnants_lobby)
+        handle_player_move_remnants(new_lobby, remnants_lobby, user, delete_lobby)
 
-        if remnants_lobby.players_count == 1:
-            player = User.objects.get(pk=remnants_lobby.owner_id)
-            ws_friend_update_or_create(player)
+    # if we don't have remnants_lobby
+    # and user is moving to a lobby that isn't its original lobby
+    elif new_lobby.id != user.id:
+        handle_player_move_other_lobby(new_lobby, old_lobby, user)
 
-        websocket.ws_update_player(remnants_lobby, user, 'leave')
-
-        if new_lobby.id == old_lobby.id:
-            ws_friend_update_or_create(user)
-            return new_lobby
-
-    handle_move_extra_websockets(
-        old_lobby,
-        new_lobby,
-        user,
-        delete_lobby=delete_lobby,
-        has_remnants=bool(remnants_lobby),
-    )
+    # we don't have remnants_lobby and user isn't moving to another owner's lobby, so
+    # it means that the user is moving FROM another owner's lobby back to its original lobby
+    # so old lobby will never be empty, because it will always have its owner left behind
+    else:
+        handle_player_move_original_lobby(new_lobby, old_lobby, user, delete_lobby)
 
     return new_lobby
 
@@ -159,13 +255,12 @@ def refuse_invite(user: User, invite_id: str):
 def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
     lobby = get_lobby(lobby_id)
 
+    if player_id == user.id and lobby.players_count == 1:
+        return lobby
+
     if player_id == user.id:
-        if lobby.players_count == 1:
-            return lobby
-
         return player_move(user, user.id)
-
-    if user.id != lobby.owner_id:
+    elif user.id != lobby.owner_id:
         raise AuthenticationError()
     else:
         player = User.objects.get(pk=player_id)
