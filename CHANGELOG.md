@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Controle de sessões não estava bom, causando verificações duplicadas e até mesmo código que nunca era acessado devido a más verificações. Passamos a adicionar uma sessão sempre que o usuário acessa a rota `/auth` e é verificado. O Websocket agora só altera a sessão no `disconnect`, e não adiciona mais sessões, apenas remove [#462](https://github.com/3C-gg/reload-backend/issues/462).
 - Documentação de websockets não abria corretamente contendo âncora na URl [#459](https://github.com/3C-gg/reload-backend/issues/459).
 
+### Removed
+
+- Campos não utilizados no esquema `AccountSchema`: `lobby`, `match`, `pre_match` e `friends`. Esses campos estavam causando uma demora muito grande em carregar o esquema no client, e como não utilizamos mais eles, foram removidos para ajudar no load up.
+
 ## [46559aa - 19-06-2023]
 
 ### Added
