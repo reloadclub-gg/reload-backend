@@ -290,6 +290,10 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
     elif payload.cancel_queue:
         lobby.cancel_queue()
 
+        team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
+        if team:
+            team.remove_lobby(lobby_id)
+
     websocket.ws_update_lobby(lobby)
     return lobby
 
