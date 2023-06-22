@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
+from core.redis import RedisClient
 from core.utils import generate_random_string, get_ip_address
 from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import player_move
@@ -19,6 +20,7 @@ from ..models import Account, Auth, Invite, UserLogin
 from .authorization import is_verified
 
 User = get_user_model()
+cache = RedisClient()
 
 
 def auth(user: User):
@@ -137,6 +139,8 @@ def verify_account(user: User, verification_token: str) -> User:
             user.id,
         )
         ws_new_notification(notification)
+
+        cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
 
     ws_friend_update_or_create(user, 'create')
     return user

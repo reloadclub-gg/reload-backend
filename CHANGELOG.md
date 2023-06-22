@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Mudamos a lógica de amigos. Agora só vamos a Steam atualizar a lista de amigos quando o FE solicita o endpoint `friends/`. Esse endpoint vai à Steam e salva os amigos no Redis, a partir desse ponto, todas as chamadas para amigos são realizadas diretamente no cache. Quando um usuário se cadastra e verifica sua conta, a gente adiciona ele na lista de amigos de seus amigos no cache [#474](https://github.com/3C-gg/reload-backend/issues/474).
 - Campo `lobby_id` no esquema `LobbyPlayerSchema` agora pode ser nulo.
 - Lógica de mover player foi refatorada para termos melhor compreensão sobre ela e sobre os eventos disparados via websocket. Com isso, também mitigamos alguns websockets que não estavam sendo enviados ou estavam sendo erroneamente enviados para o FE [#465](https://github.com/3C-gg/reload-backend/issues/465).
 - Model `Team` não utiliza mais a `TeamConfig.READY_PLAYERS_MIN`. Ao invés disso, pega esse valor direto de `django.conf.settings.TEAM_READY_PLAYERS_MIN`.
@@ -25,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sessão de usuário não estava persistindo depois de uma chamada bem sucedida para `/auth` [#467](https://github.com/3C-gg/reload-backend/issues/467).
 - Controle de sessões não estava bom, causando verificações duplicadas e até mesmo código que nunca era acessado devido a más verificações. Passamos a adicionar uma sessão sempre que o usuário acessa a rota `/auth` e é verificado. O Websocket agora só altera a sessão no `disconnect`, e não adiciona mais sessões, apenas remove [#462](https://github.com/3C-gg/reload-backend/issues/462).
 - Documentação de websockets não abria corretamente contendo âncora na URl [#459](https://github.com/3C-gg/reload-backend/issues/459).
+
+### Removed
+
+- Campos não utilizados no esquema `AccountSchema`: `lobby`, `match`, `pre_match` e `friends`. Esses campos estavam causando uma demora muito grande em carregar o esquema no client, e como não utilizamos mais eles, foram removidos para ajudar no load up.
 
 ## [46559aa - 19-06-2023]
 

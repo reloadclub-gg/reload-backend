@@ -285,9 +285,24 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(self.user_1.auth.sessions_ttl, -1)
 
     @mock.patch('accounts.api.controller.ws_new_notification')
-    def test_verify_account_with_online_friends(self, mock_new_notification):
+    @mock.patch('accounts.api.controller.cache.sadd')
+    def test_verify_account_with_online_friends(
+        self,
+        mock_friends_cache,
+        mock_new_notification,
+    ):
         self.user_1.account.is_verified = False
         self.user_1.account.save()
         self.user_1.refresh_from_db()
+        self.assertEqual(len(self.user_2.account.online_friends), 4)
         controller.verify_account(self.user_1, self.user_1.account.verification_token)
+        self.assertEqual(len(self.user_2.account.online_friends), 5)
+        mock_friends_cache_calls = [
+            mock.call(f'__friendlist:user:{self.user_2.id}', self.user_1.id),
+            mock.call(f'__friendlist:user:{self.user_3.id}', self.user_1.id),
+            mock.call(f'__friendlist:user:{self.user_4.id}', self.user_1.id),
+            mock.call(f'__friendlist:user:{self.user_5.id}', self.user_1.id),
+            mock.call(f'__friendlist:user:{self.user_6.id}', self.user_1.id),
+        ]
+        mock_friends_cache.assert_has_calls(mock_friends_cache_calls)
         self.assertEqual(mock_new_notification.call_count, 5)
