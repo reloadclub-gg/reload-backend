@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Novo websocket para notificar todas as sessões do usuário no FE de que ele fez logout [#461](https://github.com/3C-gg/reload-backend/issues/461).
 - Ao iniciar a fila de um lobby, o sistema agora monta ou encontra um time para aquele lobby, em seguida busca por um adversário, e, case encontre um, envia o websocket de partida encontrada [#457](https://github.com/3C-gg/reload-backend/issues/457).
 - Método `ws_match_found` ao websocket de matchmaking.
 
@@ -21,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Corrigimod um bug que fazia com que o usuário e seus amigos não fossem notificados via WS quando entravam ou saíam da fila [#482](https://github.com/3C-gg/reload-backend/issues/482) [#483](https://github.com/3C-gg/reload-backend/issues/483).
+- Corrigimos um bug que fazia com que o usuário e seus amigos não fossem notificados via WS quando entravam ou saíam da fila [#482](https://github.com/3C-gg/reload-backend/issues/482) [#483](https://github.com/3C-gg/reload-backend/issues/483).
 - Resolvemos um erro que fazia com que um erro fosse retornado ao iniciar fila com mais de um jogador por lobby [#478](https://github.com/3C-gg/reload-backend/issues/478).
 - Corrigimos um erro que fazia com que, ao encontrar uma partida, não estava sendo disparado update para os lobbies [#480](https://github.com/3C-gg/reload-backend/issues/480).
 - Resolvemos um erro que fazia com que, ao cancelar fila de um lobby, o sistema não estava removendo esse lobby de um time caso estivesse em um [#476](https://github.com/3C-gg/reload-backend/issues/476).
