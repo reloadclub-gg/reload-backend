@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Resolvemos um erro que fazia com que um erro fosse retornado ao iniciar fila com mais de um jogador por lobby [#478](https://github.com/3C-gg/reload-backend/issues/478).
 - Corrigimos um erro que fazia com que, ao encontrar uma partida, não estava sendo disparado update para os lobbies [#480](https://github.com/3C-gg/reload-backend/issues/480).
 - Resolvemos um erro que fazia com que, ao cancelar fila de um lobby, o sistema não estava removendo esse lobby de um time caso estivesse em um [#476](https://github.com/3C-gg/reload-backend/issues/476).
 - Resolvemos erros de envio de websocket faltando em alguns casos do processo de matchmaking [#471](https://github.com/3C-gg/reload-backend/issues/471).
