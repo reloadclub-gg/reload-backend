@@ -32,7 +32,6 @@ class TeamConfig:
 
     CACHE_PREFIX: str = '__mm:team:'
     ID_SIZE: int = 16
-    READY_PLAYERS_MIN: int = settings.TEAM_READY_PLAYERS_MIN
 
 
 class Team(BaseModel):
@@ -77,7 +76,7 @@ class Team(BaseModel):
         """
         Return whether this team is ready to find a oposing team.
         """
-        return self.players_count == TeamConfig.READY_PLAYERS_MIN
+        return self.players_count == settings.TEAM_READY_PLAYERS_MIN
 
     @property
     def overall(self) -> int:
@@ -205,11 +204,14 @@ class Team(BaseModel):
         """
         Create a Team in Redis cache db given a list of lobbies ids.
         """
-        players_count = sum(
-            [Lobby(owner_id=lobby_id).players_count for lobby_id in lobbies_ids]
-        )
+        lobbies = [Lobby(owner_id=lobby_id) for lobby_id in lobbies_ids]
+        max_players = [lobby.max_players for lobby in lobbies]
+        players_count = sum([lobby.players_count for lobby in lobbies])
 
-        if players_count > TeamConfig.READY_PLAYERS_MIN:
+        if not max_players.count(max_players[0]) == len(max_players):
+            raise TeamException(_('Lobbies have differents types or modes.'))
+
+        if players_count > max_players[0]:
             raise TeamException(_('Team players count exceeded.'))
 
         team_id = secrets.token_urlsafe(TeamConfig.ID_SIZE)
@@ -257,7 +259,7 @@ class Team(BaseModel):
         team = Team.create(lobbies_ids=[lobby.id])
 
         # check if team is full already
-        if team.players_count == TeamConfig.READY_PLAYERS_MIN:
+        if team.players_count == settings.TEAM_READY_PLAYERS_MIN:
             return team
 
         # get all queued lobbies

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from core.redis import RedisClient
-from friends.websocket import ws_friend_create_or_update
+from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import player_move
 from lobbies.websocket import ws_expire_player_invites
 
@@ -16,9 +16,7 @@ User = get_user_model()
 
 
 @shared_task
-def watch_user_status_change(
-    user_id: int,
-):  # int id because tasks cant serialize models
+def watch_user_status_change(user_id: int):
     """
     Task that watches for a user status change, eg. became offline.
     If user is in lobby, the lobby should be purged.
@@ -29,7 +27,7 @@ def watch_user_status_change(
         if user.account.lobby:
             player_move(user, user.id, delete_lobby=True)
 
-        ws_friend_create_or_update(user)
+        ws_friend_update_or_create(user)
 
 
 @shared_task

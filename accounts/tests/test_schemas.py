@@ -3,7 +3,6 @@ from core.tests import TestCase
 from lobbies.api.schemas import LobbySchema
 from lobbies.models import Lobby
 from matches.api.schemas import MatchSchema
-from notifications.api.schemas import NotificationSchema
 from steam import Steam
 
 from . import mixins
@@ -63,28 +62,7 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
                     self.user.steam_user.avatarhash, 'full'
                 ),
             },
-            'lobby': LobbySchema.from_orm(self.user.account.lobby).dict(),
-            'friends': [
-                schemas.FriendAccountSchema.from_orm(x).dict()
-                for x in self.user.account.friends
-            ],
-            'lobby_invites': [
-                schemas.LobbyInviteSchema.from_orm(x).dict()
-                for x in self.user.account.lobby_invites
-            ],
-            'lobby_invites_sent': [
-                schemas.LobbyInviteSchema.from_orm(x).dict()
-                for x in self.user.account.lobby_invites_sent
-            ],
-            'pre_match': self.user.account.pre_match,
             'steam_url': self.user.steam_user.profileurl,
-            'match': MatchSchema.from_orm(self.user.account.match)
-            if self.user.account.match
-            else None,
-            'notifications': [
-                NotificationSchema.from_orm(x).dict()
-                for x in self.user.account.notifications
-            ],
             'matches_played': len(self.user.account.matches_played),
             'latest_matches_results': self.user.account.get_latest_matches_results(),
         }
