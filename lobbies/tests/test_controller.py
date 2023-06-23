@@ -621,7 +621,8 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(mock_update_lobby.call_count, 4)
 
     @mock.patch('lobbies.api.controller.ws_match_found')
-    def test_handle_match_found(self, mock_match_found):
+    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
+    def test_handle_match_found(self, mock_update_lobby, mock_match_found):
         with self.settings(TEAM_READY_PLAYERS_MIN=1):
             self.user_1.account.lobby.start_queue()
             team1 = Team.find(self.user_1.account.lobby) or Team.build(
@@ -634,6 +635,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
 
             controller.handle_match_found(team1, team2)
             mock_match_found.assert_called_once()
+            self.assertEqual(mock_update_lobby.call_count, 2)
 
     @mock.patch('lobbies.api.controller.handle_match_found')
     def test_update_lobby_start_queue_match_found(self, mock_match_found):

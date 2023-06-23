@@ -152,6 +152,7 @@ def handle_match_found(team: Team, opponent: Team):
     lobbies = team.lobbies + opponent.lobbies
     for lobby in lobbies:
         lobby.cancel_queue()
+        websocket.ws_update_lobby(lobby)
 
     pre_match = PreMatch.create(team.id, opponent.id)
     ws_match_found(pre_match)
