@@ -15,7 +15,7 @@ from matches.models import Match
 from notifications.websocket import ws_new_notification
 from websocket.tasks import lobby_update_task, user_status_change_task
 
-from .. import utils
+from .. import utils, websocket
 from ..models import Account, Auth, Invite, UserLogin
 from .authorization import is_verified
 
@@ -74,6 +74,7 @@ def logout(user: User) -> dict:
 
     user.auth.expire_session(seconds=0)
     ws_friend_update_or_create(user)
+    websocket.ws_user_logout(user.id)
 
     return {'detail': 'ok'}
 

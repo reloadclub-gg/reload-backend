@@ -24,3 +24,20 @@ def ws_update_user(user: User):
     """
     payload = schemas.UserSchema.from_orm(user).dict()
     return async_to_sync(ws_send)('user/update', payload, groups=[user.id])
+
+
+def ws_user_logout(user_id: int):
+    """
+    Triggered everytime a user logs out.
+
+    Cases:
+    - User logout
+
+    Payload:
+    null
+
+    Actions:
+    - user/logout
+    """
+
+    return async_to_sync(ws_send)('user/logout', None, groups=[user_id])
