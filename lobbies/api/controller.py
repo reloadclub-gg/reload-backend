@@ -296,6 +296,12 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
             team.remove_lobby(lobby_id)
 
     websocket.ws_update_lobby(lobby)
+    ws_update_user(user)
+
+    for player_id in lobby.players_ids:
+        player = User.objects.get(pk=player_id)
+        ws_friend_update_or_create(player)
+
     return lobby
 
 
