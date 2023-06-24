@@ -301,6 +301,7 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         player = User.objects.get(pk=player_id)
         ws_update_user(player)
         ws_friend_update_or_create(player)
+        websocket.ws_expire_player_invites(player)
 
     return lobby
 
