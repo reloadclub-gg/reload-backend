@@ -142,4 +142,5 @@ def ws_expire_player_invites(user: User):
                 'invites/expire', payload, groups=[invite.to_id, invite.from_id]
             )
         )
+        models.LobbyInvite.delete(invite)
     return results
