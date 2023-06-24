@@ -195,34 +195,7 @@ class FakeSignUpSchema(Schema):
     email: pydantic.EmailStr
 
 
-class VerifyUserEmailSchema(Schema):
-    verification_token: str
-
-
-class UserUpdateSchema(Schema):
+class AccountUpdateSchema(Schema):
     email: pydantic.EmailStr = None
+    inactivate: bool = False
     verification_token: str = None
-
-    @pydantic.root_validator
-    def any_of(cls, v):
-        assert any(v.values()), _(
-            'One of e-mail or verification_token must have a value.'
-        )
-        return v
-
-    @pydantic.validator('verification_token')
-    def must_be_valid(cls, v):
-        if v:
-            assert Account.objects.filter(verification_token=v).exists(), _(
-                'Invalid verification token.'
-            )
-        return v
-
-
-class UpdateUserEmailSchema(Schema):
-    email: pydantic.EmailStr
-
-    @pydantic.validator('email')
-    def email_must_be_unique(cls, v):
-        assert not User.objects.filter(email=v).exists(), _('E-mail must be unique.')
-        return v

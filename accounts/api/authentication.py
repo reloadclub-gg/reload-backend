@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from ninja.security import HttpBearer
 
-from .controller import login
+from .controller import handle_login
 
 User = get_user_model()
 
@@ -15,7 +15,7 @@ class VerifiedRequiredAuth(HttpBearer):
         :params request Request: The request object.
         :return: The login method result (Auth model or None).
         """
-        return login(request, token)
+        return handle_login(request, token)
 
 
 class VerifiedExemptAuth(HttpBearer):
@@ -30,4 +30,4 @@ class VerifiedExemptAuth(HttpBearer):
     def authenticate(self, request, token: str):
         request.verified_exempt = True
 
-        return login(request, token)
+        return handle_login(request, token)

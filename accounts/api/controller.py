@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
@@ -11,19 +10,106 @@ from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import player_move
 from lobbies.models import Lobby
 from lobbies.websocket import ws_expire_player_invites
-from matches.models import Match
 from notifications.websocket import ws_new_notification
-from websocket.tasks import lobby_update_task, user_status_change_task
 
-from .. import utils, websocket
-from ..models import Account, Auth, Invite, UserLogin
-from .authorization import is_verified
+from .. import models, utils, websocket
+from . import authorization, schemas
 
 User = get_user_model()
 cache = RedisClient()
 
 
-def auth(user: User):
+def handle_login(request, token: str) -> models.Auth:
+    auth = models.Auth.load(token)
+    if not auth:
+        return
+
+    user = User.objects.filter(pk=auth.user_id).first()
+    if user and (
+        hasattr(request, 'verified_exempt') or authorization.is_verified(user)
+    ):
+        models.UserLogin.objects.update_or_create(
+            user=user,
+            ip_address=get_ip_address(request),
+            defaults={'timestamp': timezone.now()},
+        )
+
+        user.refresh_from_db()
+        request.user = user
+        return auth
+
+
+def handle_verify_websockets(user):
+    for friend in user.account.online_friends:
+        notification = friend.notify(
+            _(f'Your friend {user.steam_user.username} just joined ReloadClub!'),
+            user.id,
+        )
+        ws_new_notification(notification)
+
+        cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
+
+    ws_friend_update_or_create(user, 'create')
+
+
+def handle_unverify_account(user):
+    user.account.is_verified = False
+    user.account.save()
+
+    utils.send_verify_account_mail(
+        user.email,
+        user.steam_user.username,
+        user.account.verification_token,
+    )
+
+    lobby = user.account.lobby
+    if lobby:
+        player_move(user, user.id, delete_lobby=True)
+
+    ws_expire_player_invites(user)
+    websocket.ws_update_user(user)
+    ws_friend_update_or_create(user)
+
+
+def handle_verify_account(user: User, verification_token: str) -> User:
+    account = models.Account.objects.filter(
+        user=user,
+        verification_token=verification_token,
+        is_verified=False,
+    ).exists()
+
+    if not account:
+        raise HttpError(400, _('Invalid verification token.'))
+
+    user.account.is_verified = True
+    user.account.save()
+
+    if not user.date_email_update:
+        utils.send_welcome_mail(user.email)
+
+    handle_verify_websockets(user)
+    return user
+
+
+def handle_inactivate_account(user: User) -> User:
+    logout(user)
+    user.inactivate()
+    utils.send_inactivation_mail(user.email)
+    return user
+
+
+def handle_update_user_email(user: User, email: str) -> User:
+    user.email = email
+    user.date_email_update = timezone.now()
+    user.save()
+    user.account.verification_token = generate_random_string(
+        length=models.Account.VERIFICATION_TOKEN_LENGTH
+    )
+    handle_unverify_account(user)
+    return user
+
+
+def get_user(user: User) -> User:
     if hasattr(user, 'account') and user.account.is_verified:
         from_offline_status = False
         if user.auth.sessions is None:
@@ -38,33 +124,6 @@ def auth(user: User):
             Lobby.create(user.id)
 
     return user
-
-
-def login(request, token: str) -> Auth:
-    """
-    Checks if there is any existing user for the given auth token and
-    creates/update an UserLogin for that user with the request IP address.
-
-    :params request Request: The request object.
-    """
-    auth = Auth.load(token)
-
-    if not auth:
-        return
-
-    user = User.objects.filter(pk=auth.user_id).first()
-
-    if user and (hasattr(request, 'verified_exempt') or is_verified(user)):
-        UserLogin.objects.update_or_create(
-            user=user,
-            ip_address=get_ip_address(request),
-            defaults={'timestamp': timezone.now()},
-        )
-
-        user.refresh_from_db()
-        request.user = user
-
-        return auth
 
 
 def logout(user: User) -> dict:
@@ -85,7 +144,7 @@ def create_fake_user(email: str) -> User:
     Creates a user that doesn't need a Steam account.
     """
     user = User.objects.create(email=email)
-    auth = Auth(user_id=user.pk)
+    auth = models.Auth(user_id=user.pk)
     auth.create_token()
     user.last_login = timezone.now()
     utils.create_social_auth(user, username=user.email)
@@ -93,15 +152,10 @@ def create_fake_user(email: str) -> User:
 
 
 def signup(user: User, email: str, is_fake: bool = False) -> User:
-    """
-    Create an account for invited users updating the invite
-    in the process so it became accepted.
-    """
-
     if hasattr(user, 'account'):
         raise HttpError(403, _('User already has an account.'))
 
-    invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
+    invites = models.Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
     if not is_fake and (check_invite_required() and not invites.exists()):
         raise HttpError(403, _('User must be invited.'))
@@ -110,81 +164,27 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
 
     user.email = email
     user.save()
-    Account.objects.create(user=user)
+    models.Account.objects.create(user=user)
     utils.send_verify_account_mail(
-        user.email, user.steam_user.username, user.account.verification_token
+        user.email,
+        user.steam_user.username,
+        user.account.verification_token,
     )
     return user
 
 
-def verify_account(user: User, verification_token: str) -> User:
-    """
-    Mark an user account as is_verified if isn't already.
-    """
-    account = Account.objects.filter(
-        user=user, verification_token=verification_token, is_verified=False
-    ).exists()
+def update_account(user: User, payload: schemas.AccountUpdateSchema) -> User:
+    if payload.email:
+        return handle_update_user_email(user, payload.email)
+    elif payload.inactivate:
+        return handle_inactivate_account(user)
+    elif payload.verification_token:
+        return handle_verify_account(user, payload.verification_token)
 
-    if not account:
-        raise HttpError(400, _('Invalid verification token.'))
-
-    user.account.is_verified = True
-    user.account.save()
-
-    if not user.date_email_update:
-        utils.send_welcome_mail(user.email)
-
-    for friend in user.account.online_friends:
-        notification = friend.notify(
-            _(f'Your friend {user.steam_user.username} just joined ReloadClub!'),
-            user.id,
-        )
-        ws_new_notification(notification)
-
-        cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
-
-    ws_friend_update_or_create(user, 'create')
     return user
 
 
-def inactivate(user: User) -> User:
-    """
-    Mark an user as inactive.
-    Inactive users shouldn't be able to access any endpoint that requires authentication.
-    """
+def delete_account(user: User) -> dict:
     logout(user)
-    user.inactivate()
-    utils.send_inactivation_mail(user.email)
-    return user
-
-
-def update_email(user: User, email: str) -> User:
-    """
-    Change user email and inactive user
-    """
-    user.email = email
-    user.date_email_update = timezone.now()
-    user.save()
-    user.account.verification_token = generate_random_string(
-        length=Account.VERIFICATION_TOKEN_LENGTH
-    )
-    user.account.is_verified = False
-    user.account.save()
-
-    utils.send_verify_account_mail(
-        user.email, user.steam_user.username, user.account.verification_token
-    )
-
-    user_status_change_task.delay(user.id)
-    lobby = user.account.lobby
-    if lobby:
-        lobby.move(user.id, user.id, remove=True)
-        if lobby.players_count > 0:
-            lobby_update_task.delay([lobby.id])
-
-    return user
-
-
-def user_matches(user_id: int) -> Match:
-    account = get_object_or_404(Account, user__id=user_id)
-    return account.matches_played
+    user.delete()
+    return {'status': 'deleted'}
