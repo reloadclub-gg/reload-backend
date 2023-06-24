@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from model_bakery import baker
 from ninja import Schema
@@ -186,6 +187,15 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
 
         self.assertIsNone(self.user.account.lobby)
         self.assertFalse(self.user.is_online)
+
+    def test_delete_account(self):
+        self.user.account.is_verified = True
+        self.user.account.save()
+        user_id = self.user.id
+        controller.delete_account(self.user)
+
+        with self.assertRaises(ObjectDoesNotExist):
+            User.objects.get(pk=user_id)
 
 
 class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):

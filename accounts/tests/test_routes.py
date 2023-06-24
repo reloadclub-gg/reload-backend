@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from model_bakery import baker
 
 from appsettings.models import AppSettings
@@ -131,15 +132,26 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.user.email, r.json().get('email'))
 
+    def test_inactivate_account(self):
+        self.user.auth.create_token()
+        self.user.auth.add_session()
+        baker.make(Account, user=self.user, is_verified=True)
+        Lobby.create(self.user.id)
+        r = self.api.patch('/inactivate', token=self.user.auth.token)
+        self.user.refresh_from_db()
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(self.user.is_active)
+
     def test_cancel_account(self):
         self.user.auth.create_token()
         self.user.auth.add_session()
         baker.make(Account, user=self.user, is_verified=True)
         Lobby.create(self.user.id)
+        user_id = self.user.id
         r = self.api.delete('/', token=self.user.auth.token)
-        self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
-        self.assertFalse(self.user.is_active)
+        with self.assertRaises(ObjectDoesNotExist):
+            User.objects.get(pk=user_id)
 
     def test_inactive_user_access_auth_endpoint(self):
         self.user.is_active = False

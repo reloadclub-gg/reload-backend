@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera endpoint de cancelar para deletar usuário do banco. Cria outro endpoint para inativar [#489](https://github.com/3C-gg/reload-backend/issues/489).
 - Mudamos a tarefa `watch_user_status_change` para enviar um websocket de logout caso, por algum motivo, o FE do usuário ainda esteja ativo [#498](https://github.com/3C-gg/reload-backend/issues/498).
 - Altera comportamento de websocket `ws_expire_player_invites` para deletar convites depois de enviar a expiração deles para o FE.
 - Altera a quantidade de workers e processos que cada container roda. Também setamos o nível de debug do celery para `WARNING`, além de remover a opção `--reload` do `uvicorn` em produção [#495](https://github.com/3C-gg/reload-backend/issues/495).
