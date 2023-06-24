@@ -858,6 +858,13 @@ class LobbyInviteModelTestCase(VerifiedPlayersMixin, TestCase):
         with self.assertRaises(LobbyInviteException):
             LobbyInvite.get_by_id('some_id:other_id')
 
+    def test_delete(self):
+        created = self.lobby1.invite(self.user_1.id, self.user_2.id)
+        LobbyInvite.delete(created)
+
+        with self.assertRaises(LobbyInviteException):
+            LobbyInvite.get_by_id(created.id)
+
 
 class PlayerModelTestCase(VerifiedPlayersMixin, TestCase):
     def test_create(self):
