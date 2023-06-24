@@ -50,11 +50,15 @@ def disconnect(user):
 
     :params user User: The user who will have his sessions count decreased.
     """
+    print('disconnect 1', user.auth.sessions_ttl, user.auth.sessions)
     if user.auth.sessions and user.auth.sessions > 0:
+        print('disconnect 2', user.auth.sessions_ttl, user.auth.sessions)
         user.auth.remove_session()
         if user.auth.sessions == 0:
+            print('disconnect 3', user.auth.sessions_ttl, user.auth.sessions)
             user.auth.expire_session()
             if hasattr(user, 'account') and user.account.is_verified:
+                print('disconnect 4', user.auth.sessions_ttl, user.auth.sessions)
                 watch_user_status_change.apply_async(
                     (user.id,),
                     countdown=WSAuthConfig.CHECK_OFFLINE_COUNTDOWN,

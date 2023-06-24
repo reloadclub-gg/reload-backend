@@ -29,8 +29,12 @@ def auth(user: User):
         if user.auth.sessions is None:
             from_offline_status = True
 
+        print('auth 1', user.auth.sessions_ttl, user.auth.sessions)
+
         user.auth.add_session()
         user.auth.persist_session()
+
+        print('auth 2', user.auth.sessions_ttl, user.auth.sessions)
         if from_offline_status:
             ws_friend_update_or_create(user)
 
