@@ -14,12 +14,14 @@ User = get_user_model()
 
 
 class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
+    @mock.patch('accounts.tasks.websocket.ws_user_logout')
     @mock.patch('accounts.tasks.ws_friend_update_or_create')
     @mock.patch('accounts.tasks.ws_expire_player_invites')
     def test_watch_user_status_change_offline(
         self,
         mock_expire_player_invites,
         mock_friend_create_or_update,
+        mock_user_logout,
     ):
         self.user.auth.add_session()
 
@@ -29,6 +31,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         tasks.watch_user_status_change(self.friend1.id)
         mock_friend_create_or_update.assert_called_once()
         mock_expire_player_invites.assert_called_once()
+        mock_user_logout.assert_called_once()
 
     @mock.patch('accounts.tasks.player_move')
     def test_watch_user_status_change_to_offline_does_cancel_lobby(
