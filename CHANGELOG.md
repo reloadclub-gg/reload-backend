@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Método `ws_match_found` ao websocket de matchmaking.
 
 ### Changed
-
 - Altera a quantidade de workers e processos que cada container roda. Também setamos o nível de debug do celery para `WARNING`, além de remover a opção `--reload` do `uvicorn` em produção [#495](https://github.com/3C-gg/reload-backend/issues/495).
 - Mudamos a lógica de amigos. Agora só vamos a Steam atualizar a lista de amigos quando o FE solicita o endpoint `friends/`. Esse endpoint vai à Steam e salva os amigos no Redis, a partir desse ponto, todas as chamadas para amigos são realizadas diretamente no cache. Quando um usuário se cadastra e verifica sua conta, a gente adiciona ele na lista de amigos de seus amigos no cache [#474](https://github.com/3C-gg/reload-backend/issues/474).
 - Campo `lobby_id` no esquema `LobbyPlayerSchema` agora pode ser nulo.
@@ -23,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrigimos um problema que fazia com que os jogadores de um lobby não fossem atualizados via ws ao iniciar ou cancelar a fila [#490](https://github.com/3C-gg/reload-backend/issues/490).
 - Corrigimos um bug que fazia com que o usuário e seus amigos não fossem notificados via WS quando entravam ou saíam da fila [#482](https://github.com/3C-gg/reload-backend/issues/482) [#483](https://github.com/3C-gg/reload-backend/issues/483).
 - Resolvemos um erro que fazia com que um erro fosse retornado ao iniciar fila com mais de um jogador por lobby [#478](https://github.com/3C-gg/reload-backend/issues/478).
 - Corrigimos um erro que fazia com que, ao encontrar uma partida, não estava sendo disparado update para os lobbies [#480](https://github.com/3C-gg/reload-backend/issues/480).

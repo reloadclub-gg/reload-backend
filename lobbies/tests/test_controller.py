@@ -557,14 +557,14 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         )
         self.assertIsNotNone(self.user_1.account.lobby.queue)
         mock_update_lobby.assert_called_once_with(self.user_1.account.lobby)
-        mock_update_user.assert_called_once_with(self.user_1)
 
-        mock_friend_update_calls = [
+        mock_calls = [
             mock.call(self.user_1),
             mock.call(self.user_2),
         ]
 
-        mock_friend_update.assert_has_calls(mock_friend_update_calls)
+        mock_friend_update.assert_has_calls(mock_calls)
+        mock_update_user.assert_has_calls(mock_calls)
 
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_update_lobby_start_queue_unauthorized(self, mock_update_lobby):
