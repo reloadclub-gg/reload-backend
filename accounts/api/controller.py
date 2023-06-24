@@ -188,3 +188,9 @@ def update_email(user: User, email: str) -> User:
 def user_matches(user_id: int) -> Match:
     account = get_object_or_404(Account, user__id=user_id)
     return account.matches_played
+
+
+def delete_account(user: User) -> dict:
+    logout(user)
+    user.delete()
+    return {'status': 'deleted'}
