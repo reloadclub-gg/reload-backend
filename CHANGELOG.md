@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Ao fazer logout, agora deletamos a lista de amigos do usuário que deslogou [#492](https://github.com/3C-gg/reload-backend/issues/492).
 - Método `delete` no modelo `LobbyInvite` para deletar convites. Esse método deve substituir o método `delete_invite` do modelo `Lobby` na tarefa [#502](https://github.com/3C-gg/reload-backend/issues/502).
 - Novo websocket para notificar todas as sessões do usuário no FE de que ele fez logout [#461](https://github.com/3C-gg/reload-backend/issues/461).
 - Ao iniciar a fila de um lobby, o sistema agora monta ou encontra um time para aquele lobby, em seguida busca por um adversário, e, case encontre um, envia o websocket de partida encontrada [#457](https://github.com/3C-gg/reload-backend/issues/457).
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Tarefa `watch_user_status_change` agora passa a usar o controller `logout` para deslogar o usuário.
 - Altera endpoint de cancelar para deletar usuário do banco. Cria outro endpoint para inativar [#489](https://github.com/3C-gg/reload-backend/issues/489).
 - Mudamos a tarefa `watch_user_status_change` para enviar um websocket de logout caso, por algum motivo, o FE do usuário ainda esteja ativo [#498](https://github.com/3C-gg/reload-backend/issues/498).
 - Altera comportamento de websocket `ws_expire_player_invites` para deletar convites depois de enviar a expiração deles para o FE.

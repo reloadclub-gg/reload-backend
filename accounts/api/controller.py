@@ -75,6 +75,7 @@ def logout(user: User) -> dict:
     user.auth.expire_session(seconds=0)
     ws_friend_update_or_create(user)
     websocket.ws_user_logout(user.id)
+    cache.delete(f'__friendlist:user:{user.id}')
 
     return {'detail': 'ok'}
 
