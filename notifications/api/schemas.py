@@ -1,3 +1,4 @@
+from django.conf import settings
 from ninja import Schema
 
 
@@ -17,6 +18,14 @@ class NotificationSchema(Schema):
     @staticmethod
     def resolve_read_date(obj):
         return obj.read_date.isoformat() if obj.read_date else None
+
+    @staticmethod
+    def resolve_avatar(obj):
+        if not obj.from_user_id:
+            if settings.ENVIRONMENT == settings.LOCAL:
+                return settings.SITE_URL + obj.avatar
+
+        return obj.avatar
 
 
 class NotificationUpdateSchema(Schema):

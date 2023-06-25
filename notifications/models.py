@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
+from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import m2m_changed
@@ -15,6 +16,9 @@ from appsettings.services import (
 )
 from core.redis import RedisClient
 from core.utils import str_to_timezone
+from websocket.utils import ws_send
+
+from .api.schemas import NotificationSchema
 
 cache = RedisClient()
 User = get_user_model()
@@ -25,13 +29,11 @@ class NotificationError(Exception):
 
 
 class SystemNotification(models.Model):
+    AVATAR = static('brand/logo_icon.png')
+
     to_users = models.ManyToManyField(User, blank=True)
     content = models.TextField()
     create_date = models.DateTimeField(auto_now_add=True)
-
-    @property
-    def avatar(self):
-        return static('icons/broadcast.png')
 
     def __str__(self) -> str:
         return self.content
@@ -137,14 +139,16 @@ class Notification(BaseModel):
 
     @staticmethod
     def create_system_notifications(
-        content: str, avatar: str, to_user_ids: List[int]
-    ) -> List[int]:
-        notification_ids = list()
+        content: str,
+        avatar: str,
+        to_user_ids: List[int],
+    ) -> List[Notification]:
+        notifications = list()
         for to_id in to_user_ids:
             n = Notification.create(content, avatar, to_id)
-            notification_ids.append(n.id)
+            notifications.append(n)
 
-        return notification_ids
+        return notifications
 
     @staticmethod
     def create(
@@ -180,18 +184,29 @@ class Notification(BaseModel):
 
 def system_notification_to_users_changed(sender, instance, action, **kwargs):
     if action == 'post_add':
-        to_users = list(
+        to_users_ids = list(
             User.objects.filter(pk__in=kwargs.get('pk_set')).values_list(
                 'pk', flat=True
             )
         )
-        Notification.create_system_notifications(
+        notifications = Notification.create_system_notifications(
             content=instance.content,
-            avatar=instance.avatar,
-            to_user_ids=to_users,
+            avatar=SystemNotification.AVATAR,
+            to_user_ids=to_users_ids,
         )
+
+        # send websockets here because there is no way to import
+        # ws_send_notification without circular import
+        for notification in notifications:
+            payload = NotificationSchema.from_orm(notification).dict()
+            async_to_sync(ws_send)(
+                'notifications/add',
+                payload,
+                groups=[notification.to_user_id],
+            )
 
 
 m2m_changed.connect(
-    system_notification_to_users_changed, sender=SystemNotification.to_users.through
+    system_notification_to_users_changed,
+    sender=SystemNotification.to_users.through,
 )
