@@ -204,7 +204,6 @@ if ENVIRONMENT != LOCAL:
         ),
         'ACL': config('AWS_S3_OBJECT_PARAMETERS__ACL', default='public-read'),
     }
-    DEFAULT_FILE_STORAGE = 'core.cdn.MediaRootS3BotoStorage'
     STATICFILES_STORAGE = 'core.cdn.StaticRootS3BotoStorage'
 
 # Email Settings
