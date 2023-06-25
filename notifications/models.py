@@ -29,7 +29,7 @@ class NotificationError(Exception):
 
 
 class SystemNotification(models.Model):
-    AVATAR = static('icons/logo_icon.png')
+    AVATAR = static('brand/logo_icon.png')
 
     to_users = models.ManyToManyField(User, blank=True)
     content = models.TextField()
