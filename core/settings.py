@@ -191,18 +191,18 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'core', 'static')]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AWS_LOCATION = config('AWS_LOCATION', default=None)
-
-if AWS_LOCATION:
+if ENVIRONMENT != LOCAL:
     AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_LOCATION = config('AWS_LOCATION')
     AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
-    AWS_S3_OBJECT_PARAMS = {
+    AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN')
+    AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': config(
-            'AWS_S3_OBJECT_PARAMS__CACHE_CONTROL', default='max-age=86400'
+            'AWS_S3_OBJECT_PARAMETERS__CACHE_CONTROL', default='max-age=86400'
         ),
-        'ACL': config('AWS_S3_OBJECT_PARAMS__ACL', default='public-read'),
+        'ACL': config('AWS_S3_OBJECT_PARAMETERS__ACL', default='public-read'),
     }
     DEFAULT_FILE_STORAGE = 'core.cdn.MediaRootS3BotoStorage'
     STATICFILES_STORAGE = 'core.cdn.StaticRootS3BotoStorage'
