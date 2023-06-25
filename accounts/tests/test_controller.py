@@ -148,8 +148,9 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.update_email(self.user, 'new@email.com')
         mocker.assert_called_once()
 
+    @mock.patch('accounts.api.controller.cache.delete')
     @mock.patch('accounts.api.controller.websocket.ws_user_logout')
-    def test_logout(self, mock_user_logout):
+    def test_logout(self, mock_user_logout, mock_cache_delete):
         self.user.auth.add_session()
         self.user.account.is_verified = True
         self.user.account.save()
@@ -157,9 +158,10 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertEqual(self.user.account.lobby.id, self.user.id)
 
         controller.logout(self.user)
+
         self.assertIsNone(self.user.account.lobby)
         self.assertFalse(self.user.is_online)
-
+        mock_cache_delete.assert_called_once_with(f'__friendlist:user:{self.user.id}')
         mock_user_logout.assert_called_once()
 
     def test_logout_other_lobby(self):
