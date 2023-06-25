@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Sistema não estava enviando notificações via websockets criadas a partir do admin.
 - Adicionamos o envio de websocket para corrigir e expirar convites de jogadores de um lobby que iniciam fila [#500](https://github.com/3C-gg/reload-backend/issues/500).
 - Corrigimos um problema que fazia com que os jogadores de um lobby não fossem atualizados via ws ao iniciar ou cancelar a fila [#490](https://github.com/3C-gg/reload-backend/issues/490).
 - Corrigimos um bug que fazia com que o usuário e seus amigos não fossem notificados via WS quando entravam ou saíam da fila [#482](https://github.com/3C-gg/reload-backend/issues/482) [#483](https://github.com/3C-gg/reload-backend/issues/483).

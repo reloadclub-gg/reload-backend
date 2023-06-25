@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.templatetags.static import static
 
 from core.tests import TestCase
@@ -126,7 +128,8 @@ class NotificationsNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
 
 
 class NotificationsSystemNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
-    def test_system_notification_to_users_changed_signal(self):
+    @mock.patch('notifications.models.ws_send')
+    def test_system_notification_to_users_changed_signal(self, mock_ws_send):
         n = SystemNotification(content='Sys Notification')
         n.save()
         n.to_users.set([self.user_1, self.user_2])
@@ -136,3 +139,4 @@ class NotificationsSystemNotificationModelTestCase(VerifiedPlayersMixin, TestCas
 
         self.assertEqual(len(user1_notifications), 1)
         self.assertEqual(len(user2_notifications), 1)
+        self.assertEqual(mock_ws_send.call_count, 2)
