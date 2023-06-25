@@ -27,11 +27,22 @@ def create_ticket(
     payload: TicketCreateSchema,
     files: List[UploadedFile] = None,
 ) -> Ticket:
+    body = f"""
+    Informações do usuário:
+    ID: {user.id}
+    Email: {user.email}
+    Steam ID: {user.steam_user.steamid}
+
+    Informações do ticket:
+    Assunto: {payload.subject}
+    Conteúdo: {payload.description}
+    """
     email = EmailMessage(
         payload.subject,
-        body=payload.description,
-        from_email=user.email,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[settings.SUPPORT_EMAIL],
+        headers={'Reply-To': user.email},
     )
 
     if files:

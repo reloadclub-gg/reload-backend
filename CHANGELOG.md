@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige erro ao enviar tickets de suporte. Eram 2 problemas: o primeiro era relacionado aos anexos serem enviados para o CDN, fazendo com que o sistema de arquivos não encontrasse os anexos salvos localmente. Para esse problema, removemos o upload para o CDN, uma vez que não teremos uploads de usuários (até segunda ordem). O segundo problema, era que o sistema estava tentando enviar o email com o `from` do usuário, porém, para que possamos enviar emails via AWS, precisamos verificar o `from`, o que foi feito com todos os emails do domínio `reloadclub.gg`. Como os emails dos usuários não estão verificados como `from`, o envio de emails da AWS retornava um erro. Ajustamos para enviar o email de `from` verificado (`equipe@reloadclub.gg`) e adicionamos um header ao envio do email (`reply_to`) para que o analista do Freshdesk possa responder a esse usuário via e-mail [#506](https://github.com/3C-gg/reload-backend/issues/506).
 - Ajusta avatar de notificações de sistema que estava sendo enviado errado [#509](https://github.com/3C-gg/reload-backend/issues/509).
 - Encontramos e corrigimos alguns erros de nomenclaturas no sistema de CDN. Além disso, mudamos também a forma como detectamos se devemos aplicar as configurações de CDN - antes fazíamos baseado em uma das configs CDN, agora passamos a fazer baseado no ambiente (`ENVIRONMENT`).
 - Sistema não estava enviando notificações via websockets criadas a partir do admin.
