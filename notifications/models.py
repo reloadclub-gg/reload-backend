@@ -138,13 +138,13 @@ class Notification(BaseModel):
     @staticmethod
     def create_system_notifications(
         content: str, avatar: str, to_user_ids: List[int]
-    ) -> List[int]:
-        notification_ids = list()
+    ) -> List[Notification]:
+        notifications = list()
         for to_id in to_user_ids:
             n = Notification.create(content, avatar, to_id)
-            notification_ids.append(n.id)
+            notifications.append(n)
 
-        return notification_ids
+        return notifications
 
     @staticmethod
     def create(

@@ -109,16 +109,16 @@ class NotificationsNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
         self.assertIsNotNone(n.read_date)
 
     def test_create_system_notifications(self):
-        nids = Notification.create_system_notifications(
+        notifications = Notification.create_system_notifications(
             content='System notification',
             avatar=static('icons/broadcast.png'),
             to_user_ids=[self.user_1.id, self.user_2.id, self.user_4.id],
         )
-        self.assertEqual(len(nids), 3)
+        self.assertEqual(len(notifications), 3)
 
-        n1 = Notification.get_by_id(nids[0])
-        n2 = Notification.get_by_id(nids[1])
-        n3 = Notification.get_by_id(nids[2])
+        n1 = notifications[0]
+        n2 = notifications[1]
+        n3 = notifications[2]
 
         self.assertEqual(n1.to_user_id, self.user_1.id)
         self.assertEqual(n2.to_user_id, self.user_2.id)
