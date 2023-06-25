@@ -6,7 +6,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
 from django.core.mail import EmailMessage
-from django.urls import reverse
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 from ninja.files import UploadedFile
@@ -28,10 +27,6 @@ def create_ticket(
     payload: TicketCreateSchema,
     files: List[UploadedFile] = None,
 ) -> Ticket:
-    admin_url = reverse(
-        f'admin:{user._meta.app_label}_{user._meta.model_name}_change',
-        args=[user.id],
-    )
     body = f"""
     Informações do usuário:
     ID: {user.id}
