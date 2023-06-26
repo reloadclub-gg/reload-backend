@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Envio de websocket para criar um toast no FE quando um usuário for expulso de um lobby [#505](https://github.com/3C-gg/reload-backend/issues/505).
+- Método de websocket em `core` para criar toasts no FE.
+
 ### Fixed
 
 - Chamada para websocket informando que o amigo se cadastrou estava sendo formatada errada, antes da frase ser traduzida. Mudamos a formatação para ser feita logo após a tradução e passou a funcionar [#516](https://github.com/3C-gg/reload-backend/issues/516).

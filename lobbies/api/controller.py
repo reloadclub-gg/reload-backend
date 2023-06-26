@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.websocket import ws_update_user
+from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
 from matchmaking.models import PreMatch, Team
 from matchmaking.websocket import ws_match_found
@@ -266,6 +267,10 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
     else:
         player = User.objects.get(pk=player_id)
         player_move(player, player.id)
+        ws_create_toast(
+            player_id,
+            _('{} kicked you from lobby.').format(user.account.username),
+        )
 
     return lobby
 

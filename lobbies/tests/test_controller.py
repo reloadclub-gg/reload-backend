@@ -512,8 +512,9 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         )
         mock_player_move.assert_not_called()
 
+    @mock.patch('lobbies.api.controller.ws_create_toast')
     @mock.patch('lobbies.api.controller.player_move')
-    def test_delete_player_kick(self, mock_player_move):
+    def test_delete_player_kick(self, mock_player_move, mock_create_toast):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
 
@@ -523,6 +524,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
             self.user_2.id,
         )
         mock_player_move.assert_called_once_with(self.user_2, self.user_2.id)
+        mock_create_toast.assert_called_once()
 
     def test_delete_player_kick_unauthorized(self):
         self.user_1.account.lobby.set_public()

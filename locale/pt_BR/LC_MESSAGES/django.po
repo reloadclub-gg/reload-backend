@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-26 15:55-0300\n"
-"PO-Revision-Date: 2023-06-26 15:56-0300\n"
+"POT-Creation-Date: 2023-06-26 16:28-0300\n"
+"PO-Revision-Date: 2023-06-26 16:28-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -451,13 +451,22 @@ msgstr "Não autorizado."
 msgid "Internationalization works."
 msgstr "A internacionalização está funcionando."
 
+#: core/api/schemas.py:13
+#| msgid "invalid date format"
+msgid "Invalid toast variant."
+msgstr "Variante de toast inválida."
+
 #: friends/api/controller.py:47
 msgid "Users aren't friends."
 msgstr "Usuários não são amigos."
 
-#: lobbies/api/controller.py:216
+#: lobbies/api/controller.py:217
 msgid "Invalid invite id"
 msgstr "Convite inválido."
+
+#: lobbies/api/controller.py:272
+msgid "{} kicked you from lobby."
+msgstr "{} removeu você do lobby."
 
 #: lobbies/api/routes.py:55
 msgid "Invite must be accepted or refused. Can't be none."
