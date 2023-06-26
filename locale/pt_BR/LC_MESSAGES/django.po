@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-25 23:04-0300\n"
-"PO-Revision-Date: 2023-06-25 23:07-0300\n"
+"POT-Creation-Date: 2023-06-26 15:55-0300\n"
+"PO-Revision-Date: 2023-06-26 15:56-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -48,10 +48,8 @@ msgid "Invalid verification token."
 msgstr "Código de verificação inválido."
 
 #: accounts/api/controller.py:140
-#, python-brace-format
-msgid "Your friend {user.steam_user.username} just joined ReloadClub!"
-msgstr ""
-"O seu amigo {user.steam_user.username} acabou de entrar para a ReloadClub!"
+msgid "Your friend {} just joined ReloadClub!"
+msgstr "O seu amigo {} acabou de entrar para a ReloadClub!"
 
 #: accounts/api/schemas.py:180 accounts/api/schemas.py:227
 msgid "E-mail must be unique."
@@ -454,7 +452,6 @@ msgid "Internationalization works."
 msgstr "A internacionalização está funcionando."
 
 #: friends/api/controller.py:47
-#| msgid "User not found."
 msgid "Users aren't friends."
 msgstr "Usuários não são amigos."
 
@@ -626,35 +623,3 @@ msgstr "O anexo é muito grande (máx 3MB)."
 #: support/api/schemas.py:28
 msgid "Invalid ticket subject."
 msgstr "Assunto de ticket inválido."
-
-#~ msgid "User must be in provided lobby to leave from it."
-#~ msgstr "Usuário precisa estar no lobby para sair dele."
-
-#, python-brace-format
-#~ msgid "{from_user_username} invited you to a group."
-#~ msgstr "{from_user_username} convidou você para fazer parte de um grupo."
-
-#, python-brace-format
-#~ msgid "{from_user_username} refused your invite."
-#~ msgstr "{from_user_username} recusou seu convite para participar do grupo."
-
-#~ msgid "Can't change lobby mode or type while in a match."
-#~ msgstr ""
-#~ "Não é possível alterar o tipo ou modo de um lobby enquanto estiver em uma "
-#~ "partida."
-
-#~ msgid "Can't accept an invite from the same lobby."
-#~ msgstr "Não é possível aceitar um convite para o lobby em que já está."
-
-#, python-brace-format
-#~ msgid "{from_user_username} accepted your invite and joined your group."
-#~ msgstr "{from_user_username} aceitou seu convite e se juntou ao grupo."
-
-#~ msgid "Can't start queue while in a match."
-#~ msgstr "Não é possível entrar na fila enquanto estiver em uma partida."
-
-#~ msgid "List all active users"
-#~ msgstr "Lista todos os usuários ativos"
-
-#~ msgid "List online users"
-#~ msgstr "Lista todos os usuários online"

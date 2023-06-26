@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Chamada para websocket informando que o amigo se cadastrou estava sendo formatada errada, antes da frase ser traduzida. Mudamos a formatação para ser feita logo após a tradução e passou a funcionar [#516](https://github.com/3C-gg/reload-backend/issues/516).
+
 ## [cef26da - 26-06-2023]
 
 ### Added
