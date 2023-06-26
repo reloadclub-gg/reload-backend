@@ -109,3 +109,17 @@ class LobbyInvite(BaseModel):
         from_invites = LobbyInvite.get_by_from_user_id(user_id)
         to_invites = LobbyInvite.get_by_to_user_id(user_id)
         return from_invites + to_invites
+
+    @staticmethod
+    def delete(invite: LobbyInvite):
+        """
+        Delete received invite.
+        """
+
+        def transaction_operations(pipe, pre_result):
+            pipe.zrem(f'__mm:lobby:{invite.lobby_id}:invites', invite.id)
+
+        cache.protected_handler(
+            transaction_operations,
+            f'__mm:lobby:{invite.lobby_id}:invites',
+        )

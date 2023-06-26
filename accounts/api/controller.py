@@ -75,6 +75,7 @@ def logout(user: User) -> dict:
     user.auth.expire_session(seconds=0)
     ws_friend_update_or_create(user)
     websocket.ws_user_logout(user.id)
+    cache.delete(f'__friendlist:user:{user.id}')
 
     return {'detail': 'ok'}
 
@@ -188,3 +189,9 @@ def update_email(user: User, email: str) -> User:
 def user_matches(user_id: int) -> Match:
     account = get_object_or_404(Account, user__id=user_id)
     return account.matches_played
+
+
+def delete_account(user: User) -> dict:
+    logout(user)
+    user.delete()
+    return {'status': 'deleted'}
