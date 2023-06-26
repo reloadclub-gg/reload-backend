@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [cef26da - 26-06-2023]
+
 ### Added
 
 - Ao fazer logout, agora deletamos a lista de amigos do usuário que deslogou [#492](https://github.com/3C-gg/reload-backend/issues/492).
