@@ -640,7 +640,7 @@ class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
         mock_update_lobby.assert_any_call(self.user_1.account.lobby)
         self.assertEqual(mock_update_lobby.call_count, 4)
 
-    @mock.patch('lobbies.api.controller.ws_match_found')
+    @mock.patch('lobbies.api.controller.ws_pre_match_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_match_found(self, mock_update_lobby, mock_match_found):
         with self.settings(TEAM_READY_PLAYERS_MIN=1):

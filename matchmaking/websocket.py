@@ -9,7 +9,7 @@ from .api import schemas
 User = get_user_model()
 
 
-def ws_match_found(pre_match: models.PreMatch):
+def ws_pre_match_create(pre_match: models.PreMatch):
     """
     Notify clients from a Lobby that a match was found. This isn't a Match,
     it is just a verification that all users are ready to play a Match.
@@ -21,12 +21,12 @@ def ws_match_found(pre_match: models.PreMatch):
     matchmaking.api.schemas.PreMatchSchema: object
 
     Actions:
-    - matches/found
+    - mm/pre_match/create
     """
     payload = schemas.PreMatchSchema.from_orm(pre_match).dict()
 
     return async_to_sync(ws_send)(
-        'matches/found',
+        'mm/pre_match/create',
         payload,
         groups=[player.id for player in pre_match.players],
     )
