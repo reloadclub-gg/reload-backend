@@ -9,7 +9,6 @@ from ninja.errors import HttpError
 from appsettings.models import AppSettings
 from core.tests import TestCase
 from lobbies.models import Lobby
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from .. import utils
 from ..api import controller
@@ -119,8 +118,9 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         mocker.assert_called_once()
         mocker.assert_called_once_with(self.user.email)
 
-    @mock.patch('accounts.utils.send_verify_account_mail')
-    def test_update_email(self, mocker):
+    @mock.patch('accounts.api.controller.websocket.ws_update_user')
+    @mock.patch('accounts.api.controller.utils.send_verify_account_mail')
+    def test_update_email(self, mock_send_email, mock_update_user):
         self.user.account.is_verified = True
         self.user.account.save()
         self.user.auth.add_session()
@@ -129,8 +129,9 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertFalse(self.user.account.is_verified)
         self.assertEqual(self.user.email, 'new@email.com')
 
-        mocker.assert_called_once()
-        mocker.assert_called_once_with(
+        mock_update_user.assert_called_once()
+        mock_send_email.assert_called_once()
+        mock_send_email.assert_called_once_with(
             self.user.email,
             self.user.steam_user.username,
             self.user.account.verification_token,
@@ -200,7 +201,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
             User.objects.get(pk=user_id)
 
 
-class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
+class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()

@@ -1,9 +1,9 @@
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import APIClient, TestCase
 from friends.api import schemas
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 
-class FriendsRoutesTestCase(VerifiedPlayersMixin, TestCase):
+class FriendsRoutesTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.api = APIClient('/api/friends')

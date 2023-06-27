@@ -12,7 +12,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.beat_schedule = {
     'clear_dodges': {
-        'task': 'matchmaking.tasks.clear_dodges',
+        'task': 'lobbies.tasks.clear_dodges',
         'schedule': crontab(minute=0, hour=0),
     },
     'decr_level_from_inactivity': {

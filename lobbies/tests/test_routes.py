@@ -1,12 +1,12 @@
 from unittest import mock
 
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import APIClient, TestCase
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from ..models import Lobby, LobbyInvite
 
 
-class LobbyRoutesTestCase(VerifiedPlayersMixin, TestCase):
+class LobbyRoutesTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.api = APIClient('/api/lobbies')

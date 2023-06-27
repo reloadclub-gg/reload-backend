@@ -7,8 +7,8 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 from accounts.websocket import ws_update_user
 from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
-from matchmaking.models import PreMatch, Team
-from matchmaking.websocket import ws_match_found
+from pre_matches.models import PreMatch, Team
+from pre_matches.websocket import ws_pre_match_create
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
@@ -156,7 +156,7 @@ def handle_match_found(team: Team, opponent: Team):
         websocket.ws_update_lobby(lobby)
 
     pre_match = PreMatch.create(team.id, opponent.id)
-    ws_match_found(pre_match)
+    ws_pre_match_create(pre_match)
 
 
 def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:

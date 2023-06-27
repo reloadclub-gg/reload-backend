@@ -1,10 +1,10 @@
 from core.tests import TestCase
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from ..api.authorization import is_verified
+from .mixins import VerifiedAccountsMixin
 
 
-class AuthorizationTestCase(VerifiedPlayersMixin, TestCase):
+class AuthorizationTestCase(VerifiedAccountsMixin, TestCase):
     def test_is_verified_is_true(self):
         self.assertTrue(is_verified(self.user_1))
 

@@ -1,11 +1,11 @@
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 from notifications.api.schemas import NotificationSchema
 from notifications.models import Notification
 from steam import Steam
 
 
-class NotificationsSchemasTestCase(VerifiedPlayersMixin, TestCase):
+class NotificationsSchemasTestCase(VerifiedAccountsMixin, TestCase):
     def test_notification_schema(self):
         n = Notification.create(
             content='New notification',

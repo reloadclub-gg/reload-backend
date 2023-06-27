@@ -1,7 +1,7 @@
 from core.tests import TestCase
 
 from ..api import schemas
-from ..models import PreMatch, PreMatchConfig
+from ..models import PreMatch
 from . import mixins
 
 
@@ -12,8 +12,8 @@ class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
 
         expected_payload = {
             'id': pre_match.id,
-            'state': list(PreMatchConfig.STATES.keys())[
-                list(PreMatchConfig.STATES.values()).index(pre_match.state)
+            'state': list(PreMatch.Config.STATES.keys())[
+                list(PreMatch.Config.STATES.values()).index(pre_match.state)
             ],
             'countdown': pre_match.countdown,
             'players_ready_count': len(pre_match.players_ready),

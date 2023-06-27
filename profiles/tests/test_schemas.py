@@ -3,7 +3,7 @@ from model_bakery import baker
 
 from core.tests import TestCase
 from matches.models import Match, MatchPlayer, Server
-from matchmaking.tests.mixins import TeamsMixin
+from pre_matches.tests.mixins import TeamsMixin
 from profiles.api import schemas
 from steam import Steam
 

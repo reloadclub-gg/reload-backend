@@ -13,7 +13,6 @@ from lobbies.models import Lobby
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import Match
 from notifications.websocket import ws_new_notification
-from websocket.tasks import lobby_update_task, user_status_change_task
 
 from .. import utils, websocket
 from ..models import Account, Auth, Invite, UserLogin
@@ -176,12 +175,10 @@ def update_email(user: User, email: str) -> User:
         user.email, user.steam_user.username, user.account.verification_token
     )
 
-    user_status_change_task.delay(user.id)
+    websocket.ws_update_user(user)
     lobby = user.account.lobby
     if lobby:
         lobby.move(user.id, user.id, remove=True)
-        if lobby.players_count > 0:
-            lobby_update_task.delay([lobby.id])
 
     return user
 

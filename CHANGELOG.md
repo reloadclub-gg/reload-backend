@@ -9,12 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A aplicação `matches` agora possui seu próprio emissor de websockets.
+- Criamos a aplicação `pre_matches` que vai substituir a `matchmaking`.
 - Envio de websocket para criar um toast no FE quando um usuário for expulso de um lobby [#505](https://github.com/3C-gg/reload-backend/issues/505).
 - Método de websocket em `core` para criar toasts no FE.
+
+### Changed
+
+- Melhorias no endpoint de detalhe de perfil.
+- Substitui a aplicação `matchmaking` pela `pre_matches`.
+- Move a tarefa `clear_dodges` para o app `lobbies`.
+- Move mixin de teste `VerifiedAccountsMixin` para app `accounts`.
+- Altera comando startapp no Makefile para ficar mais "verbose".
 
 ### Fixed
 
 - Chamada para websocket informando que o amigo se cadastrou estava sendo formatada errada, antes da frase ser traduzida. Mudamos a formatação para ser feita logo após a tradução e passou a funcionar [#516](https://github.com/3C-gg/reload-backend/issues/516).
+
+### Removed
+
+- Códigos legados da aplicação `websocket`.
 
 ## [cef26da - 26-06-2023]
 
