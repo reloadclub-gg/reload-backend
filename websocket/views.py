@@ -4,6 +4,7 @@ from django.views.decorators.cache import never_cache
 from accounts import websocket as accounts_websocket
 from friends import websocket as friends_websocket
 from lobbies import websocket as lobbies_websocket
+from matches import websocket as matches_websocket
 from notifications import websocket as notifications_websocket
 from pre_matches import websocket as pre_matches_websocket
 
@@ -97,6 +98,17 @@ def docs(request):
                         'doc': generate_docs(pre_matches_websocket, method),
                     }
                     for method in dir(pre_matches_websocket)
+                    if method.startswith('ws_') and method != 'ws_send'
+                ],
+            },
+            {
+                'title': 'matches',
+                'methods': [
+                    {
+                        'name': method,
+                        'doc': generate_docs(matches_websocket, method),
+                    }
+                    for method in dir(matches_websocket)
                     if method.startswith('ws_') and method != 'ws_send'
                 ],
             },
