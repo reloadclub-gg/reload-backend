@@ -8,9 +8,9 @@ from lobbies.api.schemas import LobbyInviteSchema, LobbySchema
 from lobbies.models import Lobby, LobbyInvite
 from matches.api.schemas import MatchSchema
 from matches.models import Match
-from matchmaking.api.schemas import PreMatchSchema
-from matchmaking.models import PreMatch
 from notifications.api.schemas import NotificationSchema
+from pre_matches.api.schemas import PreMatchSchema
+from pre_matches.models import PreMatch
 
 from .utils import ws_send
 

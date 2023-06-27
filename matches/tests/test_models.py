@@ -5,10 +5,10 @@ from appsettings.models import AppSettings
 from appsettings.services import player_max_losing_level_points
 from core.tests import TestCase
 from matches.models import Match, MatchPlayer, MatchPlayerStats, Server
-from matchmaking.tests import mixins
+from pre_matches.tests.mixins import TeamsMixin
 
 
-class MatchesServerModelTestCase(mixins.TeamsMixin, TestCase):
+class MatchesServerModelTestCase(TeamsMixin, TestCase):
     def test_server_model(self):
         server = baker.make(Server)
         AppSettings.set_int('Matches Limit', 2)
@@ -27,7 +27,7 @@ class MatchesServerModelTestCase(mixins.TeamsMixin, TestCase):
         self.assertIsNone(Server.get_idle())
 
 
-class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
+class MatchesMatchModelTestCase(TeamsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.server = baker.make(Server)
@@ -115,7 +115,7 @@ class MatchesMatchModelTestCase(mixins.TeamsMixin, TestCase):
             self.match.cancel()
 
 
-class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
+class MatchesMatchPlayerModelTestCase(TeamsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.server = baker.make(Server)
@@ -256,7 +256,7 @@ class MatchesMatchPlayerModelTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(player.points_earned, player_max_losing_level_points())
 
 
-class MatchesMatchPlayerStatsModelTestCase(mixins.TeamsMixin, TestCase):
+class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.server = baker.make(Server)

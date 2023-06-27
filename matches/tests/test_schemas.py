@@ -4,11 +4,11 @@ from accounts.utils import calc_level_and_points
 from core.tests import TestCase
 from matches.api import schemas
 from matches.models import Match, MatchPlayer, MatchTeam
-from matchmaking.tests import mixins
+from pre_matches.tests.mixins import TeamsMixin
 from steam import Steam
 
 
-class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
+class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_schema(self):
         match = baker.make(Match)
         baker.make(MatchTeam, match=match)

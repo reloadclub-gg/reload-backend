@@ -10,7 +10,6 @@ from accounts.api.routes import router as accounts_router
 from friends.api.routes import router as friends_router
 from lobbies.api.routes import router as lobbies_router
 from matches.api.routes import router as matches_router
-from matchmaking.api.routes import router as mm_router
 from notifications.api.routes import router as notifications_router
 from pre_matches.api.routes import router as pre_matches_router
 from profiles.api.routes import router as profiles_router
@@ -58,7 +57,6 @@ def list_items(request):
 
 
 api.add_router("/accounts/", accounts_router)
-api.add_router("/mm/", mm_router)
 api.add_router("/matches/", matches_router)
 api.add_router("/notifications/", notifications_router)
 api.add_router("/friends/", friends_router)

@@ -10,11 +10,11 @@ from lobbies.api.schemas import LobbyInviteSchema, LobbySchema
 from lobbies.models import Lobby
 from matches.api.schemas import MatchSchema
 from matches.models import Match, Server
-from matchmaking.api.schemas import PreMatchSchema
-from matchmaking.models import PreMatch
-from matchmaking.tests.mixins import TeamsMixin
 from notifications.api.schemas import NotificationSchema
 from notifications.models import Notification
+from pre_matches.api.schemas import PreMatchSchema
+from pre_matches.models import PreMatch
+from pre_matches.tests.mixins import TeamsMixin
 from steam import Steam
 from websocket import controller
 

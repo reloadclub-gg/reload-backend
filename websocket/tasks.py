@@ -5,8 +5,8 @@ from django.contrib.auth import get_user_model
 
 from lobbies.models import Lobby, LobbyInvite
 from matches.models import Match
-from matchmaking.models import PreMatch
 from notifications.models import Notification
+from pre_matches.models import PreMatch
 from websocket import controller
 
 User = get_user_model()

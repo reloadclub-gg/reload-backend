@@ -7,8 +7,8 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 from accounts.websocket import ws_update_user
 from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
-from matchmaking.models import PreMatch, Team
-from matchmaking.websocket import ws_pre_match_create
+from pre_matches.models import PreMatch, Team
+from pre_matches.websocket import ws_pre_match_create
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException

@@ -14,8 +14,8 @@ from core.redis import RedisClient
 from core.utils import generate_random_string
 from lobbies.models import Lobby, LobbyInvite
 from matches.models import Match, MatchPlayer
-from matchmaking.models import PreMatch
 from notifications.models import Notification
+from pre_matches.models import PreMatch
 from steam import Steam
 
 from ..utils import calc_level_and_points

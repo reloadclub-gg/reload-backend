@@ -4,7 +4,7 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
-from matchmaking.models import Team
+from pre_matches.models import Team
 
 from ..api import controller, schemas
 from ..models import Lobby, LobbyInvite

@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'channels',
     'storages',
     'accounts.apps.AccountsConfig',
-    'matchmaking.apps.MatchmakingConfig',
+    'pre_matches.apps.PreMatchesConfig',
     'appsettings.apps.AppSettingsConfig',
     'matches.apps.MatchesConfig',
     'notifications.apps.NotificationsConfig',

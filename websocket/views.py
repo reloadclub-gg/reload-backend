@@ -4,8 +4,8 @@ from django.views.decorators.cache import never_cache
 from accounts import websocket as accounts_websocket
 from friends import websocket as friends_websocket
 from lobbies import websocket as lobbies_websocket
-from matchmaking import websocket as matchmaking_websocket
 from notifications import websocket as notifications_websocket
+from pre_matches import websocket as pre_matches_websocket
 
 
 def get_schema(name):
@@ -90,13 +90,13 @@ def docs(request):
                 ],
             },
             {
-                'title': 'matchmaking',
+                'title': 'pre_matches',
                 'methods': [
                     {
                         'name': method,
-                        'doc': generate_docs(matchmaking_websocket, method),
+                        'doc': generate_docs(pre_matches_websocket, method),
                     }
-                    for method in dir(matchmaking_websocket)
+                    for method in dir(pre_matches_websocket)
                     if method.startswith('ws_') and method != 'ws_send'
                 ],
             },
