@@ -31,8 +31,8 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
         player1 = Player(user_id=pre_match.players[0].id)
         player2 = Player(user_id=pre_match.players[1].id)
 
-        for _ in range(0, PreMatch.Config.READY_PLAYERS_MIN):
-            pre_match.set_player_lock_in()
+        for player in pre_match.players:
+            pre_match.set_player_lock_in(player.id)
 
         pre_match.start_players_ready_countdown()
         pre_match.set_player_ready(player1.user_id)
