@@ -1,13 +1,13 @@
 from django.templatetags.static import static
 from ninja.errors import Http404
 
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 from notifications.api import controller, schemas
 from notifications.models import Notification
 
 
-class NotificationsControllerTestCase(VerifiedPlayersMixin, TestCase):
+class NotificationsControllerTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self):
         super().setUp()
 

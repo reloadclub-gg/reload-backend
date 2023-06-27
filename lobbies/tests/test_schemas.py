@@ -1,12 +1,12 @@
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 from steam import Steam
 
 from ..api import schemas
 from ..models import Lobby
 
 
-class LobbySchemaTestCase(VerifiedPlayersMixin, TestCase):
+class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()

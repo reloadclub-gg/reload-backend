@@ -9,7 +9,6 @@ from ninja.errors import HttpError
 from appsettings.models import AppSettings
 from core.tests import TestCase
 from lobbies.models import Lobby
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from .. import utils
 from ..api import controller
@@ -200,7 +199,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
             User.objects.get(pk=user_id)
 
 
-class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
+class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()

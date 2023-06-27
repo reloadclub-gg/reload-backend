@@ -1,10 +1,10 @@
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
 from friends.api.schemas import FriendListSchema, FriendSchema
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 from steam import Steam
 
 
-class FriendsSchemasTestCase(VerifiedPlayersMixin, TestCase):
+class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
     def test_friend_schema(self):
         payload = FriendSchema.from_orm(self.user_1.account).dict()
         expected_payload = {

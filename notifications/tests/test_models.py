@@ -2,13 +2,13 @@ from unittest import mock
 
 from django.templatetags.static import static
 
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 from notifications.models import Notification, NotificationError, SystemNotification
 from steam import Steam
 
 
-class NotificationsNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
+class NotificationsNotificationModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_create(self):
         first_created_id = None
 
@@ -127,7 +127,7 @@ class NotificationsNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(n3.to_user_id, self.user_4.id)
 
 
-class NotificationsSystemNotificationModelTestCase(VerifiedPlayersMixin, TestCase):
+class NotificationsSystemNotificationModelTestCase(VerifiedAccountsMixin, TestCase):
     @mock.patch('notifications.models.ws_send')
     def test_system_notification_to_users_changed_signal(self, mock_ws_send):
         n = SystemNotification(content='Sys Notification')

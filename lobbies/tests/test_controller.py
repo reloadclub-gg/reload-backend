@@ -2,15 +2,15 @@ from unittest import mock
 
 from ninja.errors import AuthenticationError, Http404, HttpError
 
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
 from matchmaking.models import Team
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from ..api import controller, schemas
 from ..models import Lobby, LobbyInvite
 
 
-class LobbyControllerTestCase(VerifiedPlayersMixin, TestCase):
+class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()

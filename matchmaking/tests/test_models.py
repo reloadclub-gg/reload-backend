@@ -12,7 +12,7 @@ from ..models import PreMatch, PreMatchConfig, PreMatchException, Team, TeamExce
 from . import mixins
 
 
-class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+class TeamModelTestCase(mixins.VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()
@@ -379,7 +379,7 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertTrue(team1.name in players_usernames)
 
 
-class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+class PreMatchModelTestCase(mixins.VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()

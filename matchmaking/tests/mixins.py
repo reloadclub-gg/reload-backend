@@ -72,7 +72,7 @@ class SomePlayersMixin:
         baker.make(Account, user=self.offline_verified_user, is_verified=True)
 
 
-class VerifiedPlayersMixin:
+class VerifiedAccountsMixin:
     def setUp(self):
         super().setUp()
 
@@ -159,7 +159,7 @@ class VerifiedPlayersMixin:
         baker.make(Account, user=self.offline_verified_user, is_verified=True)
 
 
-class TeamsMixin(VerifiedPlayersMixin):
+class TeamsMixin(VerifiedAccountsMixin):
     def setUp(self):
         super().setUp()
 
