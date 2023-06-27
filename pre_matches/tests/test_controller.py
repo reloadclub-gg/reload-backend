@@ -1,10 +1,9 @@
 from unittest import mock
 
-from model_bakery import baker
-from ninja.errors import AuthenticationError, Http404, HttpError
+from ninja.errors import Http404, HttpError
 
 from core.tests import TestCase
-from matches.models import Match, MatchPlayer, MatchTeam, Server
+from matches.models import Server
 
 from ..api import controller
 from ..models import PreMatch, PreMatchException, Team, TeamException

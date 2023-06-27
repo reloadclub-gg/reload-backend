@@ -38,13 +38,12 @@ def cancel_match_after_countdown(pre_match_id: str):
 
             else:
                 for player_id in lobby.players_ids:
-                    ws_create_toast(
-                        player_id,
-                        _(
-                            'Some players in your lobby were not ready before the timer ran out and the match was cancelled. The recurrence of this conduct may result in restrictions.'
-                        ),
-                        'warning',
+                    msg = (
+                        'Some players in your lobby were not ready'
+                        ' before the timer ran out and the match was cancelled.'
+                        ' The recurrence of this conduct may result in restrictions.'
                     )
+                    ws_create_toast(player_id, _(msg), 'warning')
                     if player_id not in ready_players_ids:
                         player = Player.get_by_user_id(player_id)
                         player.dodge_add()
