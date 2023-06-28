@@ -166,4 +166,5 @@ class Player(BaseModel):
         This should be called upon a player logout.
         """
         player = Player.get_by_user_id(user_id=user_id)
-        cache.srem('__mm:players', player.user_id)
+        if player:
+            cache.srem('__mm:players', player.user_id)
