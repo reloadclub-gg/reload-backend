@@ -29,6 +29,18 @@ def handle_player_move_remnants(
     # send a "leave" signal so FE can handle a more specific event if necessary
     websocket.ws_update_player(remnants_lobby, user, 'leave')
 
+    # send a ws to expire all invites sent by the user
+    # because the user left the old lobby, all invites he sent should expire
+    # and players who received cannot join his old lobby anymore
+    websocket.ws_expire_player_invites(user, sent=True)
+
+    # send a ws to expire all invites sent by remnants players
+    # because they left the old lobby, all invites sent by them should expire
+    # and players who received cannot join the old lobby anymore
+    for player_id in remnants_lobby.players_ids:
+        player = User.objects.get(id=player_id)
+        websocket.ws_expire_player_invites(player, sent=True)
+
     # if new lobby has the user moved or nobody else, the latter indicates
     # that the lobby was removed, it means that user is returning to its original lobby
     if new_lobby.players_count <= 1:
@@ -76,6 +88,11 @@ def handle_player_move_other_lobby(new_lobby: Lobby, old_lobby: Lobby, user: Use
     # a more specific event if necessary
     websocket.ws_update_player(new_lobby, user, 'join')
 
+    # send a ws to expire all invites sent by the user
+    # because the user left the old lobby, all invites he sent should expire
+    # and players who received cannot join his old lobby anymore
+    websocket.ws_expire_player_invites(user, sent=True)
+
     # if old lobby became empty, it means that user left its original lobby
     # and is going to another lobby
     if old_lobby.players_count == 0:
@@ -116,6 +133,11 @@ def handle_player_move_original_lobby(
     user: User,
     delete_lobby: bool = False,
 ):
+    # send a ws to expire all invites sent by the user
+    # because the user left the old lobby, all invites he sent should expire
+    # and players who received cannot join his old lobby anymore
+    websocket.ws_expire_player_invites(user, sent=True)
+
     # if we receive delete_lobby=True, it means that the system will delete that lobby,
     # so isn't necessary to send any websocket update
     if old_lobby.id != new_lobby.id:
@@ -159,7 +181,7 @@ def handle_match_found(team: Team, opponent: Team):
     ws_pre_match_create(pre_match)
 
 
-def player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
+def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
     old_lobby = user.account.lobby
     new_lobby = Lobby(owner_id=lobby_id)
 
@@ -239,7 +261,7 @@ def accept_invite(user: User, invite_id: str):
         return {'status': None}
 
     websocket.ws_delete_invite(invite, 'accepted')
-    player_move(user, new_lobby.id)
+    handle_player_move(user, new_lobby.id)
     return {'status': 'accepted'}
 
 
@@ -261,12 +283,12 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
         return lobby
 
     if player_id == user.id:
-        return player_move(user, user.id)
+        return handle_player_move(user, user.id)
     elif user.id != lobby.owner_id:
         raise AuthenticationError()
     else:
         player = User.objects.get(pk=player_id)
-        player_move(player, player.id)
+        handle_player_move(player, player.id)
         ws_create_toast(
             player_id,
             _('{} kicked you from lobby.').format(user.account.username),

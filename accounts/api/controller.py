@@ -8,7 +8,7 @@ from appsettings.services import check_invite_required
 from core.redis import RedisClient
 from core.utils import generate_random_string, get_ip_address
 from friends.websocket import ws_friend_update_or_create
-from lobbies.api.controller import player_move
+from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import Match
@@ -69,7 +69,7 @@ def login(request, token: str) -> Auth:
 def logout(user: User) -> dict:
     ws_expire_player_invites(user)
     if hasattr(user, 'account') and user.account.lobby:
-        player_move(user, user.id, delete_lobby=True)
+        handle_player_move(user, user.id, delete_lobby=True)
 
     user.auth.expire_session(seconds=0)
     ws_friend_update_or_create(user)
