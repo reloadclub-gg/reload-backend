@@ -213,7 +213,7 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
 
     @mock.patch('accounts.api.controller.ws_expire_player_invites')
     @mock.patch('accounts.api.controller.ws_friend_update_or_create')
-    @mock.patch('accounts.api.controller.player_move')
+    @mock.patch('accounts.api.controller.handle_player_move')
     def test_logout_lobby_owner(
         self,
         mock_expire_player_invites,

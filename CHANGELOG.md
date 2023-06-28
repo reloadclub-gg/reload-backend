@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Chamadas ws para expirar/excluir convites enviados de acordo com cada situação, quando um jogador troca de lobby [#521](https://github.com/3C-gg/reload-backend/issues/521).
 - A aplicação `matches` agora possui seu próprio emissor de websockets.
 - Criamos a aplicação `pre_matches` que vai substituir a `matchmaking`.
 - Envio de websocket para criar um toast no FE quando um usuário for expulso de um lobby [#505](https://github.com/3C-gg/reload-backend/issues/505).
@@ -16,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renomeia método `player_move` do `controller` na `api` do app `lobbies` para `handle_player_move` para seguir um padrão em que os métodos de apoio dos controladores possuem `handle_` como prefixo.
+- `ws_expire_player_invites` do websocket de `lobbies` agora recebe dois parametros opcionais: `sent` e `received` que indicam quais convites devem ser excluídos. Caso nenhum seja informado, todos os convites serão excluídos.
+- Método `move` do modelo `Lobby` não exclui mais os convites enviados pelo usuário que se moveu. Essa lógica agora tem que ser realizada por quem está controlando a transferência de lobbies do usuário.
 - Melhorias no endpoint de detalhe de perfil.
 - Substitui a aplicação `matchmaking` pela `pre_matches`.
 - Move a tarefa `clear_dodges` para o app `lobbies`.
@@ -24,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ajusta typo no método `get_by_from_user_id` do model `LobbyInvite`.
+- Adiciona verificação no método `delete` do model `Player` e no método `mode` do model `Lobby` para que, caso os valores solicitados não existam, o sistema não jogue um erro inesperado.
 - Chamada para websocket informando que o amigo se cadastrou estava sendo formatada errada, antes da frase ser traduzida. Mudamos a formatação para ser feita logo após a tradução e passou a funcionar [#516](https://github.com/3C-gg/reload-backend/issues/516).
 
 ### Removed
