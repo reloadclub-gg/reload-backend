@@ -82,6 +82,10 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'is_online': self.user.is_online,
             'status': self.user.status,
             'lobby_id': self.user.account.lobby.id,
+            'match_id': self.user.account.match.id if self.user.account.match else None,
+            'pre_match_id': self.user.account.pre_match.id
+            if self.user.account.pre_match
+            else None,
         }
 
         self.assertDictEqual(payload, expected_payload)
