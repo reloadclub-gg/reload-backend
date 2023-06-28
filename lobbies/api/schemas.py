@@ -131,7 +131,7 @@ class LobbySchema(Schema):
 
     @staticmethod
     def resolve_queue(obj):
-        return obj.queue.strftime('%Y-%m-%d %H:%M:%S') if obj.queue else None
+        return obj.queue.isoformat() if obj.queue else None
 
     @staticmethod
     def resolve_players(obj):
