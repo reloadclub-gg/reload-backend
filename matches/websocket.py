@@ -25,5 +25,5 @@ def ws_match_create(match: models.Match):
     return async_to_sync(ws_send)(
         'matches/create',
         payload,
-        groups=[player.id for player in match.players],
+        groups=[player.user.id for player in match.players],
     )
