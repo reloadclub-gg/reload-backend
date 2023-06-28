@@ -51,20 +51,15 @@ def handle_create_match(pre_match) -> Match:
     return match
 
 
-def handle_cancel_match(pre_match):
-    team1 = pre_match.teams[0]
-    team2 = pre_match.teams[1]
-    lobbies = team1.lobbies + team2.lobbies
-
-    for lobby in lobbies:
-        for player_id in lobby.players_ids:
-            ws_create_toast(
-                player_id,
-                _(
-                    'All our servers are unavailable at this moment. Please, try again later.'
-                ),
-                'warning',
-            )
+def handle_cancel_match(pre_match: models.PreMatch):
+    for player in pre_match.players:
+        ws_create_toast(
+            player.id,
+            _(
+                'All our servers are unavailable at this moment. Please, try again later.'
+            ),
+            'warning',
+        )
 
     # send ws call to lobbies to cancel that match
     websocket.ws_pre_match_delete(pre_match)
@@ -73,6 +68,8 @@ def handle_cancel_match(pre_match):
         ws_friend_update_or_create(player)
 
     # delete the pre_match and teams from Redis
+    team1 = pre_match.teams[0]
+    team2 = pre_match.teams[1]
     team1.delete()
     team2.delete()
     models.PreMatch.delete(pre_match.id)
