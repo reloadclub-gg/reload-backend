@@ -159,7 +159,9 @@ class Lobby(BaseModel):
         Returns which competitive mode the lobby is on
         from Config.COMPETITIVE_MODES.
         """
-        return int(cache.get(f'{self.cache_key}:mode'))
+        mode = cache.get(f'{self.cache_key}:mode')
+        if mode:
+            return int(mode)
 
     @property
     def max_players(self) -> int:
@@ -321,10 +323,6 @@ class Lobby(BaseModel):
                     invite = new_lobby.get_invite_by_to_player_id(other_player_id)
                     if invite:
                         pipe.zrem(f'{new_lobby.cache_key}:invites', invite)
-
-            invites_from_player = from_lobby.get_invites_by_from_player_id(player_id)
-            for invite in invites_from_player:
-                pipe.zrem(f'{from_lobby.cache_key}:invites', invite.id)
 
             if remove:
                 Lobby.delete(to_lobby.id, pipe=pipe)
