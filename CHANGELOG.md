@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera o campo `queue` do esquema `LobbySchema` para retornar o valor em `ISO` [#426](https://github.com/3C-gg/reload-frontend/issues/426).
 - Renomeia método `player_move` do `controller` na `api` do app `lobbies` para `handle_player_move` para seguir um padrão em que os métodos de apoio dos controladores possuem `handle_` como prefixo.
 - `ws_expire_player_invites` do websocket de `lobbies` agora recebe dois parametros opcionais: `sent` e `received` que indicam quais convites devem ser excluídos. Caso nenhum seja informado, todos os convites serão excluídos.
 - Método `move` do modelo `Lobby` não exclui mais os convites enviados pelo usuário que se moveu. Essa lógica agora tem que ser realizada por quem está controlando a transferência de lobbies do usuário.

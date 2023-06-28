@@ -48,7 +48,7 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
         }
         self.assertDictEqual(payload, expected_payload)
 
-    def test_lobby_schema_as_dict(self):
+    def test_lobby_schema(self):
         lobby = Lobby.create(self.user_1.id)
         payload = schemas.LobbySchema.from_orm(lobby).dict()
 
@@ -74,7 +74,34 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
 
         self.assertDictEqual(payload, expected_payload)
 
-    def test_lobby_schema_with_two_player_as_dict(self):
+    def test_lobby_queued_schema(self):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.start_queue()
+        payload = schemas.LobbySchema.from_orm(lobby).dict()
+
+        expected_payload = {
+            'id': self.user_1.id,
+            'owner_id': self.user_1.id,
+            'lobby_type': 'competitive',
+            'mode': 5,
+            'max_players': 5,
+            'players_ids': [self.user_1.id],
+            'players': [schemas.LobbyPlayerSchema.from_orm(self.user_1).dict()],
+            'players_count': 1,
+            'non_owners_ids': [],
+            'is_public': False,
+            'invites': [],
+            'invited_players_ids': [],
+            'overall': 0,
+            'seats': 4,
+            'queue': lobby.queue.isoformat(),
+            'queue_time': lobby.queue_time,
+            'restriction_countdown': None,
+        }
+
+        self.assertDictEqual(payload, expected_payload)
+
+    def test_lobby_schema_with_two_player(self):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
         lobby_1.invite(self.user_1.id, self.user_2.id)
