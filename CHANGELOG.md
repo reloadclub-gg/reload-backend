@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campos `match_id` e `pre_match_id` no esquema `UserSchema` [#528](https://github.com/3C-gg/reload-backend/issues/528).
 - Chamadas ws para expirar/excluir convites enviados de acordo com cada situação, quando um jogador troca de lobby [#521](https://github.com/3C-gg/reload-backend/issues/521).
 - A aplicação `matches` agora possui seu próprio emissor de websockets.
 - Criamos a aplicação `pre_matches` que vai substituir a `matchmaking`.
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ajusta websocket de criação de partida não estar sendo enviado aos grupos corretos.
 - Ajusta typo no método `get_by_from_user_id` do model `LobbyInvite`.
 - Adiciona verificação no método `delete` do model `Player` e no método `mode` do model `Lobby` para que, caso os valores solicitados não existam, o sistema não jogue um erro inesperado.
 - Chamada para websocket informando que o amigo se cadastrou estava sendo formatada errada, antes da frase ser traduzida. Mudamos a formatação para ser feita logo após a tradução e passou a funcionar [#516](https://github.com/3C-gg/reload-backend/issues/516).
