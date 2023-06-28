@@ -207,11 +207,16 @@ if ENVIRONMENT != LOCAL:
     STATICFILES_STORAGE = 'core.cdn.StaticRootS3BotoStorage'
 
 # Email Settings
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.mailtrap.io')
-EMAIL_PORT = config('EMAIL_PORT', default=2525, cast=int)
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if ENVIRONMENT != LOCAL
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='e31ca571bd0f1b')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='a69be0ba200ecf')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = 'Equipe Reload Club <equipe@reloadclub.gg>'
 SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='suporte@reloadclub.freshdesk.com')
 
