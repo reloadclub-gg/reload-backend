@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils.translation import gettext as _
 
-from core.websocket import ws_maintenance
+from core.websocket import ws_create_toast, ws_maintenance
+
+User = get_user_model()
 
 
 class AppSettings(models.Model):
@@ -52,8 +55,25 @@ class AppSettings(models.Model):
 @receiver(signals.post_save, sender=AppSettings)
 def create_product(sender, instance: AppSettings, created: bool, **kwargs):
     if instance.name == 'Maintenance Window' and not created:
-        print(AppSettings.get(instance.name))
+        online_users_ids = [user.id for user in User.online_users()]
+
         if AppSettings.get(instance.name) is True:
             ws_maintenance('start')
+            for user_id in online_users_ids:
+                ws_create_toast(
+                    user_id,
+                    _(
+                        'We\'re about to start a maintenance. All queues and invites will be disabled.'
+                    ),
+                    variant='warning',
+                )
         else:
             ws_maintenance('end')
+            for user_id in online_users_ids:
+                ws_create_toast(
+                    user_id,
+                    _(
+                        'The maintenance is over. Queues and invites were enabled again. GLHF!'
+                    ),
+                    variant='success',
+                )
