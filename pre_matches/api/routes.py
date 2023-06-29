@@ -1,6 +1,8 @@
 from ninja import Router
 
 from accounts.api.authentication import VerifiedRequiredAuth
+from matches.api.schemas import MatchSchema
+from matches.models import Match
 
 from . import controller, schemas
 
@@ -19,10 +21,14 @@ def lock_in(request):
 @router.post(
     '/ready/',
     auth=VerifiedRequiredAuth(),
-    response={200: schemas.PreMatchSchema},
+    response={200: schemas.PreMatchSchema, 201: MatchSchema},
 )
 def ready(request):
-    return controller.set_player_ready(request.user)
+    result = controller.set_player_ready(request.user)
+    if isinstance(result, Match):
+        return 201, result
+
+    return 200, result
 
 
 @router.get('/', auth=VerifiedRequiredAuth(), response={200: schemas.PreMatchSchema})
