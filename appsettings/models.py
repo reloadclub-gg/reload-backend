@@ -63,7 +63,8 @@ def create_product(sender, instance: AppSettings, created: bool, **kwargs):
                 ws_create_toast(
                     user_id,
                     _(
-                        'We\'re about to start a maintenance. All queues and invites will be disabled.'
+                        'We\'re about to start a maintenance. '
+                        'All queues and invites will be disabled.'
                     ),
                     variant='warning',
                 )
@@ -73,7 +74,8 @@ def create_product(sender, instance: AppSettings, created: bool, **kwargs):
                 ws_create_toast(
                     user_id,
                     _(
-                        'The maintenance is over. Queues and invites were enabled again. GLHF!'
+                        'The maintenance is over. '
+                        'Queues and invites were enabled again. GLHF!'
                     ),
                     variant='success',
                 )

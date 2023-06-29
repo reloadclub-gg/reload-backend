@@ -210,6 +210,14 @@ def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) ->
     return new_lobby
 
 
+def handle_team_build(lobby: Lobby):
+    team = Team.find(lobby) or Team.build(lobby)
+    if team and team.ready:
+        opponent = team.get_opponent_team()
+        if opponent and opponent.ready:
+            handle_match_found(team, opponent)
+
+
 def get_lobby(lobby_id: int) -> Lobby:
     # TODO: check if lobby exists
     return Lobby(owner_id=lobby_id)
@@ -322,11 +330,7 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         except LobbyException as e:
             raise HttpError(400, e)
 
-        team = Team.find(lobby) or Team.build(lobby)
-        if team and team.ready:
-            opponent = team.get_opponent_team()
-            if opponent and opponent.ready:
-                handle_match_found(team, opponent)
+        handle_team_build(lobby)
 
     elif payload.cancel_queue:
         lobby.cancel_queue()
