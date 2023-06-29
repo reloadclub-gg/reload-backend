@@ -11,8 +11,8 @@ from pre_matches.tests.mixins import TeamsMixin
 class MatchesServerModelTestCase(TeamsMixin, TestCase):
     def test_server_model(self):
         server = baker.make(Server)
-        AppSettings.set_int('Matches Limit', 2)
-        AppSettings.set_int('Matches Limit Gap', 1)
+        AppSettings.objects.create(name='Matches Limit', value='2', kind='integer')
+        AppSettings.objects.create(name='Matches Limit Gap', value='1', kind='integer')
 
         baker.make(Match, server=server, status=Match.Status.FINISHED)
         self.assertFalse(server.is_almost_full)
