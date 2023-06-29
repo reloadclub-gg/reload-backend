@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Envios de websockets de criação de partidas depois de todos os jogadores se marcarem como pronto [#531](https://github.com/3C-gg/reload-backend/issues/531).
 - Campos `match_id` e `pre_match_id` no esquema `UserSchema` [#528](https://github.com/3C-gg/reload-backend/issues/528).
 - Chamadas ws para expirar/excluir convites enviados de acordo com cada situação, quando um jogador troca de lobby [#521](https://github.com/3C-gg/reload-backend/issues/521).
 - A aplicação `matches` agora possui seu próprio emissor de websockets.

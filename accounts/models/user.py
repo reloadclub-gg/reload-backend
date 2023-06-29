@@ -98,6 +98,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def status(self):
         if hasattr(self, 'account') and self.account.is_verified:
+            if self.account.match:
+                return 'in_game'
+
             pre_match = self.account.pre_match
             if pre_match and pre_match.state >= 0:
                 return 'queued'

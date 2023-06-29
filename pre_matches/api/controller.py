@@ -1,3 +1,5 @@
+from typing import Union
+
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
@@ -40,9 +42,13 @@ def handle_create_match(pre_match) -> Match:
     # TODO start match on the FiveM server
     # (https://github.com/3C-gg/reload-backend/issues/243)
 
+    websocket.ws_pre_match_delete(pre_match)
+    models.PreMatch.delete(pre_match.id)
+
     ws_match_create(match)
     for match_player in match.players:
         ws_update_user(match_player.user)
+        ws_friend_update_or_create(match_player.user)
 
     if server.is_almost_full:
         # TODO send alert (email, etc) to admins
@@ -116,7 +122,7 @@ def set_player_lock_in(user: User) -> models.PreMatch:
     return pre_match
 
 
-def set_player_ready(user: User) -> models.PreMatch:
+def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
     handle_pre_match_checks(
         user,
         _('Can\'t ready in for a new match while in a match.'),
@@ -133,5 +139,7 @@ def set_player_ready(user: User) -> models.PreMatch:
         if not match:
             # cancel match due to lack of available servers
             return handle_cancel_match(pre_match)
+        else:
+            return match
 
     return pre_match
