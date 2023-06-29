@@ -27,7 +27,7 @@ def invite_list(
 @router.post(
     'invites/',
     auth=VerifiedRequiredAuth(),
-    response={200: schemas.LobbyInviteSchema},
+    response={201: schemas.LobbyInviteSchema},
 )
 def invite_create(request, payload: schemas.LobbyInviteCreateSchema):
     return controller.create_invite(request.user, payload)
