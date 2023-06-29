@@ -61,6 +61,7 @@ class MatchPlayerSchema(ModelSchema):
     avatar: dict
     stats: MatchPlayerStatsSchema
     progress: MatchPlayerProgressSchema
+    level: int
 
     class Config:
         model = MatchPlayer
@@ -93,6 +94,10 @@ class MatchPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_progress(obj):
         return MatchPlayerProgressSchema.from_orm(obj)
+
+    @staticmethod
+    def resolve_level(obj):
+        return obj.user.account.level
 
 
 class MatchTeamSchema(ModelSchema):

@@ -81,6 +81,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
                 )[1],
             },
             'stats': schemas.MatchPlayerStatsSchema.from_orm(match_player.stats).dict(),
+            'level': match_player.user.account.level,
         }
         self.assertDictEqual(payload, expected_payload)
 
