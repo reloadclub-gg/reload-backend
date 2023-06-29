@@ -12,3 +12,9 @@ class ToastSchema(Schema):
         valid_values = ['info', 'warning', 'error', 'success']
         assert v in valid_values, _('Invalid toast variant.')
         return v
+
+
+class HealthCheckSchema(Schema):
+    language: str
+    i18n_check: str
+    maintenance: bool
