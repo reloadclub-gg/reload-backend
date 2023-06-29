@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from django.db import models
+from django.db.models import signals
+from django.dispatch import receiver
 from django.utils.translation import gettext as _
+
+from core.websocket import ws_maintenance
 
 
 class AppSettings(models.Model):
@@ -35,48 +39,21 @@ class AppSettings(models.Model):
             elif config.kind == AppSettings.INTEGER:
                 return int(config.value)
             elif config.kind == AppSettings.BOOLEAN:
-                return bool(config.value)
+                return bool(int(config.value))
             else:
                 raise Exception('Unknown kind')
 
         return default
 
-    @staticmethod
-    def set_text(name: str, value: str) -> AppSettings:
-        try:
-            return AppSettings.objects.update_or_create(
-                kind=AppSettings.TEXT, name=name, defaults={'value': str(value)}
-            )
-        except Exception as exc:
-            raise exc
-
-    @staticmethod
-    def set_bool(name: str, value: bool) -> AppSettings:
-        if not value:
-            value = ''
-
-        try:
-            return AppSettings.objects.update_or_create(
-                kind=AppSettings.BOOLEAN, name=name, defaults={'value': str(value)}
-            )
-        except Exception as exc:
-            raise exc
-
-    @staticmethod
-    def set_int(name: str, value: int) -> AppSettings:
-        try:
-            return AppSettings.objects.update_or_create(
-                kind=AppSettings.INTEGER, name=name, defaults={'value': str(value)}
-            )
-        except Exception as exc:
-            raise exc
-
-    def save(self, *args, **kwargs):
-        if self.kind == AppSettings.BOOLEAN:
-            if not self.value:
-                self.value = ''
-
-        super(AppSettings, self).save(*args, **kwargs)
-
     def __str__(self):
         return self.name
+
+
+@receiver(signals.post_save, sender=AppSettings)
+def create_product(sender, instance: AppSettings, created: bool, **kwargs):
+    if instance.name == 'Maintenance Window' and not created:
+        print(AppSettings.get(instance.name))
+        if AppSettings.get(instance.name) is True:
+            ws_maintenance('start')
+        else:
+            ws_maintenance('end')
