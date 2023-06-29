@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.websocket import ws_update_user
+from appsettings.services import maintenance_window
 from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
 from pre_matches.models import PreMatch, Team
@@ -209,6 +210,14 @@ def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) ->
     return new_lobby
 
 
+def handle_team_build(lobby: Lobby):
+    team = Team.find(lobby) or Team.build(lobby)
+    if team and team.ready:
+        opponent = team.get_opponent_team()
+        if opponent and opponent.ready:
+            handle_match_found(team, opponent)
+
+
 def get_lobby(lobby_id: int) -> Lobby:
     # TODO: check if lobby exists
     return Lobby(owner_id=lobby_id)
@@ -250,6 +259,9 @@ def get_invite(user: User, invite_id: str) -> LobbyInvite:
 
 
 def accept_invite(user: User, invite_id: str):
+    if maintenance_window():
+        raise HttpError(400, _('We are under maintenance. Try again later.'))
+
     invite = get_invite(user, invite_id)
     if user.id != invite.to_id:
         raise AuthenticationError()
@@ -266,6 +278,9 @@ def accept_invite(user: User, invite_id: str):
 
 
 def refuse_invite(user: User, invite_id: str):
+    if maintenance_window():
+        raise HttpError(400, _('We are under maintenance. Try again later.'))
+
     invite = get_invite(user, invite_id)
     if user.id != invite.to_id:
         raise AuthenticationError()
@@ -278,6 +293,9 @@ def refuse_invite(user: User, invite_id: str):
 
 def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
     lobby = get_lobby(lobby_id)
+
+    if maintenance_window():
+        raise HttpError(400, _('We are under maintenance. Try again later.'))
 
     if player_id == user.id and lobby.players_count == 1:
         return lobby
@@ -301,6 +319,9 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
     lobby = get_lobby(lobby_id)
 
     if payload.start_queue:
+        if maintenance_window():
+            raise HttpError(400, _('We are under maintenance. Try again later.'))
+
         if user.id != lobby.owner_id:
             raise AuthenticationError()
 
@@ -309,11 +330,7 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         except LobbyException as e:
             raise HttpError(400, e)
 
-        team = Team.find(lobby) or Team.build(lobby)
-        if team and team.ready:
-            opponent = team.get_opponent_team()
-            if opponent and opponent.ready:
-                handle_match_found(team, opponent)
+        handle_team_build(lobby)
 
     elif payload.cancel_queue:
         lobby.cancel_queue()
@@ -334,6 +351,9 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
 
 
 def create_invite(user: User, payload: LobbyInviteCreateSchema):
+    if maintenance_window():
+        raise HttpError(400, _('We are under maintenance. Try again later.'))
+
     lobby = get_lobby(payload.lobby_id)
 
     if user.id != payload.from_user_id or user.id not in lobby.players_ids:

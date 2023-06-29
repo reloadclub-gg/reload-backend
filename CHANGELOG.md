@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Envio de toast e notificação via ws ao iniciar uma manutenção.
+- Esquema `HealthCheckSchema` com infos sobre o sistema.
+- Proteção nas ações de lobby que não podem ser executadas enquanto estiver em manutenção.
+- Serviço de verificação de manutenção no app `appsettings` [#536](https://github.com/3C-gg/reload-backend/issues/536).
+- Websocket de manutenção (`maintenance/start` e `maintenance/end`) ao app `core` [#535](https://github.com/3C-gg/reload-backend/issues/535).
 - Campo `level` no esquema `MatchPlayerSchema` [#533](https://github.com/3C-gg/reload-backend/issues/533).
 - Envios de websockets de criação de partidas depois de todos os jogadores se marcarem como pronto [#531](https://github.com/3C-gg/reload-backend/issues/531).
 - Campos `match_id` e `pre_match_id` no esquema `UserSchema` [#528](https://github.com/3C-gg/reload-backend/issues/528).
@@ -20,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Ajusta endpoint de health_check (`/api/`) para retornar o esquema `HealthCheckSchema`, que contém dentre outras infos, a de manutenção [#537](https://github.com/3C-gg/reload-backend/issues/537).
 - Remove envio de todos os emails para o mailtrap. Caso a gente precise ver o email no mailtrap, devemos adicionar as variáveis de ambiente necessárias [#515](https://github.com/3C-gg/reload-backend/issues/515).
 - Altera o campo `queue` do esquema `LobbySchema` para retornar o valor em `ISO` [#426](https://github.com/3C-gg/reload-frontend/issues/426).
 - Renomeia método `player_move` do `controller` na `api` do app `lobbies` para `handle_player_move` para seguir um padrão em que os métodos de apoio dos controladores possuem `handle_` como prefixo.
@@ -33,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige modelos do `AppSettings` que não estavam salvando corretamente o tipo da config.
 - Ajusta websocket de criação de partida não estar sendo enviado aos grupos corretos.
 - Ajusta typo no método `get_by_from_user_id` do model `LobbyInvite`.
 - Adiciona verificação no método `delete` do model `Player` e no método `mode` do model `Lobby` para que, caso os valores solicitados não existam, o sistema não jogue um erro inesperado.

@@ -116,7 +116,7 @@ class LobbyRoutesTestCase(VerifiedAccountsMixin, TestCase):
                 'to_user_id': self.user_2.id,
             },
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
 
         invite = LobbyInvite.get_by_id(response.json().get('id'))
         self.assertIsNotNone(invite)

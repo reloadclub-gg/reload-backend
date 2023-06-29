@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-28 15:22-0300\n"
-"PO-Revision-Date: 2023-06-28 15:24-0300\n"
+"POT-Creation-Date: 2023-06-29 16:52-0300\n"
+"PO-Revision-Date: 2023-06-29 16:56-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -43,7 +43,7 @@ msgstr "Usuário já possui uma conta."
 msgid "User must be invited."
 msgstr "Usuário deve ser convidado."
 
-#: accounts/api/controller.py:129 accounts/api/schemas.py:217
+#: accounts/api/controller.py:129 accounts/api/schemas.py:235
 msgid "Invalid verification token."
 msgstr "Código de verificação inválido."
 
@@ -51,16 +51,16 @@ msgstr "Código de verificação inválido."
 msgid "Your friend {} just joined ReloadClub!"
 msgstr "O seu amigo {} acabou de entrar para a ReloadClub!"
 
-#: accounts/api/schemas.py:180 accounts/api/schemas.py:227
+#: accounts/api/schemas.py:198 accounts/api/schemas.py:245
 msgid "E-mail must be unique."
 msgstr "O e-mail informado já está sendo utilizado."
 
-#: accounts/api/schemas.py:185 accounts/api/schemas.py:190
+#: accounts/api/schemas.py:203 accounts/api/schemas.py:208
 msgid "User must read and agree with our Terms and Policy."
 msgstr ""
 "Usuário precisa ler e aceitar os Termos de Uso e a Política de Privacidade."
 
-#: accounts/api/schemas.py:209
+#: accounts/api/schemas.py:227
 msgid "One of e-mail or verification_token must have a value."
 msgstr "É preciso informar ao menos o e-mail ou o código de verificação."
 
@@ -103,17 +103,30 @@ msgstr "O valor não é um inteiro válido."
 msgid "value is not boolean"
 msgstr "O valor não é um boleano válido."
 
-#: appsettings/models.py:13
+#: appsettings/models.py:20
 msgid "Text"
 msgstr "Texto"
 
-#: appsettings/models.py:14
+#: appsettings/models.py:21
 msgid "Integer"
 msgstr "Inteiro"
 
-#: appsettings/models.py:15
+#: appsettings/models.py:22
 msgid "Boolean"
 msgstr "Boleano"
+
+#: appsettings/models.py:66
+msgid ""
+"We're about to start a maintenance. All queues and invites will be disabled."
+msgstr ""
+"Estamos iniciando uma manutenção. As filas e convites de lobby serão "
+"desativados temporariamente."
+
+#: appsettings/models.py:77
+msgid "The maintenance is over. Queues and invites were enabled again. GLHF!"
+msgstr ""
+"A manutenção foi finalizada. Filas e convites de lobby estão habilitados "
+"novamente. GLHF!"
 
 #: core/api/pydantic_messages.py:4
 msgid "field required"
@@ -443,11 +456,11 @@ msgstr "O valor do discriminador {} está faltando."
 msgid "No match for discriminator {}"
 msgstr "Nenhuma correspondência para o discriminador {}."
 
-#: core/api/routes.py:36
+#: core/api/routes.py:38
 msgid "Unauthorized."
 msgstr "Não autorizado."
 
-#: core/api/routes.py:42
+#: core/api/routes.py:46
 msgid "Internationalization works."
 msgstr "A internacionalização está funcionando."
 
@@ -455,15 +468,26 @@ msgstr "A internacionalização está funcionando."
 msgid "Invalid toast variant."
 msgstr "Variante de toast inválida."
 
+#: core/websocket.py:58
+#| msgid "Invalid toast variant."
+msgid "Invalid status."
+msgstr "Status inválido."
+
 #: friends/api/controller.py:47
 msgid "Users aren't friends."
 msgstr "Usuários não são amigos."
 
-#: lobbies/api/controller.py:239
+#: lobbies/api/controller.py:248
 msgid "Invalid invite id"
 msgstr "Convite inválido."
 
-#: lobbies/api/controller.py:294
+#: lobbies/api/controller.py:263 lobbies/api/controller.py:282
+#: lobbies/api/controller.py:298 lobbies/api/controller.py:323
+#: lobbies/api/controller.py:355
+msgid "We are under maintenance. Try again later."
+msgstr "Estamos em manutenção. Tente novamente mais tarde."
+
+#: lobbies/api/controller.py:312
 msgid "{} kicked you from lobby."
 msgstr "{} removeu você do lobby."
 
@@ -571,27 +595,28 @@ msgstr "Usuários online"
 msgid "Notification not found."
 msgstr "Notificação não encontrada."
 
-#: pre_matches/api/controller.py:64
+#: pre_matches/api/controller.py:65
 msgid ""
 "All our servers are unavailable at this moment. Please, try again later."
 msgstr ""
+"Todos os nossos servidores estão indisponíveis no momento. Tente novamente "
+"mais tarde."
 
-#: pre_matches/api/controller.py:96
+#: pre_matches/api/controller.py:99
 msgid "Can't lock in for a new match while in a match."
 msgstr ""
 "Não é possível entrar em uma nova partida enquanto estiver em uma partida."
 
-#: pre_matches/api/controller.py:100
-#| msgid "Player already set as ready."
+#: pre_matches/api/controller.py:103
 msgid "Player already locked in."
 msgstr "Jogador já foi marcado como pronto."
 
-#: pre_matches/api/controller.py:125
+#: pre_matches/api/controller.py:128
 msgid "Can't ready in for a new match while in a match."
 msgstr ""
 "Não é possível entrar em uma nova partida enquanto estiver em uma partida."
 
-#: pre_matches/api/controller.py:130
+#: pre_matches/api/controller.py:133
 msgid "Player already set as ready."
 msgstr "Jogador já foi marcado como pronto."
 
@@ -633,6 +658,16 @@ msgstr "O lobby já está em um time."
 #: pre_matches/models/team.py:233 pre_matches/models/team.py:257
 msgid "Lobby not queued."
 msgstr "Lobby não está em fila."
+
+#: pre_matches/tasks.py:42
+msgid ""
+"Some players in your lobby were not ready before the timer ran out and the "
+"match was cancelled. The recurrence of this conduct may result in "
+"restrictions."
+msgstr ""
+"Alguns jogadores no seu lobby não ficaram prontos antes do tempo acabar e a "
+"partida foi cancelada. A recorrência dessa conduta pode resultar em "
+"restrições."
 
 #: support/api/controller.py:51
 msgid "Attachment is too large (max 3MB)."
