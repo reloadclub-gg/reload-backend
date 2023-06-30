@@ -16,8 +16,9 @@ from . import models, websocket
 def cancel_match_after_countdown(pre_match_id: str):
     try:
         pre_match = models.PreMatch.get_by_id(pre_match_id)
-    except Exception as exc:
-        raise exc
+    except models.PreMatchException:
+        # we have deleted the pre_match already in favor of a match
+        return
 
     if pre_match.countdown >= models.PreMatch.Config.READY_COUNTDOWN_GAP:
         # schedule this task again two seconds later
