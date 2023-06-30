@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Refatora função de mover jogadores no controller de lobbies para enviar alguns updates faltantes pro FE via websockets [#541](https://github.com/3C-gg/reload-backend/issues/541).
 - Ajusta endpoint de health_check (`/api/`) para retornar o esquema `HealthCheckSchema`, que contém dentre outras infos, a de manutenção [#537](https://github.com/3C-gg/reload-backend/issues/537).
 - Remove envio de todos os emails para o mailtrap. Caso a gente precise ver o email no mailtrap, devemos adicionar as variáveis de ambiente necessárias [#515](https://github.com/3C-gg/reload-backend/issues/515).
 - Altera o campo `queue` do esquema `LobbySchema` para retornar o valor em `ISO` [#426](https://github.com/3C-gg/reload-frontend/issues/426).
