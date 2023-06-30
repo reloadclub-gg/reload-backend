@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Envio de websocket para atualizar lobby ao convidar ou recusar convite [#540](https://github.com/3C-gg/reload-backend/issues/540).
 - Envio de toast e notificação via ws ao iniciar uma manutenção.
 - Esquema `HealthCheckSchema` com infos sobre o sistema.
 - Proteção nas ações de lobby que não podem ser executadas enquanto estiver em manutenção.

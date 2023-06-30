@@ -262,6 +262,7 @@ def refuse_invite(user: User, invite_id: str):
     websocket.ws_delete_invite(invite, 'refused')
     lobby = Lobby(owner_id=invite.lobby_id)
     lobby.delete_invite(invite.id)
+    websocket.ws_update_lobby(lobby)
     return {'status': 'refused'}
 
 
@@ -339,4 +340,5 @@ def create_invite(user: User, payload: LobbyInviteCreateSchema):
         raise HttpError(400, exc)
 
     websocket.ws_create_invite(invite)
+    websocket.ws_update_lobby(lobby)
     return invite
