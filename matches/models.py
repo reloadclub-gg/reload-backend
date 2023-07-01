@@ -61,6 +61,16 @@ class Server(models.Model):
         return f'{self.name} - {self.ip}'
 
 
+class Map(models.Model):
+    id = models.BigIntegerField(primary_key=True)
+    name = models.CharField(max_length=32)
+    sys_name = models.CharField(max_length=32)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Match(models.Model):
     class Status(models.IntegerChoices):
         LOADING = 0
@@ -79,6 +89,7 @@ class Match(models.Model):
         DM = 20
 
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
+    map = models.ForeignKey(Map, on_delete=models.CASCADE, default=1)
     create_date = models.DateTimeField(auto_now_add=True)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
