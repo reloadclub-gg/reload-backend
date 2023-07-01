@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from .models import Match, MatchPlayer, MatchPlayerStats, MatchTeam, Server
+from . import models
 
 
-@admin.register(Server)
+@admin.register(models.Server)
 class ServerAdmin(admin.ModelAdmin):
     list_display = (
         'ip',
@@ -16,7 +16,13 @@ class ServerAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Match)
+@admin.register(models.Map)
+class MapAdmin(admin.ModelAdmin):
+    list_display = ('name', 'id', 'sys_name', 'is_active')
+    list_filter = ('is_active',)
+
+
+@admin.register(models.Match)
 class MatchAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -43,7 +49,7 @@ class MatchAdmin(admin.ModelAdmin):
         return '- 0 x 0 -'
 
 
-@admin.register(MatchTeam)
+@admin.register(models.MatchTeam)
 class MatchTeamAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -53,7 +59,7 @@ class MatchTeamAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
-@admin.register(MatchPlayer)
+@admin.register(models.MatchPlayer)
 class MatchPlayerAdmin(admin.ModelAdmin):
     list_display = (
         'user',
@@ -84,7 +90,7 @@ class MatchPlayerAdmin(admin.ModelAdmin):
         return obj.points_earned
 
 
-@admin.register(MatchPlayerStats)
+@admin.register(models.MatchPlayerStats)
 class MatchPlayerStatsAdmin(admin.ModelAdmin):
     list_display = (
         'player',
