@@ -24,6 +24,7 @@ class ProfileSchema(ModelSchema):
     most_kills_in_a_match: int = None
     most_damage_in_a_match: int = None
     stats: dict
+    date_joined: str
 
     class Config:
         model = Account
@@ -85,3 +86,7 @@ class ProfileSchema(ModelSchema):
     @staticmethod
     def resolve_most_damage_in_a_match(obj):
         return obj.get_most_stat_in_match('damage')
+
+    @staticmethod
+    def resolve_date_joined(obj):
+        return obj.user.date_joined.isoformat()
