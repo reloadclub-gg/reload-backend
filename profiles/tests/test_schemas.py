@@ -99,6 +99,7 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
                 'chest_accuracy': 0,
                 'others_accuracy': 0,
             },
+            'date_joined': self.user_1.date_joined.isoformat(),
         }
 
         self.assertDictEqual(payload, expected_payload)
