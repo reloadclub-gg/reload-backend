@@ -82,7 +82,9 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(r.status_code, 422)
 
     def test_signup_without_invite(self):
-        AppSettings.objects.create(name='Invite Required', value='1', kind='boolean')
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         invited_user = baker.make(User, email='')
         utils.create_social_auth(invited_user)
         invited_user.auth.create_token()
@@ -214,7 +216,9 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(response.status_code, 422)
 
     def test_validator_check_invite_required(self):
-        AppSettings.objects.create(name='Invite Required', value='1', kind='boolean')
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         account = baker.make(Account, user=self.user)
         invite = baker.make(Invite, owned_by=account, email='any@email.com')
         invited_user = baker.make(User, email='')
@@ -235,7 +239,9 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertFalse(invited_user.account.is_verified)
 
     def test_validator_check_invite_required_with_raise(self):
-        AppSettings.objects.create(name='Invite Required', value='1', kind='boolean')
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         invited_user = baker.make(User, email='')
         utils.create_social_auth(invited_user)
         invited_user.auth.create_token()
