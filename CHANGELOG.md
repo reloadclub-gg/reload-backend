@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona algumas configurações padrão como migrations [https://github.com/3C-gg/reload-backend/issues/550](#550).
 - Campo `date_joined` no esquema `ProfileSchema` [#548](https://github.com/3C-gg/reload-backend/issues/548).
 - Adiciona sistema de mapa de partida [#545](https://github.com/3C-gg/reload-backend/issues/545).
 - Envio de websocket para atualizar lobby ao convidar ou recusar convite [#540](https://github.com/3C-gg/reload-backend/issues/540).
@@ -28,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Ajusta testes para não criar configuração padrão, e sim modificá-los, visto que já estamos as criando nas migrations.
+- Ajusta banco de dados e Redis para testes.
+- Remove `flushdb` do script `loaddata` do Pipfile.
 - Tarefa `cancel_match_after_countdown` agora imterrompe a execução com um retorno ao invés de levantar um erro quando a `pre_match` não for encontrada [#544](https://github.com/3C-gg/reload-backend/issues/544).
 - Refatora função de mover jogadores no controller de lobbies para enviar alguns updates faltantes pro FE via websockets [#541](https://github.com/3C-gg/reload-backend/issues/541).
 - Ajusta endpoint de health_check (`/api/`) para retornar o esquema `HealthCheckSchema`, que contém dentre outras infos, a de manutenção [#537](https://github.com/3C-gg/reload-backend/issues/537).
