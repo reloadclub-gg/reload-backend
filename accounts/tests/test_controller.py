@@ -80,7 +80,9 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         )
 
     def test_signup_not_invited(self):
-        AppSettings.objects.create(name='Invite Required', value='1', kind='boolean')
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         user = baker.make(User)
         with self.assertRaises(HttpError):
             controller.signup(user, email=user.email)

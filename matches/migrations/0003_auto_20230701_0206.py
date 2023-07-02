@@ -4,8 +4,6 @@ from django.db import migrations
 
 
 def create_default_map(apps, schema_editor):
-    # We can't import the Person model directly as it may be a newer
-    # version than this migration expects. We use the historical version.
     Map = apps.get_model("matches", "Map")
     Map.objects.create(id=1, name='Auditório', sys_name='auditorium')
 
