@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige erro ao tentar salvar lista de amigos no Redis. Quando não haviam amigos retornados pelo sistema, tentávamos incluir "nada" na lista no Redis, que retornava um erro. Adicionamos uma proteção para só adicionar no Redis, caso a lista contenha algum resultado [#553](https://github.com/3C-gg/reload-backend/issues/553).
 - Corrige modelos do `AppSettings` que não estavam salvando corretamente o tipo da config.
 - Ajusta websocket de criação de partida não estar sendo enviado aos grupos corretos.
 - Ajusta typo no método `get_by_from_user_id` do model `LobbyInvite`.
