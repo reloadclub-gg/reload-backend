@@ -124,6 +124,8 @@ class UserSchema(ModelSchema):
     is_online: bool = None
     status: str
     lobby_id: int = None
+    match_id: int = None
+    pre_match_id: str = None
 
     class Config:
         model = User
@@ -158,6 +160,22 @@ class UserSchema(ModelSchema):
         if hasattr(obj, 'account'):
             if obj.account.lobby:
                 return obj.account.lobby.id
+
+        return None
+
+    @staticmethod
+    def resolve_match_id(obj):
+        if hasattr(obj, 'account'):
+            if obj.account.match:
+                return obj.account.match.id
+
+        return None
+
+    @staticmethod
+    def resolve_pre_match_id(obj):
+        if hasattr(obj, 'account'):
+            if obj.account.pre_match:
+                return obj.account.pre_match.id
 
         return None
 

@@ -8,7 +8,7 @@ chown:
 	sudo chown -R ${USER}:${USER} .
 
 startapp:
-	docker-compose run --rm django python ./manage.py startapp $(params)
+	sh ./pipenv-run manage startapp $(params)
 	make chown
 
 down:

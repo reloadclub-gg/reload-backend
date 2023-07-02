@@ -7,14 +7,16 @@ from ninja.errors import AuthenticationError, Http404, ValidationError
 from ninja.pagination import paginate
 
 from accounts.api.routes import router as accounts_router
+from appsettings.services import maintenance_window
 from friends.api.routes import router as friends_router
 from lobbies.api.routes import router as lobbies_router
 from matches.api.routes import router as matches_router
-from matchmaking.api.routes import router as mm_router
 from notifications.api.routes import router as notifications_router
+from pre_matches.api.routes import router as pre_matches_router
 from profiles.api.routes import router as profiles_router
 from support.api.routes import router as support_router
 
+from . import schemas
 from .pagination import Pagination
 
 local_env = settings.ENVIRONMENT == settings.LOCAL
@@ -36,10 +38,14 @@ def authentication_errors(request, exc):
     return api.create_response(request, {'detail': _('Unauthorized.')}, status=401)
 
 
-@api.get('')
+@api.get('', response={200: schemas.HealthCheckSchema})
 def healty_check(request):
     lang = request.LANGUAGE_CODE
-    return {'language': lang, 'i18n_check': _('Internationalization works.')}
+    return {
+        'language': lang,
+        'i18n_check': _('Internationalization works.'),
+        'maintenance': maintenance_window(),
+    }
 
 
 @api.get('/list/', response=List[dict])
@@ -57,10 +63,10 @@ def list_items(request):
 
 
 api.add_router("/accounts/", accounts_router)
-api.add_router("/mm/", mm_router)
 api.add_router("/matches/", matches_router)
 api.add_router("/notifications/", notifications_router)
 api.add_router("/friends/", friends_router)
 api.add_router("/profiles/", profiles_router)
 api.add_router("/lobbies/", lobbies_router)
 api.add_router("/support/", support_router)
+api.add_router("/pre-matches/", pre_matches_router)

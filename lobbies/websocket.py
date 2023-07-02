@@ -118,7 +118,7 @@ def ws_update_lobby(lobby: models.Lobby):
     )
 
 
-def ws_expire_player_invites(user: User):
+def ws_expire_player_invites(user: User, sent: bool = False, received: bool = False):
     """
     Triggered upon a player disconnection from websocket. This will clean both
     sent and received lobby invites from that player.
@@ -133,7 +133,13 @@ def ws_expire_player_invites(user: User):
     Actions:
     - invites/expire
     """
-    invites = models.LobbyInvite.get_by_user_id(user.id)
+    if sent:
+        invites = models.LobbyInvite.get_by_from_user_id(user.id)
+    elif received:
+        invites = models.LobbyInvite.get_by_to_user_id(user.id)
+    else:
+        invites = models.LobbyInvite.get_by_user_id(user.id)
+
     results = list()
     for invite in invites:
         payload = schemas.LobbyInviteSchema.from_orm(invite).dict()

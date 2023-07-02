@@ -88,12 +88,12 @@ class LobbyInvite(BaseModel):
     @staticmethod
     def get_by_from_user_id(from_user_id: int) -> List[LobbyInvite]:
         all_invites = LobbyInvite.get_all()
-        to_invites = []
+        from_invites = []
         for invite in all_invites:
             if from_user_id == invite.from_id:
-                to_invites.append(invite)
+                from_invites.append(invite)
 
-        return to_invites
+        return from_invites
 
     @staticmethod
     def get_by_id(invite_id: str) -> LobbyInvite:

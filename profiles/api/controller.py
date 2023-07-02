@@ -4,7 +4,7 @@ from ninja.errors import Http404
 from accounts.models import Account
 
 
-def detail(user_id: int = None, steamid: int = None, username: str = None) -> Account:
+def detail(user_id: int = None, steamid: str = None, username: str = None) -> Account:
     result = None
 
     if user_id:

@@ -2,12 +2,12 @@ from unittest import mock
 
 from ninja.errors import Http404, HttpError
 
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
 from friends.api import controller
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 
-class FriendsControllerTestCase(VerifiedPlayersMixin, TestCase):
+class FriendsControllerTestCase(VerifiedAccountsMixin, TestCase):
     @mock.patch('steam.SteamClient.get_friends')
     def test_detail(self, mock_friends):
         with self.assertRaises(Http404):

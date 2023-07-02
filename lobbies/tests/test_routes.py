@@ -1,12 +1,12 @@
 from unittest import mock
 
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import APIClient, TestCase
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from ..models import Lobby, LobbyInvite
 
 
-class LobbyRoutesTestCase(VerifiedPlayersMixin, TestCase):
+class LobbyRoutesTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.api = APIClient('/api/lobbies')
@@ -116,7 +116,7 @@ class LobbyRoutesTestCase(VerifiedPlayersMixin, TestCase):
                 'to_user_id': self.user_2.id,
             },
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
 
         invite = LobbyInvite.get_by_id(response.json().get('id'))
         self.assertIsNotNone(invite)

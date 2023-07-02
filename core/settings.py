@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'channels',
     'storages',
     'accounts.apps.AccountsConfig',
-    'matchmaking.apps.MatchmakingConfig',
+    'pre_matches.apps.PreMatchesConfig',
     'appsettings.apps.AppSettingsConfig',
     'matches.apps.MatchesConfig',
     'notifications.apps.NotificationsConfig',
@@ -104,7 +104,7 @@ ASGI_APPLICATION = 'core.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME', default='postgres'),
+        'NAME': config('DATABASE_NAME', default='test_db' if TEST_MODE else 'postgres'),
         'USER': config('DATABASE_USER', default='postgres'),
         'PASSWORD': config('DATABASE_PASSWORD', default='postgres'),
         'HOST': config('DATABASE_HOST', default='db'),
@@ -207,11 +207,16 @@ if ENVIRONMENT != LOCAL:
     STATICFILES_STORAGE = 'core.cdn.StaticRootS3BotoStorage'
 
 # Email Settings
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.mailtrap.io')
-EMAIL_PORT = config('EMAIL_PORT', default=2525, cast=int)
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if ENVIRONMENT != LOCAL
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='e31ca571bd0f1b')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='a69be0ba200ecf')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = 'Equipe Reload Club <equipe@reloadclub.gg>'
 SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='suporte@reloadclub.freshdesk.com')
 
@@ -244,6 +249,7 @@ REDIS_PORT = config('REDIS_PORT', default=6379, cast=int)
 REDIS_USERNAME = config('REDIS_USERNAME', default='default')
 REDIS_PASSWORD = config('REDIS_PASSWORD', default='')
 REDIS_APP_DB = config('REDIS_APP_DB', default=0, cast=int)
+REDIS_TEST_DB = config('REDIS_APP_DB', default=2, cast=int)
 REDIS_SSL = config('REDIS_SSL', default=False, cast=bool)
 REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 

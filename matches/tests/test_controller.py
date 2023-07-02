@@ -4,7 +4,7 @@ from model_bakery import baker
 from core.tests import TestCase
 from matches.api import controller
 from matches.models import Match, MatchPlayer, Server
-from matchmaking.tests.mixins import TeamsMixin
+from pre_matches.tests.mixins import TeamsMixin
 
 
 class MatchesControllerTestCase(TeamsMixin, TestCase):

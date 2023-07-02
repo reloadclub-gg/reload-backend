@@ -1,18 +1,17 @@
 import datetime
 import time
 
-from django.conf import settings
 from django.utils import timezone
 
 from accounts.models import User
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase, cache
 from lobbies.models import Lobby
 
-from ..models import PreMatch, PreMatchConfig, PreMatchException, Team, TeamException
-from . import mixins
+from ..models import PreMatch, PreMatchException, Team, TeamException
 
 
-class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()
@@ -379,7 +378,7 @@ class TeamModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertTrue(team1.name in players_usernames)
 
 
-class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
+class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()
@@ -448,15 +447,14 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
         self.assertIsNotNone(ready_time)
 
     def test_set_player_ready(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        for player in pre_match.players:
+            pre_match.set_player_lock_in(player.id)
+        pre_match.start_players_ready_countdown()
+        self.assertEqual(len(pre_match.players_ready), 0)
 
-        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
-            match.set_player_lock_in()
-        match.start_players_ready_countdown()
-        self.assertEqual(len(match.players_ready), 0)
-
-        match.set_player_ready(self.user_1.id)
-        self.assertEqual(len(match.players_ready), 1)
+        pre_match.set_player_ready(self.user_1.id)
+        self.assertEqual(len(pre_match.players_ready), 1)
 
     def test_set_player_ready_wrong_state(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
@@ -465,45 +463,48 @@ class PreMatchModelTestCase(mixins.VerifiedPlayersMixin, TestCase):
 
     def test_set_player_lock_in(self):
         match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertEqual(match.players_in, 0)
+        self.assertEqual(len(match.players_in), 0)
 
-        match.set_player_lock_in()
-        self.assertEqual(match.players_in, 1)
+        match.set_player_lock_in(self.user_1.id)
+        self.assertEqual(len(match.players_in), 1)
 
     def test_set_player_lock_in_wrong_state(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
-            match.set_player_lock_in()
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        for player in pre_match.players:
+            pre_match.set_player_lock_in(player.id)
 
         with self.assertRaises(PreMatchException):
-            match.set_player_lock_in()
+            pre_match.set_player_lock_in(self.user_1.id)
 
     def test_state(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertEqual(match.state, PreMatchConfig.STATES.get('pre_start'))
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('pre_start'))
 
-        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
-            match.set_player_lock_in()
-        self.assertEqual(match.state, PreMatchConfig.STATES.get('idle'))
+        for player in pre_match.players:
+            pre_match.set_player_lock_in(player.id)
+        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('idle'))
 
-        match.start_players_ready_countdown()
-        self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
+        pre_match.start_players_ready_countdown()
+        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('lock_in'))
 
-        for player in match.players:
-            match.set_player_ready(player.id)
+        for player in pre_match.players:
+            pre_match.set_player_ready(player.id)
 
-        self.assertEqual(match.state, PreMatchConfig.STATES.get('ready'))
+        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('ready'))
 
     def test_state_canceled(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        for player in pre_match.players:
+            pre_match.set_player_lock_in(player.id)
 
-        for _ in range(0, settings.MATCH_READY_PLAYERS_MIN):
-            match.set_player_lock_in()
+        seconds_with_gap = (
+            PreMatch.Config.READY_COUNTDOWN - PreMatch.Config.READY_COUNTDOWN_GAP
+        )
+        elapsed_time = timezone.timedelta(seconds=seconds_with_gap)
+        past_time = (timezone.now() - elapsed_time).isoformat()
+        cache.set(f'{pre_match.cache_key}:ready_time', past_time)
 
-        past_time = (timezone.now() - timezone.timedelta(seconds=30)).isoformat()
-        cache.set(f'{match.cache_key}:ready_time', past_time)
-
-        self.assertEqual(match.state, PreMatchConfig.STATES.get('lock_in'))
+        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('canceled'))
 
     def test_countdown(self):
         match = PreMatch.create(self.team1.id, self.team2.id)

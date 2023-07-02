@@ -1,28 +1,20 @@
-from typing import Optional
-
-from django.contrib.auth import get_user_model
 from ninja import Schema
 
-from ..models import PreMatch, PreMatchConfig
-
-User = get_user_model()
+from ..models import PreMatch
 
 
 class PreMatchSchema(Schema):
     id: str
     state: str
-    countdown: Optional[int]
+    countdown: int = None
     players_ready_count: int
     players_total: int
-    user_ready: Optional[bool] = False
-
-    class Config:
-        model = PreMatch
+    user_ready: bool = False
 
     @staticmethod
     def resolve_state(obj):
-        return list(PreMatchConfig.STATES.keys())[
-            list(PreMatchConfig.STATES.values()).index(obj.state)
+        return list(PreMatch.Config.STATES.keys())[
+            list(PreMatch.Config.STATES.values()).index(obj.state)
         ]
 
     @staticmethod

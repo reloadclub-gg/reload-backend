@@ -5,7 +5,7 @@ from ninja import Field, ModelSchema
 from accounts.utils import calc_level_and_points
 from steam import Steam
 
-from ..models import Match, MatchPlayer, MatchPlayerStats, MatchTeam
+from .. import models
 
 
 class MatchPlayerStatsSchema(ModelSchema):
@@ -23,7 +23,7 @@ class MatchPlayerStatsSchema(ModelSchema):
     others_accuracy: float = None
 
     class Config:
-        model = MatchPlayerStats
+        model = models.MatchPlayerStats
         model_exclude = ['player', 'id']
 
 
@@ -35,7 +35,7 @@ class MatchPlayerProgressSchema(ModelSchema):
     points_earned: int = None
 
     class Config:
-        model = MatchPlayer
+        model = models.MatchPlayer
         model_exclude = ['id', 'user', 'team', 'level', 'level_points']
 
     @staticmethod
@@ -61,9 +61,10 @@ class MatchPlayerSchema(ModelSchema):
     avatar: dict
     stats: MatchPlayerStatsSchema
     progress: MatchPlayerProgressSchema
+    level: int
 
     class Config:
-        model = MatchPlayer
+        model = models.MatchPlayer
         model_exclude = ['user', 'team', 'level', 'level_points']
 
     @staticmethod
@@ -94,18 +95,28 @@ class MatchPlayerSchema(ModelSchema):
     def resolve_progress(obj):
         return MatchPlayerProgressSchema.from_orm(obj)
 
+    @staticmethod
+    def resolve_level(obj):
+        return obj.user.account.level
+
 
 class MatchTeamSchema(ModelSchema):
     players: Optional[List[MatchPlayerSchema]] = None
     match_id: int
 
     class Config:
-        model = MatchTeam
+        model = models.MatchTeam
         model_exclude = ['match']
 
     @staticmethod
     def resolve_match_id(obj):
         return obj.match.id
+
+
+class MapSchema(ModelSchema):
+    class Config:
+        model = models.Map
+        model_fields = '__all__'
 
 
 class MatchSchema(ModelSchema):
@@ -117,9 +128,10 @@ class MatchSchema(ModelSchema):
     rounds: int
     winner_id: Optional[int] = None
     status: str
+    map: MapSchema
 
     class Config:
-        model = Match
+        model = models.Match
         model_exclude = ['server']
 
     @staticmethod
@@ -150,9 +162,9 @@ class MatchSchema(ModelSchema):
 
     @staticmethod
     def resolve_status(obj):
-        if obj.status == Match.Status.LOADING:
+        if obj.status == models.Match.Status.LOADING:
             return 'loading'
-        elif obj.status == Match.Status.RUNNING:
+        elif obj.status == models.Match.Status.RUNNING:
             return 'running'
         else:
             return 'finished'

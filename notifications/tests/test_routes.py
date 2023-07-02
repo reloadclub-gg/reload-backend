@@ -1,12 +1,12 @@
 from django.templatetags.static import static
 
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import APIClient, TestCase
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 from notifications.api.schemas import NotificationSchema
 from notifications.models import Notification
 
 
-class NotificationsRoutesTestCase(VerifiedPlayersMixin, TestCase):
+class NotificationsRoutesTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.api = APIClient('/api/notifications')

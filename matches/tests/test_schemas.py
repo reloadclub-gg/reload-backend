@@ -2,22 +2,35 @@ from model_bakery import baker
 
 from accounts.utils import calc_level_and_points
 from core.tests import TestCase
+from matches import models
 from matches.api import schemas
-from matches.models import Match, MatchPlayer, MatchTeam
-from matchmaking.tests import mixins
+from pre_matches.tests.mixins import TeamsMixin
 from steam import Steam
 
 
-class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
+class MatchesSchemasTestCase(TeamsMixin, TestCase):
+    def test_map_schema(self):
+        map = baker.make(models.Map, id=1, name='Map name', sys_name='map_name')
+        payload = schemas.MapSchema.from_orm(map).dict()
+        expected_payload = {
+            'id': 1,
+            'name': 'Map name',
+            'sys_name': 'map_name',
+            'is_active': True,
+        }
+
+        self.assertEqual(payload, expected_payload)
+
     def test_match_schema(self):
-        match = baker.make(Match)
-        baker.make(MatchTeam, match=match)
-        baker.make(MatchTeam, match=match)
+        map = baker.make(models.Map, id=1, name='Map name', sys_name='map_name')
+        match = baker.make(models.Match, map=map)
+        baker.make(models.MatchTeam, match=match)
+        baker.make(models.MatchTeam, match=match)
         payload = schemas.MatchSchema.from_orm(match).dict()
 
-        if match.status == Match.Status.LOADING:
+        if match.status == models.Match.Status.LOADING:
             status = 'loading'
-        elif match.status == Match.Status.RUNNING:
+        elif match.status == models.Match.Status.RUNNING:
             status = 'running'
         else:
             status = 'finished'
@@ -34,16 +47,17 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
             'teams': [schemas.MatchTeamSchema.from_orm(team) for team in match.teams],
             'rounds': match.rounds,
             'winner_id': match.winner.id if match.winner else None,
+            'map': schemas.MapSchema.from_orm(map),
         }
         self.assertDictEqual(payload, expected_payload)
 
     def test_match_player_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(Match, status=Match.Status.READY)
-        team = baker.make(MatchTeam, match=match, score=10)
-        baker.make(MatchTeam, match=match)
-        match_player = baker.make(MatchPlayer, team=team, user=self.user_1)
+        match = baker.make(models.Match, status=models.Match.Status.READY)
+        team = baker.make(models.MatchTeam, match=match, score=10)
+        baker.make(models.MatchTeam, match=match)
+        match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
         match.start()
         match.finish()
 
@@ -81,27 +95,29 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
                 )[1],
             },
             'stats': schemas.MatchPlayerStatsSchema.from_orm(match_player.stats).dict(),
+            'level': match_player.user.account.level,
         }
         self.assertDictEqual(payload, expected_payload)
 
     def test_match_with_players_schema(self):
-        match = baker.make(Match)
+        map = baker.make(models.Map, id=1, name='Map name', sys_name='map_name')
+        match = baker.make(models.Match, map=map)
         team_a = match.matchteam_set.create(name='Team A')
         team_b = match.matchteam_set.create(name='Team B')
-        baker.make(MatchPlayer, user=self.user_1, team=team_a)
-        baker.make(MatchPlayer, user=self.user_2, team=team_a)
-        baker.make(MatchPlayer, user=self.user_3, team=team_a)
-        baker.make(MatchPlayer, user=self.user_4, team=team_a)
-        baker.make(MatchPlayer, user=self.user_5, team=team_a)
-        baker.make(MatchPlayer, user=self.user_6, team=team_b)
-        baker.make(MatchPlayer, user=self.user_7, team=team_b)
-        baker.make(MatchPlayer, user=self.user_8, team=team_b)
-        baker.make(MatchPlayer, user=self.user_9, team=team_b)
-        baker.make(MatchPlayer, user=self.user_10, team=team_b)
+        baker.make(models.MatchPlayer, user=self.user_1, team=team_a)
+        baker.make(models.MatchPlayer, user=self.user_2, team=team_a)
+        baker.make(models.MatchPlayer, user=self.user_3, team=team_a)
+        baker.make(models.MatchPlayer, user=self.user_4, team=team_a)
+        baker.make(models.MatchPlayer, user=self.user_5, team=team_a)
+        baker.make(models.MatchPlayer, user=self.user_6, team=team_b)
+        baker.make(models.MatchPlayer, user=self.user_7, team=team_b)
+        baker.make(models.MatchPlayer, user=self.user_8, team=team_b)
+        baker.make(models.MatchPlayer, user=self.user_9, team=team_b)
+        baker.make(models.MatchPlayer, user=self.user_10, team=team_b)
 
-        if match.status == Match.Status.LOADING:
+        if match.status == models.Match.Status.LOADING:
             status = 'loading'
-        elif match.status == Match.Status.RUNNING:
+        elif match.status == models.Match.Status.RUNNING:
             status = 'running'
         else:
             status = 'finished'
@@ -119,12 +135,13 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
             'teams': [schemas.MatchTeamSchema.from_orm(team) for team in match.teams],
             'rounds': match.rounds,
             'winner_id': match.winner.id if match.winner else None,
+            'map': schemas.MapSchema.from_orm(map),
         }
         self.assertDictEqual(payload, expected_payload)
 
     def test_match_team_schema(self):
-        match = baker.make(Match)
-        team = baker.make(MatchTeam, match=match)
+        match = baker.make(models.Match)
+        team = baker.make(models.MatchTeam, match=match)
         payload = schemas.MatchTeamSchema.from_orm(team).dict()
         expected_payload = {
             'id': team.id,
@@ -141,10 +158,10 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
     def test_match_player_progress_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(Match, status=Match.Status.READY)
-        team = baker.make(MatchTeam, match=match, score=10)
-        baker.make(MatchTeam, match=match)
-        match_player = baker.make(MatchPlayer, team=team, user=self.user_1)
+        match = baker.make(models.Match, status=models.Match.Status.READY)
+        team = baker.make(models.MatchTeam, match=match, score=10)
+        baker.make(models.MatchTeam, match=match)
+        match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
         match.start()
         match.finish()
 
@@ -169,10 +186,10 @@ class MatchesSchemasTestCase(mixins.TeamsMixin, TestCase):
     def test_match_player_stats_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(Match, status=Match.Status.READY)
-        team = baker.make(MatchTeam, match=match, score=10)
-        baker.make(MatchTeam, match=match)
-        match_player = baker.make(MatchPlayer, team=team, user=self.user_1)
+        match = baker.make(models.Match, status=models.Match.Status.READY)
+        team = baker.make(models.MatchTeam, match=match, score=10)
+        baker.make(models.MatchTeam, match=match)
+        match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
         match.start()
         match.finish()
 

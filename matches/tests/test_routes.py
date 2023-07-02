@@ -4,10 +4,10 @@ from model_bakery import baker
 from core.tests import APIClient, TestCase
 from matches import models
 from matches.api import schemas
-from matchmaking.tests import mixins
+from pre_matches.tests.mixins import TeamsMixin
 
 
-class MatchesRoutesTestCase(mixins.TeamsMixin, TestCase):
+class MatchesRoutesTestCase(TeamsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.api = APIClient('/api/matches')

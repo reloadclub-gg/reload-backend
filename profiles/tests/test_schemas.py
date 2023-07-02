@@ -3,7 +3,7 @@ from model_bakery import baker
 
 from core.tests import TestCase
 from matches.models import Match, MatchPlayer, Server
-from matchmaking.tests.mixins import TeamsMixin
+from pre_matches.tests.mixins import TeamsMixin
 from profiles.api import schemas
 from steam import Steam
 
@@ -99,6 +99,7 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
                 'chest_accuracy': 0,
                 'others_accuracy': 0,
             },
+            'date_joined': self.user_1.date_joined.isoformat(),
         }
 
         self.assertDictEqual(payload, expected_payload)

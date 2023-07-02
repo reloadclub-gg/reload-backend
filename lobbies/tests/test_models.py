@@ -3,9 +3,9 @@ from unittest import mock
 
 from django.utils import timezone
 
+from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase, cache
 from core.utils import str_to_timezone
-from matchmaking.tests.mixins import VerifiedPlayersMixin
 
 from ..models import (
     Lobby,
@@ -17,7 +17,7 @@ from ..models import (
 )
 
 
-class LobbyModelTestCase(VerifiedPlayersMixin, TestCase):
+class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()
@@ -556,31 +556,6 @@ class LobbyModelTestCase(VerifiedPlayersMixin, TestCase):
         with self.assertRaises(LobbyException):
             lobby_1.set_mode(5, [self.user_1.id])
 
-    def test_move_delete_invites_from_player(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        Lobby.move(self.user_2.id, lobby_1.id)
-        lobby_1.invite(self.user_2.id, self.user_3.id)
-
-        self.assertEqual(
-            lobby_1.get_invites_by_from_player_id(self.user_2.id),
-            [
-                LobbyInvite(
-                    from_id=self.user_2.id,
-                    to_id=self.user_3.id,
-                    lobby_id=lobby_1.id,
-                )
-            ],
-        )
-
-        Lobby.move(self.user_2.id, self.user_2.id)
-
-        self.assertEqual(
-            lobby_1.get_invites_by_from_player_id(self.user_2.id),
-            [],
-        )
-
     def test_get_lobby_invite(self):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
@@ -729,7 +704,7 @@ class LobbyModelTestCase(VerifiedPlayersMixin, TestCase):
         self.assertEqual(lobby.restriction_countdown, player1.lock_countdown)
 
 
-class LobbyInviteModelTestCase(VerifiedPlayersMixin, TestCase):
+class LobbyInviteModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user_1.auth.add_session()
@@ -866,7 +841,7 @@ class LobbyInviteModelTestCase(VerifiedPlayersMixin, TestCase):
             LobbyInvite.get_by_id(created.id)
 
 
-class PlayerModelTestCase(VerifiedPlayersMixin, TestCase):
+class PlayerModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_create(self):
         player = Player.create(self.user_1.id)
         self.assertIsNotNone(player)
