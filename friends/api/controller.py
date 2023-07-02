@@ -24,10 +24,11 @@ def fetch_steam_friends(user: User) -> list:
         ).exclude(user_id=user.id)
     ]
 
-    cache.sadd(
-        f'__friendlist:user:{user.id}',
-        *[friend_account.user.id for friend_account in friends_accounts],
-    )
+    if len(friends_accounts) > 0:
+        cache.sadd(
+            f'__friendlist:user:{user.id}',
+            *[friend_account.user.id for friend_account in friends_accounts],
+        )
     return friends_accounts
 
 
