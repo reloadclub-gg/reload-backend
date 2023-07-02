@@ -16,7 +16,7 @@ class RedisClient(Redis):
             port=settings.REDIS_PORT,
             username=settings.REDIS_USERNAME,
             password=settings.REDIS_PASSWORD,
-            db=settings.REDIS_APP_DB,
+            db=settings.REDIS_TEST_DB if settings.TEST_MODE else settings.REDIS_APP_DB,
             charset='utf-8',
             decode_responses=True,
             ssl=settings.REDIS_SSL,

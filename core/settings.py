@@ -104,7 +104,7 @@ ASGI_APPLICATION = 'core.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME', default='postgres'),
+        'NAME': config('DATABASE_NAME', default='test_db' if TEST_MODE else 'postgres'),
         'USER': config('DATABASE_USER', default='postgres'),
         'PASSWORD': config('DATABASE_PASSWORD', default='postgres'),
         'HOST': config('DATABASE_HOST', default='db'),
@@ -249,6 +249,7 @@ REDIS_PORT = config('REDIS_PORT', default=6379, cast=int)
 REDIS_USERNAME = config('REDIS_USERNAME', default='default')
 REDIS_PASSWORD = config('REDIS_PASSWORD', default='')
 REDIS_APP_DB = config('REDIS_APP_DB', default=0, cast=int)
+REDIS_TEST_DB = config('REDIS_APP_DB', default=2, cast=int)
 REDIS_SSL = config('REDIS_SSL', default=False, cast=bool)
 REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 
