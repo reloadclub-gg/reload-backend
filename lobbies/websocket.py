@@ -150,3 +150,23 @@ def ws_expire_player_invites(user: User, sent: bool = False, received: bool = Fa
         )
         models.LobbyInvite.delete(invite)
     return results
+
+
+def ws_queue_tick(lobby: models.Lobby):
+    """
+    Triggered every second for a queued lobby.
+
+    Cases:
+    - Queued lobby second tick.
+
+    Payload:
+    int
+
+    Actions:
+    - lobbies/queue_tick
+    """
+    return async_to_sync(ws_send)(
+        'lobbies/queue_tick',
+        lobby.queue_time,
+        groups=lobby.players_ids,
+    )

@@ -13,6 +13,7 @@ from pre_matches.websocket import ws_pre_match_create
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
+from ..tasks import queue_tick
 from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
 
 User = get_user_model()
@@ -305,6 +306,7 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         except LobbyException as e:
             raise HttpError(400, e)
 
+        queue_tick.delay(lobby.id)
         handle_team_build(lobby)
 
     elif payload.cancel_queue:
