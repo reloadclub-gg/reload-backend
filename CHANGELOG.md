@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Tarefa que envia websocket para client a cada "tick" da fila do lobby [#555](https://github.com/3C-gg/reload-backend/issues/555).
+
+## [45128bd - 02/07/2023]
+
+### Added
+
 - Adiciona algumas configurações padrão como migrations [https://github.com/3C-gg/reload-backend/issues/550](#550).
 - Campo `date_joined` no esquema `ProfileSchema` [#548](https://github.com/3C-gg/reload-backend/issues/548).
 - Adiciona sistema de mapa de partida [#545](https://github.com/3C-gg/reload-backend/issues/545).
