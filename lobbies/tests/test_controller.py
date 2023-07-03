@@ -588,6 +588,7 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
                 self.user_3.id,
             )
 
+    @mock.patch('lobbies.api.controller.queue_tick.delay')
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
     @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
@@ -598,6 +599,7 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         mock_friend_update,
         mock_update_user,
         mock_expire_invites,
+        mock_queue_tick,
     ):
         self.user_1.account.lobby.set_public()
         Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
@@ -620,6 +622,7 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         mock_friend_update.assert_has_calls(mock_calls)
         mock_update_user.assert_has_calls(mock_calls)
         mock_expire_invites.assert_has_calls(mock_calls)
+        mock_queue_tick.assert_called_once_with(self.user_1.account.lobby.id)
 
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_update_lobby_start_queue_unauthorized(self, mock_update_lobby):
