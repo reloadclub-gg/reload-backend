@@ -120,9 +120,10 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         mocker.assert_called_once()
         mocker.assert_called_once_with(self.user.email)
 
+    @mock.patch('accounts.api.controller.handle_player_move')
     @mock.patch('accounts.api.controller.websocket.ws_update_user')
     @mock.patch('accounts.api.controller.utils.send_verify_account_mail')
-    def test_update_email(self, mock_send_email, mock_update_user):
+    def test_update_email(self, mock_send_email, mock_update_user, mock_player_move):
         self.user.account.is_verified = True
         self.user.account.save()
         self.user.auth.add_session()
@@ -137,6 +138,11 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
             self.user.email,
             self.user.steam_user.username,
             self.user.account.verification_token,
+        )
+        mock_player_move.assert_called_once_with(
+            self.user,
+            self.user.id,
+            delete_lobby=True,
         )
 
     @mock.patch(
