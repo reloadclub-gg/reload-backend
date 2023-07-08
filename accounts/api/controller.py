@@ -134,16 +134,21 @@ def verify_account(user: User, verification_token: str) -> User:
     if not user.date_email_update:
         utils.send_welcome_mail(user.email)
 
-    for friend in user.account.online_friends:
-        notification = friend.notify(
-            _('Your friend {} just joined ReloadClub!').format(user.account.username),
-            user.id,
-        )
-        ws_new_notification(notification)
+        for friend in user.account.online_friends:
+            notification = friend.notify(
+                _('Your friend {} just joined ReloadClub!').format(
+                    user.account.username
+                ),
+                user.id,
+            )
+            ws_new_notification(notification)
 
-        cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
+            cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
 
-    ws_friend_update_or_create(user, 'create')
+        ws_friend_update_or_create(user, 'create')
+    else:
+        ws_friend_update_or_create(user)
+
     return user
 
 
@@ -160,7 +165,7 @@ def inactivate(user: User) -> User:
 
 def update_email(user: User, email: str) -> User:
     """
-    Change user email and inactive user
+    Change user email and set user as unverified.
     """
     user.email = email
     user.date_email_update = timezone.now()
@@ -176,9 +181,8 @@ def update_email(user: User, email: str) -> User:
     )
 
     websocket.ws_update_user(user)
-    lobby = user.account.lobby
-    if lobby:
-        lobby.move(user.id, user.id, remove=True)
+    if user.account.lobby:
+        handle_player_move(user, user.id, delete_lobby=True)
 
     return user
 
