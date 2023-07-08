@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Tarefa que envia websocket para client a cada "tick" da fila do lobby [#555](https://github.com/3C-gg/reload-backend/issues/555).
 
+### Fixed
+
+- Corrigimos um erro que acontecia quando o usuário troacava de e-mail. Ele não estava saindo dos lobbies e chamando os websockets necessários [#559](https://github.com/3C-gg/reload-backend/issues/559).
+- Ao validar conta estávamos enviando uma notificação de novo cadastro para os amigos do usuário. Mas isso só deveria acontecer para novos cadastros, e o método de validar conta também é executado quando o usuário troca de e-mail. Adicionamos uma proteção para que o envio da notificação seja feito corretamente.
+
 ## [45128bd - 02/07/2023]
 
 ### Added
