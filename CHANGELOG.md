@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Ao deletar um jogador (model `Player`), estávamos tentando carregar o jogador do Redis. Porém, se por algum motivo o jogador não tivesse sido criado ou já tivesse sido excluído, estávamos encontrando um erro `Player not found`. Removemos a busca pelo jogador no Redis, visto que o método `delete` já recebe o `user_id`, que é necessário para remover a chave do `set` no Redis [#563](https://github.com/3C-gg/reload-backend/issues/563).
+
+## [e6b3241 - 9/7/2023]
+
 ### Added
 
 - Tarefa que envia websocket para client a cada "tick" da fila do lobby [#555](https://github.com/3C-gg/reload-backend/issues/555).
