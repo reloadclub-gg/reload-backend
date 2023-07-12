@@ -1,6 +1,7 @@
 from typing import Union
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
 
@@ -112,8 +113,9 @@ def set_player_lock_in(user: User) -> models.PreMatch:
         websocket.ws_pre_match_update(pre_match)
         # delay task to check if countdown is over to READY_COUNTDOWN seconds
         # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
+        lang = get_language()
         tasks.cancel_match_after_countdown.apply_async(
-            (pre_match.id,),
+            (pre_match.id, lang),
             countdown=models.PreMatch.Config.READY_COUNTDOWN
             + (-models.PreMatch.Config.READY_COUNTDOWN_GAP),
             serializer='json',

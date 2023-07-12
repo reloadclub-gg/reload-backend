@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-29 16:52-0300\n"
+"POT-Creation-Date: 2023-07-12 17:57-0300\n"
 "PO-Revision-Date: 2023-06-29 16:56-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -442,7 +442,8 @@ msgstr "Tamanho para um {}."
 
 #: core/api/pydantic_messages.py:125
 msgid "could not parse value and unit from byte string"
-msgstr "Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
+msgstr ""
+"Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
 
 #: core/api/pydantic_messages.py:127
 msgid "could not interpret byte unit: {}"
@@ -469,25 +470,24 @@ msgid "Invalid toast variant."
 msgstr "Variante de toast inválida."
 
 #: core/websocket.py:58
-#| msgid "Invalid toast variant."
 msgid "Invalid status."
 msgstr "Status inválido."
 
-#: friends/api/controller.py:47
+#: friends/api/controller.py:48
 msgid "Users aren't friends."
 msgstr "Usuários não são amigos."
 
-#: lobbies/api/controller.py:248
+#: lobbies/api/controller.py:223
 msgid "Invalid invite id"
 msgstr "Convite inválido."
 
-#: lobbies/api/controller.py:263 lobbies/api/controller.py:282
-#: lobbies/api/controller.py:298 lobbies/api/controller.py:323
-#: lobbies/api/controller.py:355
+#: lobbies/api/controller.py:238 lobbies/api/controller.py:257
+#: lobbies/api/controller.py:274 lobbies/api/controller.py:299
+#: lobbies/api/controller.py:332
 msgid "We are under maintenance. Try again later."
 msgstr "Estamos em manutenção. Tente novamente mais tarde."
 
-#: lobbies/api/controller.py:312
+#: lobbies/api/controller.py:288
 msgid "{} kicked you from lobby."
 msgstr "{} removeu você do lobby."
 
@@ -563,19 +563,19 @@ msgid "Player cannot dodge while in queue restriction."
 msgstr ""
 "Jogador não pode escapar de uma partida enquanto estiver em uma restrição."
 
-#: matches/models.py:158
+#: matches/models.py:169
 msgid "Unable to finish match while not running."
 msgstr "Não é possível finalizar uma partida que não foi iniciada."
 
-#: matches/models.py:169
+#: matches/models.py:180
 msgid "Unable to start match while not ready."
 msgstr "Não é possível iniciar uma partida que não está pronta."
 
-#: matches/models.py:177
+#: matches/models.py:188
 msgid "Unable to mark match as ready while not loading."
 msgstr "Não é possível marcar uma partida que não foi carregada como pronta."
 
-#: matches/models.py:185
+#: matches/models.py:196
 msgid "Unable to cancel match after is finished."
 msgstr "Não é possível cancelar uma partida depois de ser finalizada."
 
@@ -595,28 +595,28 @@ msgstr "Usuários online"
 msgid "Notification not found."
 msgstr "Notificação não encontrada."
 
-#: pre_matches/api/controller.py:65
+#: pre_matches/api/controller.py:66
 msgid ""
 "All our servers are unavailable at this moment. Please, try again later."
 msgstr ""
 "Todos os nossos servidores estão indisponíveis no momento. Tente novamente "
 "mais tarde."
 
-#: pre_matches/api/controller.py:99
+#: pre_matches/api/controller.py:100
 msgid "Can't lock in for a new match while in a match."
 msgstr ""
 "Não é possível entrar em uma nova partida enquanto estiver em uma partida."
 
-#: pre_matches/api/controller.py:103
+#: pre_matches/api/controller.py:104
 msgid "Player already locked in."
 msgstr "Jogador já foi marcado como pronto."
 
-#: pre_matches/api/controller.py:128
+#: pre_matches/api/controller.py:130
 msgid "Can't ready in for a new match while in a match."
 msgstr ""
 "Não é possível entrar em uma nova partida enquanto estiver em uma partida."
 
-#: pre_matches/api/controller.py:133
+#: pre_matches/api/controller.py:135
 msgid "Player already set as ready."
 msgstr "Jogador já foi marcado como pronto."
 
@@ -636,38 +636,34 @@ msgstr ""
 #: pre_matches/models/pre_match.py:216
 msgid "PreMatch is not ready to lock in players."
 msgstr ""
-"Partida ainda não está pronta para receber pedidos de jogadores a "
-"participar."
+"Partida ainda não está pronta para receber pedidos de jogadores a participar."
 
-#: pre_matches/models/team.py:186 pre_matches/models/team.py:198
+#: pre_matches/models/team.py:190 pre_matches/models/team.py:202
 msgid "Team not found."
 msgstr "Time não encontrado."
 
-#: pre_matches/models/team.py:212
+#: pre_matches/models/team.py:216
 msgid "Lobbies have differents types or modes."
 msgstr "Os lobbies tem modos ou tipos diferentes."
 
-#: pre_matches/models/team.py:215
+#: pre_matches/models/team.py:219
 msgid "Team players count exceeded."
 msgstr "A quantidade de jogadores em time foi excedida."
 
-#: pre_matches/models/team.py:229 pre_matches/models/team.py:253
+#: pre_matches/models/team.py:233 pre_matches/models/team.py:257
 msgid "Lobby already on a team."
 msgstr "O lobby já está em um time."
 
-#: pre_matches/models/team.py:233 pre_matches/models/team.py:257
+#: pre_matches/models/team.py:237 pre_matches/models/team.py:261
 msgid "Lobby not queued."
 msgstr "Lobby não está em fila."
 
-#: pre_matches/tasks.py:42
+#: pre_matches/tasks.py:46
 msgid ""
-"Some players in your lobby were not ready before the timer ran out and the "
-"match was cancelled. The recurrence of this conduct may result in "
+"Some players in your lobby were not ready before thetimer ran out and the "
+"match was cancelled. The recurrenceof this conduct may result in "
 "restrictions."
-msgstr ""
-"Alguns jogadores no seu lobby não ficaram prontos antes do tempo acabar e a "
-"partida foi cancelada. A recorrência dessa conduta pode resultar em "
-"restrições."
+msgstr "Alguns jogadores no seu lobby não ficaram prontos antes do tempo acabar e a partida foi cancelada. A recorrência dessa conduta pode resultar em restrições."
 
 #: support/api/controller.py:51
 msgid "Attachment is too large (max 3MB)."
