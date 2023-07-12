@@ -304,8 +304,8 @@ GROUP_NAME_PREFIX = 'app'
 TEAM_READY_PLAYERS_MIN = (
     5 if TEST_MODE else config('TEAM_READY_PLAYERS_MIN', default=5, cast=int)
 )
-MATCH_READY_PLAYERS_MIN = (
-    10 if TEST_MODE else config('MATCH_READY_PLAYERS_MIN', default=10, cast=int)
+TEAM_READY_PLAYERS_MAX = (
+    5 if TEST_MODE else config('TEAM_READY_PLAYERS_MAX', default=5, cast=int)
 )
 MATCH_READY_COUNTDOWN = (
     30 if TEST_MODE else config('MATCH_READY_COUNTDOWN', default=30, cast=int)

@@ -1,7 +1,7 @@
 import time
 
 from celery import shared_task
-from django.utils.translation import activate, get_language
+from django.utils.translation import activate
 from django.utils.translation import gettext as _
 
 from accounts.websocket import ws_update_user

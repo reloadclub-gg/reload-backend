@@ -76,7 +76,11 @@ class Team(BaseModel):
         """
         Return whether this team is ready to find a oposing team.
         """
-        return self.players_count == settings.TEAM_READY_PLAYERS_MIN
+        return (
+            settings.TEAM_READY_PLAYERS_MAX
+            >= self.players_count
+            >= settings.TEAM_READY_PLAYERS_MIN
+        )
 
     @property
     def overall(self) -> int:
@@ -223,9 +227,9 @@ class Team(BaseModel):
         """
         Find a team for the given lobby.
         """
-        # check if received lobby already is on a team
-        teams = Team.get_all()
-        if any(lobby.id in team.lobbies_ids for team in teams):
+        # check if received lobby is already on a team
+        team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
+        if team:
             raise TeamException(_('Lobby already on a team.'))
 
         # check whether the lobby is queued
@@ -247,9 +251,9 @@ class Team(BaseModel):
         Look for queued lobbies that are compatible
         and put them together in a team.
         """
-        # check if received lobby already is on a team
-        teams = Team.get_all()
-        if any(lobby.id in team.lobbies_ids for team in teams):
+        # check if received lobby is already on a team
+        team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
+        if team:
             raise TeamException(_('Lobby already on a team.'))
 
         # check whether the lobby is queued
@@ -259,7 +263,7 @@ class Team(BaseModel):
         team = Team.create(lobbies_ids=[lobby.id])
 
         # check if team is full already
-        if team.players_count == settings.TEAM_READY_PLAYERS_MIN:
+        if team.ready:
             return team
 
         # get all queued lobbies

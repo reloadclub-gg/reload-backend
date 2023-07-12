@@ -108,7 +108,7 @@ def set_player_lock_in(user: User) -> models.PreMatch:
     except models.PreMatchException as e:
         raise HttpError(403, e)
 
-    if len(pre_match.players_in) >= models.PreMatch.Config.READY_PLAYERS_MIN:
+    if len(pre_match.players_in) >= len(pre_match.players):
         pre_match.start_players_ready_countdown()
         websocket.ws_pre_match_update(pre_match)
         # delay task to check if countdown is over to READY_COUNTDOWN seconds
@@ -136,7 +136,7 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
 
     pre_match.set_player_ready(user.id)
     websocket.ws_pre_match_update(pre_match)
-    if len(pre_match.players_ready) >= models.PreMatch.Config.READY_PLAYERS_MIN:
+    if len(pre_match.players_ready) >= len(pre_match.players):
         match = handle_create_match(pre_match)
         if not match:
             # cancel match due to lack of available servers

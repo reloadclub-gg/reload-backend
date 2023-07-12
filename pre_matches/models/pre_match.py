@@ -54,7 +54,6 @@ class PreMatch(BaseModel):
         ID_SIZE: int = 16
         READY_COUNTDOWN: int = settings.MATCH_READY_COUNTDOWN
         READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
-        READY_PLAYERS_MIN: int = settings.MATCH_READY_PLAYERS_MIN
         STATES = {
             'canceled': -2,
             'idle': -1,
@@ -70,20 +69,20 @@ class PreMatch(BaseModel):
 
     @property
     def state(self) -> str:
-        if len(self.players_in) < PreMatch.Config.READY_PLAYERS_MIN:
+        if len(self.players_in) < len(self.players):
             return PreMatch.Config.STATES.get('pre_start')
         elif (
             self.countdown is not None
             and self.countdown > PreMatch.Config.READY_COUNTDOWN_GAP
-            and len(self.players_ready) < PreMatch.Config.READY_PLAYERS_MIN
+            and len(self.players_ready) < len(self.players)
         ):
             return PreMatch.Config.STATES.get('lock_in')
-        elif len(self.players_ready) == PreMatch.Config.READY_PLAYERS_MIN:
+        elif len(self.players_ready) == len(self.players):
             return PreMatch.Config.STATES.get('ready')
         elif (
             self.countdown is not None
             and self.countdown <= PreMatch.Config.READY_COUNTDOWN_GAP
-            and len(self.players_ready) < PreMatch.Config.READY_PLAYERS_MIN
+            and len(self.players_ready) < len(self.players)
         ):
             return PreMatch.Config.STATES.get('canceled')
         else:
