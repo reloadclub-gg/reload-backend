@@ -165,6 +165,4 @@ class Player(BaseModel):
         Delete player from the players set on Redis.
         This should be called upon a player logout.
         """
-        player = Player.get_by_user_id(user_id=user_id)
-        if player:
-            cache.srem('__mm:players', player.user_id)
+        cache.srem('__mm:players', user_id)
