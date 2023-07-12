@@ -1,6 +1,7 @@
 import time
 
 from celery import shared_task
+from django.utils.translation import activate
 from django.utils.translation import gettext as _
 
 from accounts.websocket import ws_update_user
@@ -13,12 +14,14 @@ from . import models, websocket
 
 
 @shared_task
-def cancel_match_after_countdown(pre_match_id: str):
+def cancel_match_after_countdown(pre_match_id: str, lang: str = None):
     try:
         pre_match = models.PreMatch.get_by_id(pre_match_id)
     except models.PreMatchException:
         # we have deleted the pre_match already in favor of a match
         return
+
+    lang and activate(lang)
 
     if pre_match.countdown >= models.PreMatch.Config.READY_COUNTDOWN_GAP:
         # schedule this task again two seconds later
@@ -40,9 +43,9 @@ def cancel_match_after_countdown(pre_match_id: str):
             else:
                 for player_id in lobby.players_ids:
                     msg = _(
-                        'Some players in your lobby were not ready'
-                        ' before the timer ran out and the match was cancelled.'
-                        ' The recurrence of this conduct may result in restrictions.'
+                        'Some players in your lobby were not ready before the'
+                        'timer ran out and the match was cancelled. The recurrence'
+                        'of this conduct may result in restrictions.'
                     )
                     ws_create_toast(player_id, msg, 'warning')
                     if player_id not in ready_players_ids:
