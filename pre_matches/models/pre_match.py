@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import secrets
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -33,24 +31,25 @@ class PreMatch(BaseModel):
 
     The Redis db keys from this model are described below:
 
-    [key] __mm:match:[pre_match_id] [team1_id:team2_id]
+    [key] __mm:pre_match:auto_id int
+
+    [key] __mm:pre_match:[id] [team1_id:team2_id]
     Stores a pre_match with teams ids.
 
-    [key] __mm:match:[pre_match_id]:ready_time
+    [key] __mm:pre_match:[id]:ready_time
     Stores the datetime that a pre_match was ready for players to confirm their seats.
 
-    [set] __mm:match:[pre_match_id]:ready_players_ids
+    [set] __mm:pre_match:[id]:ready_players_ids
     Stores which players are ready.
 
-    [set] __mm:match:[pre_match_id]:in_players_ids
+    [set] __mm:pre_match:[id]:in_players_ids
     Stores which locked in players are in pre_match.
     """
 
-    id: str = None
-    cache_key: str = None
+    id: int
 
     class Config:
-        CACHE_PREFIX: str = '__mm:match:'
+        CACHE_PREFIX: str = '__mm:pre_match:'
         ID_SIZE: int = 16
         READY_COUNTDOWN: int = settings.MATCH_READY_COUNTDOWN
         READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
@@ -62,10 +61,9 @@ class PreMatch(BaseModel):
             'ready': 2,
         }
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.id = self.id or secrets.token_urlsafe(PreMatch.Config.ID_SIZE)
-        self.cache_key = self.cache_key or f'{PreMatch.Config.CACHE_PREFIX}{self.id}'
+    @property
+    def cache_key(self) -> str:
+        return f'{PreMatch.Config.CACHE_PREFIX}{self.id}'
 
     @property
     def state(self) -> str:
@@ -143,6 +141,15 @@ class PreMatch(BaseModel):
         return self.team1_players + self.team2_players
 
     @staticmethod
+    def incr_auto_id() -> int:
+        return int(cache.incr('__mm:pre_match:auto_id'))
+
+    @staticmethod
+    def get_auto_id() -> int:
+        count = cache.get('__mm:pre_match:auto_id')
+        return int(count) if count else 0
+
+    @staticmethod
     def create(team1_id: str, team2_id: str) -> PreMatch:
         team1 = Team.get_by_id(team1_id)
         team2 = Team.get_by_id(team2_id)
@@ -152,12 +159,18 @@ class PreMatch(BaseModel):
                 _('All teams must be ready in order to create a PreMatch.')
             )
 
-        match_id = secrets.token_urlsafe(PreMatch.Config.ID_SIZE)
-        cache.set(f'{PreMatch.Config.CACHE_PREFIX}{match_id}', f'{team1_id}:{team2_id}')
-        return PreMatch.get_by_id(match_id)
+        auto_id = PreMatch.incr_auto_id()
+        cache.set(
+            f'{PreMatch.Config.CACHE_PREFIX}{auto_id}',
+            f'{team1_id}:{team2_id}',
+        )
+
+        cache.set(f'{team1.cache_key}:pre_match', auto_id)
+        cache.set(f'{team2.cache_key}:pre_match', auto_id)
+        return PreMatch.get_by_id(auto_id)
 
     @staticmethod
-    def get_by_id(id: str):
+    def get_by_id(id: int):
         """
         Searchs for a match given an id.
         """
@@ -182,7 +195,7 @@ class PreMatch(BaseModel):
 
     @staticmethod
     def get_all():
-        pre_matches_keys = cache.keys(f'{PreMatch.Config.CACHE_PREFIX}*')
+        pre_matches_keys = cache.keys(f'{PreMatch.Config.CACHE_PREFIX}?')
         result = []
         for pre_match_key in pre_matches_keys:
             if len(pre_match_key.split(':')) == 3:
@@ -217,7 +230,7 @@ class PreMatch(BaseModel):
         cache.sadd(f'{self.cache_key}:in_players_ids', user_id)
 
     @staticmethod
-    def delete(id: str, pipe=None):
+    def delete(id: int, pipe=None):
         pre_match = PreMatch(id=id)
         keys = cache.keys(f'{pre_match.cache_key}:*')
         if len(keys) >= 1:

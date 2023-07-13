@@ -1,6 +1,7 @@
 import datetime
 import time
 
+from django.test import override_settings
 from django.utils import timezone
 
 from accounts.models import User
@@ -79,6 +80,37 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         team = Team.build(self.lobby1)
         self.assertIsNone(team)
 
+    @override_settings(TEAM_READY_PLAYERS_MIN=2)
+    def test_build_with_other_teams(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        team = Team.build(self.lobby1)
+        self.assertTrue(team.ready)
+
+        self.lobby3.start_queue()
+        team2 = Team.build(self.lobby3)
+        self.assertIsNone(team2)
+
+        self.lobby4.start_queue()
+        team2 = Team.build(self.lobby3)
+        self.assertIsNotNone(team2)
+        self.assertTrue(team2.ready)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=1)
+    def test_build_with_other_teams_oversized(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        self.assertEqual(self.lobby1.players_count, 2)
+
+        self.lobby1.start_queue()
+        team = Team.build(self.lobby1)
+        self.assertTrue(team.ready)
+
+        self.lobby3.start_queue()
+        team2 = Team.build(self.lobby3)
+        self.assertIsNotNone(team2)
+        self.assertTrue(team2.ready)
+
     def test_ready(self):
         team1 = Team.create(lobbies_ids=[self.lobby1.id])
         self.assertFalse(team1.ready)
@@ -93,6 +125,14 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
             ]
         )
 
+        self.assertTrue(team2.ready)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=2)
+    def test_ready_min_override(self):
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+        self.assertFalse(team1.ready)
+
+        team2 = Team.create(lobbies_ids=[self.lobby2.id, self.lobby3.id])
         self.assertTrue(team2.ready)
 
     def test_build_errors(self):
@@ -432,18 +472,23 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
             ]
         )
 
+    def test_auto_id(self):
+        for _ in range(0, 10):
+            PreMatch.create(self.team1.id, self.team2.id)
+        self.assertEqual(PreMatch.get_auto_id(), 10)
+
     def test_create(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        match_model = PreMatch.get_by_id(match.id)
-        self.assertEqual(match, match_model)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match_model = PreMatch.get_by_id(pre_match.id)
+        self.assertEqual(pre_match, pre_match_model)
 
     def test_start_players_ready_countdown(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        ready_time = cache.get(f'{match.cache_key}:ready_time')
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        ready_time = cache.get(f'{pre_match.cache_key}:ready_time')
         self.assertIsNone(ready_time)
 
-        match.start_players_ready_countdown()
-        ready_time = cache.get(f'{match.cache_key}:ready_time')
+        pre_match.start_players_ready_countdown()
+        ready_time = cache.get(f'{pre_match.cache_key}:ready_time')
         self.assertIsNotNone(ready_time)
 
     def test_set_player_ready(self):
@@ -457,16 +502,16 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(len(pre_match.players_ready), 1)
 
     def test_set_player_ready_wrong_state(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
         with self.assertRaises(PreMatchException):
-            match.set_player_ready(self.user_1.id)
+            pre_match.set_player_ready(self.user_1.id)
 
     def test_set_player_lock_in(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertEqual(len(match.players_in), 0)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertEqual(len(pre_match.players_in), 0)
 
-        match.set_player_lock_in(self.user_1.id)
-        self.assertEqual(len(match.players_in), 1)
+        pre_match.set_player_lock_in(self.user_1.id)
+        self.assertEqual(len(pre_match.players_in), 1)
 
     def test_set_player_lock_in_wrong_state(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
@@ -507,48 +552,48 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('canceled'))
 
     def test_countdown(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        match.start_players_ready_countdown()
-        self.assertEqual(match.countdown, 30)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match.start_players_ready_countdown()
+        self.assertEqual(pre_match.countdown, 30)
         time.sleep(2)
-        self.assertEqual(match.countdown, 28)
+        self.assertEqual(pre_match.countdown, 28)
 
     def test_teams(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertEqual(match.teams[0], self.team1)
-        self.assertEqual(match.teams[1], self.team2)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertEqual(pre_match.teams[0], self.team1)
+        self.assertEqual(pre_match.teams[1], self.team2)
 
     def test_players(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertEqual(len(match.players), 10)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertEqual(len(pre_match.players), 10)
 
     def test_get_by_team_id(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
 
         result1 = PreMatch.get_by_team_id(self.team1.id)
-        self.assertEqual(match, result1)
+        self.assertEqual(pre_match, result1)
 
         result2 = PreMatch.get_by_team_id(self.team2.id)
-        self.assertEqual(match, result2)
+        self.assertEqual(pre_match, result2)
 
         result3 = PreMatch.get_by_team_id(self.team1.id, self.team2.id)
-        self.assertEqual(match, result3)
+        self.assertEqual(pre_match, result3)
 
     def test_delete_all_keys(self):
-        match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertGreaterEqual(len(cache.keys(f'{match.cache_key}*')), 1)
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        self.assertGreaterEqual(len(cache.keys(f'{pre_match.cache_key}*')), 1)
 
-        PreMatch.delete(match.id)
-        self.assertGreaterEqual(len(cache.keys(f'{match.cache_key}*')), 0)
+        PreMatch.delete(pre_match.id)
+        self.assertGreaterEqual(len(cache.keys(f'{pre_match.cache_key}*')), 0)
 
     def test_get_all(self):
-        all_matches = PreMatch.get_all()
-        self.assertEqual(len(all_matches), 0)
+        all_pre_matches = PreMatch.get_all()
+        self.assertEqual(len(all_pre_matches), 0)
 
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
         pre_match.start_players_ready_countdown()
-        all_matches = PreMatch.get_all()
-        self.assertEqual(len(all_matches), 1)
+        all_pre_matches = PreMatch.get_all()
+        self.assertEqual(len(all_pre_matches), 1)
 
     def test_get_by_player_id(self):
         PreMatch.create(self.team1.id, self.team2.id)

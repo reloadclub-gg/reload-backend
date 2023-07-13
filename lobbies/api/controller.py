@@ -186,7 +186,11 @@ def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) ->
 
 
 def handle_team_build(lobby: Lobby):
-    team = Team.find(lobby) or Team.build(lobby)
+    team = (
+        Team.get_by_lobby_id(lobby.id, fail_silently=True)
+        or Team.find(lobby)
+        or Team.build(lobby)
+    )
     if team and team.ready:
         opponent = team.get_opponent_team()
         if opponent and opponent.ready:
