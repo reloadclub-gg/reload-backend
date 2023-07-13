@@ -13,9 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Propriedade `ready` do modelo `Team` que estava com uma verificação errada.
+- Corrige erro que fazia com que durante o matchmaking, se um lobby tivesse chegado ao limite de jogadores para estar pronto, ao entrar em fila com um teceiro lobby, sem estar com o limite de jogadores atingido, ele encaixava o novo lobby no time já existente ao invés de criar o seu próprio, e ainda criava uma partida com times duplicados [#571](https://github.com/3C-gg/reload-backend/issues/571).
 - Corrige tradução de mensagem em tarefa do Celery.
 - Ao tentar fazer lockin ou ready de um jogador, estávamos checando uma config fixa, o que não permitia que fizéssemos testes 3x2, por exemplo. Corrigimos para que as verificações sejam em cima da quantidade de players na partida, e não em cima da config fixa [#567](https://github.com/3C-gg/reload-backend/issues/567).
 - Ao deletar um jogador (model `Player`), estávamos tentando carregar o jogador do Redis. Porém, se por algum motivo o jogador não tivesse sido criado ou já tivesse sido excluído, estávamos encontrando um erro `Player not found`. Removemos a busca pelo jogador no Redis, visto que o método `delete` já recebe o `user_id`, que é necessário para remover a chave do `set` no Redis [#563](https://github.com/3C-gg/reload-backend/issues/563).
+
+### Removed
+
+- Configuração `TEAM_READY_PLAYERS_MAX` que não estava sendo usada corretamente.
 
 ## [e6b3241 - 9/7/2023]
 

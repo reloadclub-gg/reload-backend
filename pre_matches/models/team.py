@@ -76,11 +76,7 @@ class Team(BaseModel):
         """
         Return whether this team is ready to find a oposing team.
         """
-        return (
-            settings.TEAM_READY_PLAYERS_MAX
-            >= self.players_count
-            >= settings.TEAM_READY_PLAYERS_MIN
-        )
+        return self.players_count >= settings.TEAM_READY_PLAYERS_MIN
 
     @property
     def overall(self) -> int:
@@ -274,6 +270,10 @@ class Team(BaseModel):
         ]
 
         for lobby_id in lobby_ids:
+            lobby_team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
+            if lobby_team and lobby_team.ready:
+                continue
+
             other_lobby = Lobby(owner_id=lobby_id)
 
             # check if lobbies type and mode matches

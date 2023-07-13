@@ -1,6 +1,7 @@
 import datetime
 import time
 
+from django.test import override_settings
 from django.utils import timezone
 
 from accounts.models import User
@@ -79,6 +80,37 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         team = Team.build(self.lobby1)
         self.assertIsNone(team)
 
+    @override_settings(TEAM_READY_PLAYERS_MIN=2)
+    def test_build_with_other_teams(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        team = Team.build(self.lobby1)
+        self.assertTrue(team.ready)
+
+        self.lobby3.start_queue()
+        team2 = Team.build(self.lobby3)
+        self.assertIsNone(team2)
+
+        self.lobby4.start_queue()
+        team2 = Team.build(self.lobby3)
+        self.assertIsNotNone(team2)
+        self.assertTrue(team2.ready)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=1)
+    def test_build_with_other_teams_oversized(self):
+        self.lobby1.set_public()
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        self.assertEqual(self.lobby1.players_count, 2)
+
+        self.lobby1.start_queue()
+        team = Team.build(self.lobby1)
+        self.assertTrue(team.ready)
+
+        self.lobby3.start_queue()
+        team2 = Team.build(self.lobby3)
+        self.assertIsNotNone(team2)
+        self.assertTrue(team2.ready)
+
     def test_ready(self):
         team1 = Team.create(lobbies_ids=[self.lobby1.id])
         self.assertFalse(team1.ready)
@@ -93,6 +125,14 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
             ]
         )
 
+        self.assertTrue(team2.ready)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=2)
+    def test_ready_min_override(self):
+        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+        self.assertFalse(team1.ready)
+
+        team2 = Team.create(lobbies_ids=[self.lobby2.id, self.lobby3.id])
         self.assertTrue(team2.ready)
 
     def test_build_errors(self):
