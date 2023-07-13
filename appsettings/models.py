@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from django.utils.translation import gettext as _
 
 from core.websocket import ws_create_toast, ws_maintenance
+from lobbies.models import Lobby
 
 User = get_user_model()
 
@@ -53,11 +54,12 @@ class AppSettings(models.Model):
 
 
 @receiver(signals.post_save, sender=AppSettings)
-def create_product(sender, instance: AppSettings, created: bool, **kwargs):
+def update_maintanence(sender, instance: AppSettings, created: bool, **kwargs):
     if instance.name == 'Maintenance Window' and not created:
         online_users_ids = [user.id for user in User.online_users()]
 
         if AppSettings.get(instance.name) is True:
+            Lobby.cancel_all_queues()
             ws_maintenance('start')
             for user_id in online_users_ids:
                 ws_create_toast(
