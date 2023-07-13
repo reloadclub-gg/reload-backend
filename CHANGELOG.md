@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Cancela todas as filas ao ligar manutenção [#565](https://github.com/3C-gg/reload-backend/issues/565).
+- Websocket `lobby/queue_start` para que o client possa interceptar e reiniciar a fila do lobby.
+- Método que cancela todas as filas de todos os lobbies.
+
 ### Changed
 
+- Move métodos estáticos do modelo `Lobby` de modo que fiquem todos juntos e organizados.
 - Altera verificação de backend de envio de emails do Django para usar o console caso o valor de `EMAIL_HOST` seja diferente de `localhost`.
 
 ### Fixed
