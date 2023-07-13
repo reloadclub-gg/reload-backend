@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Envio de ws `lobbies/update` quando a partida for cancelada para todos os lobbies participantes [#573](https://github.com/3C-gg/reload-backend/issues/573).
 - Move métodos estáticos do modelo `Lobby` de modo que fiquem todos juntos e organizados.
 - Altera verificação de backend de envio de emails do Django para usar o console caso o valor de `EMAIL_HOST` seja diferente de `localhost`.
 

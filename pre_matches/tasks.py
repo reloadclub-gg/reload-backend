@@ -51,7 +51,6 @@ def cancel_match_after_countdown(pre_match_id: str, lang: str = None):
         # re-start queue for lobbies which all players accepted
         for lobby in lobbies:
             if all(elem in ready_players_ids for elem in lobby.players_ids):
-                ws_update_lobby(lobby)
                 ws_queue_start(lobby)
 
             else:
@@ -65,3 +64,5 @@ def cancel_match_after_countdown(pre_match_id: str, lang: str = None):
                     if player_id not in ready_players_ids:
                         player = Player.get_by_user_id(player_id)
                         player.dodge_add()
+
+            ws_update_lobby(lobby)
