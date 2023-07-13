@@ -210,7 +210,7 @@ if ENVIRONMENT != LOCAL:
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_BACKEND = (
     'django.core.mail.backends.smtp.EmailBackend'
-    if ENVIRONMENT != LOCAL
+    if EMAIL_HOST != 'localhost'
     else 'django.core.mail.backends.console.EmailBackend'
 )
 EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)

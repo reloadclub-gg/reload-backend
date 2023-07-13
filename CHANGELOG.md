@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Altera verificação de backend de envio de emails do Django para usar o console caso o valor de `EMAIL_HOST` seja diferente de `localhost`.
+
 ### Fixed
 
 - Corrige tradução de mensagem em tarefa do Celery.
