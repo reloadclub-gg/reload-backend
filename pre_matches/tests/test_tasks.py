@@ -17,12 +17,10 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
     @mock.patch('pre_matches.tasks.ws_update_user')
     @mock.patch('pre_matches.tasks.ws_create_toast')
     @mock.patch('pre_matches.tasks.ws_friend_update_or_create')
-    @mock.patch('pre_matches.tasks.ws_update_lobby')
     @mock.patch('pre_matches.tasks.websocket.ws_pre_match_delete')
     def test_cancel_match_after_countdown(
         self,
         mock_pre_match_delete,
-        mock_update_lobby,
         mock_friend_update,
         mock_create_toast,
         mock_update_user,
@@ -51,7 +49,6 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
         ]
 
         mock_pre_match_delete.assert_called_once()
-        mock_update_lobby.assert_called_once_with(self.user_1.account.lobby)
         self.assertEqual(mock_create_toast.call_count, 9)
         mock_friend_update.assert_has_calls(mock_calls)
         mock_update_user.assert_has_calls(mock_calls)

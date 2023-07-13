@@ -170,3 +170,24 @@ def ws_queue_tick(lobby: models.Lobby):
         lobby.queue_time,
         groups=lobby.players_ids,
     )
+
+
+def ws_queue_start(lobby: models.Lobby):
+    """
+    This ws tells the client to restart its queue, as all players
+    were marked as ready.
+
+    Cases:
+    - Triggered when a pre_match is cancelled by other lobbies.
+
+    Payload:
+    null
+
+    Actions:
+    - lobbies/queue_start
+    """
+    return async_to_sync(ws_send)(
+        'lobbies/queue_start',
+        None,
+        groups=[lobby.owner_id],
+    )

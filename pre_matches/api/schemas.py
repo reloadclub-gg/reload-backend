@@ -4,7 +4,7 @@ from ..models import PreMatch
 
 
 class PreMatchSchema(Schema):
-    id: str
+    id: int
     state: str
     countdown: int = None
     players_ready_count: int
