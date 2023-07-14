@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Atualiza arquivos de admin e prepara admin para lançamento [#580](https://github.com/3C-gg/reload-backend/issues/580).
+- Altera multiplicadores do tempo de restrição para dodges, deixando eles menos agressivos para os primeiros dodges.
 - Altera página de partida em andamento para que somente os jogadores naquela partida possam acessá-la nesse estado.
 - Envio de ws `lobbies/update` quando a partida for cancelada para todos os lobbies participantes [#573](https://github.com/3C-gg/reload-backend/issues/573).
 - Move métodos estáticos do modelo `Lobby` de modo que fiquem todos juntos e organizados.

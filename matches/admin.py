@@ -1,29 +1,36 @@
 from django.contrib import admin
 
+from core.admin_mixins import ReadOnlyModelAdminMixin, SuperUserOnlyAdminMixin
+
 from . import models
 
 
 @admin.register(models.Server)
 class ServerAdmin(admin.ModelAdmin):
-    list_display = (
-        'ip',
-        'name',
-        'key',
-    )
+    list_display = ('ip', 'name', 'running_matches')
     ordering = (
         'ip',
         'name',
     )
 
+    def running_matches(self, obj):
+        return obj.match_set.filter(
+            status__in=[
+                models.Match.Status.RUNNING,
+                models.Match.Status.LOADING,
+                models.Match.Status.READY,
+            ]
+        ).count()
+
 
 @admin.register(models.Map)
-class MapAdmin(admin.ModelAdmin):
+class MapAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('name', 'id', 'sys_name', 'is_active')
     list_filter = ('is_active',)
 
 
 @admin.register(models.Match)
-class MatchAdmin(admin.ModelAdmin):
+class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
     list_display = (
         'id',
         'server',
@@ -41,6 +48,11 @@ class MatchAdmin(admin.ModelAdmin):
         'game_type',
         'game_mode',
     )
+    exclude = ['map']
+    readonly_fields = ['score', 'map_name']
+
+    def map_name(self, obj):
+        return obj.map
 
     def score(self, obj):
         if obj.team_a and obj.team_b:
@@ -50,7 +62,7 @@ class MatchAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.MatchTeam)
-class MatchTeamAdmin(admin.ModelAdmin):
+class MatchTeamAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         'name',
         'match',
@@ -60,7 +72,7 @@ class MatchTeamAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.MatchPlayer)
-class MatchPlayerAdmin(admin.ModelAdmin):
+class MatchPlayerAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         'user',
         'team',
@@ -91,7 +103,7 @@ class MatchPlayerAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.MatchPlayerStats)
-class MatchPlayerStatsAdmin(admin.ModelAdmin):
+class MatchPlayerStatsAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         'player',
         'match',
