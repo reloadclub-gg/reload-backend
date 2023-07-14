@@ -194,9 +194,17 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         match = controller.get_match(self.user_3, self.match.id)
         self.assertEqual(match, self.match)
 
+    @mock.patch('matches.api.controller.ws_update_user')
+    @mock.patch('matches.api.controller.ws_friend_update_or_create')
     @mock.patch('matches.api.controller.websocket.ws_match_update')
     @mock.patch('matches.api.controller.handle_update_players_stats')
-    def test_update_match(self, mock_handle_update_stats, mock_match_update):
+    def test_update_match(
+        self,
+        mock_handle_update_stats,
+        mock_match_update,
+        mock_friend_update,
+        mock_update_user,
+    ):
         self.match.status = models.Match.Status.RUNNING
         self.match.save()
 
@@ -217,9 +225,20 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(self.match.team_a.score, 0)
         self.assertEqual(self.match.team_b.score, 1)
 
+        mock_friend_update.asser_not_called()
+        mock_update_user.asser_not_called()
+
+    @mock.patch('matches.api.controller.ws_update_user')
+    @mock.patch('matches.api.controller.ws_friend_update_or_create')
     @mock.patch('matches.api.controller.websocket.ws_match_update')
     @mock.patch('matches.api.controller.handle_update_players_stats')
-    def test_update_match_finish(self, mock_handle_update_stats, mock_match_update):
+    def test_update_match_finish(
+        self,
+        mock_handle_update_stats,
+        mock_match_update,
+        mock_friend_update,
+        mock_update_user,
+    ):
         self.match.status = models.Match.Status.RUNNING
         self.match.save()
 
@@ -241,6 +260,10 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(self.match.team_b.score, 5)
         self.match.refresh_from_db()
         self.assertEqual(self.match.status, models.Match.Status.FINISHED)
+
+        mock_calls = [mock.call(self.user_1), mock.call(self.user_2)]
+        mock_friend_update.assert_has_calls(mock_calls)
+        mock_update_user.assert_has_calls(mock_calls)
 
     @mock.patch('matches.api.controller.websocket.ws_match_update')
     @mock.patch('matches.api.controller.handle_update_players_stats')
@@ -267,9 +290,17 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.match.refresh_from_db()
         self.assertEqual(self.match.status, models.Match.Status.RUNNING)
 
+    @mock.patch('matches.api.controller.ws_update_user')
+    @mock.patch('matches.api.controller.ws_friend_update_or_create')
     @mock.patch('matches.api.controller.websocket.ws_match_update')
     @mock.patch('matches.api.controller.handle_update_players_stats')
-    def test_update_match_ot_finish(self, mock_handle_update_stats, mock_match_update):
+    def test_update_match_ot_finish(
+        self,
+        mock_handle_update_stats,
+        mock_match_update,
+        mock_friend_update,
+        mock_update_user,
+    ):
         self.match.status = models.Match.Status.RUNNING
         self.match.save()
 
@@ -291,3 +322,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(self.match.team_b.score, 11)
         self.match.refresh_from_db()
         self.assertEqual(self.match.status, models.Match.Status.FINISHED)
+
+        mock_calls = [mock.call(self.user_1), mock.call(self.user_2)]
+        mock_friend_update.assert_has_calls(mock_calls)
+        mock_update_user.assert_has_calls(mock_calls)
