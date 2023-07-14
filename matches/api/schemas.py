@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from ninja import Field, ModelSchema
+from ninja import Field, ModelSchema, Schema
 
 from accounts.utils import calc_level_and_points
 from steam import Steam
@@ -168,3 +168,29 @@ class MatchSchema(ModelSchema):
             return 'running'
         else:
             return 'finished'
+
+
+class MatchUpdatePlayerStats(Schema):
+    steamid: str
+    kills: int
+    headshot_kills: int
+    deaths: int
+    assists: int
+    health: int
+    damage: int
+    shots_fired: int
+    head_shots: int
+    chest_shots: int
+    other_shots: int
+    kill_weapons: List[str] = []
+    defuse: bool = False
+    plant: bool = False
+    firstkill: bool = False
+
+
+class MatchUpdateSchema(Schema):
+    team_a_score: int
+    team_b_score: int
+    end_reason: int
+    is_overtime: bool = False
+    players_stats: List[MatchUpdatePlayerStats]
