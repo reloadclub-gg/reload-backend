@@ -180,6 +180,20 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                 ),
             )
 
+    def test_get_match(self):
+        self.match.status = models.Match.Status.RUNNING
+        self.match.save()
+        match = controller.get_match(self.user_1, self.match.id)
+        self.assertEqual(match, self.match)
+
+        with self.assertRaises(Http404):
+            controller.get_match(self.user_3, self.match.id)
+
+        self.match.status = models.Match.Status.FINISHED
+        self.match.save()
+        match = controller.get_match(self.user_3, self.match.id)
+        self.assertEqual(match, self.match)
+
     @mock.patch('matches.api.controller.websocket.ws_match_update')
     @mock.patch('matches.api.controller.handle_update_players_stats')
     def test_update_match(self, mock_handle_update_stats, mock_match_update):

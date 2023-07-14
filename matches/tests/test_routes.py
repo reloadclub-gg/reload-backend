@@ -92,3 +92,4 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
 
         self.assertEqual(match.team_a.score, 9)
         self.assertEqual(match.team_b.score, 11)
+        self.assertEqual(r.status_code, 200)

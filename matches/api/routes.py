@@ -1,12 +1,10 @@
 from typing import List
 
-from django.shortcuts import get_object_or_404
 from ninja import Router
 from ninja.pagination import paginate
 
 from accounts.api.authentication import VerifiedRequiredAuth
 from core.api.pagination import Pagination
-from matches.models import Match
 
 from . import authorization, controller, schemas
 
@@ -17,7 +15,7 @@ router = Router(tags=['matches'])
     '/{match_id}/', auth=VerifiedRequiredAuth(), response={200: schemas.MatchSchema}
 )
 def detail(request, match_id: int):
-    return get_object_or_404(Match, id=match_id)
+    return controller.get_match(request.user, match_id)
 
 
 @router.get('/', auth=VerifiedRequiredAuth(), response={200: List[schemas.MatchSchema]})

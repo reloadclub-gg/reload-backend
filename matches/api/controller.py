@@ -2,6 +2,7 @@ from typing import List
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from ninja.errors import Http404
 
 from .. import models, websocket
 from . import schemas
@@ -59,6 +60,17 @@ def get_user_matches(user: User, user_id: int = None) -> List[models.Match]:
         team__match__status=models.Match.Status.FINISHED,
     ).values_list('team__match', flat=True)
     return [models.Match.objects.get(pk=id) for id in matches_ids]
+
+
+def get_match(user: User, match_id: int) -> models.Match:
+    match = get_object_or_404(models.Match, id=match_id)
+    if (
+        match.status != models.Match.Status.FINISHED
+        and user.id not in match.players.values_list('user', flat=True)
+    ):
+        raise Http404
+
+    return match
 
 
 def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
