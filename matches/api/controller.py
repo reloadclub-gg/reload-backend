@@ -4,6 +4,9 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
 
+from accounts.websocket import ws_update_user
+from friends.websocket import ws_friend_update_or_create
+
 from .. import models, websocket
 from . import schemas
 
@@ -97,4 +100,10 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
     elif payload.team_a_score >= 10 or payload.team_b_score >= 10:
         match.finish()
 
+    match.refresh_from_db()
     websocket.ws_match_update(match)
+
+    if match.status == models.Match.Status.FINISHED:
+        for player in match.players:
+            ws_update_user(player.user)
+            ws_friend_update_or_create(player.user)

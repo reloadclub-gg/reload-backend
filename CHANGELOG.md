@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Chamadas websocket `ws_update_user` e `ws_friend_update_or_create` quando a partida é finalizada [#539](https://github.com/3C-gg/reload-backend/issues/539).
 - Esquemas `MatchUpdatePlayerStats` e `MatchUpdateSchema` para conter os dados recebidos pelo servidor FiveM.
 - Decorator que garante que determinados endpoints do app `Matches` sejam acessados somente por servidores conhecidos.
 - Websocket `matches/update` para atualizar partida em andamento para jogadores.
-- Endpoint para atualizar partida a partir de um servidor FiveM []().
+- Endpoint para atualizar partida a partir de um servidor FiveM [#333](https://github.com/3C-gg/reload-backend/issues/333).
 - Cancela todas as filas ao ligar manutenção [#565](https://github.com/3C-gg/reload-backend/issues/565).
 - Websocket `lobbies/queue_start` para que o client possa interceptar e reiniciar a fila do lobby.
 - Método que cancela todas as filas de todos os lobbies.
