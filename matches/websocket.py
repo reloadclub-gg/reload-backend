@@ -27,3 +27,26 @@ def ws_match_create(match: models.Match):
         payload,
         groups=[player.user.id for player in match.players],
     )
+
+
+def ws_match_update(match: models.Match):
+    """
+    Update match so client knows what is going on.
+
+    Cases:
+    - Match change its state (e.g. from LOADING to RUNNING).
+    - Match receive updates from FiveM Server (e.g. round finish).
+
+    Payload:
+    matches.api.schemas.MatchSchema: object
+
+    Actions:
+    - matches/update/
+    """
+    payload = schemas.MatchSchema.from_orm(match).dict()
+
+    return async_to_sync(ws_send)(
+        'matches/update',
+        payload,
+        groups=[player.user.id for player in match.players],
+    )
