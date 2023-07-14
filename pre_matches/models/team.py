@@ -48,6 +48,10 @@ class Team(BaseModel):
     If this key exists, the team is ready and able to find an
     oposing team to play against. A team is ready when it reaches
     the maximum numbers of players.
+
+    [key] __mm:team:[team_id]:pre_match <pre_match_id>
+    Stores a pre_match that team is on. It should not exists
+    if team isn't in any pre_match.
     """
 
     id: str = None
@@ -76,7 +80,7 @@ class Team(BaseModel):
         """
         Return whether this team is ready to find a oposing team.
         """
-        return self.players_count == settings.TEAM_READY_PLAYERS_MIN
+        return self.players_count >= settings.TEAM_READY_PLAYERS_MIN
 
     @property
     def overall(self) -> int:
@@ -144,6 +148,10 @@ class Team(BaseModel):
         owners_ids = [lobby.owner_id for lobby in self.lobbies]
         owner_chosen_id = random.choice(owners_ids)
         return User.objects.get(pk=owner_chosen_id).steam_user.username
+
+    @property
+    def pre_match_id(self) -> str:
+        return cache.get(f'{self.cache_key}:pre_match')
 
     @staticmethod
     def overall_match(team, lobby) -> bool:
@@ -223,9 +231,9 @@ class Team(BaseModel):
         """
         Find a team for the given lobby.
         """
-        # check if received lobby already is on a team
-        teams = Team.get_all()
-        if any(lobby.id in team.lobbies_ids for team in teams):
+        # check if received lobby is already on a team
+        team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
+        if team:
             raise TeamException(_('Lobby already on a team.'))
 
         # check whether the lobby is queued
@@ -247,9 +255,9 @@ class Team(BaseModel):
         Look for queued lobbies that are compatible
         and put them together in a team.
         """
-        # check if received lobby already is on a team
-        teams = Team.get_all()
-        if any(lobby.id in team.lobbies_ids for team in teams):
+        # check if received lobby is already on a team
+        team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
+        if team:
             raise TeamException(_('Lobby already on a team.'))
 
         # check whether the lobby is queued
@@ -259,7 +267,7 @@ class Team(BaseModel):
         team = Team.create(lobbies_ids=[lobby.id])
 
         # check if team is full already
-        if team.players_count == settings.TEAM_READY_PLAYERS_MIN:
+        if team.ready:
             return team
 
         # get all queued lobbies
@@ -270,6 +278,10 @@ class Team(BaseModel):
         ]
 
         for lobby_id in lobby_ids:
+            lobby_team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
+            if lobby_team and lobby_team.ready:
+                continue
+
             other_lobby = Lobby(owner_id=lobby_id)
 
             # check if lobbies type and mode matches
@@ -295,7 +307,9 @@ class Team(BaseModel):
         """
         Delete team from Redis db.
         """
-        cache.delete(self.cache_key)
+        teams_keys = cache.keys(f'{TeamConfig.CACHE_PREFIX}*')
+        for key in teams_keys:
+            cache.delete(key)
 
     def add_lobby(self, lobby_id: int):
         """
@@ -325,10 +339,11 @@ class Team(BaseModel):
     def get_opponent_team(self):
         ready_teams = self.get_all_ready()
         for team in ready_teams:
-            if self.id != team.id:
-                # check if type and mode matches
-                if self.type_mode == team.type_mode:
-                    # check if teams are in the same overall range
-                    min_overall, max_overall = team.min_max_overall_by_queue_time
-                    if min_overall <= self.overall <= max_overall:
-                        return team
+            if not team.pre_match_id:
+                if self.id != team.id:
+                    # check if type and mode matches
+                    if self.type_mode == team.type_mode:
+                        # check if teams are in the same overall range
+                        min_overall, max_overall = team.min_max_overall_by_queue_time
+                        if min_overall <= self.overall <= max_overall:
+                            return team

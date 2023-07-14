@@ -186,6 +186,35 @@ class Lobby(BaseModel):
             return max(lock_countdowns)
 
     @staticmethod
+    def is_owner(lobby_id: int, player_id: int) -> bool:
+        lobby = Lobby(owner_id=lobby_id)
+
+        return lobby.owner_id == player_id
+
+    @staticmethod
+    def delete(lobby_id: int, pipe=None):
+        lobby = Lobby(owner_id=lobby_id)
+
+        for player_id in lobby.players_ids:
+            Player.delete(player_id)
+
+        keys = cache.keys(f'{lobby.cache_key}:*')
+        if len(keys) >= 1:
+            if pipe:
+                pipe.delete(*keys)
+                pipe.delete(lobby.cache_key)
+            else:
+                cache.delete(*keys)
+                cache.delete(lobby.cache_key)
+
+    @staticmethod
+    def cancel_all_queues():
+        lobby_ids = [int(key.split(':')[2]) for key in cache.keys('__mm:lobby:*:queue')]
+        for lobby_id in lobby_ids:
+            lobby = Lobby(owner_id=lobby_id)
+            lobby.cancel_queue()
+
+    @staticmethod
     def get_current(player_id: int) -> Lobby:
         """
         Get the current lobby the user is.
@@ -549,25 +578,3 @@ class Lobby(BaseModel):
             max = self.overall + 5
 
         return min, max
-
-    @staticmethod
-    def is_owner(lobby_id: int, player_id: int) -> bool:
-        lobby = Lobby(owner_id=lobby_id)
-
-        return lobby.owner_id == player_id
-
-    @staticmethod
-    def delete(lobby_id: int, pipe=None):
-        lobby = Lobby(owner_id=lobby_id)
-
-        for player_id in lobby.players_ids:
-            Player.delete(player_id)
-
-        keys = cache.keys(f'{lobby.cache_key}:*')
-        if len(keys) >= 1:
-            if pipe:
-                pipe.delete(*keys)
-                pipe.delete(lobby.cache_key)
-            else:
-                cache.delete(*keys)
-                cache.delete(lobby.cache_key)

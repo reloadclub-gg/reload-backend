@@ -416,7 +416,9 @@ class MatchPlayerStats(models.Model):
         Average headshots per round.
         """
         if self.shots_fired > 0:
-            return float('{:0.2f}'.format(self.head_shots / self.team.match.rounds))
+            return float(
+                '{:0.2f}'.format(self.head_shots / self.player.team.match.rounds)
+            )
         return float(0)
 
     @property

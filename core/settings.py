@@ -210,7 +210,7 @@ if ENVIRONMENT != LOCAL:
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_BACKEND = (
     'django.core.mail.backends.smtp.EmailBackend'
-    if ENVIRONMENT != LOCAL
+    if EMAIL_HOST != 'localhost'
     else 'django.core.mail.backends.console.EmailBackend'
 )
 EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
@@ -303,9 +303,6 @@ GROUP_NAME_PREFIX = 'app'
 # Team & Match Settings
 TEAM_READY_PLAYERS_MIN = (
     5 if TEST_MODE else config('TEAM_READY_PLAYERS_MIN', default=5, cast=int)
-)
-MATCH_READY_PLAYERS_MIN = (
-    10 if TEST_MODE else config('MATCH_READY_PLAYERS_MIN', default=10, cast=int)
 )
 MATCH_READY_COUNTDOWN = (
     30 if TEST_MODE else config('MATCH_READY_COUNTDOWN', default=30, cast=int)

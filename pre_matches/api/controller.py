@@ -1,6 +1,7 @@
 from typing import Union
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
 
@@ -107,13 +108,14 @@ def set_player_lock_in(user: User) -> models.PreMatch:
     except models.PreMatchException as e:
         raise HttpError(403, e)
 
-    if len(pre_match.players_in) >= models.PreMatch.Config.READY_PLAYERS_MIN:
+    if len(pre_match.players_in) >= len(pre_match.players):
         pre_match.start_players_ready_countdown()
         websocket.ws_pre_match_update(pre_match)
         # delay task to check if countdown is over to READY_COUNTDOWN seconds
         # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
+        lang = get_language()
         tasks.cancel_match_after_countdown.apply_async(
-            (pre_match.id,),
+            (pre_match.id, lang),
             countdown=models.PreMatch.Config.READY_COUNTDOWN
             + (-models.PreMatch.Config.READY_COUNTDOWN_GAP),
             serializer='json',
@@ -134,7 +136,7 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
 
     pre_match.set_player_ready(user.id)
     websocket.ws_pre_match_update(pre_match)
-    if len(pre_match.players_ready) >= models.PreMatch.Config.READY_PLAYERS_MIN:
+    if len(pre_match.players_ready) >= len(pre_match.players):
         match = handle_create_match(pre_match)
         if not match:
             # cancel match due to lack of available servers

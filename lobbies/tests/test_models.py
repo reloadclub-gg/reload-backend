@@ -703,6 +703,27 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         )
         self.assertEqual(lobby.restriction_countdown, player1.lock_countdown)
 
+    def test_cancel_all_queues(self):
+        lobby1 = Lobby.create(self.user_1.id)
+        lobby2 = Lobby.create(self.user_2.id)
+        lobby3 = Lobby.create(self.user_3.id)
+        lobby4 = Lobby.create(self.user_4.id)
+        lobby1.start_queue()
+        lobby2.start_queue()
+        lobby3.start_queue()
+
+        self.assertIsNotNone(lobby1.queue)
+        self.assertIsNotNone(lobby2.queue)
+        self.assertIsNotNone(lobby3.queue)
+        self.assertIsNone(lobby4.queue)
+
+        Lobby.cancel_all_queues()
+
+        self.assertIsNone(lobby1.queue)
+        self.assertIsNone(lobby2.queue)
+        self.assertIsNone(lobby3.queue)
+        self.assertIsNone(lobby4.queue)
+
 
 class LobbyInviteModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
