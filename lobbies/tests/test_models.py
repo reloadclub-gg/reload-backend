@@ -1,6 +1,7 @@
 from time import sleep
 from unittest import mock
 
+from django.conf import settings
 from django.utils import timezone
 
 from accounts.tests.mixins import VerifiedAccountsMixin
@@ -697,8 +698,10 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         lobby.cancel_queue()
 
         player = Player.get_by_user_id(self.user_3.id)
-        player.dodge_add()
-        player.dodge_add()
+
+        for _ in range(1, settings.PLAYER_DODGES_MIN_TO_RESTRICT):
+            player.dodge_add()
+
         lobby.start_queue()
 
         player.dodge_add()
@@ -911,6 +914,8 @@ class PlayerModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(self.user_2.id, player.user_id)
 
     def test_dodge_add(self):
+        Player.Config.DODGES_MIN_TO_RESTRICT = 3
+
         player = Player.create(self.user_1.id)
         self.assertEqual(player.dodges, 0)
         player.dodge_add()
@@ -935,6 +940,7 @@ class PlayerModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(player.dodges, 4)
 
     def test_dodge_clear(self):
+        Player.Config.DODGES_MIN_TO_RESTRICT = 3
         player = Player.create(self.user_1.id)
         player.dodge_add()
         player.dodge_add()
