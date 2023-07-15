@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from django.db import models, transaction
+from django.contrib.auth import get_user_model
+from django.db import models
 from django.utils import timezone
-from django.utils.translation import gettext as _
 
-from .account import Account
+User = get_user_model()
 
 
-class Report(models.Model):
+class AccountReport(models.Model):
     class Subject(models.IntegerChoices):
         HATE_SPEECH = 0
         CHAT_ABUSE = 1
@@ -17,44 +17,29 @@ class Report(models.Model):
         ACCOUNT_SHARING = 5
         CHEATING = 6
 
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE)
-    target = models.ForeignKey(
-        Account, on_delete=models.CASCADE, related_name='reported_set'
+    reporter = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='report_set',
     )
-    subject = models.TextField(choices=Subject.choices)
-    create_date = models.DateTimeField(auto_now_add=True)
+    target = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reports_received',
+    )
+    subject = models.IntegerField(choices=Subject.choices)
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    report_points = models.IntegerField(default=0)
     comments = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs) -> None:
-        already_exists = Report.objects.filter(
-            owner=self.owner,
+        already_exists = AccountReport.objects.filter(
+            reporter=self.reporter,
             target=self.target,
             subject=self.subject,
-            create_date__month__gte=timezone.now().month,
-            create_date__year__gte=timezone.now().year,
+            datetime_created__month__gte=timezone.now().month,
+            datetime_created__year__gte=timezone.now().year,
         )
 
         if not already_exists:
-            with transaction.atomic():
-                self.target.report_points += 1
-                self.target.save()
-                super().save(*args, **kwargs)
-
-
-class ReportAnalysis(models.Model):
-    analyst = models.ForeignKey(
-        Account,
-        on_delete=models.CASCADE,
-    )
-    account = models.ForeignKey(
-        Account, on_delete=models.CASCADE, related_name='analysis_set'
-    )
-    create_date = models.DateTimeField(auto_now_add=True)
-    restriction_time = models.IntegerField(null=True, help_text=_('In hours.'))
-    comments = models.TextField(blank=True, null=True)
-
-    def save(self, *args, **kwargs) -> None:
-        with transaction.atomic():
-            self.account.report_points = 0
-            self.account.save()
             super().save(*args, **kwargs)

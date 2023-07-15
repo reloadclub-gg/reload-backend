@@ -34,7 +34,7 @@ class Player(BaseModel):
     class Config:
         CACHE_PREFIX: str = '__mm:player'
         DODGES_EXPIRE_TIME = settings.PLAYER_DODGES_EXPIRE_TIME
-        DODGES_MULTIPLIER = [1, 5, 10, 15, 20, 40, 60, 90]
+        DODGES_MULTIPLIER = [1, 1.5, 5, 10, 20, 40, 60, 90]
         DODGES_MAX = len(DODGES_MULTIPLIER)
         DODGES_MAX_TIME = 604800  # 1 week in minutes
 

@@ -33,7 +33,6 @@ class ProfileSchema(ModelSchema):
             'user',
             'verification_token',
             'is_verified',
-            'report_points',
             'steamid',
         ]
 

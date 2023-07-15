@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
@@ -18,7 +20,7 @@ from notifications.models import Notification
 from pre_matches.models import PreMatch
 from steam import Steam
 
-from ..utils import calc_level_and_points
+from ..utils import calc_level_and_points, create_social_auth
 
 User = get_user_model()
 cache = RedisClient()
@@ -39,7 +41,6 @@ class Account(models.Model):
         validators=[MinLengthValidator(VERIFICATION_TOKEN_LENGTH)],
         max_length=VERIFICATION_TOKEN_LENGTH,
     )
-    report_points = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if self._state.adding:
@@ -260,3 +261,11 @@ class Invite(models.Model):
 
     def __str__(self):
         return self.email
+
+
+@receiver(post_save, sender=User)
+def create_steam_and_account(sender, instance, created, **kwargs):
+    if created:
+        if instance.is_staff or instance.is_superuser:
+            create_social_auth(instance, username=instance.email)
+            Account.objects.create(user=instance)
