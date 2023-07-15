@@ -35,7 +35,7 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
         pre_match.start_players_ready_countdown()
         pre_match.set_player_ready(player1.user_id)
 
-        past_time = (timezone.now() - timezone.timedelta(seconds=32)).isoformat()
+        past_time = (timezone.now() - timezone.timedelta(seconds=40)).isoformat()
         cache.set(f'{pre_match.cache_key}:ready_time', past_time)
 
         cancel_match_after_countdown(pre_match.id)
@@ -57,5 +57,34 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
             PreMatch.get_by_id(pre_match.id)
 
         with self.assertRaises(TeamException):
-            Team.get_by_id(self.team1.id)
-            Team.get_by_id(self.team2.id)
+            Team.get_by_id(self.team1.id, raise_error=True)
+            Team.get_by_id(self.team2.id, raise_error=True)
+
+    @mock.patch('pre_matches.tasks.websocket.ws_pre_match_delete')
+    def test_cancel_match_after_countdown_multiple_teams(
+        self,
+        mock_pre_match_delete,
+    ):
+        pre_match_1 = PreMatch.create(self.team1.id, self.team2.id)
+        for player in pre_match_1.players:
+            pre_match_1.set_player_lock_in(player.id)
+
+        pre_match_2 = PreMatch.create(self.team3.id, self.team4.id)
+        for player in pre_match_2.players:
+            pre_match_2.set_player_lock_in(player.id)
+
+        pre_match_1.start_players_ready_countdown()
+        past_time = (timezone.now() - timezone.timedelta(seconds=15)).isoformat()
+        cache.set(f'{pre_match_1.cache_key}:ready_time', past_time)
+
+        pre_match_2.start_players_ready_countdown()
+
+        past_time = (timezone.now() - timezone.timedelta(seconds=40)).isoformat()
+        cache.set(f'{pre_match_1.cache_key}:ready_time', past_time)
+        cancel_match_after_countdown(pre_match_1.id)
+
+        past_time = (timezone.now() - timezone.timedelta(seconds=40)).isoformat()
+        cache.set(f'{pre_match_2.cache_key}:ready_time', past_time)
+        cancel_match_after_countdown(pre_match_2.id)
+
+        self.assertEqual(mock_pre_match_delete.call_count, 2)

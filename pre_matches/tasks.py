@@ -25,6 +25,7 @@ def cancel_match_after_countdown(pre_match_id: str, lang: str = None):
         return
 
     lang and activate(lang)
+    ready_players_ids = [player.id for player in pre_match.players_ready]
 
     if pre_match.countdown >= models.PreMatch.Config.READY_COUNTDOWN_GAP:
         # schedule this task again two seconds later
@@ -43,7 +44,6 @@ def cancel_match_after_countdown(pre_match_id: str, lang: str = None):
             ws_friend_update_or_create(player)
 
         # delete the pre_match and teams from Redis
-        ready_players_ids = [player.id for player in pre_match.players_ready]
         team1.delete()
         team2.delete()
         models.PreMatch.delete(pre_match.id)

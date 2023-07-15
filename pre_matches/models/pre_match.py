@@ -118,6 +118,9 @@ class PreMatch(BaseModel):
 
     @property
     def team1_players(self) -> list[User]:
+        if not self.teams[0]:
+            return []
+
         lobbies = self.teams[0].lobbies
         players = []
         for lobby in lobbies:
@@ -128,6 +131,9 @@ class PreMatch(BaseModel):
 
     @property
     def team2_players(self) -> list[User]:
+        if not self.teams[1]:
+            return []
+
         lobbies = self.teams[1].lobbies
         players = []
         for lobby in lobbies:
