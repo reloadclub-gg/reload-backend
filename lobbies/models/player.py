@@ -105,7 +105,11 @@ class Player(BaseModel):
         )
         cache.expire(f'{self.cache_key}:dodges', Player.Config.DODGES_EXPIRE_TIME)
 
-        if self.dodges >= Player.Config.DODGES_MAX and not settings.DEBUG:
+        if (
+            self.dodges >= Player.Config.DODGES_MAX
+            and not settings.DEBUG
+            and not settings.TEST_MODE
+        ):
             delta = timezone.timedelta(minutes=Player.Config.DODGES_MAX_TIME)
             lock_date = timezone.now() + delta
             cache.set(
