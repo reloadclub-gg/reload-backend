@@ -82,33 +82,6 @@ class Player(BaseModel):
         if self.lock_date:
             return (self.lock_date - timezone.now()).seconds
 
-    @staticmethod
-    def create(user_id: int) -> Player:
-        """
-        Creates a player entry on Redis db and return a Player instance.
-        """
-        cache.sadd('__mm:players', user_id)
-        return Player(user_id=user_id)
-
-    @staticmethod
-    def get_all() -> List[Player]:
-        """
-        Fetches all players on Redis db.
-        """
-        return [
-            Player(user_id=int(user_id)) for user_id in cache.smembers('__mm:players')
-        ]
-
-    @staticmethod
-    def get_by_user_id(user_id: int) -> Player:
-        """
-        Searches for a Player with the given user_id and returns it.
-        """
-        if cache.sismember('__mm:players', user_id):
-            return Player(user_id=user_id)
-
-        raise PlayerException(_('Player not found'))
-
     def dodge_add(self) -> timezone.datetime:
         """
         Add a new dodge datetime on Redis db.
@@ -158,6 +131,33 @@ class Player(BaseModel):
         Should be called every week (7 days).
         """
         cache.delete(f'{self.cache_key}:dodges')
+
+    @staticmethod
+    def create(user_id: int) -> Player:
+        """
+        Creates a player entry on Redis db and return a Player instance.
+        """
+        cache.sadd('__mm:players', user_id)
+        return Player(user_id=user_id)
+
+    @staticmethod
+    def get_all() -> List[Player]:
+        """
+        Fetches all players on Redis db.
+        """
+        return [
+            Player(user_id=int(user_id)) for user_id in cache.smembers('__mm:players')
+        ]
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Player:
+        """
+        Searches for a Player with the given user_id and returns it.
+        """
+        if cache.sismember('__mm:players', user_id):
+            return Player(user_id=user_id)
+
+        raise PlayerException(_('Player not found'))
 
     @staticmethod
     def delete(user_id: int):

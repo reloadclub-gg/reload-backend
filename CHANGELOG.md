@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Move métodos estáticos do modelo `Player` de modo que fiquem todos juntos e organizados.
 - Atualiza arquivos de admin e prepara admin para lançamento [#580](https://github.com/3C-gg/reload-backend/issues/580).
 - Altera multiplicadores do tempo de restrição para dodges, deixando eles menos agressivos para os primeiros dodges.
 - Altera página de partida em andamento para que somente os jogadores naquela partida possam acessá-la nesse estado.
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Erro que fazia com que jogadores ficassem impossibilitados de iniciar fila, caso viessem de um lobby que foi deletado, ou seja, que o dono fez logout, inativou conta, excluiu conta ou alterou email [#583](https://github.com/3C-gg/reload-backend/issues/583).
 - Erro no cálculo de média de HS por round.
 - Problema em que fazia com que lobbies não atualizassem o tick no client depois de voltar de uma partida cancelada por outro lobby.
 - Propriedade `ready` do modelo `Team` que estava com uma verificação errada.
