@@ -1,6 +1,7 @@
 import time
 
 from celery import shared_task
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import activate
 from django.utils.translation import gettext as _
@@ -9,6 +10,7 @@ from accounts.websocket import ws_update_user
 from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
 from lobbies.models import Player
+from lobbies.tasks import end_player_restriction
 from lobbies.websocket import ws_queue_start, ws_update_lobby
 
 from . import models, websocket
@@ -63,6 +65,12 @@ def cancel_match_after_countdown(pre_match_id: str, lang: str = None):
                     ws_create_toast(player_id, msg, 'warning')
                     if player_id not in ready_players_ids:
                         player = Player.get_by_user_id(player_id)
-                        player.dodge_add()
+                        restriction_end_date = player.dodge_add()
+                        if restriction_end_date:
+                            end_player_restriction.apply_async(
+                                (player_id,),
+                                eta=restriction_end_date,
+                                serializer='json',
+                            )
 
             ws_update_lobby(lobby)
