@@ -34,9 +34,10 @@ class Player(BaseModel):
     class Config:
         CACHE_PREFIX: str = '__mm:player'
         DODGES_EXPIRE_TIME = settings.PLAYER_DODGES_EXPIRE_TIME
-        DODGES_MULTIPLIER = [1, 1.5, 5, 10, 20, 40, 60, 90]
+        DODGES_MULTIPLIER = settings.PLAYER_DODGES_MULTIPLIER
         DODGES_MAX = len(DODGES_MULTIPLIER)
         DODGES_MAX_TIME = 604800  # 1 week in minutes
+        DODGES_MIN_TO_RESTRICT = settings.PLAYER_DODGES_MIN_TO_RESTRICT
 
     @property
     def cache_key(self) -> str:
@@ -104,7 +105,7 @@ class Player(BaseModel):
         )
         cache.expire(f'{self.cache_key}:dodges', Player.Config.DODGES_EXPIRE_TIME)
 
-        if self.dodges >= Player.Config.DODGES_MAX:
+        if self.dodges >= Player.Config.DODGES_MAX and not settings.DEBUG:
             delta = timezone.timedelta(minutes=Player.Config.DODGES_MAX_TIME)
             lock_date = timezone.now() + delta
             cache.set(
@@ -113,8 +114,12 @@ class Player(BaseModel):
                 ex=delta,
             )
             return lock_date
-        elif self.dodges > 2:
-            multiplier = Player.Config.DODGES_MULTIPLIER[self.dodges - 2]
+        elif self.dodges >= Player.Config.DODGES_MIN_TO_RESTRICT:
+            multiplier_idx = self.dodges - Player.Config.DODGES_MIN_TO_RESTRICT
+            if multiplier_idx > len(Player.Config.DODGES_MULTIPLIER):
+                multiplier_idx = len(Player.Config.DODGES_MULTIPLIER)
+
+            multiplier = Player.Config.DODGES_MULTIPLIER[multiplier_idx - 1]
             lock_minutes = self.dodges * multiplier
             delta = timezone.timedelta(minutes=lock_minutes)
             lock_date = timezone.now() + delta
