@@ -313,19 +313,39 @@ MATCHES_LIMIT_PER_SERVER_GAP = config(
     'MATCHES_LIMIT_PER_SERVER_GAP', default=5, cast=int
 )
 
+# Player Dodges & Restriction Settings
+PLAYER_DODGES_EXPIRE_TIME = config(
+    'PLAYER_DODGES_EXPIRE_TIME',
+    default=60 * 60 * 24 * 7,
+    cast=int,
+)  # 1 semana (7 dias)
+
+PLAYER_DODGES_MULTIPLIER = config(
+    'PLAYER_DODGES_MULTIPLIER',
+    default='1,2,5,10,20,40,60,90',
+    cast=lambda v: [float(s.strip()) for s in v.split(',')],
+)
+
+PLAYER_DODGES_MIN_TO_RESTRICT = config(
+    'PLAYER_DODGES_MIN_TO_RESTRICT',
+    default=3,
+    cast=int,
+)
+
+PLAYER_MAX_LOSE_LEVEL_POINTS = config(
+    'PLAYER_MAX_LOSE_LEVEL_POINTS',
+    default=-99,
+    cast=int,
+)
 
 # Other App Settings
 APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)
 PLAYER_MAX_LEVEL = config('PLAYER_MAX_LEVEL', default=50, cast=int)
 PLAYER_MAX_LEVEL_POINTS = config('PLAYER_MAX_LEVEL_POINTS', default=100, cast=int)
-PLAYER_DODGES_EXPIRE_TIME = config(
-    'PLAYER_DODGES_EXPIRE_TIME', default=60 * 60 * 24 * 7, cast=int
-)  # 1 semana (7 dias)
-PLAYER_MAX_LOSE_LEVEL_POINTS = config(
-    'PLAYER_MAX_LOSE_LEVEL_POINTS', default=-99, cast=int
-)
 MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER = config(
-    'MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER', default=10, cast=int
+    'MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER',
+    default=10,
+    cast=int,
 )
 
 
