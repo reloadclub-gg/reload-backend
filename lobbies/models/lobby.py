@@ -195,9 +195,6 @@ class Lobby(BaseModel):
     def delete(lobby_id: int, pipe=None):
         lobby = Lobby(owner_id=lobby_id)
 
-        for player_id in lobby.players_ids:
-            Player.delete(player_id)
-
         keys = cache.keys(f'{lobby.cache_key}:*')
         if len(keys) >= 1:
             if pipe:
@@ -359,6 +356,8 @@ class Lobby(BaseModel):
                 invites_to_player = LobbyInvite.get_by_to_user_id(player_id)
                 for invite in invites_to_player:
                     pipe.zrem(f'__mm:lobby:{invite.lobby_id}:invites', invite.id)
+
+                Player.delete(player_id)
 
             return new_lobby
 
