@@ -46,4 +46,4 @@ class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
             }
         ).dict()
         self.assertEqual(len(payload.get('online')), 2)
-        self.assertEqual(len(payload.get('offline')), 13)
+        self.assertEqual(len(payload.get('offline')), 23)

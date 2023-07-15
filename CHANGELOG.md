@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Problema ao ter múltiplos lobbies em fila com dodges. Os times não estavam sendo carregados e deletados corretamente [#585](https://github.com/3C-gg/reload-backend/issues/585).
 - Erro que fazia com que jogadores ficassem impossibilitados de iniciar fila, caso viessem de um lobby que foi deletado, ou seja, que o dono fez logout, inativou conta, excluiu conta ou alterou email [#583](https://github.com/3C-gg/reload-backend/issues/583).
 - Erro no cálculo de média de HS por round.
 - Problema em que fazia com que lobbies não atualizassem o tick no client depois de voltar de uma partida cancelada por outro lobby.
