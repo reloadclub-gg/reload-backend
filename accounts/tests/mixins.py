@@ -152,6 +152,46 @@ class VerifiedAccountsMixin:
         create_social_auth(self.user_15)
         baker.make(Account, user=self.user_15, is_verified=True)
 
+        self.user_16 = baker.make(User, email='user_16@example.com', is_active=True)
+        create_social_auth(self.user_16)
+        baker.make(Account, user=self.user_16, is_verified=True)
+
+        self.user_17 = baker.make(User, email='user_17@example.com', is_active=True)
+        create_social_auth(self.user_17)
+        baker.make(Account, user=self.user_17, is_verified=True)
+
+        self.user_18 = baker.make(User, email='user_18@example.com', is_active=True)
+        create_social_auth(self.user_18)
+        baker.make(Account, user=self.user_18, is_verified=True)
+
+        self.user_19 = baker.make(User, email='user_19@example.com', is_active=True)
+        create_social_auth(self.user_19)
+        baker.make(Account, user=self.user_19, is_verified=True)
+
+        self.user_20 = baker.make(User, email='user_20@example.com', is_active=True)
+        create_social_auth(self.user_20)
+        baker.make(Account, user=self.user_20, is_verified=True)
+
+        self.user_21 = baker.make(User, email='user_21@example.com', is_active=True)
+        create_social_auth(self.user_21)
+        baker.make(Account, user=self.user_21, is_verified=True)
+
+        self.user_22 = baker.make(User, email='user_22@example.com', is_active=True)
+        create_social_auth(self.user_22)
+        baker.make(Account, user=self.user_22, is_verified=True)
+
+        self.user_23 = baker.make(User, email='user_23@example.com', is_active=True)
+        create_social_auth(self.user_23)
+        baker.make(Account, user=self.user_23, is_verified=True)
+
+        self.user_24 = baker.make(User, email='user_24@example.com', is_active=True)
+        create_social_auth(self.user_24)
+        baker.make(Account, user=self.user_24, is_verified=True)
+
+        self.user_25 = baker.make(User, email='user_25@example.com', is_active=True)
+        create_social_auth(self.user_25)
+        baker.make(Account, user=self.user_25, is_verified=True)
+
         self.online_noaccount_user = baker.make(
             User, email='online_noaccount_user@example.com'
         )

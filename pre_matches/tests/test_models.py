@@ -183,7 +183,7 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         team.remove_lobby(self.lobby5.id)
 
         with self.assertRaises(TeamException):
-            Team.get_by_id(team.id)
+            Team.get_by_id(team.id, raise_error=True)
 
     def test_create_and_get_by_id(self):
         team = Team.create(lobbies_ids=[self.lobby1.id])
@@ -302,8 +302,10 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         team = Team.create(lobbies_ids=[self.lobby1.id])
         team.delete()
 
+        self.assertIsNone(Team.get_by_id(team.id))
+
         with self.assertRaises(TeamException):
-            Team.get_by_id(team).id
+            Team.get_by_id(team.id, raise_error=True)
 
     def test_type_mode(self):
         team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id, self.lobby3.id])

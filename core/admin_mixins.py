@@ -34,3 +34,8 @@ class ReadOnlyModelAdminMixin(
     CannotChangeModelAdminMixin,
 ):
     pass
+
+
+class SuperUserOnlyAdminMixin(admin.ModelAdmin):
+    def has_module_permission(self, request) -> bool:
+        return request.user.is_superuser

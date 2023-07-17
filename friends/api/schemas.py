@@ -27,7 +27,6 @@ class FriendSchema(ModelSchema):
             'user',
             'verification_token',
             'is_verified',
-            'report_points',
             'highest_level',
         ]
 

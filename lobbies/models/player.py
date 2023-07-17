@@ -34,9 +34,10 @@ class Player(BaseModel):
     class Config:
         CACHE_PREFIX: str = '__mm:player'
         DODGES_EXPIRE_TIME = settings.PLAYER_DODGES_EXPIRE_TIME
-        DODGES_MULTIPLIER = [1, 5, 10, 15, 20, 40, 60, 90]
+        DODGES_MULTIPLIER = settings.PLAYER_DODGES_MULTIPLIER
         DODGES_MAX = len(DODGES_MULTIPLIER)
         DODGES_MAX_TIME = 604800  # 1 week in minutes
+        DODGES_MIN_TO_RESTRICT = settings.PLAYER_DODGES_MIN_TO_RESTRICT
 
     @property
     def cache_key(self) -> str:
@@ -82,6 +83,64 @@ class Player(BaseModel):
         if self.lock_date:
             return (self.lock_date - timezone.now()).seconds
 
+    def dodge_add(self) -> timezone.datetime:
+        """
+        Add a new dodge datetime on Redis db.
+
+        Each time a player dodges a match, the dodges set will receive a new entry, and its ttl
+        will be renewed.
+
+        When a player reaches 3 dodges in a week (Player.Config.DODGES_EXPIRE_TIME), this method
+        creates a queue_lock entry on Redis for that player. This entry holds the datetime when the
+        restriction ends. This entry restricts the player from queueing again on whatever lobby
+        he is until the restriction is over.
+        """
+
+        if self.lock_date:
+            raise PlayerException(_('Player cannot dodge while in queue restriction.'))
+
+        cache.zadd(
+            f'{self.cache_key}:dodges',
+            {timezone.now().isoformat(): timezone.now().timestamp()},
+        )
+        cache.expire(f'{self.cache_key}:dodges', Player.Config.DODGES_EXPIRE_TIME)
+
+        if (
+            self.dodges >= Player.Config.DODGES_MAX
+            and not settings.DEBUG
+            and not settings.TEST_MODE
+        ):
+            delta = timezone.timedelta(minutes=Player.Config.DODGES_MAX_TIME)
+            lock_date = timezone.now() + delta
+            cache.set(
+                f'{self.cache_key}:queue_lock',
+                lock_date.isoformat(),
+                ex=delta,
+            )
+            return lock_date
+        elif self.dodges >= Player.Config.DODGES_MIN_TO_RESTRICT:
+            multiplier_idx = self.dodges - Player.Config.DODGES_MIN_TO_RESTRICT
+            if multiplier_idx > len(Player.Config.DODGES_MULTIPLIER):
+                multiplier_idx = len(Player.Config.DODGES_MULTIPLIER)
+
+            multiplier = Player.Config.DODGES_MULTIPLIER[multiplier_idx - 1]
+            lock_minutes = self.dodges * multiplier
+            delta = timezone.timedelta(minutes=lock_minutes)
+            lock_date = timezone.now() + delta
+            cache.set(
+                f'{self.cache_key}:queue_lock',
+                lock_date.isoformat(),
+                ex=delta,
+            )
+            return lock_date
+
+    def dodge_clear(self):
+        """
+        Clear all dodges from a player.
+        Should be called every week (7 days).
+        """
+        cache.delete(f'{self.cache_key}:dodges')
+
     @staticmethod
     def create(user_id: int) -> Player:
         """
@@ -108,56 +167,6 @@ class Player(BaseModel):
             return Player(user_id=user_id)
 
         raise PlayerException(_('Player not found'))
-
-    def dodge_add(self) -> timezone.datetime:
-        """
-        Add a new dodge datetime on Redis db.
-
-        Each time a player dodges a match, the dodges set will receive a new entry, and its ttl
-        will be renewed.
-
-        When a player reaches 3 dodges in a week (Player.Config.DODGES_EXPIRE_TIME), this method
-        creates a queue_lock entry on Redis for that player. This entry holds the datetime when the
-        restriction ends. This entry restricts the player from queueing again on whatever lobby
-        he is until the restriction is over.
-        """
-
-        if self.lock_date:
-            raise PlayerException(_('Player cannot dodge while in queue restriction.'))
-
-        cache.zadd(
-            f'{self.cache_key}:dodges',
-            {timezone.now().isoformat(): timezone.now().timestamp()},
-        )
-        cache.expire(f'{self.cache_key}:dodges', Player.Config.DODGES_EXPIRE_TIME)
-
-        if self.dodges >= Player.Config.DODGES_MAX:
-            delta = timezone.timedelta(minutes=Player.Config.DODGES_MAX_TIME)
-            lock_date = timezone.now() + delta
-            cache.set(
-                f'{self.cache_key}:queue_lock',
-                lock_date.isoformat(),
-                ex=delta,
-            )
-            return lock_date
-        elif self.dodges > 2:
-            multiplier = Player.Config.DODGES_MULTIPLIER[self.dodges - 2]
-            lock_minutes = self.dodges * multiplier
-            delta = timezone.timedelta(minutes=lock_minutes)
-            lock_date = timezone.now() + delta
-            cache.set(
-                f'{self.cache_key}:queue_lock',
-                lock_date.isoformat(),
-                ex=delta,
-            )
-            return lock_date
-
-    def dodge_clear(self):
-        """
-        Clear all dodges from a player.
-        Should be called every week (7 days).
-        """
-        cache.delete(f'{self.cache_key}:dodges')
 
     @staticmethod
     def delete(user_id: int):

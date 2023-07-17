@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Nova tarefa `end_player_restriction` que será chamada quando uma restrição de jogador terminar. Essa tarefa faz chamadas websockets para o FE saber que a restrição do player acabou [#587](https://github.com/3C-gg/reload-backend/issues/587).
+- Configuração no settings para definir os multiplicadores de tempo de restrição dos dodges(`PLAYER_DODGES_MULTIPLIER`).
+- Configuração no settings para definir a quantidade mínima de dodges que o jogador precisa fazer para sofre a primeira restrição (`PLAYER_DODGES_MIN_TO_RESTRICT`).
 - Chamadas websocket `ws_update_user` e `ws_friend_update_or_create` quando a partida é finalizada [#539](https://github.com/3C-gg/reload-backend/issues/539).
 - Esquemas `MatchUpdatePlayerStats` e `MatchUpdateSchema` para conter os dados recebidos pelo servidor FiveM.
 - Decorator que garante que determinados endpoints do app `Matches` sejam acessados somente por servidores conhecidos.
@@ -20,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera tarefa `cancel_match_after_countdown` para ficar menos complexa e seguir padrões de formatação.
+- Atualiza modelo `Player` para utilizar novas configs de dodges.
+- Separa configs relacionadas as dodges de fila no settings.
+- Move métodos estáticos do modelo `Player` de modo que fiquem todos juntos e organizados.
+- Atualiza arquivos de admin e prepara admin para lançamento [#580](https://github.com/3C-gg/reload-backend/issues/580).
+- Altera multiplicadores do tempo de restrição para dodges, deixando eles menos agressivos para os primeiros dodges.
 - Altera página de partida em andamento para que somente os jogadores naquela partida possam acessá-la nesse estado.
 - Envio de ws `lobbies/update` quando a partida for cancelada para todos os lobbies participantes [#573](https://github.com/3C-gg/reload-backend/issues/573).
 - Move métodos estáticos do modelo `Lobby` de modo que fiquem todos juntos e organizados.
@@ -27,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Problema ao ter múltiplos lobbies em fila com dodges. Os times não estavam sendo carregados e deletados corretamente [#585](https://github.com/3C-gg/reload-backend/issues/585).
+- Erro que fazia com que jogadores ficassem impossibilitados de iniciar fila, caso viessem de um lobby que foi deletado, ou seja, que o dono fez logout, inativou conta, excluiu conta ou alterou email [#583](https://github.com/3C-gg/reload-backend/issues/583).
 - Erro no cálculo de média de HS por round.
 - Problema em que fazia com que lobbies não atualizassem o tick no client depois de voltar de uma partida cancelada por outro lobby.
 - Propriedade `ready` do modelo `Team` que estava com uma verificação errada.

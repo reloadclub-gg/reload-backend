@@ -27,7 +27,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
 
-        Server.objects.create(ip='123.123.123.123', name='Reload 1', key='key')
+        Server.objects.create(ip='123.123.123.123', name='Reload 1')
         match = controller.handle_create_match(pre_match)
         match_player_user1 = self.user_1.matchplayer_set.first()
         match_player_user6 = self.user_6.matchplayer_set.first()
@@ -96,8 +96,8 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             PreMatch.get_by_id(pre_match.id)
 
         with self.assertRaises(TeamException):
-            Team.get_by_id(self.team1.id)
-            Team.get_by_id(self.team2.id)
+            Team.get_by_id(self.team1.id, raise_error=True)
+            Team.get_by_id(self.team2.id, raise_error=True)
 
     def test_handle_pre_match_checks(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
@@ -107,7 +107,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
 
     def test_handle_pre_match_checks_match_fail(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        Server.objects.create(ip='123.123.123.123', name='Reload 1', key='key')
+        Server.objects.create(ip='123.123.123.123', name='Reload 1')
         controller.handle_create_match(pre_match)
 
         with self.assertRaises(HttpError):
@@ -177,7 +177,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
 
     def test_set_player_ready_create_match(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        Server.objects.create(ip='123.123.123.123', name='Reload 1', key='key')
+        Server.objects.create(ip='123.123.123.123', name='Reload 1')
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 

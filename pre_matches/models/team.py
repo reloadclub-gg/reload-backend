@@ -163,7 +163,12 @@ class Team(BaseModel):
         """
         Fetch and return all Teams on Redis db.
         """
-        teams_keys = cache.keys(f'{TeamConfig.CACHE_PREFIX}*')
+        all_teams_keys = cache.keys(f'{TeamConfig.CACHE_PREFIX}*')
+        teams_keys = []
+        for key in all_teams_keys:
+            if len(key.split(':')) == 3:
+                teams_keys.append(key)
+
         return [Team.get_by_id(team_key.split(':')[2]) for team_key in teams_keys]
 
     @staticmethod
@@ -196,14 +201,16 @@ class Team(BaseModel):
         return team
 
     @staticmethod
-    def get_by_id(id: str) -> Team:
+    def get_by_id(id: str, raise_error: bool = False) -> Team:
         """
         Searchs for a team given an id.
         """
         cache_key = f'{TeamConfig.CACHE_PREFIX}{id}'
         result = cache.smembers(cache_key)
         if not result:
-            raise TeamException(_('Team not found.'))
+            if raise_error:
+                raise TeamException(_('Team not found.'))
+            return None
 
         return Team(id=id)
 
@@ -307,9 +314,10 @@ class Team(BaseModel):
         """
         Delete team from Redis db.
         """
-        teams_keys = cache.keys(f'{TeamConfig.CACHE_PREFIX}*')
-        for key in teams_keys:
+        for key in cache.keys(f'{self.cache_key}:*'):
             cache.delete(key)
+
+        cache.delete(self.cache_key)
 
     def add_lobby(self, lobby_id: int):
         """
