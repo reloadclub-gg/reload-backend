@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [46ada28 - 17/7/2023]
+
 ### Added
 
 - Nova tarefa `end_player_restriction` que será chamada quando uma restrição de jogador terminar. Essa tarefa faz chamadas websockets para o FE saber que a restrição do player acabou [#587](https://github.com/3C-gg/reload-backend/issues/587).
