@@ -107,3 +107,17 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
         for player in match.players:
             ws_update_user(player.user)
             ws_friend_update_or_create(player.user)
+
+
+def cancel_match(match_id: int):
+    match = get_object_or_404(
+        models.Match,
+        id=match_id,
+        status=models.Match.Status.RUNNING,
+    )
+
+    match.cancel()
+    websocket.ws_match_delete(match)
+    for player in match.players:
+        ws_update_user(player.user)
+        ws_friend_update_or_create(player.user)
