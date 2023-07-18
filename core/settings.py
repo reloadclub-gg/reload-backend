@@ -21,7 +21,7 @@ TEST_MODE = sys.argv[1:2] == ['test']
 
 ADMINS = [('Gabriel Gularte', 'ggularte@3c.gg')]
 FRONT_END_URL = config('FRONT_END_URL', default='http://localhost:3000')
-HOST_URL = config('HOST_URL', default='localhost')
+HOST_URL = config('HOST_URL', default='localhost,django')
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=HOST_URL).split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default=FRONT_END_URL).split(',')
 

@@ -42,6 +42,16 @@ services:
     command: celery -A core.celery.app worker -B -l info
     restart: unless-stopped
 
+  locust:
+    image: locustio/locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./locust:/locust_tests
+    command: -f /locust_tests/locustfile.py --host=http://django:80
+    depends_on:
+      - db
+
 volumes:
   db:
     name: reload_db
