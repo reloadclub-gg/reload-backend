@@ -242,3 +242,7 @@ class MatchFiveMSchema(ModelSchema):
     @staticmethod
     def resolve_team_b_players(obj):
         return [player.user for player in obj.team_b.players]
+
+
+class FiveMMatchResponseMock(Schema):
+    status_code: int
