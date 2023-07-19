@@ -91,21 +91,9 @@ class MatchesMatchModelTestCase(TeamsMixin, TestCase):
 
     def test_start(self):
         self.assertIsNone(self.match.start_date)
-        with self.assertRaises(ValidationError):
-            self.match.start()
-
-        self.match.status = Match.Status.READY
-        self.match.save()
         self.match.start()
         self.assertEqual(self.match.status, Match.Status.RUNNING)
         self.assertIsNotNone(self.match.start_date)
-
-    def test_ready(self):
-        self.match.ready()
-        self.assertEqual(self.match.status, Match.Status.READY)
-
-        with self.assertRaises(ValidationError):
-            self.match.ready()
 
     def test_cancel(self):
         self.match.cancel()

@@ -18,7 +18,6 @@ class ServerAdmin(admin.ModelAdmin):
             status__in=[
                 models.Match.Status.RUNNING,
                 models.Match.Status.LOADING,
-                models.Match.Status.READY,
             ]
         ).count()
 
