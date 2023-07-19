@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Chamada para criação de partida no FiveM na criação de partida [#243](https://github.com/3C-gg/reload-backend/issues/243).
+- Configs (`MATCH_MOCK_DELAY_START` e `FIVEM_MOCK_MATCH_CREATION_SUCCESS`) de testes locais para mock de início de partidas no FiveM.
 - Mixin de testes para lobbies.
 - Tarefas de `queue` e `matchmaking` que percorrem os lobbies em fila para montar partidas. Essas tarefas entram para substituir a formação de times e oponentes ao iniciar a fila.
 - Método para trazer todos os lobbies em fila no modelo `Lobby`.
@@ -22,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera ordem da deleção de pré-partidas, passando a deleção destas para antes da deleção dos times. Isso pode evitar _race conditions_.
 - Altera chave de `auto_id` do Redis para o modelo `PreMatch`. O padrão anterior estava conflitando com algumas operações no Redis.
 - Altera método `get_all` do modelo `PreMatch` para padronizar com o restante dos models e adotar a alteração do `auto_id`.
+
+### Fixed
+
+- Fila com múltiplos lobbies estava gerando um erro no gerenciamento de time. Foi corrigido substituindo a lógica síncrona de criação de time e partida a partir do start da fila de um lobby por duas tarefas que varrem o Redis em busca de lobbies e times prontos para montar a partida corretamente [#590](https://github.com/3C-gg/reload-backend/issues/590).
+
+### Removed
+
+- Status `READY` do modelo `Match` foi removido pois não precisamos desse estado. Depois de `LOADING` já podemos ir para `RUNNING`.
 
 ## [46ada28 - 17/7/2023]
 
