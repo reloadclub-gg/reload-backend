@@ -31,7 +31,7 @@ class PreMatch(BaseModel):
 
     The Redis db keys from this model are described below:
 
-    [key] __mm:pre_match:auto_id int
+    [key] __mm:pre_match__auto_id int
 
     [key] __mm:pre_match:[id] [team1_id:team2_id]
     Stores a pre_match with teams ids.
@@ -148,11 +148,11 @@ class PreMatch(BaseModel):
 
     @staticmethod
     def incr_auto_id() -> int:
-        return int(cache.incr('__mm:pre_match:auto_id'))
+        return int(cache.incr('__mm:pre_match__auto_id'))
 
     @staticmethod
     def get_auto_id() -> int:
-        count = cache.get('__mm:pre_match:auto_id')
+        count = cache.get('__mm:pre_match__auto_id')
         return int(count) if count else 0
 
     @staticmethod
