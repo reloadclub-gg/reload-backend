@@ -373,6 +373,13 @@ class Lobby(BaseModel):
             value_from_callable=True,
         )
 
+    @staticmethod
+    def get_all_queued():
+        queued_ids = [
+            int(key.split(':')[2]) for key in cache.keys('__mm:lobby:*:queue')
+        ]
+        return [Lobby(owner_id=queued_id) for queued_id in queued_ids]
+
     def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:
         """
         Lobby players can invite others players to join them in the lobby following
