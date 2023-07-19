@@ -211,7 +211,7 @@ EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_BACKEND = (
     'django.core.mail.backends.smtp.EmailBackend'
     if EMAIL_HOST != 'localhost'
-    else 'django.core.mail.backends.console.EmailBackend'
+    else 'django.core.mail.backends.dummy.EmailBackend'
 )
 EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
