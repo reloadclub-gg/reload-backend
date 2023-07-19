@@ -8,8 +8,7 @@ from accounts.websocket import ws_update_user
 from appsettings.services import maintenance_window
 from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
-from pre_matches.models import PreMatch, Team
-from pre_matches.websocket import ws_pre_match_create
+from pre_matches.models import Team
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
@@ -17,6 +16,34 @@ from ..tasks import queue_tick
 from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
 
 User = get_user_model()
+
+
+def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
+    old_lobby = user.account.lobby
+    new_lobby = Lobby(owner_id=lobby_id)
+
+    try:
+        remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id, remove=delete_lobby)
+    except LobbyException as exc:
+        raise HttpError(400, str(exc))
+
+    # if we got remnants_lobby, means that player was owner
+    # and there was other players left to move
+    if remnants_lobby:
+        handle_player_move_remnants(new_lobby, remnants_lobby, user, delete_lobby)
+
+    # if we don't have remnants_lobby
+    # and user is moving to a lobby that isn't its original lobby
+    elif new_lobby.id != user.id:
+        handle_player_move_other_lobby(new_lobby, old_lobby, user)
+
+    # we don't have remnants_lobby and user isn't moving to another owner's lobby, so
+    # it means that the user is moving FROM another owner's lobby back to its original lobby
+    # so old lobby will never be empty, because it will always have its owner left behind
+    else:
+        handle_player_move_original_lobby(new_lobby, old_lobby, user, delete_lobby)
+
+    return new_lobby
 
 
 def handle_player_move_remnants(
@@ -147,56 +174,6 @@ def handle_player_move_original_lobby(
             websocket.ws_update_lobby(new_lobby)
 
 
-def handle_match_found(team: Team, opponent: Team):
-    lobbies = team.lobbies + opponent.lobbies
-    for lobby in lobbies:
-        lobby.cancel_queue()
-        websocket.ws_update_lobby(lobby)
-
-    pre_match = PreMatch.create(team.id, opponent.id)
-    ws_pre_match_create(pre_match)
-
-
-def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
-    old_lobby = user.account.lobby
-    new_lobby = Lobby(owner_id=lobby_id)
-
-    try:
-        remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id, remove=delete_lobby)
-    except LobbyException as exc:
-        raise HttpError(400, str(exc))
-
-    # if we got remnants_lobby, means that player was owner
-    # and there was other players left to move
-    if remnants_lobby:
-        handle_player_move_remnants(new_lobby, remnants_lobby, user, delete_lobby)
-
-    # if we don't have remnants_lobby
-    # and user is moving to a lobby that isn't its original lobby
-    elif new_lobby.id != user.id:
-        handle_player_move_other_lobby(new_lobby, old_lobby, user)
-
-    # we don't have remnants_lobby and user isn't moving to another owner's lobby, so
-    # it means that the user is moving FROM another owner's lobby back to its original lobby
-    # so old lobby will never be empty, because it will always have its owner left behind
-    else:
-        handle_player_move_original_lobby(new_lobby, old_lobby, user, delete_lobby)
-
-    return new_lobby
-
-
-def handle_team_build(lobby: Lobby):
-    team = (
-        Team.get_by_lobby_id(lobby.id, fail_silently=True)
-        or Team.find(lobby)
-        or Team.build(lobby)
-    )
-    if team and team.ready:
-        opponent = team.get_opponent_team()
-        if opponent and opponent.ready:
-            handle_match_found(team, opponent)
-
-
 def get_lobby(lobby_id: int) -> Lobby:
     # TODO: check if lobby exists
     return Lobby(owner_id=lobby_id)
@@ -311,7 +288,6 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
             raise HttpError(400, e)
 
         queue_tick.delay(lobby.id)
-        handle_team_build(lobby)
 
     elif payload.cancel_queue:
         lobby.cancel_queue()
