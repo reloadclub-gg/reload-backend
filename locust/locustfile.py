@@ -1,4 +1,5 @@
 import itertools
+import random
 
 from locust import FastHttpUser, between, events, task
 
@@ -7,6 +8,7 @@ class AppUser(FastHttpUser):
     wait_time = between(1, 2.5)
     id_auto_number = itertools.count(start=1000)
     queued = False
+    queue_available = True
 
     def on_start(self):
         self.token = self.fake_signup()
@@ -42,24 +44,32 @@ class AppUser(FastHttpUser):
             return response.json()
 
     @task
-    def fetch_profile(self):
-        user_id = self.user.get('id')
+    def queue(self):
+        if not self.queue_available:
+            return
+
+        updated_user = self.auth(self.token)
+
+        if updated_user.get('match_id'):
+            return
+
+        lobby_id = updated_user.get('lobby_id')
 
         with self.client.get(
-            f'/api/profiles/?user_id={user_id}',
+            f'/api/lobbies/{lobby_id}/',
             headers={'Authorization': f'Bearer {self.token}'},
+            name="lobbies/detail/",
         ) as response:
-            return response.json()
+            lobby = response.json()
 
-    @task
-    def queue(self):
-        lobby_id = self.user.get('lobby_id')
+        restricted = lobby.get('restriction_countdown')
 
-        if not self.queued:
+        if not self.queued and not restricted:
             with self.client.patch(
                 f'/api/lobbies/{lobby_id}/',
                 headers={'Authorization': f'Bearer {self.token}'},
                 json={'start_queue': True},
+                name="lobbies/start_queue/",
             ) as response:
                 self.queued = True
                 return response.json()
@@ -68,6 +78,33 @@ class AppUser(FastHttpUser):
                 f'/api/lobbies/{lobby_id}/',
                 headers={'Authorization': f'Bearer {self.token}'},
                 json={'cancel_queue': True},
+                name="lobbies/cancel_queue/",
             ) as response:
                 self.queued = False
                 return response.json()
+
+    @task
+    def lock_in_or_ready(self):
+        updated_user = self.auth(self.token)
+
+        if updated_user.get('match_id'):
+            return
+
+        if updated_user.get('pre_match_id'):
+            self.queue_available = False
+            with self.client.get(
+                f'/api/pre-matches/',
+                headers={'Authorization': f'Bearer {self.token}'},
+                name="pre_matches/detail/",
+            ) as response:
+                pre_match = response.json()
+
+            if pre_match and pre_match.get('state') == 'pre_start':
+                with self.client.post(
+                    f'/api/pre-matches/lock-in/',
+                    headers={'Authorization': f'Bearer {self.token}'},
+                    name="pre_matches/lock-in/",
+                ) as response:
+                    return response.json()
+        else:
+            self.queue_available = True
