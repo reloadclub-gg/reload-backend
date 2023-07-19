@@ -1,7 +1,6 @@
 import itertools
-import random
 
-from locust import FastHttpUser, between, events, task
+from locust import FastHttpUser, between, task
 
 
 class AppUser(FastHttpUser):
@@ -93,7 +92,7 @@ class AppUser(FastHttpUser):
         if updated_user.get('pre_match_id'):
             self.queue_available = False
             with self.client.get(
-                f'/api/pre-matches/',
+                '/api/pre-matches/',
                 headers={'Authorization': f'Bearer {self.token}'},
                 name="pre_matches/detail/",
             ) as response:
@@ -101,7 +100,7 @@ class AppUser(FastHttpUser):
 
             if pre_match and pre_match.get('state') == 'pre_start':
                 with self.client.post(
-                    f'/api/pre-matches/lock-in/',
+                    '/api/pre-matches/lock-in/',
                     headers={'Authorization': f'Bearer {self.token}'},
                     name="pre_matches/lock-in/",
                 ) as response:
