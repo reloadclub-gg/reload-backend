@@ -1,9 +1,11 @@
 from unittest import mock
 
+from django.test import override_settings
+from model_bakery import baker
 from ninja.errors import Http404, HttpError
 
 from core.tests import TestCase
-from matches.models import Server
+from matches.models import Match, Server
 
 from ..api import controller
 from ..models import PreMatch, PreMatchException, Team, TeamException
@@ -160,8 +162,9 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_pre_match_update.assert_called_once()
         mock_cancel_match_task.assert_called_once()
 
+    @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
     @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_update')
-    def test_set_player_ready(self, mock_pre_match_update):
+    def test_set_player_ready(self, mock_pre_match_update, mock_fivem):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
@@ -171,11 +174,13 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         controller.set_player_ready(self.user_1)
         self.assertTrue(self.user_1 in pre_match.players_ready)
         mock_pre_match_update.assert_called_once()
+        mock_fivem.assert_not_called()
 
         with self.assertRaises(HttpError):
             controller.set_player_ready(self.user_1)
 
-    def test_set_player_ready_create_match(self):
+    @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
+    def test_set_player_ready_create_match(self, mock_fivem):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         for player in pre_match.players:
@@ -190,3 +195,28 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
 
         controller.set_player_ready(pre_match.players[-1:][0])
         self.assertIsNotNone(self.user_1.account.match)
+        mock_fivem.assert_called_once()
+
+    @override_settings(MATCH_MOCK_DELAY_START=0)
+    def test_handle_create_fivem_match_success(self):
+        server = baker.make(Server)
+        match = baker.make(Match, server=server, status=Match.Status.LOADING)
+        match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=8)
+
+        self.assertEqual(match.status, Match.Status.LOADING)
+        controller.handle_create_fivem_match(match)
+        self.assertEqual(match.status, Match.Status.RUNNING)
+
+    @override_settings(
+        MATCH_MOCK_DELAY_START=0, FIVEM_MOCK_MATCH_CREATION_SUCCESS=False
+    )
+    def test_handle_create_fivem_match_error(self):
+        server = baker.make(Server)
+        match = baker.make(Match, server=server, status=Match.Status.LOADING)
+        match.matchteam_set.create(name=self.team1.name, score=10)
+        match.matchteam_set.create(name=self.team2.name, score=8)
+
+        self.assertEqual(match.status, Match.Status.LOADING)
+        controller.handle_create_fivem_match(match)
+        self.assertEqual(match.status, Match.Status.CANCELLED)

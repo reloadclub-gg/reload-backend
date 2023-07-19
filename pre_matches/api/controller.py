@@ -1,5 +1,8 @@
+import time
 from typing import Union
 
+import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
@@ -8,19 +11,55 @@ from ninja.errors import Http404, HttpError
 from accounts.websocket import ws_update_user
 from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
+from matches.api.schemas import FiveMMatchResponseMock, MatchFiveMSchema
 from matches.models import Match, MatchPlayer, Server
-from matches.websocket import ws_match_create
+from matches.websocket import ws_match_create, ws_match_update
 
 from .. import models, tasks, websocket
 
 User = get_user_model()
 
 
-def handle_create_match(pre_match) -> Match:
+def handle_create_fivem_match(match: Match) -> Match:
+    if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
+        status_code = 201 if settings.FIVEM_MOCK_MATCH_CREATION_SUCCESS else 400
+        r = FiveMMatchResponseMock.from_orm({'status_code': status_code})
+        time.sleep(settings.MATCH_MOCK_DELAY_START)
+    else:
+        server_url = f'http://{match.server.ip}:3306/api/matches/'
+        payload = MatchFiveMSchema.from_orm(match)
+        r = requests.post(server_url, payload)
+
+    if r.status_code == 201:
+        match.start()
+    else:
+        match.cancel()
+
+    ws_match_update(match)
+    return match
+
+
+def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match:
+    pre_team1, pre_team2 = pre_match.teams
+    team_a = match.matchteam_set.create(name=pre_team1.name)
+    team_b = match.matchteam_set.create(name=pre_team2.name)
+
+    for user in pre_match.team1_players:
+        MatchPlayer.objects.create(user=user, team=team_a)
+
+    for user in pre_match.team2_players:
+        MatchPlayer.objects.create(user=user, team=team_b)
+
+    websocket.ws_pre_match_delete(pre_match)
+    models.PreMatch.delete(pre_match.id)
+    pre_team1.delete()
+    pre_team2.delete()
+
+
+def handle_create_match(pre_match: models.PreMatch) -> Match:
     server = Server.get_idle()
     if not server:
         # TODO send alert (email, etc) to admins
-        # TODO send alert to client app
         return
 
     game_type, game_mode = pre_match.teams[0].type_mode
@@ -30,23 +69,7 @@ def handle_create_match(pre_match) -> Match:
         game_mode=game_mode,
     )
 
-    pre_team1, pre_team2 = pre_match.teams
-    team1 = match.matchteam_set.create(name=pre_team1.name)
-    team2 = match.matchteam_set.create(name=pre_team2.name)
-
-    for user in pre_match.team1_players:
-        MatchPlayer.objects.create(user=user, team=team1)
-
-    for user in pre_match.team2_players:
-        MatchPlayer.objects.create(user=user, team=team2)
-
-    # TODO start match on the FiveM server
-    # (https://github.com/3C-gg/reload-backend/issues/243)
-
-    websocket.ws_pre_match_delete(pre_match)
-    models.PreMatch.delete(pre_match.id)
-    pre_team1.delete()
-    pre_team2.delete()
+    handle_create_match_teams(match, pre_match)
 
     ws_match_create(match)
     for match_player in match.players:
@@ -144,6 +167,6 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
             # cancel match due to lack of available servers
             return handle_cancel_match(pre_match)
         else:
-            return match
+            return handle_create_fivem_match(match)
 
     return pre_match

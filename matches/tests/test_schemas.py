@@ -54,7 +54,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_player_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(models.Match, status=models.Match.Status.READY)
+        match = baker.make(models.Match, status=models.Match.Status.LOADING)
         team = baker.make(models.MatchTeam, match=match, score=10)
         baker.make(models.MatchTeam, match=match)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
@@ -158,7 +158,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_player_progress_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(models.Match, status=models.Match.Status.READY)
+        match = baker.make(models.Match, status=models.Match.Status.LOADING)
         team = baker.make(models.MatchTeam, match=match, score=10)
         baker.make(models.MatchTeam, match=match)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
@@ -186,7 +186,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_player_stats_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(models.Match, status=models.Match.Status.READY)
+        match = baker.make(models.Match, status=models.Match.Status.LOADING)
         team = baker.make(models.MatchTeam, match=match, score=10)
         baker.make(models.MatchTeam, match=match)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)

@@ -312,6 +312,7 @@ MATCHES_LIMIT_PER_SERVER = config('MATCHES_LIMIT_PER_SERVER', default=20, cast=i
 MATCHES_LIMIT_PER_SERVER_GAP = config(
     'MATCHES_LIMIT_PER_SERVER_GAP', default=5, cast=int
 )
+MATCH_MOCK_DELAY_START = config('MATCH_MOCK_DELAY_START', default=5, cast=int)
 
 # Player Dodges & Restriction Settings
 PLAYER_DODGES_EXPIRE_TIME = config(
@@ -351,3 +352,11 @@ MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER = config(
 
 # Ninja Settings
 PAGINATION_PER_PAGE = 10
+
+
+# FiveM Settings
+FIVEM_MOCK_MATCH_CREATION_SUCCESS = config(
+    'FIVEM_MOCK_MATCH_CREATION_SUCCESS',
+    default=True,
+    cast=bool,
+)
