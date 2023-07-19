@@ -19,6 +19,14 @@ app.conf.beat_schedule = {
         'task': 'accounts.tasks.decr_level_from_inactivity',
         'schedule': crontab(day_of_week='sunday'),
     },
+    'queue': {
+        'task': 'lobbies.tasks.queue',
+        'schedule': 1.0,
+    },
+    'matchmaking': {
+        'task': 'lobbies.tasks.matchmaking',
+        'schedule': 1.0,
+    },
 }
 
 

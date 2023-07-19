@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Mixin de testes para lobbies.
+- Tarefas de `queue` e `matchmaking` que percorrem os lobbies em fila para montar partidas. Essas tarefas entram para substituir a formação de times e oponentes ao iniciar a fila.
+- Método para trazer todos os lobbies em fila no modelo `Lobby`.
+- Proteções ao modelo `Team` para não trazer valor nulo nas queries. Também adiciona proteção de transação em chaves críticas ao adicionar um lobby.
+- Ferramenta de teste de carga `Locust`.
+
+### Changed
+
+- Mixin de testes de times, que continha uma lógica muito extensa. A lógica de criação de lobbies desse mixin foi movida para seu próprio mixin de lobbies.
+- Troca Backend de emails do Django para `dummy` ao invés de `console`.
+- Altera ordem da deleção de pré-partidas, passando a deleção destas para antes da deleção dos times. Isso pode evitar _race conditions_.
+- Altera chave de `auto_id` do Redis para o modelo `PreMatch`. O padrão anterior estava conflitando com algumas operações no Redis.
+- Altera método `get_all` do modelo `PreMatch` para padronizar com o restante dos models e adotar a alteração do `auto_id`.
+
 ## [46ada28 - 17/7/2023]
 
 ### Added

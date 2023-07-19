@@ -45,6 +45,8 @@ def handle_create_match(pre_match) -> Match:
 
     websocket.ws_pre_match_delete(pre_match)
     models.PreMatch.delete(pre_match.id)
+    pre_team1.delete()
+    pre_team2.delete()
 
     ws_match_create(match)
     for match_player in match.players:
@@ -77,9 +79,9 @@ def handle_cancel_match(pre_match: models.PreMatch):
     # delete the pre_match and teams from Redis
     team1 = pre_match.teams[0]
     team2 = pre_match.teams[1]
+    models.PreMatch.delete(pre_match.id)
     team1.delete()
     team2.delete()
-    models.PreMatch.delete(pre_match.id)
 
 
 def handle_pre_match_checks(user: User, error: str) -> User:
