@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Métodos de apoio para conversão de steamid64 em hex e vice-versa.
 - Botão para assumir identidade de um usuário por um membro do staff no admin [#579](https://github.com/3C-gg/reload-backend/issues/579).
 - Modelo `IdentityManager` para salvar um log de todos os staff que assumem usuários.
 - Bilbioteca `django-object-actions` para adicionar ações aos objetos no admin.
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- O FiveM só aceita o steamid hexadecimal, então passamos a fazer a conversão do steamid64 (que é o nosso padrão) para o hexadecimal ao nos comunicar com os servidores FiveM [#594](https://github.com/3C-gg/reload-backend/issues/594).
 - Passamos a manter as versões fixadas no pipenv a fim de evitar que alguma atualização quebre a aplicação.
 - Mixin de testes de times, que continha uma lógica muito extensa. A lógica de criação de lobbies desse mixin foi movida para seu próprio mixin de lobbies.
 - Troca Backend de emails do Django para `dummy` ao invés de `console`.
