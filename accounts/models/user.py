@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import PermissionsMixin
@@ -84,6 +86,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         social_user = UserSocialAuth.objects.filter(user=self).first()
         if not social_user:
             return None
+
+        if isinstance(social_user.extra_data, str):
+            social_user.extra_data = json.loads(social_user.extra_data)
 
         return SteamUser(**social_user.extra_data.get('player'))
 
