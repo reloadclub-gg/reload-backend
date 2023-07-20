@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint para cancelamento de partida a partir do FiveM [#334](https://github.com/3C-gg/reload-backend/issues/334).
 - Chamada para criação de partida no FiveM na criação de partida [#243](https://github.com/3C-gg/reload-backend/issues/243).
 - Configs (`MATCH_MOCK_DELAY_START` e `FIVEM_MOCK_MATCH_CREATION_SUCCESS`) de testes locais para mock de início de partidas no FiveM.
 - Mixin de testes para lobbies.

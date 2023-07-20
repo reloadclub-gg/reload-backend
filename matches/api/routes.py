@@ -31,3 +31,12 @@ def list(request, user_id: int = None):
 )
 def update(request, match_id: int, payload: schemas.MatchUpdateSchema):
     return controller.update_match(match_id, payload)
+
+
+@authorization.whitelisted_required
+@router.delete(
+    '/{match_id}/',
+    response={200: None},
+)
+def cancel(request, match_id: int):
+    return controller.cancel_match(match_id)

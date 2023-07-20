@@ -18,7 +18,7 @@ def ws_match_create(match: models.Match):
     matches.api.schemas.MatchSchema: object
 
     Actions:
-    - matches/create/
+    - matches/create
     """
     payload = schemas.MatchSchema.from_orm(match).dict()
 
@@ -41,12 +41,33 @@ def ws_match_update(match: models.Match):
     matches.api.schemas.MatchSchema: object
 
     Actions:
-    - matches/update/
+    - matches/update
     """
     payload = schemas.MatchSchema.from_orm(match).dict()
 
     return async_to_sync(ws_send)(
         'matches/update',
         payload,
+        groups=[player.user.id for player in match.players],
+    )
+
+
+def ws_match_delete(match: models.Match):
+    """
+    Delete match for its users on FE.
+
+    Cases:
+    - Match was canceled due to external reasons.
+
+    Payload:
+    null
+
+    Actions:
+    - matches/delete
+    """
+
+    return async_to_sync(ws_send)(
+        'matches/delete',
+        None,
         groups=[player.user.id for player in match.players],
     )
