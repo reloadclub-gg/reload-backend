@@ -3,7 +3,7 @@ from typing import List, Optional
 from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 
-from accounts.utils import calc_level_and_points
+from accounts.utils import calc_level_and_points, steamid64_to_hex
 from steam import Steam
 
 from .. import models
@@ -203,6 +203,7 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
     username: str
     steamid: str
     level: int
+    avatar: str
 
     class Config:
         model = User
@@ -210,7 +211,7 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
 
     @staticmethod
     def resolve_steamid(obj):
-        return obj.account.steamid
+        return steamid64_to_hex(obj.account.steamid)
 
     @staticmethod
     def resolve_level(obj):
@@ -218,7 +219,11 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
 
     @staticmethod
     def resolve_username(obj):
-        return obj.steam_user.username
+        return obj.account.username
+
+    @staticmethod
+    def resolve_avatar(obj):
+        return Steam.build_avatar_url(obj.steam_user.avatarhash, 'medium')
 
 
 class MatchFiveMSchema(ModelSchema):
