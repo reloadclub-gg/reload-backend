@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Assumir identidade via admin agora só aparece para usuários não-staff [#596](https://github.com/3C-gg/reload-backend/issues/596).
 - O FiveM só aceita o steamid hexadecimal, então passamos a fazer a conversão do steamid64 (que é o nosso padrão) para o hexadecimal ao nos comunicar com os servidores FiveM [#594](https://github.com/3C-gg/reload-backend/issues/594).
 - Passamos a manter as versões fixadas no pipenv a fim de evitar que alguma atualização quebre a aplicação.
 - Mixin de testes de times, que continha uma lógica muito extensa. A lógica de criação de lobbies desse mixin foi movida para seu próprio mixin de lobbies.

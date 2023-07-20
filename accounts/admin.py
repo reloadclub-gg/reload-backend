@@ -237,8 +237,7 @@ class UserAdmin(
         description=_('Assume a user identity and use the application as the user'),
     )
     def assume_identity(self, request, obj):
-        if obj.id == request.user.id:
-            print('same user')
+        if obj.is_staff:
             return
 
         token = obj.auth.get_token()
@@ -257,7 +256,7 @@ class UserAdmin(
         actions = list(actions)
 
         obj = self.model.objects.get(pk=object_id)
-        if obj.id == request.user.id:
+        if obj.is_staff:
             actions.remove('assume_identity')
 
         return actions
