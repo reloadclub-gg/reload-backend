@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'storages',
+    'django_object_actions',
     'accounts.apps.AccountsConfig',
     'pre_matches.apps.PreMatchesConfig',
     'appsettings.apps.AppSettingsConfig',

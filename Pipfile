@@ -30,7 +30,7 @@ daphne = "4.0.0"
 django-jazzmin = "2.6.0"
 django-rosetta = "0.9.9"
 ipython = "8.12.0"
-django-object-actions = "4.0.0"
+django-object-actions = "4.1.0"
 
 [dev-packages]
 
