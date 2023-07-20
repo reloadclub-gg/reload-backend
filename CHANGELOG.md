@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Botão para assumir identidade de um usuário por um membro do staff no admin [#579](https://github.com/3C-gg/reload-backend/issues/579).
+- Modelo `IdentityManager` para salvar um log de todos os staff que assumem usuários.
+- Bilbioteca `django-object-actions` para adicionar ações aos objetos no admin.
+- Adiciona proteção no conteúdo de `social_user.extra_data` para sempre transformar para dict antes de usar.
 - Endpoint para cancelamento de partida a partir do FiveM [#334](https://github.com/3C-gg/reload-backend/issues/334).
 - Chamada para criação de partida no FiveM na criação de partida [#243](https://github.com/3C-gg/reload-backend/issues/243).
 - Configs (`MATCH_MOCK_DELAY_START` e `FIVEM_MOCK_MATCH_CREATION_SUCCESS`) de testes locais para mock de início de partidas no FiveM.
@@ -20,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Passamos a manter as versões fixadas no pipenv a fim de evitar que alguma atualização quebre a aplicação.
 - Mixin de testes de times, que continha uma lógica muito extensa. A lógica de criação de lobbies desse mixin foi movida para seu próprio mixin de lobbies.
 - Troca Backend de emails do Django para `dummy` ao invés de `console`.
 - Altera ordem da deleção de pré-partidas, passando a deleção destas para antes da deleção dos times. Isso pode evitar _race conditions_.
