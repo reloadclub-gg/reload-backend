@@ -126,8 +126,14 @@ def calc_level_and_points(
         return (level, level_points + points_earned)
 
 
-def steamid64_to_hex(steamid: str):
-    hexa = hex(int(steamid))
-    if hexa.startswith('0x'):
-        hexa = hexa[2:]
-    return hexa
+def steamid64_to_hex(steamid64: str) -> str:
+    steamid_hex = hex(int(steamid64))
+    if steamid_hex.startswith('0x'):
+        steamid_hex = steamid_hex[2:]
+    return steamid_hex
+
+
+def hex_to_steamid64(steamid_hex: str) -> str:
+    if not steamid_hex.startswith('0x'):
+        steamid_hex = f'0x{steamid_hex}'
+    return str(int(steamid_hex, 0))

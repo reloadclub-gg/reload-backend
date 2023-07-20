@@ -37,6 +37,17 @@ class AccountsTestUtilsTestCase(TestCase):
         extra_data = utils.generate_steam_extra_data(username='tester').get('player')
         self.assertEqual(extra_data.get('personaname'), 'tester')
 
+    def test_steamid64_to_hex(self):
+        steamid64 = '56561198055990604'
+        hexa = utils.steamid64_to_hex(steamid64)
+        self.assertFalse(hexa.startswith('0x'))
+        self.assertEqual(hexa, 'c8f21c2632a54c')
+
+    def test_hex_to_steamid64(self):
+        steamid_hex = 'c8f21c3e09b41c'
+        steamid64 = utils.hex_to_steamid64(steamid_hex)
+        self.assertEqual(steamid64, '56561198455960604')
+
 
 class AccountsUtilsWithUsersTestCase(mixins.UserOneMixin, TestCase):
     def test_calc_level_and_points(self):

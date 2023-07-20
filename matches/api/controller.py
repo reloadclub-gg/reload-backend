@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
 
+from accounts.utils import hex_to_steamid64
 from accounts.websocket import ws_update_user
 from friends.websocket import ws_friend_update_or_create
 
@@ -18,8 +19,9 @@ def handle_update_players_stats(
     match: models.Match,
 ):
     for player_stats in players_stats:
+        steamid64 = hex_to_steamid64(player_stats.steamid)
         stats = models.MatchPlayerStats.objects.get(
-            player__user__account__steamid=player_stats.steamid,
+            player__user__account__steamid=steamid64,
             player__team__match=match,
         )
         stats.kills += player_stats.kills

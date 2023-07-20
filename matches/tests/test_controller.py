@@ -4,6 +4,7 @@ from django.utils import timezone
 from model_bakery import baker
 from ninja.errors import Http404
 
+from accounts.utils import steamid64_to_hex
 from core.tests import TestCase
 from pre_matches.tests.mixins import TeamsMixin
 
@@ -60,7 +61,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         payload = [
             schemas.MatchUpdatePlayerStats.from_orm(
                 {
-                    "steamid": self.user_1.account.steamid,
+                    "steamid": steamid64_to_hex(self.user_1.account.steamid),
                     "kills": 2,
                     "headshot_kills": 1,
                     "deaths": 1,
@@ -116,7 +117,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         payload = [
             schemas.MatchUpdatePlayerStats.from_orm(
                 {
-                    "steamid": self.user_1.account.steamid,
+                    "steamid": steamid64_to_hex(self.user_1.account.steamid),
                     "kills": 2,
                     "headshot_kills": 1,
                     "deaths": 1,
