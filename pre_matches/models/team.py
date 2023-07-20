@@ -106,7 +106,11 @@ class Team(BaseModel):
         can team up or challenge.
         """
 
-        elapsed_time = ceil(mean([lobby.queue_time for lobby in self.lobbies]))
+        elapsed_time = ceil(
+            mean(
+                [lobby.queue_time if lobby.queue_time else 0 for lobby in self.lobbies]
+            )
+        )
 
         if elapsed_time < 30:
             min = self.overall - 1 if self.overall > 0 else 0
@@ -177,7 +181,7 @@ class Team(BaseModel):
         Fetch all non ready teams in Redis db.
         """
         teams = Team.get_all()
-        return [team for team in teams if not team.ready]
+        return [team for team in teams if team and not team.ready]
 
     @staticmethod
     def get_all_ready() -> list[Team]:
@@ -185,7 +189,7 @@ class Team(BaseModel):
         Fetch all ready teams in Redis db.
         """
         teams = Team.get_all()
-        return [team for team in teams if team.ready]
+        return [team for team in teams if team and team.ready and not team.pre_match_id]
 
     @staticmethod
     def get_by_lobby_id(lobby_id: int, fail_silently=False) -> Team:
@@ -193,7 +197,8 @@ class Team(BaseModel):
         Searchs for a team given a lobby id.
         """
         team = next(
-            (team for team in Team.get_all() if lobby_id in team.lobbies_ids), None
+            (team for team in Team.get_all() if team and lobby_id in team.lobbies_ids),
+            None,
         )
         if not team and not fail_silently:
             raise TeamException(_('Team not found.'))
@@ -332,6 +337,9 @@ class Team(BaseModel):
             transaction_operations,
             f'{lobby.cache_key}:players',
             f'{lobby.cache_key}:queue',
+            f'{self.cache_key}',
+            f'{self.cache_key}:pre_match',
+            f'{self.cache_key}:ready',
         )
 
     def remove_lobby(self, lobby_id: int):

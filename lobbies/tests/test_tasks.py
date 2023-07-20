@@ -1,12 +1,15 @@
 from unittest import mock
 
+from django.test import override_settings
 from django.utils import timezone
 
 from core.redis import RedisClient
 from core.tests import TestCase
+from pre_matches.models import Team
 from pre_matches.tests.mixins import TeamsMixin
 
 from .. import models, tasks
+from . import mixins
 
 cache = RedisClient()
 
@@ -41,3 +44,51 @@ class LobbyTasksTestCase(TeamsMixin, TestCase):
         self.user_1.account.lobby.start_queue()
         tasks.queue_tick(self.user_1.account.lobby.id)
         mock_queue_tick.assert_called_once_with(self.user_1.account.lobby)
+
+
+class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
+    @override_settings(TEAM_READY_PLAYERS_MIN=1)
+    def test_queue_min_1_player(self):
+        self.assertEqual(len(Team.get_all()), 0)
+        self.lobby1.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 1)
+
+        self.lobby2.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 2)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=2)
+    def test_queue_min_2_players(self):
+        self.assertEqual(len(Team.get_all()), 0)
+        self.lobby1.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 1)
+
+        self.lobby2.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 1)
+
+        self.lobby3.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 2)
+
+        self.lobby4.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 2)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=1)
+    @mock.patch('lobbies.tasks.handle_match_found')
+    def test_matchmaking(self, mock_match_found):
+        t1 = Team.create([self.lobby1.id])
+        t2 = Team.create([self.lobby2.id])
+        tasks.matchmaking()
+        mock_match_found.asser_called_once_with(t1, t2)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=2)
+    @mock.patch('lobbies.tasks.handle_match_found')
+    def test_matchmaking_not_match(self, mock_match_found):
+        Team.create([self.lobby1.id, self.lobby2.id])
+        Team.create([self.lobby3.id])
+        tasks.matchmaking()
+        mock_match_found.assert_not_called()

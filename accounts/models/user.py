@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import PermissionsMixin
@@ -85,6 +87,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not social_user:
             return None
 
+        if isinstance(social_user.extra_data, str):
+            social_user.extra_data = json.loads(social_user.extra_data)
+
         return SteamUser(**social_user.extra_data.get('player'))
 
     @property
@@ -141,3 +146,17 @@ class UserLogin(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.timestamp}"
+
+
+class IdentityManager(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
+    agent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        editable=False,
+        related_name='identities',
+    )
+    timestamp = models.DateTimeField(auto_now_add=True, editable=False)
+
+    def __str__(self):
+        return f"{self.agent.email} as {self.user.email} at {self.timestamp}"

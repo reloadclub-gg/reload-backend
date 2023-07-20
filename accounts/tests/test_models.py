@@ -179,10 +179,6 @@ class AccountsAccountMatchModelTestCase(TeamsMixin, TestCase):
         match.save()
         self.assertEqual(self.user_1.account.match, match)
 
-        match.status = Match.Status.READY
-        match.save()
-        self.assertEqual(self.user_1.account.match, match)
-
     def test_matches_played(self):
         server = baker.make(Server)
         self.assertEqual(len(self.user_1.account.matches_played), 0)

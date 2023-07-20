@@ -4,6 +4,7 @@ from django.utils import timezone
 from model_bakery import baker
 from ninja.errors import Http404
 
+from accounts.utils import steamid64_to_hex
 from core.tests import TestCase
 from pre_matches.tests.mixins import TeamsMixin
 
@@ -60,7 +61,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         payload = [
             schemas.MatchUpdatePlayerStats.from_orm(
                 {
-                    "steamid": self.user_1.account.steamid,
+                    "steamid": steamid64_to_hex(self.user_1.account.steamid),
                     "kills": 2,
                     "headshot_kills": 1,
                     "deaths": 1,
@@ -116,7 +117,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         payload = [
             schemas.MatchUpdatePlayerStats.from_orm(
                 {
-                    "steamid": self.user_1.account.steamid,
+                    "steamid": steamid64_to_hex(self.user_1.account.steamid),
                     "kills": 2,
                     "headshot_kills": 1,
                     "deaths": 1,
@@ -326,3 +327,23 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         mock_calls = [mock.call(self.user_1), mock.call(self.user_2)]
         mock_friend_update.assert_has_calls(mock_calls)
         mock_update_user.assert_has_calls(mock_calls)
+
+    @mock.patch('matches.api.controller.ws_update_user')
+    @mock.patch('matches.api.controller.ws_friend_update_or_create')
+    @mock.patch('matches.api.controller.websocket.ws_match_delete')
+    def test_cancel_match(
+        self,
+        mock_match_delete,
+        mock_friend_update,
+        mock_update_user,
+    ):
+        self.match.status = models.Match.Status.LOADING
+        self.match.save()
+
+        controller.cancel_match(self.match.id)
+        self.match.refresh_from_db()
+        self.assertEqual(self.match.status, models.Match.Status.CANCELLED)
+
+        mock_match_delete.assert_called_once()
+        self.assertEqual(mock_friend_update.call_count, 2)
+        self.assertEqual(mock_update_user.call_count, 2)

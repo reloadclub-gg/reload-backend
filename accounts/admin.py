@@ -2,9 +2,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
+from django_object_actions import DjangoObjectActions, action
 from social_django.models import Association, Nonce, UserSocialAuth
 
 from core import admin_mixins
@@ -127,7 +129,11 @@ class UserReportsAdminInline(admin.TabularInline):
 
 
 @admin.register(models.User)
-class UserAdmin(admin_mixins.ReadOnlyModelAdminMixin, DjangoUserAdmin):
+class UserAdmin(
+    DjangoObjectActions,
+    admin_mixins.ReadOnlyModelAdminMixin,
+    DjangoUserAdmin,
+):
     fieldsets = (
         (
             _('ACCOUNT'),
@@ -226,8 +232,36 @@ class UserAdmin(admin_mixins.ReadOnlyModelAdminMixin, DjangoUserAdmin):
     def verification_token(self, obj):
         return obj.account.verification_token if obj.account else None
 
+    @action(
+        label=_('Assume Identity'),
+        description=_('Assume a user identity and use the application as the user'),
+    )
+    def assume_identity(self, request, obj):
+        if obj.is_staff:
+            return
+
+        token = obj.auth.get_token()
+        if not token:
+            obj.auth.create_token()
+            token = obj.auth.token
+
+        models.IdentityManager.objects.create(user=obj, agent=request.user)
+        return HttpResponseRedirect(settings.FRONT_END_AUTH_URL.format(token))
+
     is_online.boolean = True
     is_verified.boolean = True
+
+    def get_change_actions(self, request, object_id, form_url):
+        actions = super().get_change_actions(request, object_id, form_url)
+        actions = list(actions)
+
+        obj = self.model.objects.get(pk=object_id)
+        if obj.is_staff:
+            actions.remove('assume_identity')
+
+        return actions
+
+    change_actions = ('assume_identity',)
 
 
 @admin.register(models.Invite)
@@ -277,3 +311,36 @@ class AccountReportAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', url, obj.target.email)
 
     target_link.short_description = 'Target'
+
+
+class StaffUserListFilter(admin.SimpleListFilter):
+    title = 'agents'
+    parameter_name = "agent_id"
+
+    def lookups(self, request, model_admin):
+        staff_users = models.User.objects.filter(is_staff=True)
+        return [(user.id, user.email) for user in staff_users]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(agent__id__exact=self.value())
+
+        return queryset
+
+
+@admin.register(models.IdentityManager)
+class IdentityManagerAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'agent',
+        'timestamp',
+    )
+    ordering = ('-timestamp',)
+    list_filter = [StaffUserListFilter]
+    search_fields = [
+        'user__email',
+        'user__id',
+        'user__account__steamid',
+        'agent__email',
+        'agent__id',
+    ]

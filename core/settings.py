@@ -21,7 +21,7 @@ TEST_MODE = sys.argv[1:2] == ['test']
 
 ADMINS = [('Gabriel Gularte', 'ggularte@3c.gg')]
 FRONT_END_URL = config('FRONT_END_URL', default='http://localhost:3000')
-HOST_URL = config('HOST_URL', default='localhost')
+HOST_URL = config('HOST_URL', default='localhost,django')
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=HOST_URL).split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default=FRONT_END_URL).split(',')
 
@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'storages',
+    'django_object_actions',
     'accounts.apps.AccountsConfig',
     'pre_matches.apps.PreMatchesConfig',
     'appsettings.apps.AppSettingsConfig',
@@ -211,7 +212,7 @@ EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_BACKEND = (
     'django.core.mail.backends.smtp.EmailBackend'
     if EMAIL_HOST != 'localhost'
-    else 'django.core.mail.backends.console.EmailBackend'
+    else 'django.core.mail.backends.dummy.EmailBackend'
 )
 EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
@@ -312,6 +313,7 @@ MATCHES_LIMIT_PER_SERVER = config('MATCHES_LIMIT_PER_SERVER', default=20, cast=i
 MATCHES_LIMIT_PER_SERVER_GAP = config(
     'MATCHES_LIMIT_PER_SERVER_GAP', default=5, cast=int
 )
+MATCH_MOCK_DELAY_START = config('MATCH_MOCK_DELAY_START', default=5, cast=int)
 
 # Player Dodges & Restriction Settings
 PLAYER_DODGES_EXPIRE_TIME = config(
@@ -351,3 +353,11 @@ MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER = config(
 
 # Ninja Settings
 PAGINATION_PER_PAGE = 10
+
+
+# FiveM Settings
+FIVEM_MOCK_MATCH_CREATION_SUCCESS = config(
+    'FIVEM_MOCK_MATCH_CREATION_SUCCESS',
+    default=True,
+    cast=bool,
+)

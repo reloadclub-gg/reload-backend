@@ -1,11 +1,14 @@
 from typing import List, Optional
 
+from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 
-from accounts.utils import calc_level_and_points
+from accounts.utils import calc_level_and_points, steamid64_to_hex
 from steam import Steam
 
 from .. import models
+
+User = get_user_model()
 
 
 class MatchPlayerStatsSchema(ModelSchema):
@@ -194,3 +197,57 @@ class MatchUpdateSchema(Schema):
     end_reason: int
     is_overtime: bool = False
     players_stats: List[MatchUpdatePlayerStats]
+
+
+class MatchTeamPlayerFiveMSchema(ModelSchema):
+    username: str
+    steamid: str
+    level: int
+    avatar: str
+
+    class Config:
+        model = User
+        model_fields = ['id']
+
+    @staticmethod
+    def resolve_steamid(obj):
+        return steamid64_to_hex(obj.account.steamid)
+
+    @staticmethod
+    def resolve_level(obj):
+        return obj.account.level
+
+    @staticmethod
+    def resolve_username(obj):
+        return obj.account.username
+
+    @staticmethod
+    def resolve_avatar(obj):
+        return Steam.build_avatar_url(obj.steam_user.avatarhash, 'medium')
+
+
+class MatchFiveMSchema(ModelSchema):
+    match_id: int = Field(None, alias='id')
+    map_id: int
+    team_a_players: List[MatchTeamPlayerFiveMSchema]
+    team_b_players: List[MatchTeamPlayerFiveMSchema]
+
+    class Config:
+        model = models.Match
+        model_fields = ['id']
+
+    @staticmethod
+    def resolve_map_id(obj):
+        return obj.map.id
+
+    @staticmethod
+    def resolve_team_a_players(obj):
+        return [player.user for player in obj.team_a.players]
+
+    @staticmethod
+    def resolve_team_b_players(obj):
+        return [player.user for player in obj.team_b.players]
+
+
+class FiveMMatchResponseMock(Schema):
+    status_code: int

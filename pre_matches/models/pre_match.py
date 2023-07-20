@@ -31,7 +31,7 @@ class PreMatch(BaseModel):
 
     The Redis db keys from this model are described below:
 
-    [key] __mm:pre_match:auto_id int
+    [key] __mm:pre_match__auto_id int
 
     [key] __mm:pre_match:[id] [team1_id:team2_id]
     Stores a pre_match with teams ids.
@@ -148,11 +148,11 @@ class PreMatch(BaseModel):
 
     @staticmethod
     def incr_auto_id() -> int:
-        return int(cache.incr('__mm:pre_match:auto_id'))
+        return int(cache.incr('__mm:pre_match__auto_id'))
 
     @staticmethod
     def get_auto_id() -> int:
-        count = cache.get('__mm:pre_match:auto_id')
+        count = cache.get('__mm:pre_match__auto_id')
         return int(count) if count else 0
 
     @staticmethod
@@ -200,16 +200,17 @@ class PreMatch(BaseModel):
                     return PreMatch(id=match_id)
 
     @staticmethod
-    def get_all():
-        pre_matches_keys = cache.keys(f'{PreMatch.Config.CACHE_PREFIX}?')
+    def get_all() -> list[Team]:
+        """
+        Fetch and return all PreMatches on Redis db.
+        """
+        all_keys = cache.keys(f'{PreMatch.Config.CACHE_PREFIX}*')
         result = []
-        for pre_match_key in pre_matches_keys:
-            if len(pre_match_key.split(':')) == 3:
-                pre_match_id = pre_match_key.split(':')[2]
-                pre_match = PreMatch.get_by_id(pre_match_id)
-                result.append(pre_match)
+        for key in all_keys:
+            if len(key.split(':')) == 3:
+                result.append(key)
 
-        return result
+        return [PreMatch.get_by_id(key.split(':')[2]) for key in result]
 
     @staticmethod
     def get_by_player_id(player_id: int):

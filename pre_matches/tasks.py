@@ -34,9 +34,9 @@ def handle_cancel_match_ws(pre_match: models.PreMatch):
 
 
 def handle_delete_from_cache(team1: models.Team, team2: models.Team, pre_match_id: int):
+    models.PreMatch.delete(pre_match_id)
     team1.delete()
     team2.delete()
-    models.PreMatch.delete(pre_match_id)
 
 
 def handle_dodges(lobby: Lobby, ready_players_ids: List[int]):

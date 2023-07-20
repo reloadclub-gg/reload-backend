@@ -73,10 +73,9 @@ class Map(models.Model):
 class Match(models.Model):
     class Status(models.IntegerChoices):
         LOADING = 0
-        READY = 1
-        RUNNING = 2
-        FINISHED = 3
-        CANCELLED = 4
+        RUNNING = 1
+        FINISHED = 2
+        CANCELLED = 3
 
     class GameType(models.TextChoices):
         CUSTOM = 'custom'
@@ -175,18 +174,11 @@ class Match(models.Model):
             player.user.account.apply_points_earned(player.points_earned)
 
     def start(self):
-        if self.status != Match.Status.READY:
+        if self.status != Match.Status.LOADING:
             raise ValidationError(_('Unable to start match while not ready.'))
 
         self.status = Match.Status.RUNNING
         self.start_date = timezone.now()
-        self.save()
-
-    def ready(self):
-        if self.status != Match.Status.LOADING:
-            raise ValidationError(_('Unable to mark match as ready while not loading.'))
-
-        self.status = Match.Status.READY
         self.save()
 
     def cancel(self):
