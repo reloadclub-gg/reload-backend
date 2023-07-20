@@ -1,6 +1,6 @@
 from model_bakery import baker
 
-from accounts.utils import calc_level_and_points
+from accounts.utils import calc_level_and_points, steamid64_to_hex
 from core.tests import TestCase
 from matches import models
 from matches.api import schemas
@@ -230,4 +230,26 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'chest_accuracy': match_player.stats.chest_accuracy,
             'others_accuracy': match_player.stats.others_accuracy,
         }
+        self.assertEqual(payload, expected_payload)
+
+    def test_match_team_player_fivem_schema(self):
+        self.user_1.account.level_points = 95
+        self.user_1.account.save()
+        match = baker.make(models.Match, status=models.Match.Status.LOADING)
+        team = baker.make(models.MatchTeam, match=match, score=10)
+        baker.make(models.MatchTeam, match=match)
+        match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
+
+        payload = schemas.MatchTeamPlayerFiveMSchema.from_orm(match_player.user).dict()
+        expected_payload = {
+            'id': match_player.user.id,
+            'username': match_player.user.account.username,
+            'steamid': steamid64_to_hex(match_player.user.account.steamid),
+            'level': match_player.user.account.level,
+            'avatar': Steam.build_avatar_url(
+                match_player.user.steam_user.avatarhash,
+                'medium',
+            ),
+        }
+
         self.assertEqual(payload, expected_payload)
