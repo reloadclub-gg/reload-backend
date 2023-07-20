@@ -146,3 +146,17 @@ class UserLogin(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.timestamp}"
+
+
+class IdentityManager(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
+    agent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        editable=False,
+        related_name='identities',
+    )
+    timestamp = models.DateTimeField(auto_now_add=True, editable=False)
+
+    def __str__(self):
+        return f"{self.agent.email} as {self.user.email} at {self.timestamp}"
