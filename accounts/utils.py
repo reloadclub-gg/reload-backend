@@ -124,3 +124,10 @@ def calc_level_and_points(
         # If there isn't any change on levels, just in points,
         # we just incr the points
         return (level, level_points + points_earned)
+
+
+def steamid64_to_hex(steamid: str):
+    hexa = hex(int(steamid))
+    if hexa.startswith('0x'):
+        hexa = hexa[2:]
+    return hexa
