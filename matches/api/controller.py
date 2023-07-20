@@ -113,7 +113,7 @@ def cancel_match(match_id: int):
     match = get_object_or_404(
         models.Match,
         id=match_id,
-        status=models.Match.Status.RUNNING,
+        status__in=[models.Match.Status.RUNNING, models.Match.Status.LOADING],
     )
 
     match.cancel()
