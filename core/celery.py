@@ -7,7 +7,7 @@ from django.conf import settings
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
-app = celery.Celery('gta', CELERY_ALWAYS_EAGER=settings.TEST_MODE)
+app = celery.Celery('reload', CELERY_ALWAYS_EAGER=settings.TEST_MODE)
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.beat_schedule = {
@@ -21,10 +21,6 @@ app.conf.beat_schedule = {
     },
     'queue': {
         'task': 'lobbies.tasks.queue',
-        'schedule': 1.0,
-    },
-    'matchmaking': {
-        'task': 'lobbies.tasks.matchmaking',
         'schedule': 1.0,
     },
 }

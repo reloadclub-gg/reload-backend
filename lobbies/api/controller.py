@@ -12,7 +12,6 @@ from pre_matches.models import Team
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
-from ..tasks import queue_tick
 from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
 
 User = get_user_model()
@@ -286,8 +285,6 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
             lobby.start_queue()
         except LobbyException as e:
             raise HttpError(400, e)
-
-        queue_tick.delay(lobby.id)
 
     elif payload.cancel_queue:
         lobby.cancel_queue()

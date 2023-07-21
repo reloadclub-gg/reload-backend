@@ -25,37 +25,19 @@ def handle_match_found(team: Team, opponent: Team):
     ws_pre_match_create(pre_match)
 
 
-@shared_task
-def clear_dodges():
-    players = models.Player.get_all()
-    last_week = timezone.now() - timezone.timedelta(weeks=1)
-    for player in players:
-        if player.latest_dodge and player.latest_dodge <= last_week:
-            player.dodge_clear()
+def handle_matchmaking():
+    ready_teams = Team.get_all_ready()
+    if len(ready_teams) > 1:
+        team = ready_teams[0]
+        opponent = team.get_opponent_team()
+        if opponent and opponent.ready:
+            handle_match_found(team, opponent)
 
 
-@shared_task
-def queue_tick(lobby_id: int):
-    lobby = models.Lobby(owner_id=lobby_id)
-    if lobby.queue:
-        ws_queue_tick(lobby)
-        if not settings.TEST_MODE:
-            time.sleep(1)
-            return queue_tick(lobby_id)
-
-
-@shared_task
-def end_player_restriction(user_id: int):
-    user = User.objects.get(pk=user_id)
-    lobby = user.account.lobby
-    ws_update_lobby(lobby)
-    ws_update_user(user)
-
-
-@shared_task
-def queue():
+def handle_teaming():
     queued_lobbies = models.Lobby.get_all_queued()
     for lobby in queued_lobbies:
+        ws_queue_tick(lobby)
         lobby_team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
 
         if not lobby_team:
@@ -69,10 +51,23 @@ def queue():
 
 
 @shared_task
-def matchmaking():
-    ready_teams = Team.get_all_ready()
-    if len(ready_teams) > 1:
-        team = ready_teams[0]
-        opponent = team.get_opponent_team()
-        if opponent and opponent.ready:
-            handle_match_found(team, opponent)
+def clear_dodges():
+    players = models.Player.get_all()
+    last_week = timezone.now() - timezone.timedelta(weeks=1)
+    for player in players:
+        if player.latest_dodge and player.latest_dodge <= last_week:
+            player.dodge_clear()
+
+
+@shared_task
+def end_player_restriction(user_id: int):
+    user = User.objects.get(pk=user_id)
+    lobby = user.account.lobby
+    ws_update_lobby(lobby)
+    ws_update_user(user)
+
+
+@shared_task
+def queue():
+    handle_teaming()
+    handle_matchmaking()
