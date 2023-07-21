@@ -36,15 +36,6 @@ class LobbyTasksTestCase(TeamsMixin, TestCase):
         tasks.clear_dodges()
         self.assertEqual(player.dodges, 1)
 
-    @mock.patch('lobbies.tasks.ws_queue_tick')
-    def test_queue_tick(self, mock_queue_tick):
-        tasks.queue_tick(self.user_1.account.lobby.id)
-        mock_queue_tick.assert_not_called()
-
-        self.user_1.account.lobby.start_queue()
-        tasks.queue_tick(self.user_1.account.lobby.id)
-        mock_queue_tick.assert_called_once_with(self.user_1.account.lobby)
-
 
 class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
     @override_settings(TEAM_READY_PLAYERS_MIN=1)
@@ -82,7 +73,7 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
     def test_matchmaking(self, mock_match_found):
         t1 = Team.create([self.lobby1.id])
         t2 = Team.create([self.lobby2.id])
-        tasks.matchmaking()
+        tasks.handle_matchmaking()
         mock_match_found.asser_called_once_with(t1, t2)
 
     @override_settings(TEAM_READY_PLAYERS_MIN=2)
@@ -90,5 +81,5 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
     def test_matchmaking_not_match(self, mock_match_found):
         Team.create([self.lobby1.id, self.lobby2.id])
         Team.create([self.lobby3.id])
-        tasks.matchmaking()
+        tasks.handle_matchmaking()
         mock_match_found.assert_not_called()
