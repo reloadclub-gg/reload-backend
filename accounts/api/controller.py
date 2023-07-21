@@ -111,9 +111,12 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     user.email = email
     user.save()
     Account.objects.create(user=user)
-    utils.send_verify_account_mail(
-        user.email, user.steam_user.username, user.account.verification_token
-    )
+    if not is_fake:
+        utils.send_verify_account_mail(
+            user.email,
+            user.steam_user.username,
+            user.account.verification_token,
+        )
     return user
 
 
