@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'matches.apps.MatchesConfig',
     'notifications.apps.NotificationsConfig',
     'websocket.apps.WebsocketConfig',
+    'lobbies.apps.LobbiesConfig',
 ]
 
 if ENVIRONMENT == LOCAL:
