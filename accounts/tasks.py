@@ -76,3 +76,12 @@ def decr_level_from_inactivity():
 @shared_task
 def send_welcome_email(email_to: str):
     utils.send_welcome_mail(email_to)
+
+
+@shared_task
+def send_verify_email(email_to: str, username: str, verification_token: str):
+    utils.send_verify_account_mail(
+        email_to,
+        username,
+        verification_token,
+    )

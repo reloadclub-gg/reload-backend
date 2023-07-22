@@ -161,9 +161,9 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
         Account.objects.create(user=user)
 
     if not is_fake:
-        utils.send_verify_account_mail(
+        tasks.send_verify_email(
             user.email,
-            user.steam_user.username,
+            user.account.username,
             user.account.verification_token,
         )
 
@@ -226,9 +226,9 @@ def update_email(user: User, email: str) -> User:
         user.account.is_verified = False
         user.account.save()
 
-    utils.send_verify_account_mail(
+    tasks.send_verify_email.delay(
         user.email,
-        user.steam_user.username,
+        user.account.username,
         user.account.verification_token,
     )
 
