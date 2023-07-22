@@ -4,9 +4,12 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from core.redis import RedisClient
+from friends.websocket import ws_friend_update_or_create
+from lobbies.api.controller import handle_player_move
+from lobbies.websocket import ws_expire_player_invites
 
-from .api.controller import logout
-from .models import UserLogin
+from . import utils, websocket
+from .models import Account, UserLogin
 
 cache = RedisClient()
 logger = get_task_logger(__name__)
@@ -21,7 +24,25 @@ def watch_user_status_change(user_id: int):
     """
     user = User.objects.get(pk=user_id)
     if not user.is_online:
-        logout(user)
+        # Expiring player invites
+        ws_expire_player_invites(user)
+
+        # If user has an account and it is in a lobby, handle the player move
+        try:
+            if user.account.lobby:
+                handle_player_move(user, user.id, delete_lobby=True)
+        except Account.DoesNotExist:
+            pass
+
+        # Expiring user session
+        user.auth.expire_session(seconds=0)
+
+        # Update or create friend and send websocket logout message
+        ws_friend_update_or_create(user)
+        websocket.ws_user_logout(user.id)
+
+        # Deleting user from friend list cache
+        cache.delete(f'__friendlist:user:{user.id}')
 
 
 @shared_task
