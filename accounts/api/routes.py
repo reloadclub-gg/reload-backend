@@ -39,7 +39,7 @@ def fake_signup(request, payload: FakeSignUpSchema):
         return controller.signup(user, payload.email, is_fake=True)
 
     user[0].auth.create_token()
-    return controller.auth(user[0])
+    return controller.auth(user[0], from_fake_signup=True)
 
 
 @router.patch('inactivate/', auth=VerifiedRequiredAuth(), response={200: UserSchema})

@@ -19,7 +19,6 @@ from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import Match
-from notifications.websocket import ws_new_notification
 
 from .. import tasks, utils, websocket
 from ..models import Account, Auth, Invite, UserLogin
@@ -36,7 +35,7 @@ def handle_verify_tasks(user: User):
     send_user_update_to_friendlist.delay(user.id)
 
 
-def auth(user: User) -> User:
+def auth(user: User, from_fake_signup=False) -> User:
     """
     Authenticate user, add session and possibly update friends and create lobby.
     """
@@ -47,16 +46,17 @@ def auth(user: User) -> User:
     from_offline_status = user.auth.sessions is None
 
     # Adding and persisting session
-    user.auth.add_session()
-    user.auth.persist_session()
+    if not from_fake_signup:
+        user.auth.add_session()
+        user.auth.persist_session()
+
+        # Creating lobby if user does not have one
+        if not user.account.lobby:
+            Lobby.create(user.id)
 
     # Updating friends if user status has changed from offline
     if from_offline_status:
         ws_friend_update_or_create(user)
-
-    # Creating lobby if user does not have one
-    if not user.account.lobby:
-        Lobby.create(user.id)
 
     return user
 
