@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 
+from ..models import Account
+
 User = get_user_model()
 
 
@@ -7,7 +9,10 @@ def has_account(user: User) -> bool:
     """
     Return weather the received user has an account.
     """
-    return hasattr(user, 'account') and user.account is not None
+    try:
+        return user.account
+    except Account.DoesNotExist as e:
+        return False
 
 
 def is_verified(user: User) -> bool:

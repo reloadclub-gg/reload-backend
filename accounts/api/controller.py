@@ -56,7 +56,7 @@ def auth(user: User, from_fake_signup=False) -> User:
 
     # Updating friends if user status has changed from offline
     if from_offline_status:
-        ws_friend_update_or_create(user)
+        send_user_update_to_friendlist.delay(user.id)
 
     return user
 
@@ -115,6 +115,7 @@ def logout(user: User) -> dict:
 
     # Update or create friend and send websocket logout message
     ws_friend_update_or_create(user)
+    send_user_update_to_friendlist.delay(user.id)
     websocket.ws_user_logout(user.id)
 
     # Deleting user from friend list cache
