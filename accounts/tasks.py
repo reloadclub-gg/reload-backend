@@ -5,6 +5,7 @@ from django.utils import timezone
 from core.redis import RedisClient
 from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import handle_player_move
+from lobbies.models import LobbyException
 from lobbies.websocket import ws_expire_player_invites
 
 from . import utils, websocket
@@ -29,8 +30,11 @@ def watch_user_status_change(user_id: int):
         try:
             if user.account.lobby:
                 handle_player_move(user, user.id, delete_lobby=True)
-        except Account.DoesNotExist:
-            pass
+        except (Account.DoesNotExist, LobbyException) as e:
+            if isinstance(e, Account.DoesNotExist):
+                pass
+            else:
+                raise e
 
         # Expiring user session
         user.auth.expire_session(seconds=0)
