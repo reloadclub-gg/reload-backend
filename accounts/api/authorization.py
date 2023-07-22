@@ -11,7 +11,7 @@ def has_account(user: User) -> bool:
     """
     try:
         return user.account
-    except Account.DoesNotExist as e:
+    except Account.DoesNotExist:
         return False
 
 
