@@ -1,5 +1,4 @@
 from celery import shared_task
-from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -12,7 +11,6 @@ from . import utils, websocket
 from .models import Account, UserLogin
 
 cache = RedisClient()
-logger = get_task_logger(__name__)
 User = get_user_model()
 
 
@@ -69,3 +67,8 @@ def decr_level_from_inactivity():
                     user.account.level -= 1
                 user.account.level_points = 0
                 user.account.save()
+
+
+@shared_task
+def send_welcome_email(email_to: str):
+    utils.send_welcome_mail(email_to)

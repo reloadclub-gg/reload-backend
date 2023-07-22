@@ -15,7 +15,7 @@ from lobbies.websocket import ws_expire_player_invites
 from matches.models import Match
 from notifications.websocket import ws_new_notification
 
-from .. import utils, websocket
+from .. import tasks, utils, websocket
 from ..models import Account, Auth, Invite, UserLogin
 from .authorization import is_verified
 
@@ -187,7 +187,7 @@ def verify_account(user: User, verification_token: str) -> User:
     account.save()
 
     if not user.date_email_update:
-        utils.send_welcome_mail(user.email)
+        tasks.send_welcome_email.delay(user.email)
         handle_notify_friends_and_update_cache(user)
     else:
         ws_friend_update_or_create(user)
