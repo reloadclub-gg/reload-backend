@@ -85,3 +85,8 @@ def send_verify_email(email_to: str, username: str, verification_token: str):
         username,
         verification_token,
     )
+
+
+@shared_task
+def send_inactivation_mail(email_to: str):
+    utils.send_inactivation_mail(email_to)

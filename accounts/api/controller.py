@@ -114,7 +114,6 @@ def logout(user: User) -> dict:
     user.auth.expire_session(seconds=0)
 
     # Update or create friend and send websocket logout message
-    ws_friend_update_or_create(user)
     send_user_update_to_friendlist.delay(user.id)
     websocket.ws_user_logout(user.id)
 
@@ -208,7 +207,7 @@ def inactivate(user: User) -> User:
     """
     logout(user)
     user.inactivate()
-    utils.send_inactivation_mail(user.email)
+    tasks.send_inactivation_mail.delay(user.email)
     return user
 
 
