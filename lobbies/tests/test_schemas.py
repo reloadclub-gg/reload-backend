@@ -32,7 +32,7 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
                     self.user_1.steam_user.avatarhash, 'full'
                 ),
             },
-            'matches_played': len(self.user_1.account.matches_played),
+            'matches_played': self.user_1.account.get_matches_played_count(),
             'matches_won': self.user_1.account.matches_won,
             'highest_win_streak': self.user_1.account.highest_win_streak,
             'latest_matches_results': self.user_1.account.get_latest_matches_results(),

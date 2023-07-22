@@ -43,11 +43,20 @@ class AppUser(FastHttpUser):
         ) as response:
             return response.json()
 
+    def _logout(self, token: str):
+        with self.client.patch(
+            '/api/accounts/logout/',
+            headers={'Authorization': f'Bearer {token}'},
+            name="accounts/logout/",
+        ) as response:
+            return response.json()
+
     def _prepare(self):
         if not self.token:
             self.token = self._fake_signup()
             self.user = self._auth(self.token)
             self._verify(self.token)
+            self.user = self._auth(self.token)
         else:
             self.user = self._auth(self.token)
             if not self.user.get('account').get('is_verified'):
@@ -56,25 +65,41 @@ class AppUser(FastHttpUser):
         if not self.user.get('id') in user_ids:
             user_ids.append(self.user.get('id'))
 
+    # @task
+    # def usage(self):
+    #     self._prepare()
+    #     self._auth(self.token)
+
     @task
-    def profile(self):
+    def usage(self):
         self._prepare()
-        user_id = random.choice(user_ids)
+        self._auth(self.token)
+
+        lobby_id = self.user.get('lobby_id')
         with self.client.get(
-            f'/api/profiles/?user_id={user_id}',
+            f'/api/lobbies/{lobby_id}/',
             headers={'Authorization': f'Bearer {self.token}'},
-            name="profiles/detail/",
+            name="lobbies/detail/",
         ):
             pass
 
-    @task
-    def lobby(self):
-        self._prepare()
-        lobby_id = self.user.get('lobby_id')
-        if lobby_id:
-            with self.client.get(
-                f'/api/lobbies/{lobby_id}/',
-                headers={'Authorization': f'Bearer {self.token}'},
-                name="lobbies/detail/",
-            ):
-                pass
+        with self.client.get(
+            f'/api/friends/',
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="friends/list/",
+        ):
+            pass
+
+        with self.client.get(
+            f'/api/lobbies/invites/?received=true',
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="lobbies/invites/",
+        ):
+            pass
+
+        with self.client.get(
+            f'/api/notifications/',
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="notifications/list/",
+        ):
+            pass

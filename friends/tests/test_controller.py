@@ -12,7 +12,7 @@ class FriendsControllerTestCase(VerifiedAccountsMixin, TestCase):
     def test_fetch_steam_friends_empty(self, mock_get_friends):
         mock_get_friends.return_value = []
         response = controller.fetch_steam_friends(self.user_1)
-        self.assertEqual(response, [])
+        self.assertEqual(list(response), [])
 
     @mock.patch('friends.api.controller.Steam.get_player_friends')
     def test_fetch_steam_friends(self, mock_get_friends):
@@ -24,7 +24,7 @@ class FriendsControllerTestCase(VerifiedAccountsMixin, TestCase):
             }
         ]
         response = controller.fetch_steam_friends(self.user_1)
-        self.assertEqual(response, [self.user_2.account])
+        self.assertEqual(list(response), [self.user_2.account])
 
     @mock.patch('steam.SteamClient.get_friends')
     def test_detail(self, mock_friends):

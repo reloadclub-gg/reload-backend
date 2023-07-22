@@ -9,7 +9,7 @@ from steam import Steam
 User = get_user_model()
 
 
-class FriendSchema(ModelSchema):
+class OldFriendSchema(ModelSchema):
     user_id: int
     steamid: str
     username: str
@@ -36,11 +36,7 @@ class FriendSchema(ModelSchema):
 
     @staticmethod
     def resolve_avatar(obj):
-        return {
-            'small': Steam.build_avatar_url(obj.user.steam_user.avatarhash),
-            'medium': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium'),
-            'large': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'full'),
-        }
+        return obj.avatar_dict
 
     @staticmethod
     def resolve_status(obj):
@@ -52,7 +48,7 @@ class FriendSchema(ModelSchema):
 
     @staticmethod
     def resolve_matches_played(obj):
-        return len(obj.matches_played)
+        return obj.get_matches_played_count()
 
     @staticmethod
     def resolve_latest_matches_results(obj):
@@ -64,6 +60,41 @@ class FriendSchema(ModelSchema):
             return obj.lobby.id
 
         return None
+
+
+class FriendSchema(ModelSchema):
+    user_id: int
+    steamid: str
+    username: str
+    avatar: dict
+    status: str
+    steam_url: str
+
+    class Config:
+        model = Account
+        model_exclude = [
+            'id',
+            'user',
+            'verification_token',
+            'is_verified',
+            'highest_level',
+        ]
+
+    @staticmethod
+    def resolve_user_id(obj):
+        return obj.user.id
+
+    @staticmethod
+    def resolve_avatar(obj):
+        return obj.avatar_dict
+
+    @staticmethod
+    def resolve_status(obj):
+        return obj.user.status
+
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.user.steam_user.profileurl
 
 
 class FriendListSchema(Schema):

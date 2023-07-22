@@ -35,3 +35,5 @@ if settings.DEBUG:
     urlpatterns += [
         path('ws/', include('websocket.urls', namespace='websocket')),
     ]
+
+    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

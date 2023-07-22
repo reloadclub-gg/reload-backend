@@ -54,7 +54,7 @@ class ProfileSchema(ModelSchema):
 
     @staticmethod
     def resolve_matches_played(obj):
-        return len(obj.matches_played)
+        return obj.get_matches_played_count()
 
     @staticmethod
     def resolve_latest_matches_results(obj):

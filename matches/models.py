@@ -211,6 +211,12 @@ class MatchTeam(models.Model):
         """
         return MatchPlayer.objects.filter(team=self)
 
+    def has_player(self, user):
+        """
+        Check if a user is in this team.
+        """
+        return self.players.filter(user=user).exists()
+
     def __str__(self):
         return f'#{self.id} - {self.name}'
 
@@ -304,7 +310,9 @@ class MatchPlayer(models.Model):
 
 class MatchPlayerStats(models.Model):
     player = models.OneToOneField(
-        MatchPlayer, on_delete=models.CASCADE, related_name='stats'
+        MatchPlayer,
+        on_delete=models.CASCADE,
+        related_name='stats',
     )
     kills = models.IntegerField(blank=True, null=True, default=0)
     deaths = models.IntegerField(blank=True, null=True, default=0)

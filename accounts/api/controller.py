@@ -21,7 +21,7 @@ from lobbies.websocket import ws_expire_player_invites
 from matches.models import Match
 
 from .. import tasks, utils, websocket
-from ..models import Account, Auth, Invite, UserLogin
+from ..models import Account, Auth, Invite, SteamUser, UserLogin
 from .authorization import is_verified
 
 User = get_user_model()
@@ -32,7 +32,7 @@ def handle_verify_tasks(user: User):
     lang = get_language()
     notify_friends_about_signup.delay(user.id, lang)
     add_user_to_friends_friendlist.delay(user.id)
-    send_user_update_to_friendlist.delay(user.id)
+    send_user_update_to_friendlist.delay(user.id, action='create')
 
 
 def auth(user: User, from_fake_signup=False) -> User:
@@ -192,7 +192,7 @@ def verify_account(user: User, verification_token: str) -> User:
         tasks.send_welcome_email.delay(user.email)
         handle_verify_tasks(user)
     else:
-        ws_friend_update_or_create(user)
+        send_user_update_to_friendlist.delay(user.id)
 
     # Refresh user instance with updated related account
     user.refresh_from_db()
@@ -243,7 +243,7 @@ def update_email(user: User, email: str) -> User:
 
 def user_matches(user_id: int) -> Match:
     account = get_object_or_404(Account, user__id=user_id)
-    return account.matches_played
+    return account.get_matches_played()
 
 
 def delete_account(user: User) -> dict:

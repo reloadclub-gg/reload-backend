@@ -1,6 +1,9 @@
+import json
+
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from social_django.models import UserSocialAuth
 
 User = get_user_model()
 
@@ -51,6 +54,29 @@ class Steam:
         return f'{prefix}/{path}/{hash}{sufix}'
 
     @staticmethod
+    def get_debug_friends() -> list:
+        """
+        Returns a list of friends for debugging or testing purposes.
+        Everyone is considered as friend of everyone.
+        """
+        user_social_auths = UserSocialAuth.objects.filter(
+            user__is_staff=False,
+            user__account__is_verified=True,
+        )
+
+        friends = []
+        for user in user_social_auths:
+            if isinstance(user.extra_data, str):
+                extra_data = json.loads(user.extra_data)
+            else:
+                extra_data = user.extra_data
+
+            if 'player' in extra_data:
+                friends.append({'steamid': extra_data['player'].get('steamid')})
+
+        return friends
+
+    @staticmethod
     def get_player_friends(steam_user) -> list:
         """
         Returns a friendlist given a steam_user.
@@ -60,16 +86,13 @@ class Steam:
 
         :params steam_user SteamUser: SteamUser model from accounts.models.user
         """
-        # If testing or debugging, everyone is friend of everyone
+        # If testing or debugging, use a special function to generate friend list
         if settings.TEST_MODE or settings.DEBUG:
-            return [
-                {'steamid': user.steam_user.steamid}
-                for user in User.objects.filter(is_staff=False)
-                if hasattr(user, 'account') and user.account.is_verified
-            ]
+            return Steam.get_debug_friends()
 
         # communityvisibilitystate = profile visibility on Steam
-        # private profiles (!=3) doesn't return friendlist
+        # If communityvisibilitystate is 3, it means the profile is public
+        # Only public profiles return friendlist
         if steam_user.communityvisibilitystate == 3:
             return SteamClient.get_friends(steam_user.steamid)
 

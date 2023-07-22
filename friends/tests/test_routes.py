@@ -14,10 +14,10 @@ class FriendsRoutesTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(r.status_code, 200)
         expected_response = schemas.FriendListSchema.from_orm(
             {
-                'online': self.user_1.account.online_friends,
+                'online': self.user_1.account.get_online_friends(),
                 'offline': [
                     friend
-                    for friend in self.user_1.account.friends
+                    for friend in self.user_1.account.get_friends()
                     if not friend.user.is_online
                 ],
             }

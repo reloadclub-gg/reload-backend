@@ -3,6 +3,7 @@ version: "3.9"
 services:
   db:
     image: postgres
+    command: postgres -c 'max_connections=6500'
     volumes:
       - db:/var/lib/postgresql/data
     environment:
@@ -27,7 +28,7 @@ services:
     depends_on:
       - db
       - redis
-    command: uvicorn --host 0.0.0.0 --port 80 --reload --workers 2 core.asgi:application
+    command: uvicorn --host 0.0.0.0 --port 80 --reload --workers 5 core.asgi:application
     restart: unless-stopped
 
   celery:
@@ -39,7 +40,7 @@ services:
     depends_on:
       - db
       - redis
-    command: celery -A core.celery.app worker -B -l info
+    command: celery -A core.celery.app worker -B -l info -c 5
     restart: unless-stopped
 
   locust:

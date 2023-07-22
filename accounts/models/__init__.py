@@ -1,4 +1,4 @@
-from .user import User, UserLogin, IdentityManager
+from .user import User, UserLogin, IdentityManager, SteamUser
 from .account import Account, Invite
 from .auth import Auth
 from .restriction import AccountReport

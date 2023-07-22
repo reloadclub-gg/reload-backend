@@ -27,7 +27,7 @@ class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
             if self.user_1.account.lobby
             else None,
             'steam_url': self.user_1.steam_user.profileurl,
-            'matches_played': len(self.user_1.account.matches_played),
+            'matches_played': self.user_1.account.get_matches_played_count(),
             'latest_matches_results': self.user_1.account.get_latest_matches_results(),
         }
         self.assertEqual(payload, expected_payload)
@@ -37,10 +37,10 @@ class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
         self.user_3.auth.add_session()
         payload = FriendListSchema.from_orm(
             {
-                'online': self.user_1.account.online_friends,
+                'online': self.user_1.account.get_online_friends(),
                 'offline': [
                     friend
-                    for friend in self.user_1.account.friends
+                    for friend in self.user_1.account.get_friends()
                     if not friend.user.is_online
                 ],
             }

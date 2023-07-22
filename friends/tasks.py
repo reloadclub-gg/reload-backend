@@ -17,10 +17,10 @@ def notify_friends_about_signup(user_id: int, lang: str = None):
     lang and activate(lang)
 
     user = User.objects.get(pk=user_id)
-    for friend in user.account.online_friends:
+    for friend in user.account.get_online_friends():
         notification = friend.notify(
             _('Your friend {} just joined ReloadClub!').format(user.account.username),
-            user.id,
+            from_user_id=user.id,
         )
         ws_new_notification(notification)
 
@@ -28,11 +28,11 @@ def notify_friends_about_signup(user_id: int, lang: str = None):
 @shared_task
 def add_user_to_friends_friendlist(user_id: int):
     user = User.objects.get(pk=user_id)
-    for friend in user.account.online_friends:
+    for friend in user.account.get_online_friends():
         cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
 
 
 @shared_task
-def send_user_update_to_friendlist(user_id: int):
+def send_user_update_to_friendlist(user_id: int, action: str = 'update'):
     user = User.objects.get(pk=user_id)
-    ws_friend_update_or_create(user, 'create')
+    ws_friend_update_or_create(user, action)

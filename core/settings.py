@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'channels',
     'storages',
     'django_object_actions',
+    'silk',
     'accounts.apps.AccountsConfig',
     'pre_matches.apps.PreMatchesConfig',
     'appsettings.apps.AppSettingsConfig',
@@ -77,6 +78,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'silk.middleware.SilkyMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -363,3 +365,8 @@ FIVEM_MOCK_MATCH_CREATION_SUCCESS = config(
     default=True,
     cast=bool,
 )
+
+# Silk Settings
+SILKY_ANALYZE_QUERIES = False
+SILKY_PYTHON_PROFILER = False
+SILKY_DYNAMIC_PROFILING = [{'module': 'accounts.api.controller', 'function': 'auth'}]

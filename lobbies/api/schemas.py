@@ -76,7 +76,7 @@ class LobbyPlayerSchema(ModelSchema):
 
     @staticmethod
     def resolve_matches_played(obj):
-        return len(obj.account.matches_played)
+        return obj.account.get_matches_played_count()
 
     @staticmethod
     def resolve_matches_won(obj):

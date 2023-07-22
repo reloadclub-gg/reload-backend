@@ -108,7 +108,7 @@ def handle_cancel_match(pre_match: models.PreMatch):
 
 
 def handle_pre_match_checks(user: User, error: str) -> User:
-    if user.account.match:
+    if user.account.get_match():
         raise HttpError(403, error)
 
     if not user.account.pre_match:

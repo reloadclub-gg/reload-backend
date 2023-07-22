@@ -191,10 +191,10 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players[:-1]:
             pre_match.set_player_ready(player.id)
 
-        self.assertIsNone(self.user_1.account.match)
+        self.assertIsNone(self.user_1.account.get_match())
 
         controller.set_player_ready(pre_match.players[-1:][0])
-        self.assertIsNotNone(self.user_1.account.match)
+        self.assertIsNotNone(self.user_1.account.get_match())
         mock_fivem.assert_called_once()
 
     @override_settings(MATCH_MOCK_DELAY_START=0)

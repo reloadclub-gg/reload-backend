@@ -30,6 +30,11 @@ class Account(models.Model):
     VERIFICATION_TOKEN_LENGTH = 6
     DEBUG_VERIFICATION_TOKEN = "debug0"
 
+    class MatchResults:
+        WIN = 'V'
+        DEFEAT = 'D'
+        NOT_AVAILABLE = 'N/A'
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     steamid = models.CharField(max_length=128)
     username = models.CharField(max_length=64)
@@ -42,43 +47,25 @@ class Account(models.Model):
         max_length=VERIFICATION_TOKEN_LENGTH,
     )
 
-    def save(self, *args, **kwargs):
-        if self._state.adding:
-            if not self.user.steam_user:
-                raise ValidationError(_('Steam account not found.'))
+    class Meta:
+        indexes = [
+            models.Index(fields=['is_verified']),
+            models.Index(fields=['steamid']),
+        ]
 
-            if settings.ENVIRONMENT == settings.LOCAL:
-                self.verification_token = self.DEBUG_VERIFICATION_TOKEN
-            else:
-                length = self.VERIFICATION_TOKEN_LENGTH
-                self.verification_token = generate_random_string(
-                    length=length, allowed_chars='digits'
-                )
-
-            self.steamid = self.user.steam_user.steamid
-            self.username = self.user.steam_user.username
-
-        super(Account, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.user.email
+    def get_avatar_url(self, size: str = 'small'):
+        return Steam.build_avatar_url(
+            self.user.steam_user.avatarhash,
+            None if size == 'small' else size,
+        )
 
     @property
-    def friends(self) -> list:
-        # If testing or debugging, everyone is friend of everyone
-        if settings.TEST_MODE or settings.DEBUG:
-            return Account.objects.filter(
-                user__is_active=True,
-                is_verified=True,
-                user__is_staff=False,
-            ).exclude(user_id=self.user.id)
-
-        friends_ids = cache.smembers(f'__friendlist:user:{self.user.id}')
-        return Account.objects.filter(user__id__in=friends_ids)
-
-    @property
-    def online_friends(self) -> list:
-        return [friend for friend in self.friends if friend.user.is_online]
+    def avatar_dict(self):
+        return {
+            'small': Steam.build_avatar_url(self.get_avatar_url('small')),
+            'medium': Steam.build_avatar_url(self.get_avatar_url('medium')),
+            'large': Steam.build_avatar_url(self.get_avatar_url('full')),
+        }
 
     @property
     def lobby(self) -> Lobby:
@@ -97,22 +84,6 @@ class Account(models.Model):
         return PreMatch.get_by_player_id(self.user.id)
 
     @property
-    def match(self) -> Match:
-        exclude_statues = [Match.Status.FINISHED, Match.Status.CANCELLED]
-        qs = MatchPlayer.objects.filter(user=self.user).exclude(
-            team__match__status__in=exclude_statues
-        )
-        if len(qs) > 1:
-            # TODO send alert to admin
-            raise ValidationError(_('User should not be in more then one match.'))
-
-        match_player = qs.first()
-        if match_player:
-            return match_player.team.match
-
-        return None
-
-    @property
     def second_chance_lvl(self) -> bool:
         return cache.sismember('__accounts:second_chance_lvl_users', self.user.id)
 
@@ -120,16 +91,97 @@ class Account(models.Model):
     def notifications(self) -> List[Notification]:
         return Notification.get_all_by_user_id(self.user.id)
 
-    def notify(self, content, from_user_id=None):
-        if from_user_id:
-            from_user = User.objects.get(pk=from_user_id)
-            avatar = Steam.build_avatar_url(from_user.steam_user.avatarhash, 'medium')
-        else:
-            avatar = static('brand/logo_icon.png')
+    @property
+    def matches_won(self) -> int:
+        """
+        Get how many matches a user played and won.
+        """
+        # Fetch all played matches
+        played_matches = self.get_matches_played()
 
-        return Notification.create(
-            content, avatar, from_user_id=from_user_id, to_user_id=self.user.id
+        # Count victories
+        victories = sum(
+            1
+            for match in played_matches
+            if match.winner and match.winner.has_player(self.user)
         )
+
+        return victories
+
+    @property
+    def highest_win_streak(self) -> int:
+        """
+        Get the highest win streak for a user.
+        """
+
+        # Get all matches played by the user in ascending order
+        played_matches = self.get_matches_played(asc=True)
+
+        # Initialize counters
+        max_streak = 0
+        current_streak = 0
+
+        # Go through all matches
+        for match in played_matches:
+            # If user's team won the match, increment the streak counter
+            if match.winner and match.winner.has_player(self.user):
+                current_streak += 1
+                # Update maximum streak if current streak is larger
+                max_streak = max(max_streak, current_streak)
+            else:
+                # Reset current streak if the match was not won by the user's team
+                current_streak = 0
+
+        return max_streak
+
+    def __str__(self):
+        return self.user.email
+
+    def generate_verification_token(self):
+        if settings.ENVIRONMENT == settings.LOCAL:
+            return self.DEBUG_VERIFICATION_TOKEN
+
+        length = self.VERIFICATION_TOKEN_LENGTH
+        return generate_random_string(
+            length=length,
+            allowed_chars='digits',
+        )
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            if not self.user.steam_user:
+                raise ValidationError(_('Steam account not found.'))
+
+            self.verification_token = self.generate_verification_token()
+            self.steamid = self.user.steam_user.steamid
+            self.username = self.user.steam_user.username
+
+        super(Account, self).save(*args, **kwargs)
+
+    def notify(self, content: str, from_user_id: int = None):
+        avatar = Account.get_notification_avatar_url(from_user_id)
+        return Notification.create(
+            content,
+            avatar,
+            from_user_id=from_user_id,
+            to_user_id=self.user.id,
+        )
+
+    def get_match(self) -> Match:
+        exclude_statuses = [Match.Status.FINISHED, Match.Status.CANCELLED]
+        active_matches = MatchPlayer.objects.filter(user=self.user).exclude(
+            team__match__status__in=exclude_statuses
+        )
+
+        if active_matches.count() > 1:
+            # TODO send alert to admin
+            raise ValidationError(_('User should not be in more than one match.'))
+
+        match_player = active_matches.first()
+        if match_player is not None:
+            return match_player.team.match
+
+        return None
 
     def set_second_chance_lvl(self):
         """
@@ -150,88 +202,85 @@ class Account(models.Model):
         Returns a list with the last `amount` results.
         List item can be "V" for victory, "D" for defeat or "N/A" for not available.
         """
-        teams = [
-            match.get_user_team(self.user.id) for match in self.matches_played[:amount]
-        ]
+        matches = self.get_matches_played().order_by('-end_date')[:amount]
         played_results = [
-            'V' if team.match.winner.id == team.id else 'D' for team in teams
+            Account.MatchResults.WIN
+            if match.get_user_team(self.user.id).id == match.winner.id
+            else Account.MatchResults.DEFEAT
+            for match in matches
         ]
-        not_available = ['N/A'] * (amount - len(played_results))
-        return played_results + not_available
+
+        not_available_count = max(0, amount - len(played_results))
+        return (
+            played_results + [Account.MatchResults.NOT_AVAILABLE] * not_available_count
+        )
 
     def get_most_stat_in_match(self, stat_name: str) -> int:
         matches_player = self.user.matchplayer_set.filter(
             team__match__status=Match.Status.FINISHED
         )
-        if matches_player:
-            return max(
-                [
-                    getattr(match_player.stats, stat_name)
-                    for match_player in matches_player
-                ]
-            )
+        max_stat = matches_player.aggregate(models.Max('stats__{}'.format(stat_name)))[
+            'stats__{}__max'.format(stat_name)
+        ]
 
-        return None
+        return max_stat
 
     def apply_points_earned(self, points_earned: int):
         level, level_points = calc_level_and_points(
-            points_earned, self.level, self.level_points
+            points_earned,
+            self.level,
+            self.level_points,
         )
 
-        if self.level != level:
-            self.level = level
-            # Sets user highest_level if the new level is the highest
-            if level > self.highest_level:
-                self.highest_level = level
-
-        self.level_points = level_points
-        self.save()
+        if self.level != level or self.level_points != level_points:
+            if self.level != level:
+                self.level = level
+                # Sets user highest_level if the new level is the highest
+                if level > self.highest_level:
+                    self.highest_level = level
+            self.level_points = level_points
+            self.save()
 
     def check_friendship(self, friend_account: Account) -> bool:
         steam_friends = Steam.get_player_friends(self.user.steam_user)
         steam_friends_ids = [friend.get('steamid') for friend in steam_friends]
         return friend_account.steamid in steam_friends_ids
 
-    @property
-    def matches_played(self) -> List[Match]:
-        """
-        Returns all the finished matches a user played.
-        """
-        matches_ids = self.user.matchplayer_set.filter(
-            team__match__status=Match.Status.FINISHED
-        ).values_list('team__match__id', flat=True)
+    def get_matches_played(self, asc=False) -> List[Match]:
+        return Match.objects.filter(
+            matchteam__matchplayer__user=self.user,
+            status=Match.Status.FINISHED,
+        ).order_by('-end_date' if not asc else 'end_date')
 
-        return Match.objects.filter(id__in=matches_ids).order_by('-end_date')
+    def get_matches_played_count(self, asc=False) -> List[Match]:
+        return Match.objects.filter(
+            matchteam__matchplayer__user=self.user,
+            status=Match.Status.FINISHED,
+        ).count()
 
-    @property
-    def matches_won(self) -> int:
-        """
-        Get how many matches a user played and won.
-        """
-        return len(
-            [
-                match
-                for match in self.matches_played
-                if match.get_user_team(self.user.id).id == match.winner.id
-            ]
-        )
+    def get_friends(self) -> list:
+        if settings.TEST_MODE or settings.DEBUG:
+            friends = Account.objects.filter(
+                user__is_active=True,
+                is_verified=True,
+                user__is_staff=False,
+            ).exclude(user_id=self.user.id)
+        else:
+            friends_ids = cache.smembers(f'__friendlist:user:{self.user.id}')
+            friends = Account.objects.filter(user__id__in=friends_ids)
 
-    @property
-    def highest_win_streak(self) -> int:
-        teams = [match.get_user_team(self.user.id) for match in self.matches_played]
-        results = [team.match.winner.id == team.id for team in teams]
+        return friends
 
-        counter = 0
-        max = 0
-        for result in results:
-            if result:
-                counter += 1
-                if counter > max:
-                    max += 1
-            else:
-                counter = 0
+    def get_online_friends(self) -> list:
+        return [friend for friend in self.get_friends() if friend.user.is_online]
 
-        return max
+    @staticmethod
+    def get_notification_avatar_url(user_id: int = None):
+        if user_id is None:
+            return static('brand/logo_icon.png')
+
+        from_user = User.objects.get(pk=user_id)
+        return Steam.build_avatar_url(from_user.steam_user.avatarhash, 'medium')
 
 
 class Invite(models.Model):
