@@ -98,7 +98,7 @@ class PreMatch(BaseModel):
     def players_ready(self) -> list[User]:
         players_ids = cache.smembers(f'{self.cache_key}:ready_players_ids')
         if players_ids:
-            return [User.objects.get(pk=player_id) for player_id in players_ids]
+            return User.objects.filter(pk__in=players_ids)
 
         return []
 
@@ -106,7 +106,7 @@ class PreMatch(BaseModel):
     def players_in(self) -> int:
         players_ids = cache.smembers(f'{self.cache_key}:in_players_ids')
         if players_ids:
-            return [User.objects.get(pk=player_id) for player_id in players_ids]
+            return User.objects.filter(pk__in=players_ids)
 
         return []
 

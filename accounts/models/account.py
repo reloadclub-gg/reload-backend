@@ -74,7 +74,7 @@ class Account(models.Model):
             ).exclude(user_id=self.user.id)
 
         friends_ids = cache.smembers(f'__friendlist:user:{self.user.id}')
-        return [Account.objects.get(user__id=friend_id) for friend_id in friends_ids]
+        return Account.objects.filter(user__id__in=friends_ids)
 
     @property
     def online_friends(self) -> list:

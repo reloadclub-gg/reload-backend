@@ -135,7 +135,7 @@ class LobbySchema(Schema):
 
     @staticmethod
     def resolve_players(obj):
-        return [User.objects.get(pk=user_id) for user_id in obj.players_ids]
+        return User.objects.filter(pk__in=obj.players_ids)
 
 
 class LobbyInviteSchema(Schema):
