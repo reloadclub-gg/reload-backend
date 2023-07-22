@@ -2,12 +2,18 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
 from core.redis import RedisClient
 from core.utils import generate_random_string, get_ip_address
+from friends.tasks import (
+    add_user_to_friends_friendlist,
+    notify_friends_about_signup,
+    send_user_update_to_friendlist,
+)
 from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby
@@ -23,15 +29,11 @@ User = get_user_model()
 cache = RedisClient()
 
 
-def handle_notify_friends_and_update_cache(user: User):
-    for friend in user.account.online_friends:
-        notification = friend.notify(
-            _('Your friend {} just joined ReloadClub!').format(user.account.username),
-            user.id,
-        )
-        ws_new_notification(notification)
-        cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
-    ws_friend_update_or_create(user, 'create')
+def handle_verify_tasks(user: User):
+    lang = get_language()
+    notify_friends_about_signup.delay(user.id, lang)
+    add_user_to_friends_friendlist.delay(user.id)
+    send_user_update_to_friendlist.delay(user.id)
 
 
 def auth(user: User) -> User:
@@ -188,7 +190,7 @@ def verify_account(user: User, verification_token: str) -> User:
 
     if not user.date_email_update:
         tasks.send_welcome_email.delay(user.email)
-        handle_notify_friends_and_update_cache(user)
+        handle_verify_tasks(user)
     else:
         ws_friend_update_or_create(user)
 
