@@ -111,6 +111,7 @@ DATABASES = {
         'PASSWORD': config('DATABASE_PASSWORD', default='postgres'),
         'HOST': config('DATABASE_HOST', default='db'),
         'PORT': config('DATABASE_PORT', default=5432, cast=int),
+        'CONN_MAX_AGE': config('DATABASE_CONN_MAX_AGE', default=0, cast=int),
     }
 }
 
