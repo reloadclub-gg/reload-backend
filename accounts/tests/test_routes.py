@@ -265,4 +265,4 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.user.status, 'offline')
-        self.assertEqual(r.json().get('detail'), 'ok')
+        self.assertEqual(r.json().get('detail'), 'Logout successful.')

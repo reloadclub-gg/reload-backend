@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -22,61 +23,102 @@ User = get_user_model()
 cache = RedisClient()
 
 
-def auth(user: User):
-    if hasattr(user, 'account') and user.account.is_verified:
-        from_offline_status = False
-        if user.auth.sessions is None:
-            from_offline_status = True
+def handle_notify_friends_and_update_cache(user: User):
+    for friend in user.account.online_friends:
+        notification = friend.notify(
+            _('Your friend {} just joined ReloadClub!').format(user.account.username),
+            user.id,
+        )
+        ws_new_notification(notification)
+        cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
+    ws_friend_update_or_create(user, 'create')
 
-        user.auth.add_session()
-        user.auth.persist_session()
-        if from_offline_status:
-            ws_friend_update_or_create(user)
 
-        if not user.account.lobby:
-            Lobby.create(user.id)
+def auth(user: User) -> User:
+    """
+    Authenticate user, add session and possibly update friends and create lobby.
+    """
+
+    if not is_verified(user):
+        return user
+
+    from_offline_status = user.auth.sessions is None
+
+    # Adding and persisting session
+    user.auth.add_session()
+    user.auth.persist_session()
+
+    # Updating friends if user status has changed from offline
+    if from_offline_status:
+        ws_friend_update_or_create(user)
+
+    # Creating lobby if user does not have one
+    if not user.account.lobby:
+        Lobby.create(user.id)
 
     return user
 
 
 def login(request, token: str) -> Auth:
     """
-    Checks if there is any existing user for the given auth token and
-    creates/update an UserLogin for that user with the request IP address.
+    Attempts to authenticate a user with a given auth token.
 
-    :params request Request: The request object.
+    If a User with the token exists and the request is verified exempt or the user is verified,
+    an UserLogin is updated or created for the user with the request's IP address.
+
+    Returns an Auth object if successful, otherwise None.
     """
     auth = Auth.load(token)
 
     if not auth:
-        return
+        return None
 
-    user = User.objects.filter(pk=auth.user_id).first()
+    try:
+        user = User.objects.get(pk=auth.user_id)
+    except User.DoesNotExist:
+        return None
 
-    if user and (hasattr(request, 'verified_exempt') or is_verified(user)):
-        UserLogin.objects.update_or_create(
-            user=user,
-            ip_address=get_ip_address(request),
-            defaults={'timestamp': timezone.now()},
-        )
+    if not hasattr(request, 'verified_exempt') and not is_verified(user):
+        return None
 
-        user.refresh_from_db()
-        request.user = user
+    UserLogin.objects.update_or_create(
+        user=user,
+        ip_address=get_ip_address(request),
+        defaults={'timestamp': timezone.now()},
+    )
 
-        return auth
+    user.refresh_from_db()
+    request.user = user
+
+    return auth
 
 
 def logout(user: User) -> dict:
-    ws_expire_player_invites(user)
-    if hasattr(user, 'account') and user.account.lobby:
-        handle_player_move(user, user.id, delete_lobby=True)
+    """
+    Logout user.
+    """
 
+    # Expiring player invites
+    ws_expire_player_invites(user)
+
+    # If user has an account and it is in a lobby, handle the player move
+    try:
+        if user.account.lobby:
+            handle_player_move(user, user.id, delete_lobby=True)
+    except Account.DoesNotExist:
+        pass
+
+    # Expiring user session
     user.auth.expire_session(seconds=0)
+
+    # Update or create friend and send websocket logout message
     ws_friend_update_or_create(user)
     websocket.ws_user_logout(user.id)
+
+    # Deleting user from friend list cache
     cache.delete(f'__friendlist:user:{user.id}')
 
-    return {'detail': 'ok'}
+    return {'detail': 'Logout successful.'}
 
 
 def create_fake_user(email: str) -> User:
@@ -97,26 +139,34 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     Create an account for invited users updating the invite
     in the process so it became accepted.
     """
-
-    if hasattr(user, 'account'):
-        raise HttpError(403, _('User already has an account.'))
+    try:
+        if user.account:
+            raise HttpError(403, _('User already has an account.'))
+    except Account.DoesNotExist:
+        pass
 
     invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
-    if not is_fake and (check_invite_required() and not invites.exists()):
+    if not is_fake and check_invite_required() and not invites.exists():
         raise HttpError(403, _('User must be invited.'))
 
     invites.update(datetime_accepted=timezone.now())
 
-    user.email = email
-    user.save()
-    Account.objects.create(user=user)
+    with transaction.atomic():
+        user.email = email
+        user.save()
+        Account.objects.create(user=user)
+
     if not is_fake:
         utils.send_verify_account_mail(
             user.email,
             user.steam_user.username,
             user.account.verification_token,
         )
+
+    # Refresh user instance with updated related account
+    user.refresh_from_db()
+
     return user
 
 
@@ -124,33 +174,26 @@ def verify_account(user: User, verification_token: str) -> User:
     """
     Mark an user account as is_verified if isn't already.
     """
-    account = Account.objects.filter(
-        user=user, verification_token=verification_token, is_verified=False
-    ).exists()
-
-    if not account:
+    try:
+        account = Account.objects.get(
+            user=user,
+            verification_token=verification_token,
+            is_verified=False,
+        )
+    except Account.DoesNotExist:
         raise HttpError(400, _('Invalid verification token.'))
 
-    user.account.is_verified = True
-    user.account.save()
+    account.is_verified = True
+    account.save()
 
     if not user.date_email_update:
         utils.send_welcome_mail(user.email)
-
-        for friend in user.account.online_friends:
-            notification = friend.notify(
-                _('Your friend {} just joined ReloadClub!').format(
-                    user.account.username
-                ),
-                user.id,
-            )
-            ws_new_notification(notification)
-
-            cache.sadd(f'__friendlist:user:{friend.user.id}', user.id)
-
-        ws_friend_update_or_create(user, 'create')
+        handle_notify_friends_and_update_cache(user)
     else:
         ws_friend_update_or_create(user)
+
+    # Refresh user instance with updated related account
+    user.refresh_from_db()
 
     return user
 
@@ -170,18 +213,24 @@ def update_email(user: User, email: str) -> User:
     """
     Change user email and set user as unverified.
     """
-    user.email = email
-    user.date_email_update = timezone.now()
-    user.save()
-    user.account.verification_token = generate_random_string(
-        length=Account.VERIFICATION_TOKEN_LENGTH
-    )
-    user.account.is_verified = False
-    user.account.save()
+    with transaction.atomic():
+        user.email = email
+        user.date_email_update = timezone.now()
+        user.save()
+        user.account.verification_token = generate_random_string(
+            length=Account.VERIFICATION_TOKEN_LENGTH
+        )
+        user.account.is_verified = False
+        user.account.save()
 
     utils.send_verify_account_mail(
-        user.email, user.steam_user.username, user.account.verification_token
+        user.email,
+        user.steam_user.username,
+        user.account.verification_token,
     )
+
+    # Refresh user instance with updated related account
+    user.refresh_from_db()
 
     websocket.ws_update_user(user)
     if user.account.lobby:

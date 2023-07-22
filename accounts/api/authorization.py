@@ -14,4 +14,4 @@ def is_verified(user: User) -> bool:
     """
     Return weather the received user has an account and is verified.
     """
-    return has_account(user) and user.account.is_verified
+    return user.is_active and has_account(user) and user.account.is_verified
