@@ -5,7 +5,6 @@ from core.tests import TestCase
 from matches.models import Match, MatchPlayer, Server
 from pre_matches.tests.mixins import TeamsMixin
 from profiles.api import schemas
-from steam import Steam
 
 
 class ProfilesSchemasTestCase(TeamsMixin, TestCase):

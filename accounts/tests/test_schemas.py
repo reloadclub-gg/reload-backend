@@ -1,7 +1,6 @@
 from accounts.api import schemas
 from core.tests import TestCase
 from lobbies.models import Lobby
-from steam import Steam
 
 from . import mixins
 

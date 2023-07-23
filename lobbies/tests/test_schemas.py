@@ -1,6 +1,5 @@
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
-from steam import Steam
 
 from ..api import schemas
 from ..models import Lobby

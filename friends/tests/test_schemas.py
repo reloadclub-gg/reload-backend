@@ -1,7 +1,6 @@
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
 from friends.api.schemas import FriendListSchema, FriendSchema
-from steam import Steam
 
 
 class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
@@ -12,7 +11,6 @@ class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
             'steamid': self.user_1.account.steamid,
             'level': self.user_1.account.level,
             'level_points': self.user_1.account.level_points,
-            'user_id': self.user_1.id,
             'username': self.user_1.steam_user.username,
             'avatar': self.user_1.account.avatar_dict,
             'status': self.user_1.status,

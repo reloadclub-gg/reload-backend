@@ -8,7 +8,6 @@ from ninja import ModelSchema
 from accounts.models import Account
 from matches.api.schemas import MatchPlayerStatsSchema
 from matches.models import Match, MatchPlayerStats
-from steam import Steam
 
 User = get_user_model()
 
