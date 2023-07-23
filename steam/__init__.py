@@ -45,8 +45,7 @@ class Steam:
         Return a valid Steam URL of an avatar (profile picture) given a hash and size.
         """
         if not hash:
-            sufix = f'_{size}.jpg' if size else '.jpg'
-            return f'{Steam.DEFAULT_AVATAR_URI}{sufix}'
+            return f'{Steam.DEFAULT_AVATAR_URI}_{size}'
 
         prefix = Steam.AVATARS_URL
         path = hash[:2]

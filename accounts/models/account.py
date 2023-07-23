@@ -56,7 +56,7 @@ class Account(models.Model):
     def get_avatar_url(self, size: str = 'small'):
         return Steam.build_avatar_url(
             self.user.steam_user.avatarhash,
-            None if size == 'small' else size,
+            size,
         )
 
     @property
