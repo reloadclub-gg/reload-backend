@@ -62,9 +62,9 @@ class Account(models.Model):
     @property
     def avatar_dict(self):
         return {
-            'small': Steam.build_avatar_url(self.get_avatar_url('small')),
-            'medium': Steam.build_avatar_url(self.get_avatar_url('medium')),
-            'large': Steam.build_avatar_url(self.get_avatar_url('full')),
+            'small': self.get_avatar_url('small'),
+            'medium': self.get_avatar_url('medium'),
+            'large': self.get_avatar_url('full'),
         }
 
     @property

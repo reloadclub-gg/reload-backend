@@ -10,7 +10,6 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.user.auth.add_session()
         Lobby.create(self.user.id)
         payload = schemas.AccountSchema.from_orm(self.user.account).dict()
-        print(payload)
 
         expected_payload = {
             'steamid': self.user.account.steamid,
