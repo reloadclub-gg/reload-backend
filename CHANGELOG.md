@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Special
+
+- Muitas coisas foram alteradas as pressas pra cumprir com a data de lançamento inicial. Um grande esforço foi aplicado para reduzir ao máximo a latência e o `load` das chamadas e das queries. Conseguimos reduzir de 120+ queries no banco para 10 em algumas chamadas. Também alteramos os Schemas, pois alguns deles estavam enviando informações desnecessárias, causando overload de rede e consultas no banco. Para nos ajudar nessa tarefa, instalamos a bilbioteca Silk para fazer inspeções e `profiling` das chamadas.
+
+Além disso, configuramos o ambiente local para rodar réplicas da aplicação django e celery, tentando simular o Kubernetes no ambiente da nuvem. Para esse fim, adicionamos uma camada de Nginx no nosso desenvolvimento local para que ele controle a qual "pod" envia os pedidos.
+
+Ao testar com o Locust (outra ferramenta bem importante nesse processo), usando cenários de 30 usuários, "nascendo" 2-5 usuários por segundo e com uma carga de ~20 requisições por segundo, víamos algumas requisições ficarem penduradas por mais de 20s. Conseguimos reduzir bem esse número, mas é difícil de testar os "pods" em ambiente local.
+
 ### Added
 
 - Métodos de apoio para conversão de steamid64 em hex e vice-versa.
