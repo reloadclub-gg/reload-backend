@@ -21,8 +21,8 @@ TEST_MODE = sys.argv[1:2] == ['test']
 
 ADMINS = [('Gabriel Gularte', 'ggularte@3c.gg')]
 FRONT_END_URL = config('FRONT_END_URL', default='http://localhost:3000')
-HOST_URL = config('HOST_URL', default='localhost,django')
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=HOST_URL).split(',')
+HOST_URL = config('HOST_URL', default='localhost')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,django').split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default=FRONT_END_URL).split(',')
 
 HTTPS = config('HTTPS', default=False, cast=bool)
@@ -35,6 +35,7 @@ SITE_URL_PREFIX = 'https://' if HTTPS else 'http://'
 SITE_URL_PORT = config('HOST_PORT', default=8000)
 SITE_URL_SUFFIX = f':{SITE_URL_PORT}' if SITE_URL_PORT else ''
 SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
+CSRF_TRUSTED_ORIGINS = [SITE_URL]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
