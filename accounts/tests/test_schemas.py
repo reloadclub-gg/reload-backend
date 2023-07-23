@@ -11,6 +11,7 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.user.auth.add_session()
         Lobby.create(self.user.id)
         payload = schemas.AccountSchema.from_orm(self.user.account).dict()
+        print(payload)
 
         expected_payload = {
             'steamid': self.user.account.steamid,
@@ -18,18 +19,8 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'level_points': self.user.account.level_points,
             'is_verified': self.user.account.is_verified,
             'username': self.user.steam_user.username,
-            'avatar': {
-                'small': Steam.build_avatar_url(self.user.steam_user.avatarhash),
-                'medium': Steam.build_avatar_url(
-                    self.user.steam_user.avatarhash, 'medium'
-                ),
-                'large': Steam.build_avatar_url(
-                    self.user.steam_user.avatarhash, 'full'
-                ),
-            },
+            'avatar': self.user.account.avatar_dict,
             'steam_url': self.user.steam_user.profileurl,
-            'matches_played': self.user.account.get_matches_played_count(),
-            'latest_matches_results': self.user.account.get_latest_matches_results(),
         }
 
         self.assertDictEqual(payload, expected_payload)

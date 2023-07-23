@@ -36,17 +36,17 @@ def fetch_steam_friends(user: User) -> list:
 
 
 def list(user: User) -> dict:
-    # friends = fetch_steam_friends(user)
+    friends = fetch_steam_friends(user)
 
     # create empty lists for online and offline friends
     online_friends, offline_friends = [], []
 
     # Loop through friends once and add them to the respective lists
-    # for friend in friends:
-    #     if friend.user.is_online:
-    #         online_friends.append(friend)
-    #     else:
-    #         offline_friends.append(friend)
+    for friend in friends:
+        if friend.user.is_online:
+            online_friends.append(friend)
+        else:
+            offline_friends.append(friend)
 
     return {
         'online': online_friends,

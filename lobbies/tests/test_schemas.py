@@ -22,26 +22,9 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
             'steamid': self.user_1.account.steamid,
             'level': self.user_1.account.level,
             'level_points': self.user_1.account.level_points,
-            'highest_level': self.user_1.account.highest_level,
-            'avatar': {
-                'small': Steam.build_avatar_url(self.user_1.steam_user.avatarhash),
-                'medium': Steam.build_avatar_url(
-                    self.user_1.steam_user.avatarhash, 'medium'
-                ),
-                'large': Steam.build_avatar_url(
-                    self.user_1.steam_user.avatarhash, 'full'
-                ),
-            },
+            'avatar': self.user_1.account.avatar_dict,
             'matches_played': self.user_1.account.get_matches_played_count(),
-            'matches_won': self.user_1.account.matches_won,
-            'highest_win_streak': self.user_1.account.highest_win_streak,
             'latest_matches_results': self.user_1.account.get_latest_matches_results(),
-            'most_kills_in_a_match': self.user_1.account.get_most_stat_in_match(
-                'kills'
-            ),
-            'most_damage_in_a_match': self.user_1.account.get_most_stat_in_match(
-                'damage'
-            ),
             'steam_url': self.user_1.steam_user.profileurl,
             'status': self.user_1.status,
             'lobby_id': self.user_1.account.lobby.id,

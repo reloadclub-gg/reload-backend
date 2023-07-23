@@ -46,11 +46,7 @@ class ProfileSchema(ModelSchema):
 
     @staticmethod
     def resolve_avatar(obj):
-        return {
-            'small': Steam.build_avatar_url(obj.user.steam_user.avatarhash),
-            'medium': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium'),
-            'large': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'full'),
-        }
+        return obj.avatar_dict
 
     @staticmethod
     def resolve_matches_played(obj):

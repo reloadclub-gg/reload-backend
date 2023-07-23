@@ -44,15 +44,7 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
             'highest_level': self.user_1.account.highest_level,
             'user_id': self.user_1.id,
             'username': self.user_1.steam_user.username,
-            'avatar': {
-                'small': Steam.build_avatar_url(self.user_1.steam_user.avatarhash),
-                'medium': Steam.build_avatar_url(
-                    self.user_1.steam_user.avatarhash, 'medium'
-                ),
-                'large': Steam.build_avatar_url(
-                    self.user_1.steam_user.avatarhash, 'full'
-                ),
-            },
+            'avatar': self.user_1.account.avatar_dict,
             'matches_played': self.user_1.account.get_matches_played_count(),
             'matches_won': self.user_1.account.matches_won,
             'highest_win_streak': self.user_1.account.highest_win_streak,

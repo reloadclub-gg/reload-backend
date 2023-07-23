@@ -8,27 +8,18 @@ class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
     def test_friend_schema(self):
         payload = FriendSchema.from_orm(self.user_1.account).dict()
         expected_payload = {
+            'user_id': self.user_1.id,
             'steamid': self.user_1.account.steamid,
             'level': self.user_1.account.level,
             'level_points': self.user_1.account.level_points,
             'user_id': self.user_1.id,
             'username': self.user_1.steam_user.username,
-            'avatar': {
-                'small': Steam.build_avatar_url(self.user_1.steam_user.avatarhash),
-                'medium': Steam.build_avatar_url(
-                    self.user_1.steam_user.avatarhash, 'medium'
-                ),
-                'large': Steam.build_avatar_url(
-                    self.user_1.steam_user.avatarhash, 'full'
-                ),
-            },
+            'avatar': self.user_1.account.avatar_dict,
             'status': self.user_1.status,
             'lobby_id': self.user_1.account.lobby.id
             if self.user_1.account.lobby
             else None,
             'steam_url': self.user_1.steam_user.profileurl,
-            'matches_played': self.user_1.account.get_matches_played_count(),
-            'latest_matches_results': self.user_1.account.get_latest_matches_results(),
         }
         self.assertEqual(payload, expected_payload)
 

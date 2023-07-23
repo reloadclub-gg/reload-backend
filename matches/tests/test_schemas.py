@@ -68,17 +68,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'team_id': match_player.team.id,
             'match_id': match_player.team.match.id,
             'username': match_player.user.steam_user.username,
-            'avatar': {
-                'small': Steam.build_avatar_url(
-                    match_player.user.steam_user.avatarhash
-                ),
-                'medium': Steam.build_avatar_url(
-                    match_player.user.steam_user.avatarhash, 'medium'
-                ),
-                'large': Steam.build_avatar_url(
-                    match_player.user.steam_user.avatarhash, 'full'
-                ),
-            },
+            'avatar': match_player.user.account.avatar_dict,
             'progress': {
                 'points_earned': match_player.points_earned,
                 'level_before': match_player.level,

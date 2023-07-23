@@ -15,8 +15,6 @@ class AccountSchema(ModelSchema):
     username: Optional[str]
     avatar: Optional[dict]
     steam_url: Optional[str]
-    matches_played: int
-    latest_matches_results: List[str]
 
     class Config:
         model = Account
@@ -34,14 +32,6 @@ class AccountSchema(ModelSchema):
     @staticmethod
     def resolve_steam_url(obj):
         return obj.user.steam_user.profileurl
-
-    @staticmethod
-    def resolve_matches_played(obj):
-        return obj.get_matches_played_count()
-
-    @staticmethod
-    def resolve_latest_matches_results(obj):
-        return obj.get_latest_matches_results()
 
 
 class UserSchema(ModelSchema):

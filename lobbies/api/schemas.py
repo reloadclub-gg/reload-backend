@@ -17,14 +17,9 @@ class LobbyPlayerSchema(ModelSchema):
     steamid: str
     level: int
     level_points: int
-    highest_level: int
     avatar: dict
     matches_played: int
-    matches_won: int
-    highest_win_streak: int
     latest_matches_results: list
-    most_kills_in_a_match: int = None
-    most_damage_in_a_match: int = None
     steam_url: str
     status: str
     lobby_id: int = None
@@ -63,40 +58,16 @@ class LobbyPlayerSchema(ModelSchema):
         return obj.account.level_points
 
     @staticmethod
-    def resolve_highest_level(obj):
-        return obj.account.highest_level
-
-    @staticmethod
     def resolve_avatar(obj):
-        return {
-            'small': Steam.build_avatar_url(obj.steam_user.avatarhash),
-            'medium': Steam.build_avatar_url(obj.steam_user.avatarhash, 'medium'),
-            'large': Steam.build_avatar_url(obj.steam_user.avatarhash, 'full'),
-        }
+        return obj.account.avatar_dict
 
     @staticmethod
     def resolve_matches_played(obj):
         return obj.account.get_matches_played_count()
 
     @staticmethod
-    def resolve_matches_won(obj):
-        return obj.account.matches_won
-
-    @staticmethod
-    def resolve_highest_win_streak(obj):
-        return obj.account.highest_win_streak
-
-    @staticmethod
     def resolve_latest_matches_results(obj):
         return obj.account.get_latest_matches_results()
-
-    @staticmethod
-    def resolve_most_kills_in_a_match(obj):
-        return obj.account.get_most_stat_in_match('kills')
-
-    @staticmethod
-    def resolve_most_damage_in_a_match(obj):
-        return obj.account.get_most_stat_in_match('damage')
 
     @staticmethod
     def resolve_steam_url(obj):

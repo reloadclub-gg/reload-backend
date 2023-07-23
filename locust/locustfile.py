@@ -1,5 +1,4 @@
 import itertools
-import random
 
 from locust import FastHttpUser, between, task
 
@@ -84,21 +83,21 @@ class AppUser(FastHttpUser):
             pass
 
         with self.client.get(
-            f'/api/friends/',
+            '/api/friends/',
             headers={'Authorization': f'Bearer {self.token}'},
             name="friends/list/",
         ):
             pass
 
         with self.client.get(
-            f'/api/lobbies/invites/?received=true',
+            '/api/lobbies/invites/?received=true',
             headers={'Authorization': f'Bearer {self.token}'},
             name="lobbies/invites/",
         ):
             pass
 
         with self.client.get(
-            f'/api/notifications/',
+            '/api/notifications/',
             headers={'Authorization': f'Bearer {self.token}'},
             name="notifications/list/",
         ):

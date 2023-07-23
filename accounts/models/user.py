@@ -119,22 +119,22 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def status(self):
-        # if not self.is_verified():
-        #     return 'offline'
+        if not self.is_verified():
+            return 'offline'
 
-        # account = self.account
+        account = self.account
 
-        # if account.get_match():
-        #     return 'in_game'
+        if account.get_match():
+            return 'in_game'
 
-        # if account.pre_match and account.pre_match.state >= 0:
-        #     return 'queued'
+        if account.pre_match and account.pre_match.state >= 0:
+            return 'queued'
 
-        # if account.lobby:
-        #     if account.lobby.queue:
-        #         return 'queued'
-        #     if account.lobby.players_count > 1:
-        #         return 'teaming'
+        if account.lobby:
+            if account.lobby.queue:
+                return 'queued'
+            if account.lobby.players_count > 1:
+                return 'teaming'
 
         return 'online' if self.is_online else 'offline'
 
