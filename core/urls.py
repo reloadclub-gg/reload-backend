@@ -29,6 +29,7 @@ if settings.DEBUG:
         path('sentry-debug/', trigger_error),
     ]
 
+if settings.ENVIRONMENT == settings.LOCAL:
     if 'rosetta' in settings.INSTALLED_APPS:
         urlpatterns += [path('rosetta/', include('rosetta.urls'))]
 

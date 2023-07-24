@@ -32,10 +32,11 @@ CSRF_COOKIE_SECURE = HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https' if HTTPS else 'http')
 
 SITE_URL_PREFIX = 'https://' if HTTPS else 'http://'
-SITE_URL_PORT = config('HOST_PORT', default=8000)
+SITE_URL_PORT = config('HOST_PORT', default=8000 if ENVIRONMENT == LOCAL else None)
 SITE_URL_SUFFIX = f':{SITE_URL_PORT}' if SITE_URL_PORT else ''
 SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
-CSRF_TRUSTED_ORIGINS = [SITE_URL]
+
+CSRF_TRUSTED_ORIGINS = [SITE_URL, FRONT_END_URL]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -51,7 +52,6 @@ INSTALLED_APPS = [
     'channels',
     'storages',
     'django_object_actions',
-    'silk',
     'accounts.apps.AccountsConfig',
     'pre_matches.apps.PreMatchesConfig',
     'appsettings.apps.AppSettingsConfig',
@@ -64,6 +64,7 @@ INSTALLED_APPS = [
 if ENVIRONMENT == LOCAL:
     INSTALLED_APPS += [
         'rosetta',
+        'silk',
     ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -79,8 +80,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'silk.middleware.SilkyMiddleware',
 ]
+
+if ENVIRONMENT == LOCAL:
+    MIDDLEWARE += [
+        'silk.middleware.SilkyMiddleware',
+    ]
 
 ROOT_URLCONF = 'core.urls'
 
