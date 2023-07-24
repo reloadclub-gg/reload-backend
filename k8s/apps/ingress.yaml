@@ -11,3 +11,9 @@ spec:
       name: api-service
       port:
         number: 80
+
+
+# Sempre que mudar o nome do ingress (ou criar outro) é necessário atualizar o timeout das
+# conexões do servico de backend com o seguinte comando
+# gcloud compute backend-services update [YOUR_BACKEND_SERVICE] --timeout=[YOUR_TIMEOUT]
+# depois de rodar o comando é necessario dar rollout nos deployments
