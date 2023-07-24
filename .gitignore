@@ -17,8 +17,7 @@ venv/
 .gitconfig
 .coverage
 .env
-.env.staging
-.env.prod
+.env.*
 celerybeat-schedule
 .kube
 *.code-workspace
