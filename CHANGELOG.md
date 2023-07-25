@@ -9,11 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Comando de manutenção `create_fivem_match` que cria um servidor com o IP fornecido e tenta criar uma partida nesse servidor via HTTP [#600](https://github.com/3C-gg/reload-backend/issues/600).
 - Campo `report_user_id` no esquema `TicketSchema`.
 
 ### Changed
 
+- Melhoramos os esquemas de FiveM para enviar somente campos que são necessários.
+- Movemos a lógica de tratamento da partida baseado na resposta do método `handle_create_fivem_match` para o método `set_player_ready` para não sobrecarregar o méotodo de apoio com funções que não são dele.
+- Alteramos o arquivo de template de PR no Github para algo mais simples e prático.
+- Removemos o workflow de buildar e fazer o push da imagem Docker para o GCP, visto que não estamos mais usando o GCP.
+- Alteramos os nomes dos arquivos de deploy para deixar somente o que executa no EC2.
 - Alteramos o conteúdo da mensagem que vai para o sistema do Freshdesk. E adicionamos as informações do usuário denunciado, caso tenha.
+
+## Fixed
+
+- Admin de notificações estava com erro ao carregar usuários online. Antigamente retornávamos um QS e agora estamos retornando uma lista. Contornamos o problema.
 
 ## [ 24/7/2023 - 7e7192c]
 
