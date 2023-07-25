@@ -22,7 +22,8 @@ TEST_MODE = sys.argv[1:2] == ['test']
 ADMINS = [('Gabriel Gularte', 'ggularte@3c.gg')]
 FRONT_END_URL = config('FRONT_END_URL', default='http://localhost:3000')
 HOST_URL = config('HOST_URL', default='localhost')
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,django').split(',')
+ALLOWED_HOSTS_DEFAULTS = 'localhost,django,nginx,locust'
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=ALLOWED_HOSTS_DEFAULTS).split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default=FRONT_END_URL).split(',')
 
 HTTPS = config('HTTPS', default=False, cast=bool)
@@ -167,7 +168,7 @@ if ENVIRONMENT != LOCAL:
         'disable_existing_loggers': False,
         'handlers': {
             'SysLog': {
-                'level': 'INFO',
+                'level': config('APPLICATION_LOG_LEVEL', default='DEBUG', cast=str),
                 'class': 'logging.handlers.SysLogHandler',
                 'formatter': 'simple',
                 'address': (
@@ -185,7 +186,9 @@ if ENVIRONMENT != LOCAL:
         'loggers': {
             'django': {
                 'handlers': ['SysLog'],
-                'level': 'INFO',
+                'level': config(
+                    'APPLICATION_LOG_LEVEL', default='DEBUG', cast=str
+                ).upper(),
                 'propagate': True,
             },
         },

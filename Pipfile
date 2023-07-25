@@ -32,6 +32,7 @@ django-rosetta = "0.9.9"
 ipython = "8.12.0"
 django-object-actions = "4.1.0"
 django-silk = "*"
+locust = "*"
 
 [dev-packages]
 
@@ -56,8 +57,9 @@ reset-db = "sh -c 'python ./manage.py reset_db --noinput && python ./manage.py m
 shell = "python ./manage.py shell"
 test = "python ./manage.py test -v 2"
 test-w-coverage = "sh -c 'coverage run manage.py test --noinput && coverage report'"
-start = "uvicorn --host 0.0.0.0 --port 8000 --workers $UVICORN_WORKERS core.asgi:application"
+start = "uvicorn --host 0.0.0.0 --port 8000 --workers $UVICORN_WORKERS core.asgi:application --log-level $DJANGO_LOG_LEVEL"
 celery_worker = "celery -A core.celery.app worker -B -l $CELERY_LOG_LEVEL -c $CELERY_CONCURRENCY"
 format = "black -S ."
 sort-imports = "isort --profile=black --skip-glob='**/migrations/*.py' --skip-glob='**/models/__init__.py' ."
 makemessages = "python ./manage.py makemessages -l pt_BR"
+locust = "locust -f ./locust/locustfile.py --host=http://nginx:80"
