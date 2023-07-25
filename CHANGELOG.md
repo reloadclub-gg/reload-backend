@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Campo `report_user_id` no esquema `TicketSchema`.
+
+### Changed
+
+- Alteramos o conteúdo da mensagem que vai para o sistema do Freshdesk. E adicionamos as informações do usuário denunciado, caso tenha.
+
+## [ 24/7/2023 - 7e7192c]
+
 ### Special
 
 - Muitas coisas foram alteradas as pressas pra cumprir com a data de lançamento inicial. Um grande esforço foi aplicado para reduzir ao máximo a latência e o `load` das chamadas e das queries. Conseguimos reduzir de 120+ queries no banco para 10 em algumas chamadas. Também alteramos os Schemas, pois alguns deles estavam enviando informações desnecessárias, causando overload de rede e consultas no banco. Para nos ajudar nessa tarefa, instalamos a bilbioteca Silk para fazer inspeções e `profiling` das chamadas.
