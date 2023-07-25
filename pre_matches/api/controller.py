@@ -23,20 +23,14 @@ User = get_user_model()
 def handle_create_fivem_match(match: Match) -> Match:
     if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
         status_code = 201 if settings.FIVEM_MOCK_MATCH_CREATION_SUCCESS else 400
-        r = FiveMMatchResponseMock.from_orm({'status_code': status_code})
+        fivem_response = FiveMMatchResponseMock.from_orm({'status_code': status_code})
         time.sleep(settings.MATCH_MOCK_DELAY_START)
     else:
         server_url = f'http://{match.server.ip}:3306/api/matches/'
-        payload = MatchFiveMSchema.from_orm(match)
-        r = requests.post(server_url, payload)
+        payload = MatchFiveMSchema.from_orm(match).dict()
+        fivem_response = requests.post(server_url, payload)
 
-    if r.status_code == 201:
-        match.start()
-    else:
-        match.cancel()
-
-    ws_match_update(match)
-    return match
+    return fivem_response
 
 
 def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match:
@@ -167,6 +161,13 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
             # cancel match due to lack of available servers
             return handle_cancel_match(pre_match)
         else:
-            return handle_create_fivem_match(match)
+            fivem_response = handle_create_fivem_match(match)
+            if fivem_response.status_code == 201:
+                match.start()
+            else:
+                match.cancel()
+
+            ws_match_update(match)
+            return match
 
     return pre_match
