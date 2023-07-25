@@ -224,13 +224,12 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
 
 class MatchFiveMSchema(ModelSchema):
     match_id: int = Field(None, alias='id')
-    map_id: int
     team_a_players: List[MatchTeamPlayerFiveMSchema]
     team_b_players: List[MatchTeamPlayerFiveMSchema]
 
     class Config:
         model = models.Match
-        model_fields = ['id']
+        model_fields = ['map']
 
     @staticmethod
     def resolve_map_id(obj):
