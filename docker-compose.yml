@@ -55,6 +55,8 @@ services:
     build: .
     env_file:
       - .env
+    ports:
+      - 8089:8089
     depends_on:
       - django
       - celery
