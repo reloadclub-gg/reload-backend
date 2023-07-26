@@ -3,7 +3,6 @@ import json
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from social_django.models import UserSocialAuth
 
 from core.utils import generate_random_string
 
