@@ -74,7 +74,7 @@ do
   value="${value#\"}"
   value="\"$value\""
 
-  echo "export $key=$value" >> ~/application/.env
+  echo "$key=$value" >> ~/application/.env
 done </tmp/.env.'$ENVIRONMENT'
 source ~/application/.env
 rm /tmp/.env.'$ENVIRONMENT'
