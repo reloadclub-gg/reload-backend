@@ -14,7 +14,6 @@ class AccountSchema(ModelSchema):
     steamid: Optional[str]
     username: Optional[str]
     avatar: Optional[dict]
-    steam_url: Optional[str]
 
     class Config:
         model = Account
@@ -28,10 +27,6 @@ class AccountSchema(ModelSchema):
     @staticmethod
     def resolve_avatar(obj):
         return obj.avatar_dict
-
-    @staticmethod
-    def resolve_steam_url(obj):
-        return obj.user.steam_user.profileurl
 
 
 class UserSchema(ModelSchema):
