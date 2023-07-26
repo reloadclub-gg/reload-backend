@@ -91,10 +91,16 @@ class UserSchema(ModelSchema):
 
 class FakeUserSchema(UserSchema):
     token: Optional[str] = None
+    verification_token: str
 
     @staticmethod
     def resolve_token(obj):
         return obj.auth.get_token()
+
+    @staticmethod
+    def resolve_verification_token(obj):
+        if hasattr(obj, 'account') and obj.account is not None:
+            return obj.account.verification_token
 
 
 class SignUpSchema(Schema):
