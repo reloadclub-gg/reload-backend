@@ -5,6 +5,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from social_django.models import UserSocialAuth
 
+from core.utils import generate_random_string
+
 User = get_user_model()
 
 
@@ -59,21 +61,18 @@ class Steam:
         Returns a list of friends for debugging or testing purposes.
         Everyone is considered as friend of everyone.
         """
-        user_social_auths = UserSocialAuth.objects.filter(
-            user__is_staff=False,
-            user__account__is_verified=True,
-        )
+
+        all_users_count = User.objects.filter(
+            is_staff=False,
+            is_active=True,
+            account__is_verified=True,
+        ).count()
 
         friends = []
-        for user in user_social_auths:
-            if isinstance(user.extra_data, str):
-                extra_data = json.loads(user.extra_data)
-            else:
-                extra_data = user.extra_data
-
-            if 'player' in extra_data:
-                friends.append({'steamid': extra_data['player'].get('steamid')})
-
+        for _ in range(all_users_count):
+            friends.append(
+                {'steamid': generate_random_string(length=14, allowed_chars='digits')}
+            )
         return friends
 
     @staticmethod
