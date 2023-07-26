@@ -310,6 +310,8 @@ CELERY_BROKER_URL = '{}://{}:{}@{}:{}/{}'.format(
     REDIS_PORT,
     CELERY_REDIS_DB,
 )
+CELERY_RESULT_BACKEND = None
+CELERY_IGNORE_RESULT = True
 
 # Websocket Application Settings
 GROUP_NAME_PREFIX = 'app'
