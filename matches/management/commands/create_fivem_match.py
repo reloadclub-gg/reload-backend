@@ -160,7 +160,7 @@ class Command(BaseCommand):
 
         try:
             server, _ = models.Server.objects.get_or_create(
-                ip=options['server_ip'],
+                ip=options['server_ip'][0],
                 name='Reload Staging Server',
             )
 
