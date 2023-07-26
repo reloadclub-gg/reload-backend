@@ -86,7 +86,7 @@ class UserSchema(ModelSchema):
 
 class FakeUserSchema(UserSchema):
     token: Optional[str] = None
-    verification_token: str
+    verification_token: str = None
 
     @staticmethod
     def resolve_token(obj):

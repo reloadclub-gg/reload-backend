@@ -48,7 +48,6 @@ class LobbySchema(Schema):
     owner_id: int
     players_ids: list
     players: List[LobbyPlayerSchema]
-    is_public: bool
     invites: List[LobbyInvite]
     invited_players_ids: list
     seats: int
@@ -81,11 +80,11 @@ class LobbyInviteSchema(Schema):
 
     @staticmethod
     def resolve_from_player(obj):
-        return User.objects.get(pk=obj.from_id)
+        return Account.objects.get(user__id=obj.from_id)
 
     @staticmethod
     def resolve_to_player(obj):
-        return User.objects.get(pk=obj.to_id)
+        return Account.objects.get(user__id=obj.to_id)
 
     @staticmethod
     def resolve_lobby(obj):

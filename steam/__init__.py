@@ -61,18 +61,16 @@ class Steam:
         Everyone is considered as friend of everyone.
         """
 
-        all_users_count = User.objects.filter(
+        all_steamids = User.objects.filter(
             is_staff=False,
             is_active=True,
             account__is_verified=True,
-        ).count()
+        ).values_list('account__steamid', flat=True)
 
-        friends = []
-        for _ in range(all_users_count):
-            friends.append(
-                {'steamid': generate_random_string(length=14, allowed_chars='digits')}
-            )
-        return friends
+        return [
+            {'steamid': steamid, 'relationship': 'friend', 'friend_since': 1635963090}
+            for steamid in all_steamids
+        ]
 
     @staticmethod
     def get_player_friends(steam_user) -> list:

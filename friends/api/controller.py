@@ -1,7 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext as _
-from ninja.errors import HttpError
 
 from accounts.models import Account
 from core.redis import RedisClient
@@ -57,19 +54,3 @@ def list(user: User) -> dict:
         'online': online_friends,
         'offline': offline_friends,
     }
-
-
-def detail(user: User, friend_id: int):
-    # Attempt to retrieve the friend account, raise a 404 if not found
-    friend = get_object_or_404(
-        Account,
-        user__id=friend_id,
-        is_verified=True,
-        user__is_active=True,
-    )
-
-    # Raise an error if the users aren't friends
-    if not user.account.check_friendship(friend):
-        raise HttpError(400, _('Users aren\'t friends.'))
-
-    return friend

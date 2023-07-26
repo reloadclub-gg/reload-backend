@@ -18,12 +18,25 @@ def handle_update_players_stats(
     players_stats: List[schemas.MatchUpdatePlayerStats],
     match: models.Match,
 ):
+    steamids64 = [
+        hex_to_steamid64(player_stat.steamid) for player_stat in players_stats
+    ]
+
+    # Get all stats at once from the database
+    all_stats = models.MatchPlayerStats.objects.filter(
+        player__user__account__steamid__in=steamids64,
+        player__team__match=match,
+    )
+
+    # Create a mapping from steamid64 to stats object
+    stats_by_steamid64 = {stat.player.user.account.steamid: stat for stat in all_stats}
+
+    # Update stats objects
     for player_stats in players_stats:
         steamid64 = hex_to_steamid64(player_stats.steamid)
-        stats = models.MatchPlayerStats.objects.get(
-            player__user__account__steamid=steamid64,
-            player__team__match=match,
-        )
+        stats = stats_by_steamid64.get(steamid64)
+
+        # Update fields
         stats.kills += player_stats.kills
         stats.hs_kills += player_stats.headshot_kills
         stats.deaths += player_stats.deaths
@@ -54,7 +67,28 @@ def handle_update_players_stats(
         if player_stats.kills >= 5:
             stats.aces += 1
 
-        stats.save()
+    # Save all stats objects at once
+    models.MatchPlayerStats.objects.bulk_update(
+        all_stats,
+        [
+            'kills',
+            'hs_kills',
+            'deaths',
+            'assists',
+            'damage',
+            'shots_fired',
+            'head_shots',
+            'chest_shots',
+            'other_shots',
+            'firstkills',
+            'defuses',
+            'plants',
+            'double_kills',
+            'triple_kills',
+            'quadra_kills',
+            'aces',
+        ],
+    )
 
 
 def get_user_matches(user: User, user_id: int = None) -> List[models.Match]:
@@ -64,7 +98,7 @@ def get_user_matches(user: User, user_id: int = None) -> List[models.Match]:
         user=search_id,
         team__match__status=models.Match.Status.FINISHED,
     ).values_list('team__match', flat=True)
-    return [models.Match.objects.get(pk=id) for id in matches_ids]
+    return models.Match.objects.filter(id__in=matches_ids)
 
 
 def get_match(user: User, match_id: int) -> models.Match:

@@ -39,6 +39,8 @@ SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
 
 CSRF_TRUSTED_ORIGINS = [SITE_URL, FRONT_END_URL]
 
+SILK_ENABLED = config('SILK_ENABLED', default=False, cast=bool)
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -65,6 +67,10 @@ INSTALLED_APPS = [
 if ENVIRONMENT == LOCAL:
     INSTALLED_APPS += [
         'rosetta',
+    ]
+
+if SILK_ENABLED:
+    INSTALLED_APPS += [
         'silk',
     ]
 
@@ -83,7 +89,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-if ENVIRONMENT == LOCAL:
+if SILK_ENABLED:
     MIDDLEWARE += [
         'silk.middleware.SilkyMiddleware',
     ]
@@ -376,8 +382,3 @@ FIVEM_MOCK_MATCH_CREATION_SUCCESS = config(
     default=True,
     cast=bool,
 )
-
-# Silk Settings
-SILKY_ANALYZE_QUERIES = False
-SILKY_PYTHON_PROFILER = False
-SILKY_DYNAMIC_PROFILING = [{'module': 'accounts.api.controller', 'function': 'auth'}]

@@ -69,8 +69,8 @@ class AppUser(FastHttpUser):
 
     @task
     def usage(self):
-        self._prepare()
-        self._auth(self.token)
+        if not self.user:
+            self._prepare()
 
         lobby_id = self.user.get('lobby_id')
         with self.client.get(
@@ -100,14 +100,3 @@ class AppUser(FastHttpUser):
             name="notifications/list/",
         ):
             pass
-
-        lobby_payload = (
-            {'cancel_queue': True} if self.queued_lobby else {'start_queue': True}
-        )
-        with self.client.patch(
-            f'/api/lobbies/{lobby_id}/',
-            json=lobby_payload,
-            headers={'Authorization': f'Bearer {self.token}'},
-            name="lobbies/update/",
-        ):
-            self.queued_lobby = not self.queued_lobby

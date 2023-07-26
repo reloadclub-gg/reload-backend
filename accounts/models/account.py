@@ -259,7 +259,7 @@ class Account(models.Model):
         ).count()
 
     def get_friends(self) -> list:
-        if settings.TEST_MODE or settings.DEBUG:
+        if settings.TEST_MODE:
             friends = Account.objects.filter(
                 user__is_active=True,
                 is_verified=True,
