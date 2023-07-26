@@ -1,6 +1,6 @@
 # Service
 up:
-	docker-compose up -d --scale django=3 --scale celery=3
+	docker-compose up -d
 	sh ./pipenv-run migrate
 	sh ./pipenv-run loaddata
 
@@ -22,13 +22,13 @@ logs:
 
 reset:
 	make down
-	docker-compose up -d --build --scale django=3 --scale celery=3
+	docker-compose up -d --build
 	sh ./pipenv-run migrate
 	sh ./pipenv-run loaddata
 
 refresh:
 	make halt
-	docker-compose up -d --scale django=3 --scale celery=3
+	docker-compose up -d
 
 pipinstall:
 	docker-compose run --rm django pipenv install $(params)
