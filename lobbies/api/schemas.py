@@ -2,7 +2,9 @@ from typing import List, Optional
 
 from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
-from pydantic import Field, root_validator
+from pydantic import root_validator
+
+from accounts.models import Account
 
 from ..models import Lobby, LobbyInvite
 
@@ -10,86 +12,44 @@ User = get_user_model()
 
 
 class LobbyPlayerSchema(ModelSchema):
-    user_id: int = Field(alias='id')
-    username: str
-    steamid: str
-    level: int
-    level_points: int
+    user_id: int
     avatar: dict
     matches_played: int
     latest_matches_results: list
     steam_url: str
-    status: str
-    lobby_id: int = None
 
     class Config:
-        model = User
-        model_exclude = [
-            'email',
-            'is_staff',
-            'is_superuser',
-            'date_joined',
-            'date_inactivation',
-            'date_email_update',
-            'password',
-            'last_login',
-            'groups',
-            'user_permissions',
-            'id',
-            'is_active',
-        ]
+        model = Account
+        model_fields = ['level', 'username']
 
     @staticmethod
-    def resolve_username(obj):
-        return obj.account.username
-
-    @staticmethod
-    def resolve_steamid(obj):
-        return obj.account.steamid
-
-    @staticmethod
-    def resolve_level(obj):
-        return obj.account.level
-
-    @staticmethod
-    def resolve_level_points(obj):
-        return obj.account.level_points
+    def resolve_user_id(obj):
+        return obj.user.id
 
     @staticmethod
     def resolve_avatar(obj):
-        return obj.account.avatar_dict
+        return obj.avatar_dict
 
     @staticmethod
     def resolve_matches_played(obj):
-        return obj.account.get_matches_played_count()
+        return obj.get_matches_played_count()
 
     @staticmethod
     def resolve_latest_matches_results(obj):
-        return obj.account.get_latest_matches_results()
+        return obj.get_latest_matches_results()
 
     @staticmethod
     def resolve_steam_url(obj):
-        return obj.steam_user.profileurl
-
-    @staticmethod
-    def resolve_lobby_id(obj):
-        return obj.account.lobby.id if obj.account.lobby else None
+        return obj.user.steam_user.profileurl
 
 
 class LobbySchema(Schema):
     id: int
     owner_id: int
-    lobby_type: str
-    mode: int
-    max_players: int
     players_ids: list
     players: List[LobbyPlayerSchema]
-    players_count: int
-    non_owners_ids: list
-    is_public: bool
     invites: List[LobbyInvite]
     invited_players_ids: list
-    overall: int
     seats: int
     queue: Optional[str]
     queue_time: Optional[int]
@@ -104,7 +64,7 @@ class LobbySchema(Schema):
 
     @staticmethod
     def resolve_players(obj):
-        return User.objects.filter(pk__in=obj.players_ids)
+        return Account.objects.filter(user__id__in=obj.players_ids)
 
 
 class LobbyInviteSchema(Schema):
@@ -120,11 +80,11 @@ class LobbyInviteSchema(Schema):
 
     @staticmethod
     def resolve_from_player(obj):
-        return User.objects.get(pk=obj.from_id)
+        return Account.objects.get(user__id=obj.from_id)
 
     @staticmethod
     def resolve_to_player(obj):
-        return User.objects.get(pk=obj.to_id)
+        return Account.objects.get(user__id=obj.to_id)
 
     @staticmethod
     def resolve_lobby(obj):

@@ -10,24 +10,27 @@ class AppUser(FastHttpUser):
     id_auto_number = itertools.count(start=1)
     user = None
     token = None
+    verification_token = None
+    queued_lobby = False
 
     def _fake_signup(self):
         email = f'email{next(self.id_auto_number)}@locust.com'
 
         with self.client.post(
             '/api/accounts/fake-signup/',
-            json={
-                'email': email,
-            },
+            json={'email': email},
             name="accounts/signup/",
         ) as response:
-            return response.json().get('token')
+            return (
+                response.json().get('token'),
+                response.json().get('verification_token'),
+            )
 
     def _verify(self, token: str):
         with self.client.post(
             '/api/accounts/verify/',
             json={
-                'verification_token': 'debug0',
+                'verification_token': self.verification_token,
             },
             headers={'Authorization': f'Bearer {token}'},
             name="accounts/verify/",
@@ -52,7 +55,7 @@ class AppUser(FastHttpUser):
 
     def _prepare(self):
         if not self.token:
-            self.token = self._fake_signup()
+            self.token, self.verification_token = self._fake_signup()
             self.user = self._auth(self.token)
             self._verify(self.token)
             self.user = self._auth(self.token)
@@ -64,15 +67,10 @@ class AppUser(FastHttpUser):
         if not self.user.get('id') in user_ids:
             user_ids.append(self.user.get('id'))
 
-    # @task
-    # def usage(self):
-    #     self._prepare()
-    #     self._auth(self.token)
-
     @task
     def usage(self):
-        self._prepare()
-        self._auth(self.token)
+        if not self.user:
+            self._prepare()
 
         lobby_id = self.user.get('lobby_id')
         with self.client.get(

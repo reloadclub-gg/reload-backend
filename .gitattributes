@@ -19,3 +19,4 @@ ec2-bootstrap.sh export-ignore
 ec2-deploy.sh export-ignore
 nginx.conf export-ignore
 pipenv-run export-ignore
+locust export-ignore

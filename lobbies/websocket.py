@@ -84,7 +84,7 @@ def ws_update_player(lobby: models.Lobby, user: User, action: str):
     action = 'player_join' if action == 'join' else 'player_leave'
     payload = schemas.LobbyPlayerWebsocketUpdate.from_orm(
         {
-            'player': user,
+            'player': user.account,
             'lobby': lobby,
         }
     ).dict()

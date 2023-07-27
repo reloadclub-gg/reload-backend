@@ -7,6 +7,7 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 from accounts.websocket import ws_update_user
 from appsettings.services import maintenance_window
 from core.websocket import ws_create_toast
+from friends.tasks import send_user_update_to_friendlist
 from friends.websocket import ws_friend_update_or_create
 from pre_matches.models import Team
 
@@ -65,8 +66,8 @@ def handle_player_move_remnants(
     # send a ws to expire all invites sent by remnants players
     # because they left the old lobby, all invites sent by them should expire
     # and players who received cannot join the old lobby anymore
-    for player_id in remnants_lobby.players_ids:
-        player = User.objects.get(id=player_id)
+    players = User.objects.filter(id__in=remnants_lobby.players_ids)
+    for player in players:
         websocket.ws_expire_player_invites(player, sent=True)
         # send user status update to its online friends
         ws_friend_update_or_create(player)
@@ -295,10 +296,11 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
 
     websocket.ws_update_lobby(lobby)
 
-    for player_id in lobby.players_ids:
-        player = User.objects.get(pk=player_id)
+    lobby_players = User.objects.filter(id__in=lobby.players_ids)
+    for player in lobby_players:
         ws_update_user(player)
         ws_friend_update_or_create(player)
+        send_user_update_to_friendlist.delay(player.id)
         websocket.ws_expire_player_invites(player)
 
     return lobby

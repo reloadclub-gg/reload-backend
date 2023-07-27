@@ -145,7 +145,7 @@ class LobbyRoutesTestCase(VerifiedAccountsMixin, TestCase):
             f'/{lobby_1.id}/players/{self.user_2.id}/',
             token=self.user_1.auth.token,
         )
-        self.assertEqual(response.json().get('players_count'), 1)
+        self.assertEqual(len(response.json().get('players_ids')), 1)
 
     def test_player_delete_not_authorized(self):
         lobby_1 = Lobby.create(self.user_1.id)

@@ -132,11 +132,11 @@ curl --unix-socket /run/celery.sock localhost
 ## Nginx
 
 ```conf
-# /etc/nginx/sites-available/$PROJECT_DOMAIN
+# /etc/nginx/sites-available/api.staging.reloadclub.gg
 
 server {
     listen 80;
-    server_name $PROJECT_DOMAIN;
+    server_name api.staging.reloadclub.gg;
 
     location = /favicon.ico {
         access_log off;
@@ -157,7 +157,7 @@ server {
 ```
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/$PROJECT_DOMAIN /etc/nginx/sites-enabled
+sudo ln -s /etc/nginx/sites-available/api.staging.reloadclub.gg /etc/nginx/sites-enabled
 sudo nginx -t
 sudo systemctl restart uvicorn
 sudo systemctl restart celery
@@ -169,7 +169,7 @@ sudo systemctl restart nginx
 ```bash
 sudo apt update
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d $PROJECT_DOMAIN
+sudo certbot --nginx -d api.staging.reloadclub.gg
 sudo certbot renew --dry-run
 sudo chmod -R a+rx /etc/letsencrypt/live/
 sudo systemctl restart nginx

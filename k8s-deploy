@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+if [ $# -eq 0 ]
+  then
+    echo "É necessário informar o ambiente (prod ou staging) no primeiro argumento"
+    exit 1
+elif [[ ! "$1" =~ ^(staging|prod)$ ]];
+  then
+    echo "$1 precisa ser 'staging' ou 'prod'"
+fi
+
+ENVIRONMENT=$1
+echo "Iniciando deploy para $ENVIRONMENT..."
+
+
+kubectl delete secret api-$ENVIRONMENT-env
+kubectl create secret generic api-$ENVIRONMENT-env --from-env-file=.env.$ENVIRONMENT
+kubectl rollout restart deployment/api-deployment
+kubectl rollout status deployment/api-deployment
+sleep 3
+kubectl exec -it $(kubectl get pod -l=app=api-deployment -o jsonpath="{.items[0].metadata.name}") -- pipenv run migrate
+kubectl exec -it $(kubectl get pod -l=app=api-deployment -o jsonpath="{.items[0].metadata.name}") -- pipenv run collectstatic --no-input

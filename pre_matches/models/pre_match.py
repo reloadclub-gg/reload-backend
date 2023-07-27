@@ -122,12 +122,8 @@ class PreMatch(BaseModel):
             return []
 
         lobbies = self.teams[0].lobbies
-        players = []
-        for lobby in lobbies:
-            players += [
-                User.objects.get(id=player_id) for player_id in lobby.players_ids
-            ]
-        return players
+        player_ids = [player_id for lobby in lobbies for player_id in lobby.players_ids]
+        return list(User.objects.filter(id__in=player_ids))
 
     @property
     def team2_players(self) -> list[User]:
@@ -135,12 +131,8 @@ class PreMatch(BaseModel):
             return []
 
         lobbies = self.teams[1].lobbies
-        players = []
-        for lobby in lobbies:
-            players += [
-                User.objects.get(id=player_id) for player_id in lobby.players_ids
-            ]
-        return players
+        player_ids = [player_id for lobby in lobbies for player_id in lobby.players_ids]
+        return list(User.objects.filter(id__in=player_ids))
 
     @property
     def players(self) -> list[User]:

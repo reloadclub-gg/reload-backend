@@ -22,7 +22,8 @@ TEST_MODE = sys.argv[1:2] == ['test']
 ADMINS = [('Gabriel Gularte', 'ggularte@3c.gg')]
 FRONT_END_URL = config('FRONT_END_URL', default='http://localhost:3000')
 HOST_URL = config('HOST_URL', default='localhost')
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,django').split(',')
+ALLOWED_HOSTS_DEFAULTS = 'localhost,django,nginx,locust'
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=ALLOWED_HOSTS_DEFAULTS).split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default=FRONT_END_URL).split(',')
 
 HTTPS = config('HTTPS', default=False, cast=bool)
@@ -37,6 +38,8 @@ SITE_URL_SUFFIX = f':{SITE_URL_PORT}' if SITE_URL_PORT else ''
 SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
 
 CSRF_TRUSTED_ORIGINS = [SITE_URL, FRONT_END_URL]
+
+SILK_ENABLED = config('SILK_ENABLED', default=False, cast=bool)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -64,6 +67,10 @@ INSTALLED_APPS = [
 if ENVIRONMENT == LOCAL:
     INSTALLED_APPS += [
         'rosetta',
+    ]
+
+if SILK_ENABLED:
+    INSTALLED_APPS += [
         'silk',
     ]
 
@@ -82,7 +89,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-if ENVIRONMENT == LOCAL:
+if SILK_ENABLED:
     MIDDLEWARE += [
         'silk.middleware.SilkyMiddleware',
     ]
@@ -167,7 +174,7 @@ if ENVIRONMENT != LOCAL:
         'disable_existing_loggers': False,
         'handlers': {
             'SysLog': {
-                'level': 'INFO',
+                'level': config('APPLICATION_LOG_LEVEL', default='DEBUG', cast=str),
                 'class': 'logging.handlers.SysLogHandler',
                 'formatter': 'simple',
                 'address': (
@@ -185,7 +192,9 @@ if ENVIRONMENT != LOCAL:
         'loggers': {
             'django': {
                 'handlers': ['SysLog'],
-                'level': 'INFO',
+                'level': config(
+                    'APPLICATION_LOG_LEVEL', default='DEBUG', cast=str
+                ).upper(),
                 'propagate': True,
             },
         },
@@ -307,6 +316,8 @@ CELERY_BROKER_URL = '{}://{}:{}@{}:{}/{}'.format(
     REDIS_PORT,
     CELERY_REDIS_DB,
 )
+CELERY_RESULT_BACKEND = None
+CELERY_IGNORE_RESULT = True
 
 # Websocket Application Settings
 GROUP_NAME_PREFIX = 'app'
@@ -371,8 +382,3 @@ FIVEM_MOCK_MATCH_CREATION_SUCCESS = config(
     default=True,
     cast=bool,
 )
-
-# Silk Settings
-SILKY_ANALYZE_QUERIES = False
-SILKY_PYTHON_PROFILER = False
-SILKY_DYNAMIC_PROFILING = [{'module': 'accounts.api.controller', 'function': 'auth'}]
