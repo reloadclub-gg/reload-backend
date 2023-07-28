@@ -113,12 +113,13 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(player_stats.defuses, 0)
         self.assertEqual(player_stats.plants, 1)
         self.assertEqual(player_stats.firstkills, 0)
+        self.assertEqual(player_stats.double_kills, 1)
 
         payload = [
             schemas.MatchUpdatePlayerStats.from_orm(
                 {
                     "steamid": steamid64_to_hex(self.user_1.account.steamid),
-                    "kills": 2,
+                    "kills": 4,
                     "headshot_kills": 1,
                     "deaths": 1,
                     "assists": 1,
@@ -139,7 +140,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         controller.handle_update_players_stats(payload, self.match)
         player_stats.refresh_from_db()
 
-        self.assertEqual(player_stats.kills, 4)
+        self.assertEqual(player_stats.kills, 6)
         self.assertEqual(player_stats.hs_kills, 2)
         self.assertEqual(player_stats.deaths, 2)
         self.assertEqual(player_stats.assists, 2)
@@ -151,6 +152,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(player_stats.defuses, 0)
         self.assertEqual(player_stats.plants, 2)
         self.assertEqual(player_stats.firstkills, 1)
+        self.assertEqual(player_stats.double_kills, 1)
+        self.assertEqual(player_stats.quadra_kills, 1)
 
     def test_update_match_not_running(self):
         with self.assertRaises(Http404):

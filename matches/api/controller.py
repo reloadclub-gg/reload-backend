@@ -56,17 +56,14 @@ def handle_update_players_stats(
         elif player_stats.plant:
             stats.plants += 1
 
-        if player_stats.kills >= 2:
-            stats.double_kills += 1
-
-        if player_stats.kills >= 3:
-            stats.triple_kills += 1
-
-        if player_stats.kills >= 4:
-            stats.quadra_kills += 1
-
         if player_stats.kills >= 5:
             stats.aces += 1
+        elif player_stats.kills >= 4:
+            stats.quadra_kills += 1
+        elif player_stats.kills >= 3:
+            stats.triple_kills += 1
+        elif player_stats.kills >= 2:
+            stats.double_kills += 1
 
     # Save all stats objects at once
     models.MatchPlayerStats.objects.bulk_update(
