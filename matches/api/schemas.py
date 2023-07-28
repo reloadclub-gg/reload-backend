@@ -48,12 +48,16 @@ class MatchPlayerProgressSchema(ModelSchema):
                 obj.points_earned, obj.level, obj.level_points
             )[0]
 
+        return obj.level
+
     @staticmethod
     def resolve_level_points_after(obj):
         if obj.points_earned:
             return calc_level_and_points(
                 obj.points_earned, obj.level, obj.level_points
             )[1]
+
+        return obj.level_points
 
 
 class MatchPlayerSchema(ModelSchema):
