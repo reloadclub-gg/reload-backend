@@ -2,6 +2,7 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
 
@@ -100,10 +101,17 @@ def get_user_matches(user: User, user_id: int = None) -> List[models.Match]:
 
 
 def get_match(user: User, match_id: int) -> models.Match:
-    match = get_object_or_404(models.Match, id=match_id)
+    try:
+        match = models.Match.objects.get(
+            id=match_id,
+            status__in=[models.Match.Status.FINISHED, models.Match.Status.RUNNING],
+        )
+    except ObjectDoesNotExist:
+        raise Http404
+
     if (
         match.status != models.Match.Status.FINISHED
-        and user.id not in match.players.values_list('user', flat=True)
+        and not match.players.filter(user=user.id).exists()
     ):
         raise Http404
 

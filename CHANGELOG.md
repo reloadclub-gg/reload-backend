@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Detalhe de partida estava permitindo partidas canceladas. Agora estamos retornando 404 para essas partidas e apenas partidas finalizadas ou em andamento podem ser exibidas no FE [#609](https://github.com/3C-gg/reload-backend/issues/609).
 - Admin de notificações estava com erro ao carregar usuários online. Antigamente retornávamos um QS e agora estamos retornando uma lista. Contornamos o problema.
 
 ## [ 24/7/2023 - 7e7192c]
