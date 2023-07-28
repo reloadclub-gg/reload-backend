@@ -361,6 +361,8 @@ PLAYER_MAX_LOSE_LEVEL_POINTS = config(
     cast=int,
 )
 
+WIN_ROUNDS = config('WIN_ROUNDS', default=16, cast=int)
+
 # Other App Settings
 APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)
 PLAYER_MAX_LEVEL = config('PLAYER_MAX_LEVEL', default=50, cast=int)

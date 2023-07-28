@@ -1,5 +1,6 @@
 from typing import List
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
@@ -133,7 +134,10 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
         diff = abs(payload.team_a_score - payload.team_b_score)
         if diff >= 2:
             match.finish()
-    elif payload.team_a_score >= 10 or payload.team_b_score >= 10:
+    elif (
+        payload.team_a_score >= settings.WIN_ROUNDS
+        or payload.team_b_score >= settings.WIN_ROUNDS
+    ):
         match.finish()
 
     match.refresh_from_db()
