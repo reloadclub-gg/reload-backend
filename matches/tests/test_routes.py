@@ -15,7 +15,11 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
 
     def test_match_detail(self):
         server = baker.make(models.Server)
-        match = baker.make(models.Match, server=server)
+        match = baker.make(
+            models.Match,
+            server=server,
+            status=models.Match.Status.FINISHED,
+        )
         team1 = match.matchteam_set.create(name=self.team1.name)
         match.matchteam_set.create(name=self.team2.name)
         baker.make(models.MatchPlayer, user=self.user_1, team=team1)
