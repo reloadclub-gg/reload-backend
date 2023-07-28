@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Quantidade de rounds para detectar fim da partida agora é uma confif [#605](https://github.com/3C-gg/reload-backend/issues/605).
+- Passamos a calcular double, triple, quadra e ace separadamente [#606](https://github.com/3C-gg/reload-backend/issues/606).
+- Quantidade de rounds para detectar fim da partida agora é uma config [#605](https://github.com/3C-gg/reload-backend/issues/605).
 - Melhoramos os esquemas de FiveM para enviar somente campos que são necessários.
 - Movemos a lógica de tratamento da partida baseado na resposta do método `handle_create_fivem_match` para o método `set_player_ready` para não sobrecarregar o méotodo de apoio com funções que não são dele.
 - Alteramos o arquivo de template de PR no Github para algo mais simples e prático.
