@@ -1,5 +1,10 @@
-from django.contrib import admin
+import json
 
+from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
+
+from accounts.models import Account
 from core.admin_mixins import ReadOnlyModelAdminMixin, SuperUserOnlyAdminMixin
 
 from . import models
@@ -28,8 +33,50 @@ class MapAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_filter = ('is_active',)
 
 
+class MatchPlayerInline(admin.TabularInline):
+    model = models.MatchPlayer
+    readonly_fields = ['user', 'level', 'level_points']
+    extra = 0
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+
+class MatchTeamAdminInline(admin.TabularInline):
+    model = models.MatchTeam
+    readonly_fields = ['name', 'score', 'players']
+    extra = 0
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def players(self, obj):
+        # Get all related players
+        players = models.MatchPlayer.objects.filter(team=obj)
+
+        # Create a string representation with links to each player
+        player_links = []
+        for player in players:
+            url = reverse('admin:accounts_user_change', args=[player.user.id])
+            player_links.append(
+                format_html('<a href="{}">{}</a>', url, player.user.account.username)
+            )
+
+        # Join all the player links with a comma and return as HTML
+        return format_html(', '.join(player_links))
+
+    players.short_description = 'Players'
+
+
 @admin.register(models.Match)
 class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
+    change_form_template = 'matches/admin/match_change_form.html'
     list_display = (
         'id',
         'server',
@@ -47,8 +94,9 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
         'game_type',
         'game_mode',
     )
-    exclude = ['map']
+    exclude = ['map', 'chat']
     readonly_fields = ['score', 'map_name']
+    inlines = [MatchTeamAdminInline]
 
     def map_name(self, obj):
         return obj.map
@@ -59,6 +107,26 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
 
         return '- 0 x 0 -'
 
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        match = models.Match.objects.get(pk=object_id)
+        chat_data = []
+
+        if match.chat:
+            for message in match.chat:
+                account = Account.objects.get(steamid=message['steamid'])
+                message['user_id'] = account.user.id
+                message['username'] = account.username
+                chat_data.append(message)
+
+            extra_context['chat_data'] = json.dumps(chat_data)
+        return super().change_view(
+            request,
+            object_id,
+            form_url,
+            extra_context=extra_context,
+        )
+
 
 @admin.register(models.MatchTeam)
 class MatchTeamAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
@@ -68,6 +136,7 @@ class MatchTeamAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
         'score',
     )
     ordering = ('name',)
+    inlines = [MatchPlayerInline]
 
 
 @admin.register(models.MatchPlayer)

@@ -96,6 +96,7 @@ class Match(models.Model):
     )
     game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)
+    chat = models.JSONField(null=True)
 
     class Meta:
         ordering = ['-end_date']

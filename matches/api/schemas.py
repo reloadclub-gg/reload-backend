@@ -195,8 +195,9 @@ class MatchUpdateSchema(Schema):
     team_a_score: int
     team_b_score: int
     end_reason: int
-    is_overtime: bool = False
     players_stats: List[MatchUpdatePlayerStats]
+    is_overtime: bool = False
+    chat: list = None
 
 
 class MatchTeamPlayerFiveMSchema(ModelSchema):

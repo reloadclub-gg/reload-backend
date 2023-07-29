@@ -1,5 +1,30 @@
 [
     {
+        "model": "auth.group",
+        "fields": {
+            "name": "Staff",
+            "permissions": [
+                48,
+                57,
+                58,
+                60,
+                56,
+                44,
+                52,
+                4,
+                68,
+                92,
+                72,
+                76,
+                88,
+                84,
+                80,
+                93,
+                96
+            ]
+        }
+    },
+    {
         "model": "accounts.user",
         "pk": 1,
         "fields": {
@@ -599,7 +624,27 @@
             "end_date": "2023-04-19T15:36:06Z",
             "status": 3,
             "game_type": "competitive",
-            "game_mode": 5
+            "game_mode": 5,
+            "chat": [
+                {
+                    "steamid": "281590623841816110",
+                    "target": "all",
+                    "message": "test",
+                    "date": "4/6/2023 14:42:34"
+                },
+                {
+                    "steamid": "809363647939633239",
+                    "target": "all",
+                    "message": "test 2",
+                    "date": "4/6/2023 14:44:34"
+                },
+                {
+                    "steamid": "809363647939633239",
+                    "target": "team",
+                    "message": "iasjd ioasjd ioajsdiojasdiojasd jaiosjd ioajsd ioajsd ioajsdiajsdio jaisodjaiosdj aijsd iaoj diajs dioajs diojaoisdjaiosjd ioajdioj asiodj iaoj sdioaj dioasj dioaj dioajsd ioajsd ioajsd iaosjd ioajsd ioajd ijo",
+                    "date": "4/6/2023 14:44:34"
+                }
+            ]
         }
     },
     {
