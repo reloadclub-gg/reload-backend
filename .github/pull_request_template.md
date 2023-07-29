@@ -14,6 +14,7 @@ Siga as instruções abaixo para preencher o painel lateral.
 - [ ] Uma nova funcionalidade.
 - [ ] Uma ou mais correções.
 - [ ] Alterações em uma ou mais documentações.
+- [ ] Um hotfix para um bug em um ambiente vivo (staging ou prod).
 
 ## Outras dicas
 
