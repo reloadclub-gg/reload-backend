@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Admin com times, players e chats na partida.
+- Chats de partida no `seed.json`.
+- Scripts no `Pipfile` para iniciar django e celery em modo de desenvolvimento local (`dev` e `celery_dev`).
+- Campo `chat` no modelo `Match` [#615](https://github.com/3C-gg/reload-backend/issues/615).
 - Comando de manutenção `create_fivem_match` que cria um servidor com o IP fornecido e tenta criar uma partida nesse servidor via HTTP [#600](https://github.com/3C-gg/reload-backend/issues/600).
 - Campo `report_user_id` no esquema `TicketSchema`.
 
