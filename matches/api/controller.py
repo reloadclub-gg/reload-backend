@@ -145,6 +145,10 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
     ):
         match.finish()
 
+    if payload.chat:
+        match.chat = payload.chat
+        match.save()
+
     match.refresh_from_db()
     websocket.ws_match_update(match)
 
