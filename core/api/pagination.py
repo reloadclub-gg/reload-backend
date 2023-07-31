@@ -1,3 +1,4 @@
+import math
 from typing import Any, List
 
 from django.conf import settings
@@ -26,7 +27,7 @@ class Pagination(PaginationBase):
 
     def paginate_queryset(self, queryset: Any, pagination: Input, **params: Any) -> Any:
         offset = (pagination.page - 1) * self.page_size
-        total_pages = self._items_count(queryset) / self.page_size
+        total_pages = math.ceil(self._items_count(queryset) / self.page_size)
         prev_page = pagination.page - 1 if pagination.page > 1 else None
         next_page = pagination.page + 1 if pagination.page < total_pages else None
         paginated = offset + self.page_size
