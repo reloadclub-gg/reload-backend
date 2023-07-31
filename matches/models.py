@@ -71,11 +71,11 @@ class Map(models.Model):
 
 
 class Match(models.Model):
-    class Status(models.IntegerChoices):
-        LOADING = 0
-        RUNNING = 1
-        FINISHED = 2
-        CANCELLED = 3
+    class Status(models.TextChoices):
+        LOADING = 'loading'
+        RUNNING = 'running'
+        FINISHED = 'finished'
+        CANCELLED = 'cancelled'
 
     class GameType(models.TextChoices):
         CUSTOM = 'custom'
@@ -91,8 +91,10 @@ class Match(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
-    status = models.IntegerField(
-        choices=Status.choices, default=0, blank=True, null=True
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default='loading',
     )
     game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)

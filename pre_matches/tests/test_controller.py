@@ -199,7 +199,10 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertIsNotNone(self.user_1.account.get_match())
         mock_fivem.assert_called_once()
 
-    @override_settings(MATCH_MOCK_DELAY_START=0)
+    @override_settings(
+        MATCH_MOCK_DELAY_START=0,
+        FIVEM_MOCK_MATCH_CREATION_SUCCESS=True,
+    )
     def test_handle_create_fivem_match_success(self):
         server = baker.make(Server)
         match = baker.make(Match, server=server, status=Match.Status.LOADING)
