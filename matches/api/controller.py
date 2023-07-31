@@ -140,8 +140,8 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
         if diff >= 2:
             match.finish()
     elif (
-        payload.team_a_score >= settings.WIN_ROUNDS
-        or payload.team_b_score >= settings.WIN_ROUNDS
+        payload.team_a_score >= settings.MATCH_ROUNDS_TO_WIN
+        or payload.team_b_score >= settings.MATCH_ROUNDS_TO_WIN
     ):
         match.finish()
 
