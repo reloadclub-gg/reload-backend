@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Comando de manutenção `create_some_matches` que cria a quantidade de partidas informada por parâmetro na linha de comando.
 - Admin com times, players e chats na partida.
 - Chats de partida no `seed.json`.
 - Scripts no `Pipfile` para iniciar django e celery em modo de desenvolvimento local (`dev` e `celery_dev`).
@@ -18,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera nome da configuração de rounds necessários para vencer uma partida de `WIN_ROUNDS` para `MATCH_ROUNDS_TO_WIN`.
+- Quantidade padrão de rounds para ganhar (16 -> 15) [#618](https://github.com/3C-gg/reload-backend/issues/618).
 - Template de email de verificar conta agora não tem mais link no código de verificação [#603](https://github.com/3C-gg/reload-backend/issues/603).
 - Template de PR do Github.
 - Passamos a calcular double, triple, quadra e ace separadamente [#606](https://github.com/3C-gg/reload-backend/issues/606).
@@ -31,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Paginação da API não estava entregando a quantidade total de páginas corretamente [#618](https://github.com/3C-gg/reload-backend/issues/618).
 - Corrige os pontos perdidos para o jogador que perde partida e está no level 0 [#612](https://github.com/3C-gg/reload-backend/issues/612).
 - Corrigimos esquema `MatchPlayerProgressSchema` com campos `null` estava fazendo com que FE não renderizasse corretamente [#610](https://github.com/3C-gg/reload-backend/issues/610).
 - Detalhe de partida estava permitindo partidas canceladas. Agora estamos retornando 404 para essas partidas e apenas partidas finalizadas ou em andamento podem ser exibidas no FE [#609](https://github.com/3C-gg/reload-backend/issues/609).
