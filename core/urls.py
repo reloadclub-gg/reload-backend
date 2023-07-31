@@ -37,4 +37,5 @@ if settings.ENVIRONMENT == settings.LOCAL:
         path('ws/', include('websocket.urls', namespace='websocket')),
     ]
 
+if settings.SILK_ENABLED:
     urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

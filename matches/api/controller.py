@@ -1,6 +1,8 @@
 from typing import List
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
 
@@ -18,12 +20,25 @@ def handle_update_players_stats(
     players_stats: List[schemas.MatchUpdatePlayerStats],
     match: models.Match,
 ):
+    steamids64 = [
+        hex_to_steamid64(player_stat.steamid) for player_stat in players_stats
+    ]
+
+    # Get all stats at once from the database
+    all_stats = models.MatchPlayerStats.objects.filter(
+        player__user__account__steamid__in=steamids64,
+        player__team__match=match,
+    )
+
+    # Create a mapping from steamid64 to stats object
+    stats_by_steamid64 = {stat.player.user.account.steamid: stat for stat in all_stats}
+
+    # Update stats objects
     for player_stats in players_stats:
         steamid64 = hex_to_steamid64(player_stats.steamid)
-        stats = models.MatchPlayerStats.objects.get(
-            player__user__account__steamid=steamid64,
-            player__team__match=match,
-        )
+        stats = stats_by_steamid64.get(steamid64)
+
+        # Update fields
         stats.kills += player_stats.kills
         stats.hs_kills += player_stats.headshot_kills
         stats.deaths += player_stats.deaths
@@ -42,19 +57,37 @@ def handle_update_players_stats(
         elif player_stats.plant:
             stats.plants += 1
 
-        if player_stats.kills >= 2:
-            stats.double_kills += 1
-
-        if player_stats.kills >= 3:
-            stats.triple_kills += 1
-
-        if player_stats.kills >= 4:
-            stats.quadra_kills += 1
-
         if player_stats.kills >= 5:
             stats.aces += 1
+        elif player_stats.kills >= 4:
+            stats.quadra_kills += 1
+        elif player_stats.kills >= 3:
+            stats.triple_kills += 1
+        elif player_stats.kills >= 2:
+            stats.double_kills += 1
 
-        stats.save()
+    # Save all stats objects at once
+    models.MatchPlayerStats.objects.bulk_update(
+        all_stats,
+        [
+            'kills',
+            'hs_kills',
+            'deaths',
+            'assists',
+            'damage',
+            'shots_fired',
+            'head_shots',
+            'chest_shots',
+            'other_shots',
+            'firstkills',
+            'defuses',
+            'plants',
+            'double_kills',
+            'triple_kills',
+            'quadra_kills',
+            'aces',
+        ],
+    )
 
 
 def get_user_matches(user: User, user_id: int = None) -> List[models.Match]:
@@ -64,14 +97,21 @@ def get_user_matches(user: User, user_id: int = None) -> List[models.Match]:
         user=search_id,
         team__match__status=models.Match.Status.FINISHED,
     ).values_list('team__match', flat=True)
-    return [models.Match.objects.get(pk=id) for id in matches_ids]
+    return models.Match.objects.filter(id__in=matches_ids)
 
 
 def get_match(user: User, match_id: int) -> models.Match:
-    match = get_object_or_404(models.Match, id=match_id)
+    try:
+        match = models.Match.objects.get(
+            id=match_id,
+            status__in=[models.Match.Status.FINISHED, models.Match.Status.RUNNING],
+        )
+    except ObjectDoesNotExist:
+        raise Http404
+
     if (
         match.status != models.Match.Status.FINISHED
-        and user.id not in match.players.values_list('user', flat=True)
+        and not match.players.filter(user=user.id).exists()
     ):
         raise Http404
 
@@ -99,8 +139,15 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
         diff = abs(payload.team_a_score - payload.team_b_score)
         if diff >= 2:
             match.finish()
-    elif payload.team_a_score >= 10 or payload.team_b_score >= 10:
+    elif (
+        payload.team_a_score >= settings.MATCH_ROUNDS_TO_WIN
+        or payload.team_b_score >= settings.MATCH_ROUNDS_TO_WIN
+    ):
         match.finish()
+
+    if payload.chat:
+        match.chat = payload.chat
+        match.save()
 
     match.refresh_from_db()
     websocket.ws_match_update(match)

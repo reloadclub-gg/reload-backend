@@ -173,6 +173,7 @@ class UserAdmin(
                     'password2',
                     'is_staff',
                     'is_superuser',
+                    'groups',
                 ),
             },
         ),

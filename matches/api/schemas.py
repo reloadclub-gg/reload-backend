@@ -48,12 +48,16 @@ class MatchPlayerProgressSchema(ModelSchema):
                 obj.points_earned, obj.level, obj.level_points
             )[0]
 
+        return obj.level
+
     @staticmethod
     def resolve_level_points_after(obj):
         if obj.points_earned:
             return calc_level_and_points(
                 obj.points_earned, obj.level, obj.level_points
             )[1]
+
+        return obj.level_points
 
 
 class MatchPlayerSchema(ModelSchema):
@@ -191,8 +195,9 @@ class MatchUpdateSchema(Schema):
     team_a_score: int
     team_b_score: int
     end_reason: int
-    is_overtime: bool = False
     players_stats: List[MatchUpdatePlayerStats]
+    is_overtime: bool = False
+    chat: list = None
 
 
 class MatchTeamPlayerFiveMSchema(ModelSchema):
@@ -224,13 +229,12 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
 
 class MatchFiveMSchema(ModelSchema):
     match_id: int = Field(None, alias='id')
-    map_id: int
     team_a_players: List[MatchTeamPlayerFiveMSchema]
     team_b_players: List[MatchTeamPlayerFiveMSchema]
 
     class Config:
         model = models.Match
-        model_fields = ['id']
+        model_fields = ['map']
 
     @staticmethod
     def resolve_map_id(obj):

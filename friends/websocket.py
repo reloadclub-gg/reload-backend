@@ -1,4 +1,5 @@
 from asgiref.sync import async_to_sync
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from websocket.utils import ws_send
@@ -31,10 +32,11 @@ def ws_friend_update_or_create(user: User, action: str = 'update'):
     """
     if action not in ['update', 'create']:
         raise ValueError('action param should be "update" or "create".')
-    online_friends_ids = [
-        account.user.id for account in user.account.get_online_friends()
-    ]
+
+    if settings.DEBUG:
+        groups = [user.id for user in User.online_users()]
+    else:
+        groups = [account.user.id for account in user.account.get_online_friends()]
+
     payload = schemas.FriendSchema.from_orm(user.account).dict()
-    return async_to_sync(ws_send)(
-        f'friends/{action}', payload, groups=online_friends_ids
-    )
+    return async_to_sync(ws_send)(f'friends/{action}', payload, groups=groups)

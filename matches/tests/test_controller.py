@@ -113,12 +113,13 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(player_stats.defuses, 0)
         self.assertEqual(player_stats.plants, 1)
         self.assertEqual(player_stats.firstkills, 0)
+        self.assertEqual(player_stats.double_kills, 1)
 
         payload = [
             schemas.MatchUpdatePlayerStats.from_orm(
                 {
                     "steamid": steamid64_to_hex(self.user_1.account.steamid),
-                    "kills": 2,
+                    "kills": 4,
                     "headshot_kills": 1,
                     "deaths": 1,
                     "assists": 1,
@@ -139,7 +140,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         controller.handle_update_players_stats(payload, self.match)
         player_stats.refresh_from_db()
 
-        self.assertEqual(player_stats.kills, 4)
+        self.assertEqual(player_stats.kills, 6)
         self.assertEqual(player_stats.hs_kills, 2)
         self.assertEqual(player_stats.deaths, 2)
         self.assertEqual(player_stats.assists, 2)
@@ -151,6 +152,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(player_stats.defuses, 0)
         self.assertEqual(player_stats.plants, 2)
         self.assertEqual(player_stats.firstkills, 1)
+        self.assertEqual(player_stats.double_kills, 1)
+        self.assertEqual(player_stats.quadra_kills, 1)
 
     def test_update_match_not_running(self):
         with self.assertRaises(Http404):
@@ -247,8 +250,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'team_a_score': 10,
-                    'team_b_score': 5,
+                    'team_a_score': 16,
+                    'team_b_score': 6,
                     'end_reason': 0,
                     'is_overtime': False,
                     'players_stats': [],
@@ -257,8 +260,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         )
         mock_handle_update_stats.assert_called_once()
         mock_match_update.assert_called_once()
-        self.assertEqual(self.match.team_a.score, 10)
-        self.assertEqual(self.match.team_b.score, 5)
+        self.assertEqual(self.match.team_a.score, 16)
+        self.assertEqual(self.match.team_b.score, 6)
         self.match.refresh_from_db()
         self.assertEqual(self.match.status, models.Match.Status.FINISHED)
 
@@ -276,8 +279,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'team_a_score': 10,
-                    'team_b_score': 11,
+                    'team_a_score': 16,
+                    'team_b_score': 15,
                     'end_reason': 0,
                     'is_overtime': True,
                     'players_stats': [],
@@ -286,8 +289,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         )
         mock_handle_update_stats.assert_called_once()
         mock_match_update.assert_called_once()
-        self.assertEqual(self.match.team_a.score, 10)
-        self.assertEqual(self.match.team_b.score, 11)
+        self.assertEqual(self.match.team_a.score, 16)
+        self.assertEqual(self.match.team_b.score, 15)
         self.match.refresh_from_db()
         self.assertEqual(self.match.status, models.Match.Status.RUNNING)
 
@@ -309,8 +312,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'team_a_score': 9,
-                    'team_b_score': 11,
+                    'team_a_score': 15,
+                    'team_b_score': 17,
                     'end_reason': 0,
                     'is_overtime': True,
                     'players_stats': [],
@@ -319,8 +322,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         )
         mock_handle_update_stats.assert_called_once()
         mock_match_update.assert_called_once()
-        self.assertEqual(self.match.team_a.score, 9)
-        self.assertEqual(self.match.team_b.score, 11)
+        self.assertEqual(self.match.team_a.score, 15)
+        self.assertEqual(self.match.team_b.score, 17)
         self.match.refresh_from_db()
         self.assertEqual(self.match.status, models.Match.Status.FINISHED)
 

@@ -36,7 +36,7 @@ services:
       - db
       - redis
       - nginx
-    command: uvicorn --host 0.0.0.0 --port 8000 --reload --workers 5 core.asgi:application
+    command: pipenv run dev
     restart: unless-stopped
 
   celery:
@@ -48,18 +48,22 @@ services:
     depends_on:
       - db
       - redis
-    command: celery -A core.celery.app worker -B -l info -c 5
+    command: pipenv run celery_dev
     restart: unless-stopped
 
   locust:
-    image: locustio/locust
+    build: .
+    env_file:
+      - .env
     ports:
-      - "8089:8089"
-    volumes:
-      - ./locust:/locust_tests
-    command: -f /locust_tests/locustfile.py --host=http://nginx:80
+      - 8089:8089
     depends_on:
-      - nginx
+      - django
+      - celery
+    command: pipenv run locust
+    volumes:
+      - .:/app
+    restart: unless-stopped
 
 volumes:
   db:

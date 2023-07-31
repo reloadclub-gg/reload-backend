@@ -57,3 +57,34 @@ class SupportControllerTestCase(AccountOneMixin, TestCase):
                 ),
                 files=uploaded_files,
             )
+
+    def test_create_report_ticket(self):
+        ticket = controller.create_ticket(
+            self.user,
+            schemas.TicketCreateSchema.from_orm(
+                {
+                    'subject': schemas.REPORT_SUBJECT,
+                    'description': 'test',
+                    'report_user_id': self.user.id,
+                }
+            ),
+        )
+
+        self.assertIsNotNone(ticket)
+        self.assertEqual(ticket.subject, schemas.REPORT_SUBJECT)
+
+    def test_create_report_ticket_with_no_report_user_id(self):
+        ticket = None
+
+        with self.assertRaises(ValueError):
+            ticket = controller.create_ticket(
+                self.user,
+                schemas.TicketCreateSchema.from_orm(
+                    {
+                        'subject': schemas.REPORT_SUBJECT,
+                        'description': 'test',
+                    }
+                ),
+            )
+
+        self.assertIsNone(ticket)

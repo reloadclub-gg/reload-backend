@@ -14,7 +14,6 @@ class AccountSchema(ModelSchema):
     steamid: Optional[str]
     username: Optional[str]
     avatar: Optional[dict]
-    steam_url: Optional[str]
 
     class Config:
         model = Account
@@ -28,10 +27,6 @@ class AccountSchema(ModelSchema):
     @staticmethod
     def resolve_avatar(obj):
         return obj.avatar_dict
-
-    @staticmethod
-    def resolve_steam_url(obj):
-        return obj.user.steam_user.profileurl
 
 
 class UserSchema(ModelSchema):
@@ -91,10 +86,16 @@ class UserSchema(ModelSchema):
 
 class FakeUserSchema(UserSchema):
     token: Optional[str] = None
+    verification_token: str = None
 
     @staticmethod
     def resolve_token(obj):
         return obj.auth.get_token()
+
+    @staticmethod
+    def resolve_verification_token(obj):
+        if hasattr(obj, 'account') and obj.account is not None:
+            return obj.account.verification_token
 
 
 class SignUpSchema(Schema):

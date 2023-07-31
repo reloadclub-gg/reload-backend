@@ -35,7 +35,8 @@ class SystemNotificationAdmin(admin.ModelAdmin):
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == 'to_users':
             if request.GET.get('online'):
-                kwargs['queryset'] = User.online_users()
+                online_users_ids = [user.id for user in User.online_users()]
+                kwargs['queryset'] = User.objects.filter(id__in=online_users_ids)
             else:
                 kwargs['queryset'] = User.objects.filter(
                     is_active=True, is_superuser=False

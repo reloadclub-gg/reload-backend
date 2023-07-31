@@ -1,0 +1,47 @@
+#chatBox {
+    padding: 10px;
+    overflow-y: auto;
+	max-height: 400px;
+}
+
+#chatSearch {
+	align-items: center;
+	border-bottom: 1px solid rgba(255, 255, 255, .1);
+	display: flex;
+	gap: 10px;
+	margin-top: 10px;
+	padding-bottom: 10px;
+}
+
+#chatSearch p {
+	margin: 0;
+}
+
+.message {
+	background-color: rgba(255, 255, 255, .1);
+	border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+	width: fit-content;
+}
+
+.username {
+    font-weight: bold;
+}
+
+.target {
+    color: green;
+}
+
+.target.all {
+	color: cornflowerblue
+}
+
+.message-content {
+    font-style: italic;
+}
+
+.date {
+    font-size: 0.8em;
+    color: gray;
+}

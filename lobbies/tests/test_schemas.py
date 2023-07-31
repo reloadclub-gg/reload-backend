@@ -13,20 +13,16 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
 
     def test_lobby_player_schema(self):
         Lobby.create(self.user_1.id)
-        payload = schemas.LobbyPlayerSchema.from_orm(self.user_1).dict()
+        payload = schemas.LobbyPlayerSchema.from_orm(self.user_1.account).dict()
 
         expected_payload = {
             'user_id': self.user_1.id,
             'username': self.user_1.account.username,
-            'steamid': self.user_1.account.steamid,
             'level': self.user_1.account.level,
-            'level_points': self.user_1.account.level_points,
             'avatar': self.user_1.account.avatar_dict,
             'matches_played': self.user_1.account.get_matches_played_count(),
             'latest_matches_results': self.user_1.account.get_latest_matches_results(),
             'steam_url': self.user_1.steam_user.profileurl,
-            'status': self.user_1.status,
-            'lobby_id': self.user_1.account.lobby.id,
         }
         self.assertDictEqual(payload, expected_payload)
 
@@ -37,17 +33,10 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
         expected_payload = {
             'id': self.user_1.id,
             'owner_id': self.user_1.id,
-            'lobby_type': 'competitive',
-            'mode': 5,
-            'max_players': 5,
             'players_ids': [self.user_1.id],
-            'players': [schemas.LobbyPlayerSchema.from_orm(self.user_1).dict()],
-            'players_count': 1,
-            'non_owners_ids': [],
-            'is_public': False,
+            'players': [schemas.LobbyPlayerSchema.from_orm(self.user_1.account).dict()],
             'invites': [],
             'invited_players_ids': [],
-            'overall': 0,
             'seats': 4,
             'queue': None,
             'queue_time': None,
@@ -64,17 +53,10 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
         expected_payload = {
             'id': self.user_1.id,
             'owner_id': self.user_1.id,
-            'lobby_type': 'competitive',
-            'mode': 5,
-            'max_players': 5,
             'players_ids': [self.user_1.id],
-            'players': [schemas.LobbyPlayerSchema.from_orm(self.user_1).dict()],
-            'players_count': 1,
-            'non_owners_ids': [],
-            'is_public': False,
+            'players': [schemas.LobbyPlayerSchema.from_orm(self.user_1.account).dict()],
             'invites': [],
             'invited_players_ids': [],
-            'overall': 0,
             'seats': 4,
             'queue': lobby.queue.isoformat(),
             'queue_time': lobby.queue_time,
@@ -93,20 +75,13 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
         expected_payload = {
             'id': self.user_1.id,
             'owner_id': self.user_1.id,
-            'lobby_type': 'competitive',
-            'mode': 5,
-            'max_players': 5,
             'players_ids': [self.user_1.id, self.user_2.id],
             'players': [
-                schemas.LobbyPlayerSchema.from_orm(self.user_1).dict(),
-                schemas.LobbyPlayerSchema.from_orm(self.user_2).dict(),
+                schemas.LobbyPlayerSchema.from_orm(self.user_1.account).dict(),
+                schemas.LobbyPlayerSchema.from_orm(self.user_2.account).dict(),
             ],
-            'players_count': 2,
-            'non_owners_ids': [self.user_2.id],
-            'is_public': False,
             'invites': [],
             'invited_players_ids': [],
-            'overall': 0,
             'seats': 3,
             'queue': None,
             'queue_time': None,
@@ -125,8 +100,10 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
             'id': f'{self.user_1.id}:{self.user_2.id}',
             'lobby_id': lobby_1.id,
             'lobby': schemas.LobbySchema.from_orm(lobby_1).dict(),
-            'from_player': schemas.LobbyPlayerSchema.from_orm(self.user_1).dict(),
-            'to_player': schemas.LobbyPlayerSchema.from_orm(self.user_2).dict(),
+            'from_player': schemas.LobbyPlayerSchema.from_orm(
+                self.user_1.account
+            ).dict(),
+            'to_player': schemas.LobbyPlayerSchema.from_orm(self.user_2.account).dict(),
             'create_date': invite.create_date.isoformat(),
         }
 

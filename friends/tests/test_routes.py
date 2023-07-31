@@ -21,12 +21,5 @@ class FriendsRoutesTestCase(VerifiedAccountsMixin, TestCase):
                     if not friend.user.is_online
                 ],
             }
-        )
-        self.assertEqual(r.json(), expected_response)
-
-    def test_friends_detail(self):
-        self.user_1.auth.create_token()
-        r = self.api.call('get', f'/{self.user_2.id}/', token=self.user_1.auth.token)
-        self.assertEqual(r.status_code, 200)
-        expected_response = schemas.FriendSchema.from_orm(self.user_2.account).dict()
+        ).dict()
         self.assertEqual(r.json(), expected_response)

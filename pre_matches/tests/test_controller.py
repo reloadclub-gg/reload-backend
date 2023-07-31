@@ -183,6 +183,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     def test_set_player_ready_create_match(self, mock_fivem):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
+        mock_fivem.return_value.status_code = 201
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
@@ -194,6 +195,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertIsNone(self.user_1.account.get_match())
 
         controller.set_player_ready(pre_match.players[-1:][0])
+        self.user_1.account.refresh_from_db()
         self.assertIsNotNone(self.user_1.account.get_match())
         mock_fivem.assert_called_once()
 
@@ -204,12 +206,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         match.matchteam_set.create(name=self.team1.name, score=10)
         match.matchteam_set.create(name=self.team2.name, score=8)
 
-        self.assertEqual(match.status, Match.Status.LOADING)
-        controller.handle_create_fivem_match(match)
-        self.assertEqual(match.status, Match.Status.RUNNING)
+        five_response = controller.handle_create_fivem_match(match)
+        self.assertEqual(five_response.status_code, 201)
 
     @override_settings(
-        MATCH_MOCK_DELAY_START=0, FIVEM_MOCK_MATCH_CREATION_SUCCESS=False
+        MATCH_MOCK_DELAY_START=0,
+        FIVEM_MOCK_MATCH_CREATION_SUCCESS=False,
     )
     def test_handle_create_fivem_match_error(self):
         server = baker.make(Server)
@@ -217,6 +219,5 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         match.matchteam_set.create(name=self.team1.name, score=10)
         match.matchteam_set.create(name=self.team2.name, score=8)
 
-        self.assertEqual(match.status, Match.Status.LOADING)
-        controller.handle_create_fivem_match(match)
-        self.assertEqual(match.status, Match.Status.CANCELLED)
+        fivem_response = controller.handle_create_fivem_match(match)
+        self.assertEqual(fivem_response.status_code, 400)

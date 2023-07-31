@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Comando de manutenção `create_some_matches` que cria a quantidade de partidas informada por parâmetro na linha de comando.
+- Admin com times, players e chats na partida.
+- Chats de partida no `seed.json`.
+- Scripts no `Pipfile` para iniciar django e celery em modo de desenvolvimento local (`dev` e `celery_dev`).
+- Campo `chat` no modelo `Match` [#615](https://github.com/3C-gg/reload-backend/issues/615).
+- Comando de manutenção `create_fivem_match` que cria um servidor com o IP fornecido e tenta criar uma partida nesse servidor via HTTP [#600](https://github.com/3C-gg/reload-backend/issues/600).
+- Campo `report_user_id` no esquema `TicketSchema`.
+
+### Changed
+
+- Altera nome da configuração de rounds necessários para vencer uma partida de `WIN_ROUNDS` para `MATCH_ROUNDS_TO_WIN`.
+- Quantidade padrão de rounds para ganhar (16 -> 15) [#618](https://github.com/3C-gg/reload-backend/issues/618).
+- Template de email de verificar conta agora não tem mais link no código de verificação [#603](https://github.com/3C-gg/reload-backend/issues/603).
+- Template de PR do Github.
+- Passamos a calcular double, triple, quadra e ace separadamente [#606](https://github.com/3C-gg/reload-backend/issues/606).
+- Quantidade de rounds para detectar fim da partida agora é uma config [#605](https://github.com/3C-gg/reload-backend/issues/605).
+- Melhoramos os esquemas de FiveM para enviar somente campos que são necessários.
+- Movemos a lógica de tratamento da partida baseado na resposta do método `handle_create_fivem_match` para o método `set_player_ready` para não sobrecarregar o méotodo de apoio com funções que não são dele.
+- Alteramos o arquivo de template de PR no Github para algo mais simples e prático.
+- Removemos o workflow de buildar e fazer o push da imagem Docker para o GCP, visto que não estamos mais usando o GCP.
+- Alteramos os nomes dos arquivos de deploy para deixar somente o que executa no EC2.
+- Alteramos o conteúdo da mensagem que vai para o sistema do Freshdesk. E adicionamos as informações do usuário denunciado, caso tenha.
+
+## Fixed
+
+- Paginação da API não estava entregando a quantidade total de páginas corretamente [#618](https://github.com/3C-gg/reload-backend/issues/618).
+- Corrige os pontos perdidos para o jogador que perde partida e está no level 0 [#612](https://github.com/3C-gg/reload-backend/issues/612).
+- Corrigimos esquema `MatchPlayerProgressSchema` com campos `null` estava fazendo com que FE não renderizasse corretamente [#610](https://github.com/3C-gg/reload-backend/issues/610).
+- Detalhe de partida estava permitindo partidas canceladas. Agora estamos retornando 404 para essas partidas e apenas partidas finalizadas ou em andamento podem ser exibidas no FE [#609](https://github.com/3C-gg/reload-backend/issues/609).
+- Admin de notificações estava com erro ao carregar usuários online. Antigamente retornávamos um QS e agora estamos retornando uma lista. Contornamos o problema.
+
+## [ 24/7/2023 - 7e7192c]
+
 ### Special
 
 - Muitas coisas foram alteradas as pressas pra cumprir com a data de lançamento inicial. Um grande esforço foi aplicado para reduzir ao máximo a latência e o `load` das chamadas e das queries. Conseguimos reduzir de 120+ queries no banco para 10 em algumas chamadas. Também alteramos os Schemas, pois alguns deles estavam enviando informações desnecessárias, causando overload de rede e consultas no banco. Para nos ajudar nessa tarefa, instalamos a bilbioteca Silk para fazer inspeções e `profiling` das chamadas.

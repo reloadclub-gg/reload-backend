@@ -1,4 +1,3 @@
-from django.test import override_settings
 from django.utils import timezone
 from model_bakery import baker
 
@@ -15,7 +14,11 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
 
     def test_match_detail(self):
         server = baker.make(models.Server)
-        match = baker.make(models.Match, server=server)
+        match = baker.make(
+            models.Match,
+            server=server,
+            status=models.Match.Status.FINISHED,
+        )
         team1 = match.matchteam_set.create(name=self.team1.name)
         match.matchteam_set.create(name=self.team2.name)
         baker.make(models.MatchPlayer, user=self.user_1, team=team1)
@@ -63,7 +66,6 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
         )
         self.assertEqual(r.json().get('count'), 1)
 
-    @override_settings(DEBUG=False)
     def test_update(self):
         server = baker.make(models.Server)
         match = baker.make(
@@ -74,8 +76,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
         )
         match.matchteam_set.create(name=self.team1.name, score=10)
         match.matchteam_set.create(name=self.team2.name, score=6)
-        baker.make(models.MatchPlayer, team=match.team_a, user=self.user_1)
-        baker.make(models.MatchPlayer, team=match.team_b, user=self.user_2)
+        player1 = baker.make(models.MatchPlayer, team=match.team_a, user=self.user_1)
+        player2 = baker.make(models.MatchPlayer, team=match.team_b, user=self.user_2)
 
         r = self.api.call(
             'patch',
@@ -84,12 +86,43 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
                 'team_a_score': 9,
                 'team_b_score': 11,
                 'end_reason': 0,
-                'is_overtime': True,
+                'is_overtime': False,
                 'players_stats': [],
             },
-            token=self.user_1.auth.token,
         )
 
         self.assertEqual(match.team_a.score, 9)
         self.assertEqual(match.team_b.score, 11)
         self.assertEqual(r.status_code, 200)
+
+        r = self.api.call(
+            'patch',
+            f'/{match.id}',
+            data={
+                'team_a_score': 10,
+                'team_b_score': 11,
+                'end_reason': 0,
+                'is_overtime': False,
+                'players_stats': [],
+                'chat': [
+                    {
+                        'steamid': player1.user.account.steamid,
+                        'target': 'all',
+                        'message': 'test',
+                        'date': '4/6/2023 14:42:34',
+                    },
+                    {
+                        'steamid': player2.user.account.steamid,
+                        'target': 'all',
+                        'message': 'test 2',
+                        'date': '4/6/2023 14:44:34',
+                    },
+                ],
+            },
+        )
+
+        match.refresh_from_db()
+        self.assertEqual(match.team_a.score, 10)
+        self.assertEqual(match.team_b.score, 11)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(match.chat), 2)

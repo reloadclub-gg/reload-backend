@@ -96,6 +96,7 @@ class Match(models.Model):
     )
     game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)
+    chat = models.JSONField(null=True)
 
     class Meta:
         ordering = ['-end_date']
@@ -285,13 +286,13 @@ class MatchPlayer(models.Model):
             points = self.points_penalties
 
         if (
-            points > 0
-            or self.user.account.level > 0
-            or self.user.account.level_points >= abs(points)
+            self.user.account.level <= 0
+            and self.user.account.level_points <= 0
+            and points < 0
         ):
-            return points
+            return 0
 
-        return 0
+        return points
 
     def save(self, *args, **kwargs):
         adding = True if self._state.adding else False
