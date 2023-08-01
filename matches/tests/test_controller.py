@@ -254,15 +254,23 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
 
     @mock.patch('matches.api.controller.websocket.ws_match_update')
     def test_update_match_start(self, mock_match_update):
-        self.match.status = models.Match.Status.LOADING
+        self.match.status = models.Match.Status.WARMUP
+        self.match.start_date = None
+        print(self.match.start_date)
         self.match.save()
+
+        self.assertIsNone(self.match.start_date)
+        self.assertEqual(self.match.status, models.Match.Status.WARMUP)
 
         controller.update_match(
             self.match.id,
             schemas.MatchUpdateSchema.from_orm({'status': 'running'}),
         )
 
+        self.match.refresh_from_db()
         mock_match_update.assert_called_once()
+        self.assertIsNotNone(self.match.start_date)
+        self.assertEqual(self.match.status, models.Match.Status.RUNNING)
 
     @mock.patch('matches.api.controller.ws_update_user')
     @mock.patch('matches.api.controller.ws_friend_update_or_create')
