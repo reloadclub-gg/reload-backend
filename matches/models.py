@@ -73,6 +73,7 @@ class Map(models.Model):
 class Match(models.Model):
     class Status(models.TextChoices):
         LOADING = 'loading'
+        WARMUP = 'warmup'
         RUNNING = 'running'
         FINISHED = 'finished'
         CANCELLED = 'cancelled'
@@ -176,9 +177,16 @@ class Match(models.Model):
         for player in self.players:
             player.user.account.apply_points_earned(player.points_earned)
 
-    def start(self):
+    def warmup(self):
         if self.status != Match.Status.LOADING:
-            raise ValidationError(_('Unable to start match while not ready.'))
+            raise ValidationError(_('Unable to warmup while not loaded.'))
+
+        self.status = Match.Status.WARMUP
+        self.save()
+
+    def start(self):
+        if self.status != Match.Status.WARMUP:
+            raise ValidationError(_('Unable to start match while not warmed up.'))
 
         self.status = Match.Status.RUNNING
         self.start_date = timezone.now()

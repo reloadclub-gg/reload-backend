@@ -119,11 +119,19 @@ def get_match(user: User, match_id: int) -> models.Match:
 
 
 def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
-    match = get_object_or_404(
-        models.Match,
-        id=match_id,
-        status=models.Match.Status.RUNNING,
-    )
+    forbidden_statuses = [models.Match.Status.CANCELLED, models.Match.Status.FINISHED]
+    try:
+        match = models.Match.objects.exclude(status__in=forbidden_statuses).get(
+            id=match_id
+        )
+    except models.Match.DoesNotExist:
+        raise Http404
+
+    if payload.status == 'running':
+        match.status = models.Match.Status.RUNNING
+        match.refresh_from_db()
+        websocket.ws_match_update(match)
+        return
 
     team_a, team_b = models.MatchTeam.objects.filter(match=match)
 

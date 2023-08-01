@@ -28,19 +28,12 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
         baker.make(models.MatchTeam, match=match)
         payload = schemas.MatchSchema.from_orm(match).dict()
 
-        if match.status == models.Match.Status.LOADING:
-            status = 'loading'
-        elif match.status == models.Match.Status.RUNNING:
-            status = 'running'
-        else:
-            status = 'finished'
-
         expected_payload = {
             'id': match.id,
             'create_date': match.create_date.isoformat(),
             'start_date': match.start_date.isoformat() if match.start_date else None,
             'end_date': match.end_date.isoformat() if match.end_date else None,
-            'status': status,
+            'status': match.status,
             'game_type': match.game_type,
             'game_mode': match.game_mode,
             'server_ip': match.server.ip,
@@ -55,7 +48,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_player_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(models.Match, status=models.Match.Status.LOADING)
+        match = baker.make(models.Match, status=models.Match.Status.WARMUP)
         team = baker.make(models.MatchTeam, match=match, score=10)
         baker.make(models.MatchTeam, match=match)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
@@ -150,7 +143,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_player_progress_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(models.Match, status=models.Match.Status.LOADING)
+        match = baker.make(models.Match, status=models.Match.Status.WARMUP)
         team = baker.make(models.MatchTeam, match=match, score=10)
         baker.make(models.MatchTeam, match=match)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
@@ -178,7 +171,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_player_stats_schema(self):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
-        match = baker.make(models.Match, status=models.Match.Status.LOADING)
+        match = baker.make(models.Match, status=models.Match.Status.WARMUP)
         team = baker.make(models.MatchTeam, match=match, score=10)
         baker.make(models.MatchTeam, match=match)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)

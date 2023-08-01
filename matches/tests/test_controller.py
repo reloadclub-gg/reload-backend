@@ -4,7 +4,7 @@ from django.utils import timezone
 from model_bakery import baker
 from ninja.errors import Http404
 
-from accounts.utils import steamid64_to_hex
+from accounts.utils import hex_to_steamid64, steamid64_to_hex
 from core.tests import TestCase
 from pre_matches.tests.mixins import TeamsMixin
 
@@ -58,6 +58,9 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertTrue(match in results)
 
     def test_handle_update_players_stats(self):
+        self.user_1.account.steamid = '04085177656553014'
+        self.user_1.account.save()
+        self.user_1.account.refresh_from_db()
         payload = [
             schemas.MatchUpdatePlayerStats.from_orm(
                 {
@@ -84,7 +87,6 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             player__user=self.user_1,
             player__team__match=self.match,
         )
-
         self.assertEqual(player_stats.kills, 0)
         self.assertEqual(player_stats.hs_kills, 0)
         self.assertEqual(player_stats.deaths, 0)
@@ -155,7 +157,25 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(player_stats.double_kills, 1)
         self.assertEqual(player_stats.quadra_kills, 1)
 
-    def test_update_match_not_running(self):
+    def test_update_match_not_found(self):
+        self.match.status = models.Match.Status.CANCELLED
+        self.match.save()
+        with self.assertRaises(Http404):
+            controller.update_match(
+                self.match.id,
+                schemas.MatchUpdateSchema.from_orm(
+                    {
+                        'team_a_score': 0,
+                        'team_b_score': 1,
+                        'end_reason': 0,
+                        'is_overtime': False,
+                        'players_stats': [],
+                    }
+                ),
+            )
+
+        self.match.status = models.Match.Status.FINISHED
+        self.match.save()
         with self.assertRaises(Http404):
             controller.update_match(
                 self.match.id,
@@ -231,6 +251,18 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
 
         mock_friend_update.asser_not_called()
         mock_update_user.asser_not_called()
+
+    @mock.patch('matches.api.controller.websocket.ws_match_update')
+    def test_update_match_start(self, mock_match_update):
+        self.match.status = models.Match.Status.LOADING
+        self.match.save()
+
+        controller.update_match(
+            self.match.id,
+            schemas.MatchUpdateSchema.from_orm({'status': 'running'}),
+        )
+
+        mock_match_update.assert_called_once()
 
     @mock.patch('matches.api.controller.ws_update_user')
     @mock.patch('matches.api.controller.ws_friend_update_or_create')
