@@ -539,7 +539,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
 
         self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('ready'))
 
-    def test_state_canceled(self):
+    def test_state_cancelled(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
@@ -551,7 +551,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         past_time = (timezone.now() - elapsed_time).isoformat()
         cache.set(f'{pre_match.cache_key}:ready_time', past_time)
 
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('canceled'))
+        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('cancelled'))
 
     def test_countdown(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)

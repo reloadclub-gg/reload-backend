@@ -54,7 +54,7 @@ class PreMatch(BaseModel):
         READY_COUNTDOWN: int = settings.MATCH_READY_COUNTDOWN
         READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
         STATES = {
-            'canceled': -2,
+            'cancelled': -2,
             'idle': -1,
             'pre_start': 0,
             'lock_in': 1,
@@ -82,7 +82,7 @@ class PreMatch(BaseModel):
             and self.countdown <= PreMatch.Config.READY_COUNTDOWN_GAP
             and len(self.players_ready) < len(self.players)
         ):
-            return PreMatch.Config.STATES.get('canceled')
+            return PreMatch.Config.STATES.get('cancelled')
         else:
             return PreMatch.Config.STATES.get('idle')
 
