@@ -4,7 +4,7 @@ from django.utils import timezone
 from model_bakery import baker
 from ninja.errors import Http404
 
-from accounts.utils import hex_to_steamid64, steamid64_to_hex
+from accounts.utils import steamid64_to_hex
 from core.tests import TestCase
 from pre_matches.tests.mixins import TeamsMixin
 
