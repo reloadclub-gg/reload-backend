@@ -57,7 +57,7 @@ def ws_match_delete(match: models.Match):
     Delete match for its users on FE.
 
     Cases:
-    - Match was canceled due to external reasons.
+    - Match was cancelled due to external reasons.
 
     Payload:
     null
