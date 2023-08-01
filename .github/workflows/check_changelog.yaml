@@ -1,28 +1,41 @@
-name: Check CHANGELOG.md
+name: Changelog Check
 
-on:
-  workflow_call:
-  workflow_dispatch:
-  push:
+on: [push]
 
 jobs:
-  check_changelog:
+  changelog_check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # fetch all history so we can check any change in PR
 
-      - name: Get changes on changelog
-        id: changelog-changes
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            src:
-              - 'CHANGELOG.md'
-
-      - name: Check if CHANGELOG.md has changes
-        if: steps.changes.outputs.src == 'false'
+      - name: Get base branch
+        id: base_branch
         run: |
-          echo "CHANGELOG.md must be updated."
-          exit 1
+          PR_NUMBER=$(curl --silent --url https://api.github.com/repos/${{ github.repository }}/pulls?state=open \
+            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | jq '.[] | select(.head.sha == "${{ github.sha }}") | .number')
+          if [ -z "$PR_NUMBER" ]; then
+            # If not associated with a PR, compare with the previous commit
+            echo "::set-output name=branch::HEAD^"
+          else
+            # If associated with a PR, get the base branch
+            BASE_BRANCH=$(curl --silent --url https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER \
+              --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | jq -r .base.ref)
+            echo "::set-output name=branch::origin/$BASE_BRANCH"
+          fi
+
+      - name: Check for CHANGELOG.md changes
+        run: |
+          # Check the difference between the PR and the base branch
+          CHANGED=$(git diff --name-only ${{ steps.base_branch.outputs.branch }}...HEAD)
+
+          # If CHANGELOG.md is in the changes, pass the check
+          if echo "$CHANGED" | grep -q "CHANGELOG.md"; then
+            echo "CHANGELOG.md was updated. Check passed."
+            exit 0
+          else
+            echo "CHANGELOG.md was not updated. Check failed."
+            exit 1
+          fi
