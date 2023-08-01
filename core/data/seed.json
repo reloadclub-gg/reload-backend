@@ -622,7 +622,7 @@
             "create_date": "2023-04-19T15:36:20.725Z",
             "start_date": "2023-04-19T15:16:05Z",
             "end_date": "2023-04-19T15:36:06Z",
-            "status": 3,
+            "status": "finished",
             "game_type": "competitive",
             "game_mode": 5,
             "chat": [
@@ -655,7 +655,7 @@
             "create_date": "2023-04-19T15:36:41.163Z",
             "start_date": "2023-04-19T15:36:36Z",
             "end_date": null,
-            "status": 2,
+            "status": "running",
             "game_type": "competitive",
             "game_mode": 5
         }

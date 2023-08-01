@@ -89,7 +89,13 @@ class MatchesMatchModelTestCase(TeamsMixin, TestCase):
             self.user_1.account.level_points, self.match.players[0].points_earned
         )
 
+    def test_warmup(self):
+        self.assertEqual(self.match.status, Match.Status.LOADING)
+        self.match.warmup()
+        self.assertEqual(self.match.status, Match.Status.WARMUP)
+
     def test_start(self):
+        self.match.warmup()
         self.assertIsNone(self.match.start_date)
         self.match.start()
         self.assertEqual(self.match.status, Match.Status.RUNNING)

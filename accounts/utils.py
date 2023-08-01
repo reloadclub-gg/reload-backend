@@ -136,4 +136,4 @@ def steamid64_to_hex(steamid64: str) -> str:
 def hex_to_steamid64(steamid_hex: str) -> str:
     if not steamid_hex.startswith('0x'):
         steamid_hex = f'0x{steamid_hex}'
-    return str(int(steamid_hex, 0))
+    return str(int(steamid_hex, 0)).zfill(17)  # 17 is the size of steamid64

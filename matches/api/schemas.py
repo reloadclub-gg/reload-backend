@@ -130,7 +130,6 @@ class MatchSchema(ModelSchema):
     end_date: Optional[str] = None
     rounds: int
     winner_id: Optional[int] = None
-    status: str
     map: MapSchema
 
     class Config:
@@ -163,15 +162,6 @@ class MatchSchema(ModelSchema):
             return obj.winner.id
         return None
 
-    @staticmethod
-    def resolve_status(obj):
-        if obj.status == models.Match.Status.LOADING:
-            return 'loading'
-        elif obj.status == models.Match.Status.RUNNING:
-            return 'running'
-        else:
-            return 'finished'
-
 
 class MatchUpdatePlayerStats(Schema):
     steamid: str
@@ -192,12 +182,13 @@ class MatchUpdatePlayerStats(Schema):
 
 
 class MatchUpdateSchema(Schema):
-    team_a_score: int
-    team_b_score: int
-    end_reason: int
-    players_stats: List[MatchUpdatePlayerStats]
+    team_a_score: int = 0
+    team_b_score: int = 0
+    end_reason: int = None
+    players_stats: List[MatchUpdatePlayerStats] = []
     is_overtime: bool = False
     chat: list = None
+    status: str = None
 
 
 class MatchTeamPlayerFiveMSchema(ModelSchema):

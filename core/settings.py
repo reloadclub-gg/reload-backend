@@ -329,9 +329,11 @@ MATCH_READY_COUNTDOWN = (
 MATCH_READY_COUNTDOWN_GAP = config('MATCH_READY_COUNTDOWN_GAP', default=-4, cast=int)
 MATCHES_LIMIT_PER_SERVER = config('MATCHES_LIMIT_PER_SERVER', default=20, cast=int)
 MATCHES_LIMIT_PER_SERVER_GAP = config(
-    'MATCHES_LIMIT_PER_SERVER_GAP', default=5, cast=int
+    'MATCHES_LIMIT_PER_SERVER_GAP',
+    default=5,
+    cast=int,
 )
-MATCH_MOCK_DELAY_START = config('MATCH_MOCK_DELAY_START', default=5, cast=int)
+
 
 # Player Dodges & Restriction Settings
 PLAYER_DODGES_EXPIRE_TIME = config(
@@ -376,8 +378,19 @@ PAGINATION_PER_PAGE = 10
 
 
 # FiveM Settings
-FIVEM_MOCK_MATCH_CREATION_SUCCESS = config(
-    'FIVEM_MOCK_MATCH_CREATION_SUCCESS',
+FIVEM_MATCH_MOCK_CREATION_SUCCESS = config(
+    'FIVEM_MATCH_MOCK_CREATION_SUCCESS',
     default=True,
     cast=bool,
+)
+
+FIVEM_MATCH_MOCK_DELAY_START = config(
+    'FIVEM_MATCH_MOCK_DELAY_START',
+    default=10,
+    cast=int,
+)
+FIVEM_MATCH_MOCK_DELAY_CONFIGURE = config(
+    'FIVEM_MATCH_MOCK_DELAY_CONFIGURE',
+    default=5,
+    cast=int,
 )
