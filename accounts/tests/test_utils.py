@@ -43,10 +43,21 @@ class AccountsTestUtilsTestCase(TestCase):
         self.assertFalse(hexa.startswith('0x'))
         self.assertEqual(hexa, 'c8f21c2632a54c')
 
+    def test_steamid64_to_hex_zeroes(self):
+        steamid64 = '00001198055990604'
+        hexa = utils.steamid64_to_hex(steamid64)
+        self.assertFalse(hexa.startswith('0x'))
+        self.assertEqual(hexa, '116f1b3a54c')
+
     def test_hex_to_steamid64(self):
         steamid_hex = 'c8f21c3e09b41c'
         steamid64 = utils.hex_to_steamid64(steamid_hex)
         self.assertEqual(steamid64, '56561198455960604')
+
+    def test_hex_to_steamid64_zeroes(self):
+        steamid_hex = '0x116f1b3a54c'
+        steamid64 = utils.hex_to_steamid64(steamid_hex)
+        self.assertEqual(steamid64, '00001198055990604')
 
 
 class AccountsUtilsWithUsersTestCase(mixins.UserOneMixin, TestCase):

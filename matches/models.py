@@ -71,11 +71,12 @@ class Map(models.Model):
 
 
 class Match(models.Model):
-    class Status(models.IntegerChoices):
-        LOADING = 0
-        RUNNING = 1
-        FINISHED = 2
-        CANCELLED = 3
+    class Status(models.TextChoices):
+        LOADING = 'loading'
+        WARMUP = 'warmup'
+        RUNNING = 'running'
+        FINISHED = 'finished'
+        CANCELLED = 'cancelled'
 
     class GameType(models.TextChoices):
         CUSTOM = 'custom'
@@ -91,8 +92,10 @@ class Match(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
-    status = models.IntegerField(
-        choices=Status.choices, default=0, blank=True, null=True
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default='loading',
     )
     game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)
@@ -174,9 +177,16 @@ class Match(models.Model):
         for player in self.players:
             player.user.account.apply_points_earned(player.points_earned)
 
-    def start(self):
+    def warmup(self):
         if self.status != Match.Status.LOADING:
-            raise ValidationError(_('Unable to start match while not ready.'))
+            raise ValidationError(_('Unable to warmup while not loaded.'))
+
+        self.status = Match.Status.WARMUP
+        self.save()
+
+    def start(self):
+        if self.status != Match.Status.WARMUP:
+            raise ValidationError(_('Unable to start match while not warmed up.'))
 
         self.status = Match.Status.RUNNING
         self.start_date = timezone.now()

@@ -58,7 +58,7 @@ def ws_pre_match_update(pre_match: models.PreMatch):
 def ws_pre_match_delete(pre_match: models.PreMatch):
     """
     Triggered when some player didn't get ready by the ready countdown end.
-    The match creation is canceled and the pre_match is deleted.
+    The match creation is cancelled and the pre_match is deleted.
     Lobbies that all players marked theyselves as ready, will get back to queue automatically.
     The ones that have players who didn't get ready in time, will receive a dodge
     in their accounts and can be restricted.

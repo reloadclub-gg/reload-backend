@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Tarefa para simular chamada de start de partida do FiveM.
 - Comando de manutenção `create_some_matches` que cria a quantidade de partidas informada por parâmetro na linha de comando.
 - Admin com times, players e chats na partida.
 - Chats de partida no `seed.json`.
@@ -19,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Envia websocket `matches/delete` ao receber um cancelamento de partida do FiveM [#626](https://github.com/3C-gg/reload-backend/issues/626).
+- Altera "cancled" com "L" para "cancelled" com 2 "L"s.
+- Altera esquema `MatchUpdateSchema` para receber um campo `status`, que deve atualizar o status da partida quando recebido.
+- Altera nome de configurações relativas aos mocks do FiveM.
+- Altera campo `status` do modelo `Match` para texto e passa a utilizar status `loading` [#620](https://github.com/3C-gg/reload-backend/issues/620).
 - Altera nome da configuração de rounds necessários para vencer uma partida de `WIN_ROUNDS` para `MATCH_ROUNDS_TO_WIN`.
 - Quantidade padrão de rounds para ganhar (16 -> 15) [#618](https://github.com/3C-gg/reload-backend/issues/618).
 - Template de email de verificar conta agora não tem mais link no código de verificação [#603](https://github.com/3C-gg/reload-backend/issues/603).
@@ -34,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Corrige tarefa que chama api em ambiente local para setar partida como pronta (mock do FiveM) [#624](https://github.com/3C-gg/reload-backend/issues/624).
+- Em alguns casos, precisamos converter o steamid64 para hexadecimal para "conversar" com o servidor de jogo (FiveM). Como geramos usuários e steamids fakes, em alguns casos, estávamos gerando o steamid64 com 0s na frente. O código de conversão ignorava esses 0s a esquerda do número e ao "re-converter" para steamid64, os 0s originais não eram adicionados, fazendo com que, alguns testes falhassem "de vez em quando". Consertamos esse comportamento.
 - Paginação da API não estava entregando a quantidade total de páginas corretamente [#618](https://github.com/3C-gg/reload-backend/issues/618).
 - Corrige os pontos perdidos para o jogador que perde partida e está no level 0 [#612](https://github.com/3C-gg/reload-backend/issues/612).
 - Corrigimos esquema `MatchPlayerProgressSchema` com campos `null` estava fazendo com que FE não renderizasse corretamente [#610](https://github.com/3C-gg/reload-backend/issues/610).
@@ -59,7 +67,7 @@ Ao testar com o Locust (outra ferramenta bem importante nesse processo), usando 
 - Adiciona proteção no conteúdo de `social_user.extra_data` para sempre transformar para dict antes de usar.
 - Endpoint para cancelamento de partida a partir do FiveM [#334](https://github.com/3C-gg/reload-backend/issues/334).
 - Chamada para criação de partida no FiveM na criação de partida [#243](https://github.com/3C-gg/reload-backend/issues/243).
-- Configs (`MATCH_MOCK_DELAY_START` e `FIVEM_MOCK_MATCH_CREATION_SUCCESS`) de testes locais para mock de início de partidas no FiveM.
+- Configs (`FIVEM_MATCH_MOCK_DELAY_START` e `FIVEM_MATCH_MOCK_CREATION_SUCCESS`) de testes locais para mock de início de partidas no FiveM.
 - Mixin de testes para lobbies.
 - Tarefas de `queue` e `matchmaking` que percorrem os lobbies em fila para montar partidas. Essas tarefas entram para substituir a formação de times e oponentes ao iniciar a fila.
 - Método para trazer todos os lobbies em fila no modelo `Lobby`.
