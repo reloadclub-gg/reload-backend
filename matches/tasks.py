@@ -6,8 +6,9 @@ from django.conf import settings
 @shared_task
 def mock_fivem_match_start(match_id: int):
     if settings.ENVIRONMENT == settings.LOCAL:
+        url = f'http://django:8000/api/matches/{match_id}/'
         r = requests.patch(
-            settings.SITE_URL + f'/match/{match_id}/',
-            {'status': 'running'},
+            url,
+            json={'status': 'running'},
         )
         print(r)

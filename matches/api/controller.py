@@ -128,8 +128,7 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
         raise Http404
 
     if payload.status == 'running':
-        match.status = models.Match.Status.RUNNING
-        match.refresh_from_db()
+        match.start()
         websocket.ws_match_update(match)
         return
 
