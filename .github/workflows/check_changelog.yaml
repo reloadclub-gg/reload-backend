@@ -1,6 +1,8 @@
 name: Changelog Check
 
-on: [push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   changelog_check:
@@ -11,25 +13,10 @@ jobs:
         with:
           fetch-depth: 0  # fetch all history so we can check any change in PR
 
-      - name: Get base branch
-        id: base_branch
-        run: |
-          PR_NUMBER=$(curl --silent --url https://api.github.com/repos/${{ github.repository }}/pulls?state=open \
-            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | jq '.[] | select(.head.sha == "${{ github.sha }}") | .number')
-          if [ -z "$PR_NUMBER" ]; then
-            # If not associated with a PR, compare with the previous commit
-            echo "::set-output name=branch::HEAD^"
-          else
-            # If associated with a PR, get the base branch
-            BASE_BRANCH=$(curl --silent --url https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER \
-              --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | jq -r .base.ref)
-            echo "::set-output name=branch::origin/$BASE_BRANCH"
-          fi
-
       - name: Check for CHANGELOG.md changes
         run: |
           # Check the difference between the PR and the base branch
-          CHANGED=$(git diff --name-only ${{ steps.base_branch.outputs.branch }}...HEAD)
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
 
           # If CHANGELOG.md is in the changes, pass the check
           if echo "$CHANGED" | grep -q "CHANGELOG.md"; then
