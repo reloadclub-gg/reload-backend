@@ -14,7 +14,7 @@ from friends.websocket import ws_friend_update_or_create
 from matches.api.schemas import FiveMMatchResponseMock, MatchFiveMSchema
 from matches.models import Match, MatchPlayer, Server
 from matches.tasks import mock_fivem_match_start
-from matches.websocket import ws_match_create, ws_match_update
+from matches.websocket import ws_match_create, ws_match_delete, ws_match_update
 
 from .. import models, tasks, websocket
 
@@ -165,6 +165,8 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
             fivem_response = handle_create_fivem_match(match)
             if fivem_response.status_code != 201:
                 match.cancel()
+                ws_match_delete(match)
+                return match
             else:
                 match.warmup()
                 if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
@@ -174,7 +176,8 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
                         serializer='json',
                     )
 
-            ws_match_update(match)
+                ws_match_update(match)
+
             return match
 
     return pre_match
