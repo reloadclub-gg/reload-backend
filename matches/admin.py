@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from accounts.models import Account
+from accounts.utils import hex_to_steamid64
 from core.admin_mixins import ReadOnlyModelAdminMixin, SuperUserOnlyAdminMixin
 
 from . import models
@@ -114,7 +115,9 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
 
         if match.chat:
             for message in match.chat:
-                account = Account.objects.get(steamid=message['steamid'])
+                account = Account.objects.get(
+                    steamid=hex_to_steamid64(message['steamid'])
+                )
                 message['user_id'] = account.user.id
                 message['username'] = account.username
                 chat_data.append(message)
