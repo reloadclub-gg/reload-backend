@@ -18,7 +18,11 @@ def detail(request, match_id: int):
     return controller.get_match(request.user, match_id)
 
 
-@router.get('/', auth=VerifiedRequiredAuth(), response={200: List[schemas.MatchSchema]})
+@router.get(
+    '/',
+    auth=VerifiedRequiredAuth(),
+    response={200: List[schemas.MatchListItemSchema]},
+)
 @paginate(Pagination)
 def list(request, user_id: int = None):
     return controller.get_user_matches(request.user, user_id)
