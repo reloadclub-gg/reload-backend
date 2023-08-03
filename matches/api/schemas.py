@@ -134,7 +134,7 @@ class MatchSchema(ModelSchema):
 
     class Config:
         model = models.Match
-        model_exclude = ['server']
+        model_exclude = ['server', 'chat']
 
     @staticmethod
     def resolve_server_ip(obj):
@@ -242,3 +242,20 @@ class MatchFiveMSchema(ModelSchema):
 
 class FiveMMatchResponseMock(Schema):
     status_code: int
+
+
+class MatchListItemStatsSchema(Schema):
+    adr: float = 0.00
+    kdr: float = 0.00
+    kda: str = '0/0/0'
+    head_accuracy: int = 0
+    firstkills: int = 0
+
+
+class MatchListItemSchema(Schema):
+    id: int
+    map_name: str
+    end_date: str
+    won: bool
+    score: str
+    stats: MatchListItemStatsSchema

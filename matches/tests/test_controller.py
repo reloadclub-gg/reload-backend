@@ -40,8 +40,6 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
 
         results = controller.get_user_matches(self.user_1)
         self.assertEqual(len(results), 2)
-        self.assertTrue(self.match in results)
-        self.assertTrue(match2 in results)
 
         match = baker.make(
             models.Match,
@@ -55,7 +53,6 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
 
         results = controller.get_user_matches(self.user_1, self.user_2.id)
         self.assertEqual(len(results), 2)
-        self.assertTrue(match in results)
 
     def test_handle_update_players_stats(self):
         self.user_1.account.steamid = '04085177656553014'

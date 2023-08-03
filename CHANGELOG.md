@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Refatora lista de partidas de perfil para entregar somente o que é necessário ao FE [#634](https://github.com/3C-gg/reload-backend/issues/634).
 - Envia websocket `matches/delete` ao receber um cancelamento de partida do FiveM [#626](https://github.com/3C-gg/reload-backend/issues/626).
 - Altera "cancled" com "L" para "cancelled" com 2 "L"s.
 - Altera esquema `MatchUpdateSchema` para receber um campo `status`, que deve atualizar o status da partida quando recebido.

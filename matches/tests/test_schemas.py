@@ -41,7 +41,6 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'rounds': match.rounds,
             'winner_id': match.winner.id if match.winner else None,
             'map': schemas.MapSchema.from_orm(map),
-            'chat': None,
         }
         self.assertDictEqual(payload, expected_payload)
 
@@ -120,7 +119,6 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'rounds': match.rounds,
             'winner_id': match.winner.id if match.winner else None,
             'map': schemas.MapSchema.from_orm(map),
-            'chat': None,
         }
         self.assertDictEqual(payload, expected_payload)
 
