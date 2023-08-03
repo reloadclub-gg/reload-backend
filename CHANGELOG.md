@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Refatora lista de partidas de perfil para entregar somente o que é necessário ao FE [#634](https://github.com/3C-gg/reload-backend/issues/634).
 - Envia websocket `matches/delete` ao receber um cancelamento de partida do FiveM [#626](https://github.com/3C-gg/reload-backend/issues/626).
 - Altera "cancled" com "L" para "cancelled" com 2 "L"s.
 - Altera esquema `MatchUpdateSchema` para receber um campo `status`, que deve atualizar o status da partida quando recebido.
@@ -41,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 
 - Lista de chat no admin de partidas estava dando erro. Não estávamos convertendo o steamid retornado pelo FiveM que é em hexadecimal antes de tentar trazer a conta do usuário que enviou a mensagem. Corrigimos para fazer a conversão [#632](https://github.com/3C-gg/reload-backend/issues/632).
+- Workflow do Github que checa se CHANGELOG.md foi alterado [#269](https://github.com/3C-gg/reload-backend/issues/269).
+- Ajusta redirecionamento da Steam em ambiente local sem porta no domínio: `localhost` quando deveria ser `localhost:8000` [#629](https://github.com/3C-gg/reload-backend/issues/629).
 - Corrige tarefa que chama api em ambiente local para setar partida como pronta (mock do FiveM) [#624](https://github.com/3C-gg/reload-backend/issues/624).
 - Em alguns casos, precisamos converter o steamid64 para hexadecimal para "conversar" com o servidor de jogo (FiveM). Como geramos usuários e steamids fakes, em alguns casos, estávamos gerando o steamid64 com 0s na frente. O código de conversão ignorava esses 0s a esquerda do número e ao "re-converter" para steamid64, os 0s originais não eram adicionados, fazendo com que, alguns testes falhassem "de vez em quando". Consertamos esse comportamento.
 - Paginação da API não estava entregando a quantidade total de páginas corretamente [#618](https://github.com/3C-gg/reload-backend/issues/618).

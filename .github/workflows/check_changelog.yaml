@@ -1,28 +1,28 @@
-name: Check CHANGELOG.md
+name: Changelog Check
 
 on:
-  workflow_call:
-  workflow_dispatch:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-  check_changelog:
+  changelog_check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # fetch all history so we can check any change in PR
 
-      - name: Get changes on changelog
-        id: changelog-changes
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            src:
-              - 'CHANGELOG.md'
-
-      - name: Check if CHANGELOG.md has changes
-        if: steps.changes.outputs.src == 'false'
+      - name: Check for CHANGELOG.md changes
         run: |
-          echo "CHANGELOG.md must be updated."
-          exit 1
+          # Check the difference between the PR and the base branch
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # If CHANGELOG.md is in the changes, pass the check
+          if echo "$CHANGED" | grep -q "CHANGELOG.md"; then
+            echo "CHANGELOG.md was updated. Check passed."
+            exit 0
+          else
+            echo "CHANGELOG.md was not updated. Check failed."
+            exit 1
+          fi

@@ -1,3 +1,4 @@
+import math
 from typing import List
 
 from django.conf import settings
@@ -90,14 +91,41 @@ def handle_update_players_stats(
     )
 
 
-def get_user_matches(user: User, user_id: int = None) -> List[models.Match]:
+def get_user_matches(
+    user: User, user_id: int = None
+) -> List[schemas.MatchListItemSchema]:
     search_id = user.id if not user_id else user_id
 
-    matches_ids = models.MatchPlayer.objects.filter(
-        user=search_id,
-        team__match__status=models.Match.Status.FINISHED,
-    ).values_list('team__match', flat=True)
-    return models.Match.objects.filter(id__in=matches_ids)
+    match_players = models.MatchPlayer.objects.filter(
+        user_id=search_id, team__match__status=models.Match.Status.FINISHED
+    ).select_related('team__match', 'stats', 'team')
+
+    response = []
+    for player in match_players:
+        match = player.team.match
+        user_team = player.team
+        opponent_team = (
+            match.team_a if user_team.id == match.team_b.id else match.team_b
+        )
+
+        response.append(
+            {
+                'id': match.id,
+                'map_name': match.map.name,
+                'end_date': match.end_date.isoformat(),
+                'won': user_team.id == match.winner.id,
+                'score': f'{user_team.score}:{opponent_team.score}',
+                'stats': {
+                    'kda': f'{player.stats.kills}/{player.stats.deaths}/{player.stats.assists}',
+                    'kdr': player.stats.kdr,
+                    'head_accuracy': math.ceil(player.stats.head_accuracy),
+                    'adr': player.stats.adr,
+                    'firstkills': player.stats.firstkills,
+                },
+            }
+        )
+
+    return response
 
 
 def get_match(user: User, match_id: int) -> models.Match:
