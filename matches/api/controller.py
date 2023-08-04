@@ -95,9 +95,13 @@ def get_user_matches(
 ) -> List[schemas.MatchListItemSchema]:
     search_id = user.id if not user_id else user_id
 
-    match_players = models.MatchPlayer.objects.filter(
-        user_id=search_id, team__match__status=models.Match.Status.FINISHED
-    ).select_related('team__match', 'stats', 'team')
+    match_players = (
+        models.MatchPlayer.objects.filter(
+            user_id=search_id, team__match__status=models.Match.Status.FINISHED
+        )
+        .select_related('team__match', 'stats', 'team')
+        .order_by('-team__match__end_date')
+    )
 
     response = []
     for player in match_players:

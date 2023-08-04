@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Ajusta ordenação do qs de lista de partidas de um usuário para trazer as mais recentes primeiro.
 - Quando a aplicação não consegue criar a partida no FiveM, estávamos apenas cancelando a partida, sem enviar as devidas atualizações de usuário e amigos via websocket para o FE. Corrigimos para chamar sempre a mesma função de cancelamento independente da situação.
 - Cancelamento de partida vindo do FiveM não estava funcionando para partidas em status de aquecimento (`matches.models.Match.Status.WARMUP`) [#637](https://github.com/3C-gg/reload-backend/issues/637).
 - Lista de chat no admin de partidas estava dando erro. Não estávamos convertendo o steamid retornado pelo FiveM que é em hexadecimal antes de tentar trazer a conta do usuário que enviou a mensagem. Corrigimos para fazer a conversão [#632](https://github.com/3C-gg/reload-backend/issues/632).
