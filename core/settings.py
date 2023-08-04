@@ -390,8 +390,15 @@ FIVEM_MATCH_MOCK_DELAY_START = config(
     default=10,
     cast=int,
 )
+
 FIVEM_MATCH_MOCK_DELAY_CONFIGURE = config(
     'FIVEM_MATCH_MOCK_DELAY_CONFIGURE',
     default=5,
     cast=int,
+)
+
+FIVEM_MATCH_MOCK_START_SUCCESS = config(
+    'FIVEM_MATCH_MOCK_START_SUCCESS',
+    default=True,
+    cast=bool,
 )
