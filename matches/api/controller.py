@@ -4,7 +4,6 @@ from typing import List
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
 
 from accounts.utils import hex_to_steamid64
@@ -194,11 +193,12 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
 
 
 def cancel_match(match_id: int):
-    match = get_object_or_404(
-        models.Match,
-        id=match_id,
-        status__in=[models.Match.Status.RUNNING, models.Match.Status.LOADING],
-    )
+    try:
+        match = models.Match.objects.exclude(
+            status__in=[models.Match.Status.CANCELLED, models.Match.Status.FINISHED]
+        ).get(id=match_id)
+    except models.Match.DoesNotExist:
+        raise Http404
 
     match.cancel()
     websocket.ws_match_delete(match)

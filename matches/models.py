@@ -167,7 +167,7 @@ class Match(models.Model):
         return f'#{self.id} - waiting for team creation'
 
     def finish(self):
-        if self.status != Match.Status.RUNNING:
+        if self.status not in [Match.Status.RUNNING, Match.Status.WARMUP]:
             raise ValidationError(_('Unable to finish match while not running.'))
 
         self.status = Match.Status.FINISHED
