@@ -23,6 +23,10 @@ app.conf.beat_schedule = {
         'task': 'lobbies.tasks.queue',
         'schedule': 1.0,
     },
+    'delete_old_cancelled_matches': {
+        'task': 'matches.tasks.delete_old_cancelled_matches',
+        'schedule': crontab(minute=0, hour=0),
+    },
 }
 
 

@@ -8,5 +8,5 @@ class ProfilesControllerTestCase(VerifiedAccountsMixin, TestCase):
         profile = controller.detail(user_id=self.user_1.id)
         self.assertEqual(profile.user.id, self.user_1.id)
 
-        profile = controller.detail(steamid=int(self.user_1.steam_user.steamid))
+        profile = controller.detail(steamid=self.user_1.account.steamid)
         self.assertEqual(profile.user.id, self.user_1.id)
