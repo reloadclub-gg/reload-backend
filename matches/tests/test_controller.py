@@ -371,7 +371,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
     @mock.patch('matches.api.controller.ws_update_user')
     @mock.patch('matches.api.controller.ws_friend_update_or_create')
     @mock.patch('matches.api.controller.websocket.ws_match_delete')
-    def test_cancel_match(
+    def test_cancel_match_loading(
         self,
         mock_match_delete,
         mock_friend_update,
@@ -387,3 +387,50 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         mock_match_delete.assert_called_once()
         self.assertEqual(mock_friend_update.call_count, 2)
         self.assertEqual(mock_update_user.call_count, 2)
+
+    @mock.patch('matches.api.controller.ws_update_user')
+    @mock.patch('matches.api.controller.ws_friend_update_or_create')
+    @mock.patch('matches.api.controller.websocket.ws_match_delete')
+    def test_cancel_match_running(
+        self,
+        mock_match_delete,
+        mock_friend_update,
+        mock_update_user,
+    ):
+        self.match.status = models.Match.Status.RUNNING
+        self.match.save()
+
+        controller.cancel_match(self.match.id)
+        self.match.refresh_from_db()
+        self.assertEqual(self.match.status, models.Match.Status.CANCELLED)
+
+        mock_match_delete.assert_called_once()
+        self.assertEqual(mock_friend_update.call_count, 2)
+        self.assertEqual(mock_update_user.call_count, 2)
+
+    @mock.patch('matches.api.controller.ws_update_user')
+    @mock.patch('matches.api.controller.ws_friend_update_or_create')
+    @mock.patch('matches.api.controller.websocket.ws_match_delete')
+    def test_cancel_match_warmup(
+        self,
+        mock_match_delete,
+        mock_friend_update,
+        mock_update_user,
+    ):
+        self.match.status = models.Match.Status.WARMUP
+        self.match.save()
+
+        controller.cancel_match(self.match.id)
+        self.match.refresh_from_db()
+        self.assertEqual(self.match.status, models.Match.Status.CANCELLED)
+
+        mock_match_delete.assert_called_once()
+        self.assertEqual(mock_friend_update.call_count, 2)
+        self.assertEqual(mock_update_user.call_count, 2)
+
+    def test_cancel_match_error(self):
+        self.match.status = models.Match.Status.CANCELLED
+        self.match.save()
+
+        with self.assertRaises(Http404):
+            controller.cancel_match(self.match.id)
