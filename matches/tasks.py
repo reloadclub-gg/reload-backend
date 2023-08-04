@@ -12,3 +12,14 @@ def mock_fivem_match_start(match_id: int):
             json={'status': 'running'},
         )
         print(r)
+
+
+@shared_task
+def mock_fivem_match_cancel(match_id: int):
+    if settings.ENVIRONMENT == settings.LOCAL:
+        url = f'http://django:8000/api/matches/{match_id}/'
+        r = requests.delete(
+            url,
+            json={'status': 'cancelled'},
+        )
+        print(r)
