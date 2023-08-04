@@ -66,7 +66,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     @mock.patch('pre_matches.api.controller.ws_update_user')
     @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_delete')
     @mock.patch('pre_matches.api.controller.ws_create_toast')
-    def test_handle_cancel_match(
+    def test_handle_create_match_failed(
         self,
         mock_create_toast,
         mock_pre_match_delete,
@@ -82,7 +82,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
 
-        controller.handle_cancel_match(pre_match)
+        controller.handle_create_match_failed(pre_match)
 
         mock_calls = [
             mock.call(self.user_1),
@@ -179,6 +179,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         with self.assertRaises(HttpError):
             controller.set_player_ready(self.user_1)
 
+    @override_settings(FIVEM_MATCH_MOCK_START_SUCCESS=True)
     @mock.patch('pre_matches.api.controller.mock_fivem_match_start.apply_async')
     @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
     def test_set_player_ready_create_match(self, mock_fivem, mock_match_start):
@@ -201,6 +202,34 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(self.user_1.account.get_match().status, Match.Status.WARMUP)
         mock_fivem.assert_called_once()
         mock_match_start.assert_called_once()
+
+    @override_settings(FIVEM_MATCH_MOCK_START_SUCCESS=False)
+    @mock.patch('pre_matches.api.controller.mock_fivem_match_cancel.apply_async')
+    @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
+    def test_set_player_ready_create_match_start_failed(
+        self,
+        mock_fivem,
+        mock_match_cancel,
+    ):
+        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        Server.objects.create(ip='123.123.123.123', name='Reload 1')
+        mock_fivem.return_value.status_code = 201
+        for player in pre_match.players:
+            pre_match.set_player_lock_in(player.id)
+
+        pre_match.start_players_ready_countdown()
+
+        for player in pre_match.players[:-1]:
+            pre_match.set_player_ready(player.id)
+
+        self.assertIsNone(self.user_1.account.get_match())
+
+        controller.set_player_ready(pre_match.players[-1:][0])
+        self.user_1.account.refresh_from_db()
+        self.assertIsNotNone(self.user_1.account.get_match())
+        self.assertEqual(self.user_1.account.get_match().status, Match.Status.WARMUP)
+        mock_fivem.assert_called_once()
+        mock_match_cancel.assert_called_once()
 
     @override_settings(
         FIVEM_MATCH_MOCK_DELAY_START=0,
