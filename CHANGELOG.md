@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Tarefa agendada para rodar diariamente que deleta partidas canceladas que já tenham terminado a mais de um dia [#622](https://github.com/3C-gg/reload-backend/issues/622).
 - Nova config para escolher se o mock do FiveM vai enviar um pedido para cancelar ou para iniciar a partida.
 - Tarefa para simular chamada de cancelamento de partida do FiveM.
 - Tarefa para simular chamada de start de partida do FiveM.
@@ -43,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Corrige teste de detalhe de perfil que falhava de maneira itermitente. Isso acontecia devido a um cast do campo `steamid` para `int`, que para testes, é gerado artificialmente, podendo, as vezes, começar com `0`. Quando a conversão para `int` acontecia, ela removia os `0`s iniciais, deixando o valor diferente do cadastrado na conta do usuário.
 - Ajusta ordenação do qs de lista de partidas de um usuário para trazer as mais recentes primeiro.
 - Quando a aplicação não consegue criar a partida no FiveM, estávamos apenas cancelando a partida, sem enviar as devidas atualizações de usuário e amigos via websocket para o FE. Corrigimos para chamar sempre a mesma função de cancelamento independente da situação.
 - Cancelamento de partida vindo do FiveM não estava funcionando para partidas em status de aquecimento (`matches.models.Match.Status.WARMUP`) [#637](https://github.com/3C-gg/reload-backend/issues/637).
