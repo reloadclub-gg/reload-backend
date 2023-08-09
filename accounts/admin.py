@@ -11,6 +11,7 @@ from social_django.models import Association, Nonce, UserSocialAuth
 
 from core import admin_mixins
 from matches.models import MatchPlayer
+from store.models import UserItem
 
 from . import models
 
@@ -128,6 +129,11 @@ class UserReportsAdminInline(admin.TabularInline):
     subject_link.short_description = 'Subject'
 
 
+class UserInventoryAdminInline(admin.TabularInline):
+    model = UserItem
+    extra = 0
+
+
 @admin.register(models.User)
 class UserAdmin(
     DjangoObjectActions,
@@ -212,7 +218,12 @@ class UserAdmin(
     )
     ordering = ('-date_joined', '-last_login', 'email', 'account__level')
     list_filter = ('is_active', 'is_staff', 'account__is_verified')
-    inlines = [UserLoginAdminInline, UserMatchesAdminInline, UserReportsAdminInline]
+    inlines = [
+        UserLoginAdminInline,
+        UserMatchesAdminInline,
+        UserReportsAdminInline,
+        UserInventoryAdminInline,
+    ]
 
     def is_online(self, obj):
         return obj.is_online
