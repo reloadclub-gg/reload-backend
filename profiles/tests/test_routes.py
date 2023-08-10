@@ -77,3 +77,23 @@ class ProfilesRoutesTestCase(VerifiedAccountsMixin, TestCase):
 
         r = self.api.call('get', f'/?user_id={123}', token=self.user_1.auth.token)
         self.assertEqual(r.status_code, 404)
+
+    def test_update(self):
+        self.user_1.auth.create_token()
+        self.assertEqual(
+            self.user_1.account.social_handles,
+            {'twitch': None, 'discord': None, 'youtube': None},
+        )
+        self.api.call(
+            'patch',
+            '/',
+            token=self.user_1.auth.token,
+            data={
+                'social_handles': {'twitch': 'username', 'othersocial': 'otherusername'}
+            },
+        )
+        self.user_1.account.refresh_from_db()
+        self.assertEqual(
+            self.user_1.account.social_handles,
+            {'twitch': 'username', 'discord': None, 'youtube': None},
+        )

@@ -26,9 +26,14 @@ User = get_user_model()
 cache = RedisClient()
 
 
+def get_default_social_handles():
+    return dict.fromkeys(Account.AVAILABLE_SOCIAL_HANDLES, None)
+
+
 class Account(models.Model):
     VERIFICATION_TOKEN_LENGTH = 6
     DEBUG_VERIFICATION_TOKEN = "debug0"
+    AVAILABLE_SOCIAL_HANDLES = ['twitch', 'youtube', 'discord']
 
     class MatchResults:
         WIN = 'V'
@@ -46,6 +51,7 @@ class Account(models.Model):
         validators=[MinLengthValidator(VERIFICATION_TOKEN_LENGTH)],
         max_length=VERIFICATION_TOKEN_LENGTH,
     )
+    social_handles = models.JSONField(default=get_default_social_handles)
 
     class Meta:
         indexes = [

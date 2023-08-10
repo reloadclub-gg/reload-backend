@@ -1,6 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
 from accounts.models import Account
+
+from . import schemas
+
+User = get_user_model()
 
 
 def detail(user_id: int = None, steamid: str = None, username: str = None) -> Account:
@@ -18,3 +23,14 @@ def detail(user_id: int = None, steamid: str = None, username: str = None) -> Ac
         )
 
     return get_object_or_404(Account, **query_args)
+
+
+def update(user: User, payload: schemas.ProfileUpdateSchema):
+    valid_handles = {
+        key: value
+        for key, value in payload.social_handles.items()
+        if key in Account.AVAILABLE_SOCIAL_HANDLES
+    }
+    user.account.social_handles.update(valid_handles)
+    user.account.save()
+    return user.account

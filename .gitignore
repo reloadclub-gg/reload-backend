@@ -6,6 +6,7 @@ __pycache__/
 database/
 .cache/
 static/*
+media/*
 *.pem
 api*.json
 tmp/
