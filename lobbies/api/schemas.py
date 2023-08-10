@@ -17,6 +17,7 @@ class LobbyPlayerSchema(ModelSchema):
     matches_played: int
     latest_matches_results: list
     steam_url: str
+    status: str
 
     class Config:
         model = Account
@@ -41,6 +42,10 @@ class LobbyPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_steam_url(obj):
         return obj.user.steam_user.profileurl
+
+    @staticmethod
+    def resolve_status(obj):
+        return obj.user.status
 
 
 class LobbySchema(Schema):
