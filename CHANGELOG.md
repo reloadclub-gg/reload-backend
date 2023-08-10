@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo `status` nos esquemas `ProfileSchema`, `MatchPlayerSchema` e `LobbyPlayerSchema` []().
 - Endpoint de alteração de `social_handles` em `profiles` [#645](https://github.com/3C-gg/reload-backend/issues/645).
 - Campo `social_handles` no modelo `Account`.
 - Tarefa agendada para rodar diariamente que deleta partidas canceladas que já tenham terminado a mais de um dia [#622](https://github.com/3C-gg/reload-backend/issues/622).

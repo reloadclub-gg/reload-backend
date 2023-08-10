@@ -23,6 +23,7 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
             'matches_played': self.user_1.account.get_matches_played_count(),
             'latest_matches_results': self.user_1.account.get_latest_matches_results(),
             'steam_url': self.user_1.steam_user.profileurl,
+            'status': self.user_1.status,
         }
         self.assertDictEqual(payload, expected_payload)
 

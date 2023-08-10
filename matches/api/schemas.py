@@ -69,6 +69,7 @@ class MatchPlayerSchema(ModelSchema):
     stats: MatchPlayerStatsSchema
     progress: MatchPlayerProgressSchema
     level: int
+    status: str
 
     class Config:
         model = models.MatchPlayer
@@ -101,6 +102,10 @@ class MatchPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_level(obj):
         return obj.user.account.level
+
+    @staticmethod
+    def resolve_status(obj):
+        return obj.user.status
 
 
 class MatchTeamSchema(ModelSchema):

@@ -98,6 +98,7 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
                 'steam': self.user_1.account.steamid,
                 'twitch': 'username',
             },
+            'status': self.user_1.status,
         }
 
         self.assertDictEqual(payload, expected_payload)
