@@ -80,6 +80,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'stats': schemas.MatchPlayerStatsSchema.from_orm(match_player.stats).dict(),
             'level': match_player.user.account.level,
             'status': match_player.user.status,
+            'steam_url': match_player.user.steam_user.profileurl,
         }
         self.assertDictEqual(payload, expected_payload)
 
