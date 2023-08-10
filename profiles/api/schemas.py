@@ -84,3 +84,17 @@ class ProfileSchema(ModelSchema):
     @staticmethod
     def resolve_date_joined(obj):
         return obj.user.date_joined.isoformat()
+
+    @staticmethod
+    def resolve_social_handles(obj):
+        handles = {'steam': obj.steamid}
+        handles.update(
+            {key: value for key, value in obj.social_handles.items() if value}
+        )
+        return handles
+
+
+class ProfileUpdateSchema(ModelSchema):
+    class Config:
+        model = Account
+        model_fields = ['social_handles']
