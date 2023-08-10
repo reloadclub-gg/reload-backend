@@ -147,6 +147,7 @@ class UserAdmin(
             },
         ),
         (_('IMPORTANT DATES'), {'fields': ('date_joined', 'last_login')}),
+        (_('PROFILE'), {'fields': ('social_handles',)}),
         (
             _('STATUSES'),
             {
@@ -200,6 +201,7 @@ class UserAdmin(
         'level',
         'level_points',
         'verification_token',
+        'social_handles',
     ]
     search_fields = (
         'email',
@@ -232,6 +234,14 @@ class UserAdmin(
 
     def verification_token(self, obj):
         return obj.account.verification_token if obj.account else None
+
+    def social_handles(self, obj):
+        if not obj.account:
+            return None
+
+        return ', '.join(
+            f'{k}: {v}' for k, v in obj.account.social_handles.items() if v
+        )
 
     @action(
         label=_('Assume Identity'),

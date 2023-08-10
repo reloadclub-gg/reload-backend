@@ -22,6 +22,7 @@ class AccountSchema(ModelSchema):
             'user',
             'verification_token',
             'highest_level',
+            'social_handles',
         ]
 
     @staticmethod
