@@ -36,6 +36,9 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
         dmg_2 = match_player.stats.damage = 200
         match_player.stats.save()
 
+        self.user_1.account.social_handles.update({'twitch': 'username'})
+        self.user_1.account.save()
+
         payload = schemas.ProfileSchema.from_orm(self.user_1.account).dict()
         expected_payload = {
             'level': self.user_1.account.level,
@@ -91,6 +94,11 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
                 'others_accuracy': 0,
             },
             'date_joined': self.user_1.date_joined.isoformat(),
+            'social_handles': {
+                'steam': self.user_1.account.steamid,
+                'twitch': 'username',
+            },
+            'status': self.user_1.status,
         }
 
         self.assertDictEqual(payload, expected_payload)

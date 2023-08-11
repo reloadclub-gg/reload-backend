@@ -253,7 +253,6 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
     def test_update_match_start(self, mock_match_update):
         self.match.status = models.Match.Status.WARMUP
         self.match.start_date = None
-        print(self.match.start_date)
         self.match.save()
 
         self.assertIsNone(self.match.start_date)

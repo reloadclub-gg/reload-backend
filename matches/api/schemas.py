@@ -69,6 +69,8 @@ class MatchPlayerSchema(ModelSchema):
     stats: MatchPlayerStatsSchema
     progress: MatchPlayerProgressSchema
     level: int
+    status: str
+    steam_url: str
 
     class Config:
         model = models.MatchPlayer
@@ -101,6 +103,21 @@ class MatchPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_level(obj):
         return obj.user.account.level
+
+    @staticmethod
+    def resolve_status(obj):
+        return obj.user.status
+
+    @staticmethod
+    def resolve_lobby_id(obj):
+        if obj.user.account.lobby:
+            return obj.user.account.lobby.id
+
+        return None
+
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.user.steam_user.profileurl
 
 
 class MatchTeamSchema(ModelSchema):

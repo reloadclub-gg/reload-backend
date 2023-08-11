@@ -25,6 +25,7 @@ class FriendSchema(ModelSchema):
             'verification_token',
             'is_verified',
             'highest_level',
+            'social_handles',
         ]
 
     @staticmethod

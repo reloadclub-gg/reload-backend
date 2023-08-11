@@ -24,6 +24,7 @@ class ProfileSchema(ModelSchema):
     most_damage_in_a_match: int = None
     stats: dict
     date_joined: str
+    status: str
 
     class Config:
         model = Account
@@ -84,3 +85,21 @@ class ProfileSchema(ModelSchema):
     @staticmethod
     def resolve_date_joined(obj):
         return obj.user.date_joined.isoformat()
+
+    @staticmethod
+    def resolve_social_handles(obj):
+        handles = {'steam': obj.steamid}
+        handles.update(
+            {key: value for key, value in obj.social_handles.items() if value}
+        )
+        return handles
+
+    @staticmethod
+    def resolve_status(obj):
+        return obj.user.status
+
+
+class ProfileUpdateSchema(ModelSchema):
+    class Config:
+        model = Account
+        model_fields = ['social_handles']
