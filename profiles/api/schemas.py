@@ -102,28 +102,31 @@ class ProfileSchema(ModelSchema):
                 else:
                     aggregated_stats[key] += value
 
-        for key in MatchPlayerStats.RATIO_STATS:
-            aggregated_stats[key] = (
-                '{:.2f}'.format(float(aggregated_stats[key]) / len(match_players_stats))
-                if len(match_players_stats) > 0
-                else '{:.2f}'.format(0.0)
-            )
-
-        for key in MatchPlayerStats.PERCENTAGE_STATS:
-            aggregated_stats[key] = (
-                int(aggregated_stats[key] / len(match_players_stats))
-                if len(match_players_stats) > 0
-                else 0
-            )
-
-        for key, stat in MatchPlayerStats.ROUND_STATS:
-            aggregated_stats[key] = (
-                '{:.2f}'.format(
-                    aggregated_stats[stat] / aggregated_stats['rounds_played']
+        if aggregated_stats:
+            for key in MatchPlayerStats.RATIO_STATS:
+                aggregated_stats[key] = (
+                    '{:.2f}'.format(
+                        float(aggregated_stats[key]) / len(match_players_stats)
+                    )
+                    if len(match_players_stats) > 0
+                    else '{:.2f}'.format(0.0)
                 )
-                if aggregated_stats.get('rounds_played') > 0
-                else '{:.2f}'.format(0.0)
-            )
+
+            for key in MatchPlayerStats.PERCENTAGE_STATS:
+                aggregated_stats[key] = (
+                    int(aggregated_stats[key] / len(match_players_stats))
+                    if len(match_players_stats) > 0
+                    else 0
+                )
+
+            for key, stat in MatchPlayerStats.ROUND_STATS:
+                aggregated_stats[key] = (
+                    '{:.2f}'.format(
+                        aggregated_stats[stat] / aggregated_stats['rounds_played']
+                    )
+                    if aggregated_stats.get('rounds_played') > 0
+                    else '{:.2f}'.format(0.0)
+                )
 
         return aggregated_stats
 
