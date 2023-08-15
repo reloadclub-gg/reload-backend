@@ -1,5 +1,3 @@
-from collections import Counter
-from functools import reduce
 from typing import List
 
 from django.contrib.auth import get_user_model
@@ -10,6 +8,35 @@ from matches.api.schemas import MatchPlayerStatsSchema
 from matches.models import Match, MatchPlayerStats
 
 User = get_user_model()
+
+
+class ProfileSchemaStats(ModelSchema):
+    class Config:
+        model = MatchPlayerStats
+        model_fields = [
+            'kills',
+            'deaths',
+            'assists',
+            'damage',
+            'hs_kills',
+            'afk',
+            'plants',
+            'defuses',
+            'double_kills',
+            'triple_kills',
+            'quadra_kills',
+            'aces',
+            'clutch_v1',
+            'clutch_v2',
+            'clutch_v3',
+            'clutch_v4',
+            'clutch_v5',
+            'firstkills',
+            'shots_fired',
+            'head_shots',
+            'chest_shots',
+            'other_shots',
+        ]
 
 
 class ProfileSchema(ModelSchema):
@@ -66,13 +93,39 @@ class ProfileSchema(ModelSchema):
             )
         ]
 
-        return dict(
-            reduce(
-                lambda a, b: a.update(b) or a,
-                match_players_stats,
-                Counter(),
+        aggregated_stats = {}
+
+        for stats in match_players_stats:
+            for key, value in stats.items():
+                if key not in aggregated_stats:
+                    aggregated_stats[key] = value
+                else:
+                    aggregated_stats[key] += value
+
+        for key in MatchPlayerStats.RATIO_STATS:
+            aggregated_stats[key] = (
+                '{:.2f}'.format(float(aggregated_stats[key]) / len(match_players_stats))
+                if len(match_players_stats) > 0
+                else '{:.2f}'.format(0.0)
             )
-        )
+
+        for key in MatchPlayerStats.PERCENTAGE_STATS:
+            aggregated_stats[key] = (
+                int(aggregated_stats[key] / len(match_players_stats))
+                if len(match_players_stats) > 0
+                else 0
+            )
+
+        for key, stat in MatchPlayerStats.ROUND_STATS:
+            aggregated_stats[key] = (
+                '{:.2f}'.format(
+                    aggregated_stats[stat] / aggregated_stats['rounds_played']
+                )
+                if aggregated_stats.get('rounds_played') > 0
+                else '{:.2f}'.format(0.0)
+            )
+
+        return aggregated_stats
 
     @staticmethod
     def resolve_most_kills_in_a_match(obj):
