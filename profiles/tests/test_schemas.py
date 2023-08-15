@@ -41,11 +41,15 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
 
         payload = schemas.ProfileSchema.from_orm(self.user_1.account).dict()
         expected_payload = {
+            'username': self.user_1.steam_user.username,
             'level': self.user_1.account.level,
             'level_points': self.user_1.account.level_points,
             'highest_level': self.user_1.account.highest_level,
+            'social_handles': {
+                'steam': self.user_1.account.steamid,
+                'twitch': 'username',
+            },
             'user_id': self.user_1.id,
-            'username': self.user_1.steam_user.username,
             'avatar': self.user_1.account.avatar_dict,
             'matches_played': self.user_1.account.get_matches_played_count(),
             'matches_won': self.user_1.account.matches_won,
@@ -83,21 +87,18 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
                 'rounds_played': 32,
                 'clutches': 0,
                 'shots_hit': 0,
-                'adr': 18.75,
-                'kdr': 25.0,
-                'kda': 25.0,
-                'ahk': 0,
-                'ahr': 0,
+                'adr': '9.38',
+                'kdr': '12.50',
+                'kda': '12.50',
+                'ahk': '0.00',
+                'ahr': '0.00',
+                'hsk': 0,
                 'accuracy': 0,
                 'head_accuracy': 0,
                 'chest_accuracy': 0,
                 'others_accuracy': 0,
             },
             'date_joined': self.user_1.date_joined.isoformat(),
-            'social_handles': {
-                'steam': self.user_1.account.steamid,
-                'twitch': 'username',
-            },
             'status': self.user_1.status,
         }
 

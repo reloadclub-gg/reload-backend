@@ -210,6 +210,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'kda': match_player.stats.kda,
             'ahk': match_player.stats.ahk,
             'ahr': match_player.stats.ahr,
+            'hsk': match_player.stats.hsk,
             'accuracy': match_player.stats.accuracy,
             'head_accuracy': match_player.stats.head_accuracy,
             'chest_accuracy': match_player.stats.chest_accuracy,

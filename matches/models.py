@@ -320,6 +320,23 @@ class MatchPlayer(models.Model):
 
 
 class MatchPlayerStats(models.Model):
+    PERCENTAGE_STATS = [
+        'accuracy',
+        'head_accuracy',
+        'chest_accuracy',
+        'others_accuracy',
+        'hsk',
+    ]
+
+    RATIO_STATS = [
+        'kdr',
+        'kda',
+        'ahk',
+        'ahr',
+    ]
+
+    ROUND_STATS = [('adr', 'damage')]
+
     player = models.OneToOneField(
         MatchPlayer,
         on_delete=models.CASCADE,
@@ -382,7 +399,7 @@ class MatchPlayerStats(models.Model):
         """
         A string containing resumed stats : kills / deaths / assists.
         """
-        return f'{self.kills} / {self.deaths} / {self.assists}'
+        return f'{self.kills}/{self.deaths}/{self.assists}'
 
     @property
     def adr(self) -> float:
@@ -390,8 +407,8 @@ class MatchPlayerStats(models.Model):
         Average damage per round.
         """
         if self.rounds_played > 0:
-            return float('{:0.2f}'.format(self.damage / self.rounds_played))
-        return float(0)
+            return round(float(self.damage / self.rounds_played), 2)
+        return round(float(0), 2)
 
     @property
     def kdr(self) -> float:
@@ -399,8 +416,8 @@ class MatchPlayerStats(models.Model):
         Kill/death ratio.
         """
         if self.deaths > 0:
-            return float('{:0.2f}'.format(self.kills / self.deaths))
-        return float('{:0.2f}'.format(self.kills))
+            return round(float(self.kills / self.deaths), 2)
+        return round(float(self.kills), 2)
 
     @property
     def kda(self) -> float:
@@ -408,8 +425,8 @@ class MatchPlayerStats(models.Model):
         Kills, deaths and assists ratio.
         """
         if self.deaths > 0:
-            return float('{:0.2f}'.format((self.kills + self.assists) / self.deaths))
-        return float('{:0.2f}'.format(self.kills + self.assists))
+            return round(float((self.kills + self.assists) / self.deaths), 2)
+        return round(float(self.kills + self.assists), 2)
 
     @property
     def ahk(self) -> float:
@@ -417,55 +434,62 @@ class MatchPlayerStats(models.Model):
         Average headshot kills per shot.
         """
         if self.shots_fired > 0:
-            return float('{:0.2f}'.format(self.hs_kills / self.shots_fired))
-        return float(0)
+            return round(float(self.hs_kills / self.shots_fired), 2)
+        return round(float(0), 2)
 
     @property
     def ahr(self) -> float:
         """
         Average headshots per round.
         """
+        if self.player.team.match.rounds > 0:
+            return round(float(self.head_shots / self.player.team.match.rounds), 2)
+        return round(float(0), 2)
+
+    @property
+    def hsk(self) -> int:
+        """
+        Percentage of hs kills by kills.
+        """
+        if self.kills > 0:
+            return int(round((self.hs_kills / self.kills) * 100))
+        return 0
+
+    @property
+    def accuracy(self) -> int:
+        """
+        Percentage of shots that hit a target.
+        """
         if self.shots_fired > 0:
-            return float(
-                '{:0.2f}'.format(self.head_shots / self.player.team.match.rounds)
-            )
-        return float(0)
+            return int((self.shots_hit / self.shots_fired) * 100)
+        return 0
 
     @property
-    def accuracy(self) -> float:
+    def head_accuracy(self) -> int:
         """
-        Average accuracy per shot.
-        """
-        if self.shots_fired > 0:
-            return float('{:0.2f}'.format(self.shots_hit / self.shots_fired))
-        return float(0)
-
-    @property
-    def head_accuracy(self) -> float:
-        """
-        Average accuracy per shot that hit a head.
+        Percentage of shots that hits a head.
         """
         if self.shots_hit > 0:
-            return float('{:0.2f}'.format(self.head_shots / self.shots_hit))
-        return float(0)
+            return int((self.head_shots / self.shots_hit) * 100)
+        return 0
 
     @property
-    def chest_accuracy(self) -> float:
+    def chest_accuracy(self) -> int:
         """
-        Average accuracy per shot that hit a chest/torax.
+        Percentage of shots that hits a chest/torax.
         """
         if self.shots_hit > 0:
-            return float('{:0.2f}'.format(self.chest_shots / self.shots_hit))
-        return float(0)
+            return int(round((self.chest_shots / self.shots_hit) * 100))
+        return 0
 
     @property
-    def others_accuracy(self) -> float:
+    def others_accuracy(self) -> int:
         """
-        Average accuracy per shot that hit other body parts.
+        Percentage of shots that hits other body parts.
         """
         if self.shots_hit > 0:
-            return float('{:0.2f}'.format(self.other_shots / self.shots_hit))
-        return float(0)
+            return int(round((self.other_shots / self.shots_hit) * 100))
+        return 0
 
     def __str__(self):
         return f'{self.player.user.steam_user.username}'
