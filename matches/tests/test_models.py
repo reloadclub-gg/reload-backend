@@ -269,7 +269,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
 
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 9
+        self.team2.score = 15
         self.team2.save()
         self.assertEqual(player.stats.rounds_played, self.match.rounds)
 
@@ -278,3 +278,194 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         self.assertEqual(
             player.stats.rounds_played, self.match.rounds - player.stats.afk
         )
+
+    def test_clutches(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        player.stats.clutch_v1 = 5
+        player.stats.clutch_v2 = 3
+        player.stats.clutch_v3 = 1
+        player.stats.save()
+
+        self.assertEqual(player.stats.clutches, 9)
+
+    def test_shots_hit(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        player.stats.head_shots = 5
+        player.stats.chest_shots = 3
+        player.stats.other_shots = 1
+        player.stats.save()
+
+        self.assertEqual(player.stats.shots_hit, 9)
+
+    def test_frag(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        player.stats.kills = 5
+        player.stats.deaths = 1
+        player.stats.assists = 3
+        player.stats.save()
+
+        self.assertEqual(player.stats.frag, '5/1/3')
+
+    def test_adr(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.adr, 0.0)
+
+        player.stats.damage = 350
+        player.stats.save()
+        self.assertEqual(player.stats.adr, 15.22)
+
+    def test_kdr(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.kdr, 0.0)
+
+        player.stats.kills = 5
+        player.stats.save()
+
+        self.assertEqual(player.stats.kdr, 5.0)
+
+        player.stats.deaths = 2
+        player.stats.save()
+        self.assertEqual(player.stats.kdr, 2.5)
+
+    def test_kda(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.kda, 0.0)
+
+        player.stats.kills = 5
+        player.stats.save()
+
+        self.assertEqual(player.stats.kda, 5.0)
+
+        player.stats.deaths = 2
+        player.stats.save()
+        self.assertEqual(player.stats.kda, 2.5)
+
+        player.stats.assists = 3
+        player.stats.save()
+        self.assertEqual(player.stats.kda, 4.0)
+
+    def test_ahk(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.ahk, 0.0)
+
+        player.stats.hs_kills = 5
+        player.stats.shots_fired = 10
+        player.stats.save()
+
+        self.assertEqual(player.stats.ahk, 0.5)
+
+    def test_ahr(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.ahr, 0.0)
+
+        player.stats.head_shots = 7
+        player.stats.save()
+
+        self.assertEqual(player.stats.ahr, 0.3)
+
+    def test_accuracy(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.accuracy, 0.0)
+
+        player.stats.shots_fired = 40
+        player.stats.head_shots = 2
+        player.stats.chest_shots = 10
+        player.stats.other_shots = 8
+        player.stats.save()
+
+        self.assertEqual(player.stats.accuracy, 50)
+
+    def test_head_accuracy(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.head_accuracy, 0.0)
+
+        player.stats.head_shots = 2
+        player.stats.chest_shots = 10
+        player.stats.other_shots = 8
+        player.stats.save()
+
+        self.assertEqual(player.stats.head_accuracy, 10)
+
+    def test_chest_accuracy(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.chest_accuracy, 0.0)
+
+        player.stats.head_shots = 2
+        player.stats.chest_shots = 10
+        player.stats.other_shots = 8
+        player.stats.save()
+
+        self.assertEqual(player.stats.chest_accuracy, 50)
+
+    def test_others_accuracy(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.others_accuracy, 0.0)
+
+        player.stats.head_shots = 2
+        player.stats.chest_shots = 10
+        player.stats.other_shots = 8
+        player.stats.save()
+
+        self.assertEqual(player.stats.others_accuracy, 40)
+
+    def test_hsk(self):
+        player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
+        self.team1.score = 8
+        self.team1.save()
+        self.team2.score = 15
+        self.team2.save()
+        self.assertEqual(player.stats.hsk, 0.0)
+
+        player.stats.hs_kills = 2
+        player.stats.kills = 10
+        player.stats.save()
+
+        self.assertEqual(player.stats.hsk, 20)
