@@ -20,10 +20,11 @@ class MatchPlayerStatsSchema(ModelSchema):
     kda: float = None
     ahk: float = None
     ahr: float = None
-    accuracy: float = None
-    head_accuracy: float = None
-    chest_accuracy: float = None
-    others_accuracy: float = None
+    hsk: int = None
+    accuracy: int = None
+    head_accuracy: int = None
+    chest_accuracy: int = None
+    others_accuracy: int = None
 
     class Config:
         model = models.MatchPlayerStats
