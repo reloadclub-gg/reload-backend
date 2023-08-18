@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Novo comando de admin que simula um update de partida vindo do FiveM.
+- Nova config `DOCKER_SITE_URL` que expõe a "url dockerizada" da aplicação (ex: `http://django:8000`).
 - Mixin para testes de partidas finalizadas.
 - Campo `steam_url` no esquema `MatchPlayerSchema` [#650](https://github.com/3C-gg/reload-backend/issues/650).
 - Campo `status` nos esquemas `ProfileSchema`, `MatchPlayerSchema` e `LobbyPlayerSchema` [#644](https://github.com/3C-gg/reload-backend/issues/644).
@@ -28,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera namespace de url do websocket para um nome mais adequado (`ws_auth -> ws_app`).
 - Ajusta estatísticas do modelo `MatchPlayerStats` para que fique mais fácil de agregar os resultados de todas as partidas.
 - Refatora lista de partidas de perfil para entregar somente o que é necessário ao FE [#634](https://github.com/3C-gg/reload-backend/issues/634).
 - Envia websocket `matches/delete` ao receber um cancelamento de partida do FiveM [#626](https://github.com/3C-gg/reload-backend/issues/626).
@@ -50,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Adiciona proteção nas configs de log para que o sistema ignore essas configs quando não houver envvars do papertrail setadas.
 - Corrige estatísticas agregadas no esquema de perfil [#646](https://github.com/3C-gg/reload-backend/issues/646).
 - Corrige teste de detalhe de perfil que falhava de maneira itermitente. Isso acontecia devido a um cast do campo `steamid` para `int`, que para testes, é gerado artificialmente, podendo, as vezes, começar com `0`. Quando a conversão para `int` acontecia, ela removia os `0`s iniciais, deixando o valor diferente do cadastrado na conta do usuário.
 - Ajusta ordenação do qs de lista de partidas de um usuário para trazer as mais recentes primeiro.
