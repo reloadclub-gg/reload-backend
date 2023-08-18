@@ -169,7 +169,8 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 
 # Logging Settings
-if ENVIRONMENT != LOCAL:
+PAPERTRAIL_ADDRESS = config('PAPERTRAIL_ADDRESS', default=None)
+if PAPERTRAIL_ADDRESS and ENVIRONMENT != LOCAL:
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -179,14 +180,14 @@ if ENVIRONMENT != LOCAL:
                 'class': 'logging.handlers.SysLogHandler',
                 'formatter': 'simple',
                 'address': (
-                    config('PAPERTRAIL_ADDRESS'),
+                    PAPERTRAIL_ADDRESS,
                     config('PAPERTRAIL_PORT', cast=int),
                 ),
             },
         },
         'formatters': {
             'simple': {
-                'format': f'%(asctime)s {HOST_URL} {ENVIRONMENT}: %(message)s',
+                'format': f'%(asctime)s {SITE_URL} {ENVIRONMENT}: %(message)s',
                 'datefmt': '%Y-%m-%dT%H:%M:%S',
             },
         },
