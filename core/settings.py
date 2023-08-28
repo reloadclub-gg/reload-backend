@@ -22,7 +22,8 @@ TEST_MODE = sys.argv[1:2] == ['test']
 ADMINS = [('Gabriel Gularte', 'ggularte@3c.gg')]
 FRONT_END_URL = config('FRONT_END_URL', default='http://localhost:3000')
 HOST_URL = config('HOST_URL', default='localhost')
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=HOST_URL).split(',')
+ALLOWED_HOSTS_DEFAULTS = 'localhost,django,nginx,locust'
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=ALLOWED_HOSTS_DEFAULTS).split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default=FRONT_END_URL).split(',')
 
 HTTPS = config('HTTPS', default=False, cast=bool)
@@ -32,12 +33,16 @@ CSRF_COOKIE_SECURE = HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https' if HTTPS else 'http')
 
 SITE_URL_PREFIX = 'https://' if HTTPS else 'http://'
-SITE_URL_PORT = config('HOST_PORT', default=8000)
+SITE_URL_PORT = config('HOST_PORT', default=8000 if ENVIRONMENT == LOCAL else None)
 SITE_URL_SUFFIX = f':{SITE_URL_PORT}' if SITE_URL_PORT else ''
 SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
+DOCKER_SITE_URL = SITE_URL_PREFIX + 'django' + SITE_URL_SUFFIX
+
+CSRF_TRUSTED_ORIGINS = [SITE_URL, FRONT_END_URL]
+
+SILK_ENABLED = config('SILK_ENABLED', default=False, cast=bool)
 
 INSTALLED_APPS = [
-    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,15 +50,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
-    'django_extensions',
     'social_django',
     'ninja',
     'corsheaders',
     'channels',
     'storages',
+    'django_object_actions',
     'accounts.apps.AccountsConfig',
-    'matchmaking.apps.MatchmakingConfig',
+    'pre_matches.apps.PreMatchesConfig',
     'appsettings.apps.AppSettingsConfig',
+    'matches.apps.MatchesConfig',
+    'notifications.apps.NotificationsConfig',
+    'websocket.apps.WebsocketConfig',
+    'lobbies.apps.LobbiesConfig',
 ]
 
 if ENVIRONMENT == LOCAL:
@@ -61,10 +70,17 @@ if ENVIRONMENT == LOCAL:
         'rosetta',
     ]
 
+if SILK_ENABLED:
+    INSTALLED_APPS += [
+        'silk',
+    ]
+
 AUTH_USER_MODEL = 'accounts.User'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 MIDDLEWARE = [
+    'core.middleware.HealthCheckMiddleware',
+    'core.middleware.PortMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -74,6 +90,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if SILK_ENABLED:
+    MIDDLEWARE += [
+        'silk.middleware.SilkyMiddleware',
+    ]
 
 ROOT_URLCONF = 'core.urls'
 
@@ -102,11 +123,12 @@ ASGI_APPLICATION = 'core.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME', default='postgres'),
+        'NAME': config('DATABASE_NAME', default='test_db' if TEST_MODE else 'postgres'),
         'USER': config('DATABASE_USER', default='postgres'),
         'PASSWORD': config('DATABASE_PASSWORD', default='postgres'),
         'HOST': config('DATABASE_HOST', default='db'),
         'PORT': config('DATABASE_PORT', default=5432, cast=int),
+        'CONN_MAX_AGE': config('DATABASE_CONN_MAX_AGE', default=0, cast=int),
     }
 }
 
@@ -148,31 +170,34 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 
 # Logging Settings
-if ENVIRONMENT != LOCAL:
+PAPERTRAIL_ADDRESS = config('PAPERTRAIL_ADDRESS', default=None)
+if PAPERTRAIL_ADDRESS and ENVIRONMENT != LOCAL:
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
         'handlers': {
             'SysLog': {
-                'level': 'INFO',
+                'level': config('APPLICATION_LOG_LEVEL', default='DEBUG', cast=str),
                 'class': 'logging.handlers.SysLogHandler',
                 'formatter': 'simple',
                 'address': (
-                    config('PAPERTRAIL_ADDRESS'),
+                    PAPERTRAIL_ADDRESS,
                     config('PAPERTRAIL_PORT', cast=int),
                 ),
             },
         },
         'formatters': {
             'simple': {
-                'format': f'%(asctime)s {HOST_URL} {ENVIRONMENT}: %(message)s',
+                'format': f'%(asctime)s {SITE_URL} {ENVIRONMENT}: %(message)s',
                 'datefmt': '%Y-%m-%dT%H:%M:%S',
             },
         },
         'loggers': {
             'django': {
                 'handlers': ['SysLog'],
-                'level': 'INFO',
+                'level': config(
+                    'APPLICATION_LOG_LEVEL', default='DEBUG', cast=str
+                ).upper(),
                 'propagate': True,
             },
         },
@@ -189,29 +214,31 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'core', 'static')]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AWS_LOCATION = config('AWS_LOCATION', default=None)
-
-if AWS_LOCATION:
+if ENVIRONMENT != LOCAL:
     AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_LOCATION = config('AWS_LOCATION')
     AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
-    AWS_S3_OBJECT_PARAMS = {
+    AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN')
+    AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': config(
-            'AWS_S3_OBJECT_PARAMS__CACHE_CONTROL', default='max-age=86400'
+            'AWS_S3_OBJECT_PARAMETERS__CACHE_CONTROL', default='max-age=86400'
         ),
-        'ACL': config('AWS_S3_OBJECT_PARAMS__ACL', default='public-read'),
+        'ACL': config('AWS_S3_OBJECT_PARAMETERS__ACL', default='public-read'),
     }
-    DEFAULT_FILE_STORAGE = 'core.cdn.MediaRootS3BotoStorage'
     STATICFILES_STORAGE = 'core.cdn.StaticRootS3BotoStorage'
 
 # Email Settings
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.mailtrap.io')
-EMAIL_PORT = config('EMAIL_PORT', default=2525, cast=int)
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+if EMAIL_HOST == 'localhost':
+    EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='e31ca571bd0f1b')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='a69be0ba200ecf')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = 'Equipe Reload Club <equipe@reloadclub.gg>'
+SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='suporte@reloadclub.freshdesk.com')
 
 
 # Steam Settings
@@ -242,7 +269,9 @@ REDIS_PORT = config('REDIS_PORT', default=6379, cast=int)
 REDIS_USERNAME = config('REDIS_USERNAME', default='default')
 REDIS_PASSWORD = config('REDIS_PASSWORD', default='')
 REDIS_APP_DB = config('REDIS_APP_DB', default=0, cast=int)
+REDIS_TEST_DB = config('REDIS_APP_DB', default=2, cast=int)
 REDIS_SSL = config('REDIS_SSL', default=False, cast=bool)
+REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 
 
 # Sentry Settings
@@ -256,15 +285,13 @@ if config('SENTRY_DSN', default=None):
         send_default_pii=True,
         environment=ENVIRONMENT,
         attach_stacktrace=True,
-        debug=DEBUG,
     )
 
 
 # Channels Settings
 CHANNEL_REDIS_DB = config('CHANNEL_REDIS_DB', default=10, cast=int)
-CHANNEL_REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 CHANNEL_REDIS_CONN_STR = '{}://{}:{}@{}:{}/{}'.format(
-    CHANNEL_REDIS_CONN_PROTOCOL,
+    REDIS_CONN_PROTOCOL,
     REDIS_USERNAME,
     REDIS_PASSWORD,
     REDIS_HOST,
@@ -281,38 +308,99 @@ CHANNEL_LAYERS = {
 # Celery Settings
 CELERY_TIMEZONE = 'America/Sao_Paulo'
 CELERY_REDIS_DB = config('CELERY_REDIS_DB', default=11, cast=int)
-CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{CELERY_REDIS_DB}'
+CELERY_BROKER_URL = '{}://{}:{}@{}:{}/{}'.format(
+    REDIS_CONN_PROTOCOL,
+    REDIS_USERNAME,
+    REDIS_PASSWORD,
+    REDIS_HOST,
+    REDIS_PORT,
+    CELERY_REDIS_DB,
+)
+CELERY_RESULT_BACKEND = None
+CELERY_IGNORE_RESULT = True
 
 # Websocket Application Settings
 GROUP_NAME_PREFIX = 'app'
 
-JAZZMIN_SETTINGS = {
-    'site_title': 'Reload Admin',
-    'site_header': 'Reload',
-    'site_brand': 'Reload',
-    'site_logo': 'brand/logo_white.png',
-    'login_logo': 'brand/logo.png',
-    'site_icon': 'brand/favicon.ico',
-    'welcome_sign': 'Welcome to the Reload Admin',
-    'copyright': '3C.gg',
-    'show_sidebar': True,
-    'order_with_respect_to': [
-        'appsettings',
-        'accounts',
-        'accounts.account',
-        'accounts.user',
-        'accounts.userlogin',
-        'accounts.invite',
-        'social_django',
-    ],
-    'icons': {
-        'appsettings.appsettings': 'fas fa-cogs',
-        'accounts.account': 'fas fa-users',
-        'accounts.user': 'fas fa-user',
-        'accounts.userlogin': 'fas fa-sign-in-alt',
-        'accounts.invite': 'fas fa-door-open',
-        'social_django.association': 'fas fa-network-wired',
-        'social_django.usersocialauth': 'fab fa-steam',
-    },
-    'show_ui_builder': DEBUG,
-}
+# Team & Match Settings
+TEAM_READY_PLAYERS_MIN = (
+    5 if TEST_MODE else config('TEAM_READY_PLAYERS_MIN', default=5, cast=int)
+)
+MATCH_READY_COUNTDOWN = (
+    30 if TEST_MODE else config('MATCH_READY_COUNTDOWN', default=30, cast=int)
+)
+MATCH_READY_COUNTDOWN_GAP = config('MATCH_READY_COUNTDOWN_GAP', default=-4, cast=int)
+MATCHES_LIMIT_PER_SERVER = config('MATCHES_LIMIT_PER_SERVER', default=20, cast=int)
+MATCHES_LIMIT_PER_SERVER_GAP = config(
+    'MATCHES_LIMIT_PER_SERVER_GAP',
+    default=5,
+    cast=int,
+)
+
+
+# Player Dodges & Restriction Settings
+PLAYER_DODGES_EXPIRE_TIME = config(
+    'PLAYER_DODGES_EXPIRE_TIME',
+    default=60 * 60 * 24 * 7,
+    cast=int,
+)  # 1 semana (7 dias)
+
+PLAYER_DODGES_MULTIPLIER = config(
+    'PLAYER_DODGES_MULTIPLIER',
+    default='1,2,5,10,20,40,60,90',
+    cast=lambda v: [float(s.strip()) for s in v.split(',')],
+)
+
+PLAYER_DODGES_MIN_TO_RESTRICT = config(
+    'PLAYER_DODGES_MIN_TO_RESTRICT',
+    default=3,
+    cast=int,
+)
+
+PLAYER_MAX_LOSE_LEVEL_POINTS = config(
+    'PLAYER_MAX_LOSE_LEVEL_POINTS',
+    default=-99,
+    cast=int,
+)
+
+MATCH_ROUNDS_TO_WIN = config('MATCH_ROUNDS_TO_WIN', default=15, cast=int)
+
+# Other App Settings
+APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)
+PLAYER_MAX_LEVEL = config('PLAYER_MAX_LEVEL', default=50, cast=int)
+PLAYER_MAX_LEVEL_POINTS = config('PLAYER_MAX_LEVEL_POINTS', default=100, cast=int)
+MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER = config(
+    'MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER',
+    default=10,
+    cast=int,
+)
+
+
+# Ninja Settings
+PAGINATION_PER_PAGE = 10
+
+
+# FiveM Settings
+FIVEM_MATCH_MOCK_CREATION_SUCCESS = config(
+    'FIVEM_MATCH_MOCK_CREATION_SUCCESS',
+    default=True,
+    cast=bool,
+)
+
+FIVEM_MATCH_MOCK_DELAY_START = config(
+    'FIVEM_MATCH_MOCK_DELAY_START',
+    default=10,
+    cast=int,
+)
+
+FIVEM_MATCH_MOCK_DELAY_CONFIGURE = config(
+    'FIVEM_MATCH_MOCK_DELAY_CONFIGURE',
+    default=5,
+    cast=int,
+)
+
+FIVEM_MATCH_MOCK_START_SUCCESS = config(
+    'FIVEM_MATCH_MOCK_START_SUCCESS',
+    default=True,
+    cast=bool,
+)

@@ -1,12 +1,11 @@
+from typing import List
+
 from django.contrib.auth import get_user_model
 
 from accounts.models import Auth
 from accounts.tasks import watch_user_status_change
 from core.redis import RedisClient
 from core.utils import get_url_param
-from matchmaking.models import Lobby
-
-from .controller import user_status_change
 
 User = get_user_model()
 cache = RedisClient()
@@ -14,6 +13,12 @@ cache = RedisClient()
 
 class WSAuthConfig:
     CHECK_OFFLINE_COUNTDOWN: int = 15
+
+
+def check_and_fetch_user(userq_qs: List[User]) -> User:
+    if userq_qs.exists():
+        if hasattr(userq_qs[0], 'account') and userq_qs[0].account.is_verified:
+            return userq_qs[0]
 
 
 def authenticate(scope: dict) -> User:
@@ -29,33 +34,8 @@ def authenticate(scope: dict) -> User:
     if not auth:
         return None
 
-    def is_active_and_verified(user):
-        return (
-            user.exists()
-            and hasattr(user[0], 'account')
-            and user[0].account.is_verified()
-        )
-
-    user = User.objects.filter(id=auth.user_id, is_active=True)
-    if not is_active_and_verified:
-        return None
-
-    user = user[0]
-    from_offline_status = False
-
-    if user.auth.sessions is None:
-        from_offline_status = True
-
-    user.auth.add_session()
-    user.auth.persist_session()
-
-    if from_offline_status:
-        user_status_change(user)
-
-    if not user.account.lobby:
-        Lobby.create(user.id)
-
-    return user
+    user_qs = User.objects.filter(id=auth.user_id, is_active=True)
+    return check_and_fetch_user(user_qs)
 
 
 def disconnect(user):

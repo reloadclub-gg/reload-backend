@@ -1,7 +1,11 @@
+from typing import List
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from ninja import Router
 from ninja.errors import Http404
+
+from matches.api.schemas import MatchSchema
 
 from . import controller
 from .authentication import VerifiedExemptAuth, VerifiedRequiredAuth
@@ -35,12 +39,17 @@ def fake_signup(request, payload: FakeSignUpSchema):
         return controller.signup(user, payload.email, is_fake=True)
 
     user[0].auth.create_token()
-    return controller.auth(user[0])
+    return controller.auth(user[0], from_fake_signup=True)
 
 
-@router.delete('/', auth=VerifiedRequiredAuth(), response={200: UserSchema})
-def cancel_account(request):
+@router.patch('inactivate/', auth=VerifiedRequiredAuth(), response={200: UserSchema})
+def account_inactivation(request):
     return controller.inactivate(request.user)
+
+
+@router.delete('/', auth=VerifiedRequiredAuth(), response={200: dict})
+def account_cancel(request):
+    return controller.delete_account(request.user)
 
 
 @router.post(
@@ -64,6 +73,11 @@ def update_email(request, payload: UpdateUserEmailSchema):
     return controller.update_email(request.user, payload.email)
 
 
-@router.patch('logout/', auth=VerifiedExemptAuth(), response={200: UserSchema})
+@router.patch('logout/', auth=VerifiedExemptAuth(), response={200: dict})
 def logout(request):
     return controller.logout(request.user)
+
+
+@router.get('{user_id}/matches/', response={200: List[MatchSchema]})
+def user_matches(request, user_id: int):
+    return controller.user_matches(user_id)

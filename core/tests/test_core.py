@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils import translation
 
 from accounts.tests.mixins import UserOneMixin
@@ -89,3 +90,16 @@ class CoreApiI18nTestCase(UserOneMixin, TestCase):
         self.assertEqual(
             r.json().get('detail')[0].get('msg'), 'Esse campo é obrigatório.'
         )
+
+
+class CoreAPIPaginationTestCase(TestCase):
+    def test_pagination(self):
+        api = APIClient('/api')
+        r = api.call('get', '/list')
+
+        self.assertEqual(r.json().get('count'), 200)
+        self.assertEqual(r.json().get('page_size'), settings.PAGINATION_PER_PAGE)
+        self.assertEqual(r.json().get('total_pages'), 20)
+        self.assertIsNone(r.json().get('prev_page'))
+        self.assertEqual(r.json().get('current_page'), 1)
+        self.assertEqual(r.json().get('next_page'), 2)

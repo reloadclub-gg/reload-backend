@@ -3,6 +3,7 @@ version: "3.9"
 services:
   db:
     image: postgres
+    command: postgres -c 'max_connections=6500'
     volumes:
       - db:/var/lib/postgresql/data
     environment:
@@ -16,18 +17,26 @@ services:
     environment:
       - TZ=America/Sao_Paulo
 
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 8000:80
+
   django:
     build: .
     env_file:
       - .env
     volumes:
       - .:/app
-    ports:
-      - "8000:80"
+    expose:
+      - 8000
     depends_on:
       - db
       - redis
-    command: uvicorn --host 0.0.0.0 --port 80 --reload --workers 2 core.asgi:application
+      - nginx
+    command: pipenv run dev
     restart: unless-stopped
 
   celery:
@@ -39,9 +48,23 @@ services:
     depends_on:
       - db
       - redis
-    command: celery -A core.celery.app worker -B -l info
+    command: pipenv run celery_dev
+    restart: unless-stopped
+
+  locust:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - 8089:8089
+    depends_on:
+      - django
+      - celery
+    command: pipenv run locust
+    volumes:
+      - .:/app
     restart: unless-stopped
 
 volumes:
   db:
-    name: gta_db
+    name: reload_db

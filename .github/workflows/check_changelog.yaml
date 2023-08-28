@@ -1,0 +1,28 @@
+name: Changelog Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  changelog_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # fetch all history so we can check any change in PR
+
+      - name: Check for CHANGELOG.md changes
+        run: |
+          # Check the difference between the PR and the base branch
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # If CHANGELOG.md is in the changes, pass the check
+          if echo "$CHANGED" | grep -q "CHANGELOG.md"; then
+            echo "CHANGELOG.md was updated. Check passed."
+            exit 0
+          else
+            echo "CHANGELOG.md was not updated. Check failed."
+            exit 1
+          fi

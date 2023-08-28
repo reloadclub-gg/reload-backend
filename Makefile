@@ -8,7 +8,7 @@ chown:
 	sudo chown -R ${USER}:${USER} .
 
 startapp:
-	docker-compose run --rm django python ./manage.py startapp $(params)
+	sh ./pipenv-run manage startapp $(params)
 	make chown
 
 down:
@@ -25,6 +25,10 @@ reset:
 	docker-compose up -d --build
 	sh ./pipenv-run migrate
 	sh ./pipenv-run loaddata
+
+refresh:
+	make halt
+	docker-compose up -d
 
 pipinstall:
 	docker-compose run --rm django pipenv install $(params)

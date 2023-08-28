@@ -1,88 +1,33 @@
-from typing import List, Optional
+from typing import Optional
 
 import pydantic
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
-from matchmaking.api.schemas import LobbyInviteSchema, LobbySchema
-from steam import Steam
-
 from ..models import Account
 
 User = get_user_model()
-
-
-class FriendAccountSchema(ModelSchema):
-    id: Optional[int]
-    steamid: Optional[str]
-    username: Optional[str]
-    avatar: Optional[dict]
-    is_online: Optional[bool]
-    status: Optional[str]
-    lobby: Optional[LobbySchema]
-
-    class Config:
-        model = Account
-        model_exclude = ['id', 'user', 'verification_token', 'is_verified']
-
-    @staticmethod
-    def resolve_id(obj):
-        return obj.user.id
-
-    @staticmethod
-    def resolve_is_online(obj):
-        return bool(obj.user.auth.sessions)
-
-    @staticmethod
-    def resolve_steamid(obj):
-        return obj.user.steam_user.steamid
-
-    @staticmethod
-    def resolve_username(obj):
-        return obj.user.steam_user.username
-
-    @staticmethod
-    def resolve_avatar(obj):
-        return {
-            'small': Steam.build_avatar_url(obj.user.steam_user.avatarhash),
-            'medium': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium'),
-            'large': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'full'),
-        }
-
-    @staticmethod
-    def resolve_status(obj):
-        return obj.user.status
 
 
 class AccountSchema(ModelSchema):
     steamid: Optional[str]
     username: Optional[str]
     avatar: Optional[dict]
-    friends: List[FriendAccountSchema] = None
-    lobby: Optional[LobbySchema]
-    lobby_invites: Optional[List[LobbyInviteSchema]]
-    lobby_invites_sent: Optional[List[LobbyInviteSchema]]
 
     class Config:
         model = Account
-        model_exclude = ['id', 'user', 'verification_token']
-
-    @staticmethod
-    def resolve_steamid(obj):
-        return obj.user.steam_user.steamid
-
-    @staticmethod
-    def resolve_username(obj):
-        return obj.user.steam_user.username
+        model_exclude = [
+            'id',
+            'user',
+            'verification_token',
+            'highest_level',
+            'social_handles',
+        ]
 
     @staticmethod
     def resolve_avatar(obj):
-        return {
-            'small': Steam.build_avatar_url(obj.user.steam_user.avatarhash),
-            'medium': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium'),
-            'large': Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'full'),
-        }
+        return obj.avatar_dict
 
 
 class UserSchema(ModelSchema):
@@ -90,6 +35,9 @@ class UserSchema(ModelSchema):
     email: Optional[pydantic.EmailStr] = None
     is_online: bool = None
     status: str
+    lobby_id: int = None
+    match_id: int = None
+    pre_match_id: str = None
 
     class Config:
         model = User
@@ -113,19 +61,42 @@ class UserSchema(ModelSchema):
         return None
 
     @staticmethod
-    def resolve_email(obj):
-        if hasattr(obj, 'email'):
-            return obj.email
+    def resolve_lobby_id(obj):
+        if hasattr(obj, 'account'):
+            if obj.account.lobby:
+                return obj.account.lobby.id
 
-        return ''
+        return None
+
+    @staticmethod
+    def resolve_match_id(obj):
+        if hasattr(obj, 'account'):
+            if obj.account.get_match():
+                return obj.account.get_match().id
+
+        return None
+
+    @staticmethod
+    def resolve_pre_match_id(obj):
+        if hasattr(obj, 'account'):
+            if obj.account.pre_match:
+                return obj.account.pre_match.id
+
+        return None
 
 
 class FakeUserSchema(UserSchema):
     token: Optional[str] = None
+    verification_token: str = None
 
     @staticmethod
     def resolve_token(obj):
         return obj.auth.get_token()
+
+    @staticmethod
+    def resolve_verification_token(obj):
+        if hasattr(obj, 'account') and obj.account is not None:
+            return obj.account.verification_token
 
 
 class SignUpSchema(Schema):

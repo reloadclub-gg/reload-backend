@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
+from model_bakery import baker
 
+from appsettings.services import player_max_level_points
 from core.tests import TestCase
 
-from .. import utils
+from .. import models, utils
+from . import mixins
 
 User = get_user_model()
 
@@ -33,3 +36,50 @@ class AccountsTestUtilsTestCase(TestCase):
 
         extra_data = utils.generate_steam_extra_data(username='tester').get('player')
         self.assertEqual(extra_data.get('personaname'), 'tester')
+
+    def test_steamid64_to_hex(self):
+        steamid64 = '56561198055990604'
+        hexa = utils.steamid64_to_hex(steamid64)
+        self.assertFalse(hexa.startswith('0x'))
+        self.assertEqual(hexa, 'c8f21c2632a54c')
+
+    def test_steamid64_to_hex_zeroes(self):
+        steamid64 = '00001198055990604'
+        hexa = utils.steamid64_to_hex(steamid64)
+        self.assertFalse(hexa.startswith('0x'))
+        self.assertEqual(hexa, '116f1b3a54c')
+
+    def test_hex_to_steamid64(self):
+        steamid_hex = 'c8f21c3e09b41c'
+        steamid64 = utils.hex_to_steamid64(steamid_hex)
+        self.assertEqual(steamid64, '56561198455960604')
+
+    def test_hex_to_steamid64_zeroes(self):
+        steamid_hex = '0x116f1b3a54c'
+        steamid64 = utils.hex_to_steamid64(steamid_hex)
+        self.assertEqual(steamid64, '00001198055990604')
+
+
+class AccountsUtilsWithUsersTestCase(mixins.UserOneMixin, TestCase):
+    def test_calc_level_and_points(self):
+        account = baker.make(models.Account, user=self.user)
+        points_earned = 30
+        level, level_points = utils.calc_level_and_points(
+            points_earned, account.level, account.level_points
+        )
+        self.assertEqual(level, account.level)
+        self.assertEqual(level_points, account.level_points + points_earned)
+
+        account.level = 1
+        account.level_points = 95
+        account.save()
+
+        points_earned = 30
+        level, level_points = utils.calc_level_and_points(
+            points_earned, account.level, account.level_points
+        )
+        self.assertEqual(level, account.level + 1)
+        self.assertEqual(
+            level_points,
+            account.level_points + points_earned - player_max_level_points(),
+        )

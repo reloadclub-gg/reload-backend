@@ -1,13 +1,14 @@
 from unittest import mock
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 from model_bakery import baker
 from ninja import Schema
 from ninja.errors import HttpError
 
 from appsettings.models import AppSettings
 from core.tests import TestCase
-from matchmaking.models import Lobby
-from matchmaking.tests.mixins import VerifiedPlayersMixin
+from lobbies.models import Lobby
 
 from .. import utils
 from ..api import controller
@@ -61,7 +62,8 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertIsNotNone(user.social_auth)
         self.assertIsNotNone(user.steam_user.steamid)
 
-    def test_signup(self):
+    @mock.patch('accounts.utils.send_verify_account_mail')
+    def test_signup(self, mocker):
         invite = baker.make(Invite, owned_by=self.account, email='invited@email.com')
         user = baker.make(User, email=invite.email)
         utils.create_social_auth(user)
@@ -72,17 +74,29 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertTrue(hasattr(user, 'account'))
         self.assertIsNotNone(invite.datetime_accepted)
 
+        mocker.assert_called_once()
+        mocker.assert_called_once_with(
+            user.email, user.steam_user.username, user.account.verification_token
+        )
+
     def test_signup_not_invited(self):
-        AppSettings.set_bool('Invite Required', True)
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         user = baker.make(User)
         with self.assertRaises(HttpError):
             controller.signup(user, email=user.email)
 
-    def test_verify_account(self):
+    @mock.patch('accounts.api.controller.tasks.send_welcome_email.delay')
+    @mock.patch('accounts.api.controller.handle_verify_tasks')
+    def test_verify_account(self, mock_verify_tasks, mock_welcome_email):
         controller.verify_account(self.user, self.user.account.verification_token)
         self.user.refresh_from_db()
         self.assertTrue(self.user.account.is_verified)
         self.assertIsNone(self.user.auth.sessions)
+
+        mock_verify_tasks.assert_called_once()
+        mock_welcome_email.assert_called_once_with(self.user.email)
 
     def test_verify_account_already_verified(self):
         self.user.account.is_verified = True
@@ -90,7 +104,8 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         with self.assertRaises(HttpError):
             controller.verify_account(self.user, self.user.account.verification_token)
 
-    def test_inactivate(self):
+    @mock.patch('accounts.utils.send_inactivation_mail')
+    def test_inactivate(self, mocker):
         self.user.auth.add_session()
         self.user.account.is_verified = True
         self.user.account.save()
@@ -100,7 +115,13 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertFalse(self.user.is_active)
         self.assertIsNotNone(self.user.date_inactivation)
 
-    def test_update_email(self):
+        mocker.assert_called_once()
+        mocker.assert_called_once_with(self.user.email)
+
+    @mock.patch('accounts.api.controller.handle_player_move')
+    @mock.patch('accounts.api.controller.websocket.ws_update_user')
+    @mock.patch('accounts.api.controller.utils.send_verify_account_mail')
+    def test_update_email(self, mock_send_email, mock_update_user, mock_player_move):
         self.user.account.is_verified = True
         self.user.account.save()
         self.user.auth.add_session()
@@ -108,6 +129,19 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.update_email(self.user, 'new@email.com')
         self.assertFalse(self.user.account.is_verified)
         self.assertEqual(self.user.email, 'new@email.com')
+
+        mock_update_user.assert_called_once()
+        mock_send_email.assert_called_once()
+        mock_send_email.assert_called_once_with(
+            self.user.email,
+            self.user.steam_user.username,
+            self.user.account.verification_token,
+        )
+        mock_player_move.assert_called_once_with(
+            self.user,
+            self.user.id,
+            delete_lobby=True,
+        )
 
     @mock.patch(
         'accounts.utils.send_verify_account_mail',
@@ -121,22 +155,21 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.update_email(self.user, 'new@email.com')
         mocker.assert_called_once()
 
-    def test_logout(self):
+    @mock.patch('accounts.api.controller.cache.delete')
+    @mock.patch('accounts.api.controller.websocket.ws_user_logout')
+    def test_logout(self, mock_user_logout, mock_cache_delete):
         self.user.auth.add_session()
         self.user.account.is_verified = True
         self.user.account.save()
         Lobby.create(self.user.id)
-
         self.assertEqual(self.user.account.lobby.id, self.user.id)
 
-        user_offline = controller.logout(self.user)
+        controller.logout(self.user)
 
-        self.assertIsNone(user_offline.account.lobby)
-        self.assertFalse(user_offline.is_online)
-
-    def test_logout_lobby_owner(self):
-        # TODO
-        pass
+        self.assertIsNone(self.user.account.lobby)
+        self.assertFalse(self.user.is_online)
+        mock_cache_delete.assert_called_once_with(f'__friendlist:user:{self.user.id}')
+        mock_user_logout.assert_called_once()
 
     def test_logout_other_lobby(self):
         self.user.auth.add_session()
@@ -164,20 +197,35 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertIsNone(self.user.account.lobby)
         self.assertFalse(self.user.is_online)
 
+    def test_delete_account(self):
+        self.user.account.is_verified = True
+        self.user.account.save()
+        user_id = self.user.id
+        controller.delete_account(self.user)
 
-class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
+        with self.assertRaises(ObjectDoesNotExist):
+            User.objects.get(pk=user_id)
+
+
+class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
+        super().setUp()
         self.user_1.auth.add_session()
         self.user_2.auth.add_session()
         self.user_3.auth.add_session()
         self.user_4.auth.add_session()
         self.user_5.auth.add_session()
         self.user_6.auth.add_session()
-        return super().setUp()
 
-    @mock.patch('accounts.api.controller.user_lobby_invites_expire')
-    @mock.patch('accounts.api.controller.lobby_update')
-    def test_logout_lobby_owner(self, lobby_update, user_lobby_invites_expire):
+    @mock.patch('accounts.api.controller.ws_expire_player_invites')
+    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
+    @mock.patch('accounts.api.controller.handle_player_move')
+    def test_logout_lobby_owner(
+        self,
+        mock_expire_player_invites,
+        mock_friend_create_or_update,
+        mock_player_move,
+    ):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
         Lobby.create(self.user_3.id)
@@ -193,5 +241,81 @@ class AccountsControllerVerifiedPlayersTestCase(VerifiedPlayersMixin, TestCase):
         Lobby.move(self.user_5.id, lobby_1.id)
 
         controller.logout(self.user_1)
-        lobby_update.assert_called_once()
-        user_lobby_invites_expire.assert_called_once()
+        mock_expire_player_invites.assert_called_once()
+        mock_friend_create_or_update.assert_called_once()
+        mock_player_move.assert_called_once()
+
+    def test_user_matches(self):
+        self.assertCountEqual(
+            self.user_1.account.get_matches_played(),
+            controller.user_matches(self.user_1.id),
+        )
+
+        with self.assertRaises(Http404):
+            controller.user_matches(597865)
+
+    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
+    def test_auth(self, mock_friend_update_or_create):
+        self.user_1.auth.remove_session()
+        self.user_1.auth.expire_session(seconds=0)
+
+        controller.auth(self.user_1)
+        mock_friend_update_or_create.assert_called_once()
+        self.assertIsNotNone(self.user_1.auth.sessions)
+        self.assertIsNotNone(self.user_1.account.lobby)
+
+    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
+    def test_auth_unverified(self, mock_friend_update_or_create):
+        self.user_1.account.is_verified = False
+        self.user_1.account.save()
+        self.user_1.refresh_from_db()
+
+        self.user_1.auth.remove_session()
+        self.user_1.auth.expire_session(seconds=0)
+
+        controller.auth(self.user_1)
+        mock_friend_update_or_create.assert_not_called()
+        self.assertIsNone(self.user_1.auth.sessions)
+        self.assertIsNone(self.user_1.account.lobby)
+
+    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
+    def test_auth_no_account(self, mock_friend_update_or_create):
+        self.user_1.account.delete()
+        self.user_1.refresh_from_db()
+
+        self.user_1.auth.remove_session()
+        self.user_1.auth.expire_session(seconds=0)
+
+        controller.auth(self.user_1)
+        mock_friend_update_or_create.assert_not_called()
+        self.assertIsNone(self.user_1.auth.sessions)
+        self.assertFalse(hasattr(self.user_1, 'account'))
+
+    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
+    def test_auth_with_session(self, mock_friend_update_or_create):
+        controller.auth(self.user_1)
+        mock_friend_update_or_create.assert_not_called()
+        self.assertIsNotNone(self.user_1.auth.sessions)
+        self.assertEqual(self.user_1.auth.sessions, 2)
+        self.assertIsNotNone(self.user_1.account.lobby)
+
+    @mock.patch('accounts.models.auth.Auth.add_session')
+    @mock.patch('accounts.models.auth.Auth.persist_session')
+    def test_auth_persists_session(self, mock_persist_session, mock_add_session):
+        controller.auth(self.user_1)
+        mock_persist_session.assert_called_once()
+        mock_add_session.assert_called_once()
+        self.assertEqual(self.user_1.auth.sessions_ttl, -1)
+
+    @mock.patch('accounts.api.controller.handle_verify_tasks')
+    def test_verify_account_with_online_friends(
+        self,
+        mock_verify_tasks,
+    ):
+        self.user_1.account.is_verified = False
+        self.user_1.account.save()
+        self.user_1.refresh_from_db()
+        self.assertEqual(len(self.user_2.account.get_online_friends()), 4)
+        controller.verify_account(self.user_1, self.user_1.account.verification_token)
+        self.assertEqual(len(self.user_2.account.get_online_friends()), 5)
+        self.assertEqual(mock_verify_tasks.call_count, 1)

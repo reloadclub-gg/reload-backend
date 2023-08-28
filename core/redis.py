@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from django.conf import settings
-from redis import Redis, exceptions
+from redis import ConnectionPool, Redis, exceptions
 
 
 class RedisClient(Redis):
@@ -11,14 +11,17 @@ class RedisClient(Redis):
         pass
 
     def __init__(self):
-        super().__init__(
+        pool = ConnectionPool(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
             username=settings.REDIS_USERNAME,
             password=settings.REDIS_PASSWORD,
-            db=settings.REDIS_APP_DB,
-            charset='utf-8',
+            db=settings.REDIS_TEST_DB if settings.TEST_MODE else settings.REDIS_APP_DB,
             decode_responses=True,
+        )
+        super().__init__(
+            connection_pool=pool,
+            charset='utf-8',
             ssl=settings.REDIS_SSL,
         )
 

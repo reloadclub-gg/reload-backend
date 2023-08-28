@@ -1,8 +1,9 @@
+from django.core.exceptions import ObjectDoesNotExist
 from model_bakery import baker
 
 from appsettings.models import AppSettings
 from core.tests import APIClient, TestCase
-from matchmaking.models import Lobby
+from lobbies.models import Lobby
 
 from .. import utils
 from ..models import Account, Invite, User
@@ -11,8 +12,8 @@ from . import mixins
 
 class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
     def setUp(self):
+        super().setUp()
         self.api = APIClient('/api/accounts')
-        return super().setUp()
 
     def test_fake_signup_existent_user(self):
         with self.settings(DEBUG=True):
@@ -81,7 +82,9 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(r.status_code, 422)
 
     def test_signup_without_invite(self):
-        AppSettings.set_bool('Invite Required', True)
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         invited_user = baker.make(User, email='')
         utils.create_social_auth(invited_user)
         invited_user.auth.create_token()
@@ -131,15 +134,26 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.user.email, r.json().get('email'))
 
+    def test_inactivate_account(self):
+        self.user.auth.create_token()
+        self.user.auth.add_session()
+        baker.make(Account, user=self.user, is_verified=True)
+        Lobby.create(self.user.id)
+        r = self.api.patch('/inactivate', token=self.user.auth.token)
+        self.user.refresh_from_db()
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(self.user.is_active)
+
     def test_cancel_account(self):
         self.user.auth.create_token()
         self.user.auth.add_session()
         baker.make(Account, user=self.user, is_verified=True)
         Lobby.create(self.user.id)
+        user_id = self.user.id
         r = self.api.delete('/', token=self.user.auth.token)
-        self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
-        self.assertFalse(self.user.is_active)
+        with self.assertRaises(ObjectDoesNotExist):
+            User.objects.get(pk=user_id)
 
     def test_inactive_user_access_auth_endpoint(self):
         self.user.is_active = False
@@ -202,7 +216,9 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(response.status_code, 422)
 
     def test_validator_check_invite_required(self):
-        AppSettings.set_bool('Invite Required', True)
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         account = baker.make(Account, user=self.user)
         invite = baker.make(Invite, owned_by=account, email='any@email.com')
         invited_user = baker.make(User, email='')
@@ -223,7 +239,9 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertFalse(invited_user.account.is_verified)
 
     def test_validator_check_invite_required_with_raise(self):
-        AppSettings.set_bool('Invite Required', True)
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         invited_user = baker.make(User, email='')
         utils.create_social_auth(invited_user)
         invited_user.auth.create_token()
@@ -247,3 +265,4 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.user.refresh_from_db()
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.user.status, 'offline')
+        self.assertEqual(r.json().get('detail'), 'Logout successful.')

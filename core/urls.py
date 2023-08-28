@@ -29,5 +29,13 @@ if settings.DEBUG:
         path('sentry-debug/', trigger_error),
     ]
 
+if settings.ENVIRONMENT == settings.LOCAL:
     if 'rosetta' in settings.INSTALLED_APPS:
         urlpatterns += [path('rosetta/', include('rosetta.urls'))]
+
+    urlpatterns += [
+        path('ws/', include('websocket.urls', namespace='websocket')),
+    ]
+
+if settings.SILK_ENABLED:
+    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

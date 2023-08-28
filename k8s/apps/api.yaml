@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-deployment
+  labels:
+    app: api-deployment
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: api-deployment
@@ -14,12 +16,18 @@ spec:
     spec:
       containers:
         - name: api
-          image: registry.digitalocean.com/gta-mm-k8s/api:latest
+          image: us-central1-docker.pkg.dev/alpine-comfort-381901/reload-api/api:latest
           imagePullPolicy: Always
           envFrom:
             - secretRef:
                 name: api-staging-env
           ports:
             - containerPort: 80
-      imagePullSecrets:
-        - name: gta-mm-k8s
+
+        - name: celery-worker
+          image: us-central1-docker.pkg.dev/alpine-comfort-381901/reload-api/api:latest
+          imagePullPolicy: Always
+          command: ["pipenv", "run", "celery_worker"]
+          envFrom:
+            - secretRef:
+                name: api-staging-env

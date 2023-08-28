@@ -10,15 +10,97 @@ elif [[ ! "$1" =~ ^(staging|prod)$ ]];
 fi
 
 ENVIRONMENT=$1
-echo "Iniciando deploy para $ENVIRONMENT..."
 
+echo
+echo "-> Iniciando deploy para $ENVIRONMENT......"
+SERVER=reload-api-$ENVIRONMENT
+USER=ubuntu
 
-kubectl delete secret api-$ENVIRONMENT-env
-kubectl create secret generic api-$ENVIRONMENT-env --from-env-file=.env.$ENVIRONMENT
-kubectl apply -f k8s/apps/api.yaml
-kubectl rollout restart deployment/api-deployment
-kubectl rollout status deployment/api-deployment
-sleep 3
-kubectl exec -it $(kubectl get pod -l=app=api-deployment -o jsonpath="{.items[0].metadata.name}") -- pipenv run migrate
-kubectl exec -it $(kubectl get pod -l=app=api-deployment -o jsonpath="{.items[0].metadata.name}") -- pipenv run collectstatic --no-input
-kubectl exec -it $(kubectl get pod -l=app=api-deployment -o jsonpath="{.items[0].metadata.name}") -- pipenv run manage compilemessages
+echo
+echo "-> Enviando variáveis de ambiente..."
+if [[ ! -f ".env.$ENVIRONMENT" ]] ; then
+    echo "É necessário o arquivo '.env.$ENVIRONMENT' para continuar."
+    exit
+fi
+
+echo
+echo "-> Buildando e enviando versão do app..."
+git archive -o /tmp/application.tar.gz HEAD
+scp /tmp/application.tar.gz .env.$ENVIRONMENT $USER@$SERVER:/tmp/
+
+DATE_NOW=$(date +"%Y%m%d_%H%M%S")
+
+ssh $USER@$SERVER '
+echo
+echo "-> Ativando variáveis de ambiente..."
+source ~/.bash_profile
+
+echo
+echo "-> Parando serviços..."
+sudo systemctl stop nginx
+sudo systemctl stop celery
+sudo systemctl stop uvicorn
+
+echo
+echo "-> Preparando backup..."
+mv ~/application ~/bkp-'$DATE_NOW'
+
+echo
+echo "-> Descompactando nova versão da aplicação..."
+mkdir ~/application
+cd ~/application
+tar zxvf /tmp/application.tar.gz
+rm /tmp/application.tar.gz
+
+echo
+echo "-> Transferindo mídias..."
+test -e ~/bkp-'$DATE_NOW'/media/ && \
+        cp -R -p ~/bkp-'$DATE_NOW'/media/ ~/application/media
+
+echo
+echo "-> Comprimindo backup..."
+zip -r ~/bkp-'$DATE_NOW'.zip ~/bkp-'$DATE_NOW'
+rm -Rf ~/bkp-'$DATE_NOW'
+
+echo
+echo "-> Replicando envvars..."
+
+echo "" > ~/application/.env
+while IFS== read -r key value
+do
+  if [[ $key =~ ^#.* ]] || [[ -z $value ]]; then continue; fi
+
+  value="${value%\"}"
+  value="${value#\"}"
+  value="\"$value\""
+
+  echo "$key=$value" >> ~/application/.env
+done </tmp/.env.'$ENVIRONMENT'
+source ~/application/.env
+rm /tmp/.env.'$ENVIRONMENT'
+
+echo
+echo "-> Instalando dependências..."
+cd ~/application
+pipenv install
+
+echo
+echo "-> Rodando migrations..."
+cd ~/application
+pipenv run migrate
+
+echo
+echo "-> Coletando arquivos estáticos..."
+pipenv run collectstatic --no-input
+
+echo
+echo "-> Atualizando permissões..."
+cd ~/
+sudo chown -R ubuntu:www-data ~/application
+
+echo
+echo "-> Reiniciando serviços..."
+sudo systemctl start uvicorn
+sudo systemctl start celery
+sudo systemctl start nginx
+'

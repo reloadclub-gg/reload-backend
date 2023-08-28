@@ -22,13 +22,26 @@ class APIClient(Client):
         url = ''
         url = self.base_path if self.base_path.endswith('/') else self.base_path + '/'
         url += path[1:] if path.startswith('/') else path
-        return url if url.endswith('/') else url + '/'
+        builded_path = url if url.endswith('/') or '?' in url else url + '/'
+        return builded_path
 
-    def call(self, method, path, data=None, token=None):
+    def call(
+        self,
+        method,
+        path,
+        data=None,
+        token=None,
+        content_type='application/json',
+        **extra,
+    ):
         if hasattr(self, method):
             req_method = getattr(self, method)
             return req_method(
-                path, data=data, content_type='application/json', token=token
+                path,
+                data=data,
+                content_type=content_type,
+                token=token,
+                **extra,
             )
 
         raise AttributeError(f"{method} isn't a valid method.")

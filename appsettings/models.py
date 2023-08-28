@@ -1,7 +1,15 @@
 from __future__ import annotations
 
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import signals
+from django.dispatch import receiver
 from django.utils.translation import gettext as _
+
+from core.websocket import ws_create_toast, ws_maintenance
+from lobbies.models import Lobby
+
+User = get_user_model()
 
 
 class AppSettings(models.Model):
@@ -26,7 +34,7 @@ class AppSettings(models.Model):
         verbose_name_plural = 'App Settings'
 
     @staticmethod
-    def get(name):
+    def get(name, default=None):
         config = AppSettings.objects.filter(name=name)
         if config:
             config = config[0]
@@ -35,48 +43,41 @@ class AppSettings(models.Model):
             elif config.kind == AppSettings.INTEGER:
                 return int(config.value)
             elif config.kind == AppSettings.BOOLEAN:
-                return bool(config.value)
+                return bool(int(config.value))
             else:
                 raise Exception('Unknown kind')
 
-        return None
-
-    @staticmethod
-    def set_text(name: str, value: str) -> AppSettings:
-        try:
-            return AppSettings.objects.create(
-                kind=AppSettings.TEXT, name=name, value=str(value)
-            )
-        except Exception as exc:
-            raise exc
-
-    @staticmethod
-    def set_bool(name: str, value: bool) -> AppSettings:
-        if not value:
-            value = ''
-
-        try:
-            return AppSettings.objects.create(
-                kind=AppSettings.BOOLEAN, name=name, value=str(value)
-            )
-        except Exception as exc:
-            raise exc
-
-    @staticmethod
-    def set_int(name: str, value: int) -> AppSettings:
-        try:
-            return AppSettings.objects.create(
-                kind=AppSettings.INTEGER, name=name, value=str(value)
-            )
-        except Exception as exc:
-            raise exc
-
-    def save(self, *args, **kwargs):
-        if self.kind == AppSettings.BOOLEAN:
-            if not self.value:
-                self.value = ''
-
-        super(AppSettings, self).save(*args, **kwargs)
+        return default
 
     def __str__(self):
         return self.name
+
+
+@receiver(signals.post_save, sender=AppSettings)
+def update_maintanence(sender, instance: AppSettings, created: bool, **kwargs):
+    if instance.name == 'Maintenance Window' and not created:
+        online_users_ids = [user.id for user in User.online_users()]
+
+        if AppSettings.get(instance.name) is True:
+            Lobby.cancel_all_queues()
+            ws_maintenance('start')
+            for user_id in online_users_ids:
+                ws_create_toast(
+                    user_id,
+                    _(
+                        'We\'re about to start a maintenance. '
+                        'All queues and invites will be disabled.'
+                    ),
+                    variant='warning',
+                )
+        else:
+            ws_maintenance('end')
+            for user_id in online_users_ids:
+                ws_create_toast(
+                    user_id,
+                    _(
+                        'The maintenance is over. '
+                        'Queues and invites were enabled again. GLHF!'
+                    ),
+                    variant='success',
+                )

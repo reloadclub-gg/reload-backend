@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: reload-api-ip
+    networking.gke.io/managed-certificates: api-staging-cert
+spec:
+  defaultBackend:
+    service:
+      name: api-service
+      port:
+        number: 80
+
+
+# Sempre que mudar o nome do ingress (ou criar outro) é necessário atualizar o timeout das
+# conexões do servico de backend com o seguinte comando
+# gcloud compute backend-services update [YOUR_BACKEND_SERVICE] --timeout=[YOUR_TIMEOUT]
+# depois de rodar o comando é necessario dar rollout nos deployments

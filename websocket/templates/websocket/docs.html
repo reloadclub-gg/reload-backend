@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Websockets Docs</title>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+			integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+			crossorigin="anonymous"
+		/>
+
+		<style>
+			a,
+			a:visited,
+			a:active,
+			a:hover {
+				color: rgb(173, 181, 189);
+				text-decoration: none;
+			}
+
+			a:hover {
+				color: #ddd;
+			}
+
+			a code {
+				color: #f5728f;
+			}
+
+			code {
+				color: #f5728f;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div
+				style="
+					margin-top: 50px;
+					margin-bottom: 50px;
+					border-bottom: 1px solid #ddd;
+					padding-bottom: 50px;
+					flex: 1;
+					display: flex;
+				"
+			>
+				<div style="flex: 1; display: flex; flex-direction: column">
+					<h1>ReloadClub Websocket</h1>
+					<h2>Docs</h2>
+				</div>
+
+				<div style="flex: 1; display: flex; justify-content: end; align-items: end;">
+					<a href="#" id="collapseBtn" onClick="handleToggleCollapseAll(event)">Abrir tudo</a>
+				</div>
+			</div>
+
+			{% for item in items %}
+				<div style="margin-top: 30px; margin-bottom: 30px; border: 1px solid #eee; padding: 20px; overflow: hidden; height: 90px;" class="collapsable">
+					<div id="{{item.title}}" style="cursor: row-resize; padding-left: 20px; border-bottom: 1px solid #eee" onclick="handleClick(this)">
+						<h3><a href="#{{item.title}}">{{item.title}}</a></h3>
+					</div>
+
+					{% for method in item.methods %}
+						<div style="padding: 20px;" id="{{item.title}}__{{method.name}}">
+							<h4><a href="#{{item.title}}__{{method.name}}"><code>{{method.name}}</code></a></h4>
+							<p>{{method.doc.overview}}</p>
+
+							<h5>Actions</h5>
+							<ul>
+								{% for action in method.doc.actions %}
+									<li><code>{{action}}</code></li>
+								{% endfor %}
+							</ul>
+
+
+							<h5>Cases</h5>
+							<ul>
+								{% for case in method.doc.cases %}
+									<li>{{case}}</li>
+								{% endfor %}
+							</ul>
+
+							<h5>Payload</h5>
+							<code style="font-weight: 500; font-size: 16px;">
+								{% if method.doc.payload.repr %}
+									{{method.doc.payload.repr.name}}
+								{% else %}
+									{{method.doc.payload.type}}
+								{% endif %}
+							</code>
+							<br />
+
+							{% if method.doc.payload.repr %}
+								<div style="background-color: #333; padding: 10px 20px">
+									<code>
+										{% for k,v in method.doc.payload.repr.schema.items %}
+											{{k}}: {{v}}<br>
+										{% endfor %}
+									</code>
+								</div>
+							{% endif %}
+						</div>
+					{% endfor %}
+				</div>
+			{% endfor %}
+		</div>
+
+		<script
+			src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+			integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+			crossorigin="anonymous"
+		></script>
+
+		<script>
+
+			let collapsed = true
+
+			function handleClick(target) {
+				const height = target.parentElement.style.height
+				if (height === 'fit-content') target.parentElement.style.height = '90px'
+				else target.parentElement.style.height = 'fit-content'
+			}
+
+			function handleToggleCollapseAll(event) {
+
+				event.preventDefault()
+
+				const elements = document.querySelectorAll('.collapsable')
+				const link = document.getElementById('collapseBtn')
+
+				elements.forEach(element => {
+					if (collapsed) {
+						element.style.height = 'fit-content'
+						link.innerHTML = 'Fechar tudo'
+
+					} else {
+						element.style.height = '90px'
+						link.innerHTML = 'Abrir tudo'
+					}
+				})
+				collapsed = !collapsed
+			}
+
+			window.addEventListener("load", () => {
+
+				if (window.location.hash) {
+					const anchorId = window.location.hash.replace('#', '').split('__')[0]
+					const element = document.getElementById(anchorId)
+					handleClick(element)
+				}
+			})
+		</script>
+	</body>
+</html>

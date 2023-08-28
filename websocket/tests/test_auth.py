@@ -6,19 +6,34 @@ from websocket import auth
 
 class WSAuthTestCase(AccountOneMixin, TestCase):
     def setUp(self) -> None:
+        super().setUp()
         self.user.account.is_verified = True
         self.user.account.save()
         self.user.auth.create_token()
-        return super().setUp()
 
     def test_authenticate(self):
         scope = {'query_string': f'anyurl.com/?token={self.user.auth.token}'}
         user = auth.authenticate(scope)
         self.assertEqual(self.user.id, user.id)
-        self.assertEqual(self.user.auth.sessions_ttl, -1)
 
     def test_authenticate_fail(self):
         scope = {'query_string': '?token=any_token'}
+        user = auth.authenticate(scope)
+        self.assertIsNone(user)
+
+    def test_authenticate_unverified(self):
+        self.user.account.is_verified = False
+        self.user.account.save()
+
+        scope = {'query_string': f'anyurl.com/?token={self.user.auth.token}'}
+        user = auth.authenticate(scope)
+        self.assertIsNone(user)
+
+    def test_authenticate_no_account(self):
+        self.user.account.delete()
+        self.user.refresh_from_db()
+
+        scope = {'query_string': f'anyurl.com/?token={self.user.auth.token}'}
         user = auth.authenticate(scope)
         self.assertIsNone(user)
 

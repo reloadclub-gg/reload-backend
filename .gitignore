@@ -6,7 +6,7 @@ __pycache__/
 database/
 .cache/
 static/*
-media/
+media/*
 *.pem
 api*.json
 tmp/
@@ -18,9 +18,8 @@ venv/
 .gitconfig
 .coverage
 .env
-.env.staging
-.env.prod
+.env.*
 celerybeat-schedule
 .kube
 *.code-workspace
-*.mo
+docker-config.json

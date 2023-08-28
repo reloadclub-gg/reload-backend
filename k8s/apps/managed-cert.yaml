@@ -1,0 +1,7 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: api-staging-cert
+spec:
+  domains:
+    - api.staging.reloadclub.gg
