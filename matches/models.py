@@ -21,6 +21,7 @@ User = get_user_model()
 class Server(models.Model):
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=32)
+    port = models.IntegerField(default=30120)
 
     @property
     def is_full(self) -> bool:

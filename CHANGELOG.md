@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo para porta de servidor Fivem.
 - Novo comando de admin que simula um update de partida vindo do FiveM.
 - Nova config `DOCKER_SITE_URL` que expõe a "url dockerizada" da aplicação (ex: `http://django:8000`).
 - Mixin para testes de partidas finalizadas.
