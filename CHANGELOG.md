@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Conserta deploy que estava rodando com arquivo de variável de ambiente antiga.
 - Adiciona proteção nas configs de log para que o sistema ignore essas configs quando não houver envvars do papertrail setadas.
 - Corrige estatísticas agregadas no esquema de perfil [#646](https://github.com/3C-gg/reload-backend/issues/646).
 - Corrige teste de detalhe de perfil que falhava de maneira itermitente. Isso acontecia devido a um cast do campo `steamid` para `int`, que para testes, é gerado artificialmente, podendo, as vezes, começar com `0`. Quando a conversão para `int` acontecia, ela removia os `0`s iniciais, deixando o valor diferente do cadastrado na conta do usuário.
