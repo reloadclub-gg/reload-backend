@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import List
 
 from django.contrib.auth import get_user_model
@@ -16,6 +17,12 @@ from appsettings.services import (
 )
 
 User = get_user_model()
+
+
+def map_media_path(instance, filename):
+    extension = os.path.splitext(filename)[1]
+    new_filename = f'{instance.sys_name}{extension}'
+    return f'maps/thumbnails/{new_filename}'
 
 
 class Server(models.Model):
@@ -64,8 +71,9 @@ class Server(models.Model):
 class Map(models.Model):
     id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=32)
-    sys_name = models.CharField(max_length=32)
+    sys_name = models.CharField(max_length=32, unique=True)
     is_active = models.BooleanField(default=True)
+    thumbnail = models.ImageField(upload_to=map_media_path, null=True)
 
     def __str__(self):
         return self.name
