@@ -19,8 +19,11 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
     def __create_friend(self):
         user = baker.make(models.User)
         baker.make(
-            UserSocialAuth, user=user, extra_data=utils.generate_steam_extra_data()
+            UserSocialAuth,
+            user=user,
+            extra_data=utils.generate_steam_extra_data(),
         )
+        baker.make(models.Account, user=user, is_verified=True)
         return user
 
     def test_account_verification_token(self):
@@ -36,10 +39,10 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
     @mock.patch('steam.SteamClient.get_friends')
     def test_friends(self, mock_friends):
         f1 = self.__create_friend()
-        baker.make(models.Account, user=f1, is_verified=True)
 
         f2 = self.__create_friend()
-        baker.make(models.Account, user=f2)
+        f2.account.is_verified = False
+        f2.account.save()
 
         mock_friends.return_value = [
             {
@@ -66,10 +69,10 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
     @mock.patch('steam.SteamClient.get_friends')
     def test_online_friends(self, mock_friends):
         f1 = self.__create_friend()
-        baker.make(models.Account, user=f1, is_verified=True)
 
         f2 = self.__create_friend()
-        baker.make(models.Account, user=f2)
+        f2.account.is_verified = False
+        f2.account.save()
 
         mock_friends.return_value = [
             {
@@ -92,6 +95,28 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         baker.make(models.Account, user=self.user)
         f1.auth.add_session()
         self.assertEqual(len(self.user.account.get_online_friends()), 1)
+
+    @mock.patch('accounts.models.account.Steam.get_player_friends')
+    def test_fetch_steam_friends_empty(self, mock_get_friends):
+        baker.make(models.Account, user=self.user)
+        mock_get_friends.return_value = []
+        response = self.user.account.fetch_steam_friends()
+        self.assertEqual(list(response), [])
+
+    @mock.patch('accounts.models.account.Steam.get_player_friends')
+    def test_fetch_steam_friends(self, mock_get_friends):
+        baker.make(models.Account, user=self.user)
+        f1 = self.__create_friend()
+
+        mock_get_friends.return_value = [
+            {
+                'steamid': f1.steam_user.steamid,
+                'relationship': 'friend',
+                'friend_since': 1635963090,
+            }
+        ]
+        response = self.user.account.fetch_steam_friends()
+        self.assertEqual(list(response), [f1.account])
 
     def test_notifications(self):
         account = baker.make(models.Account, user=self.user)
@@ -124,13 +149,8 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
     @mock.patch('steam.SteamClient.get_friends')
     def test_check_friendship(self, mock_friends):
         f1 = self.__create_friend()
-        f1_account = baker.make(models.Account, user=f1, is_verified=True)
-
         f2 = self.__create_friend()
-        f2_account = baker.make(models.Account, user=f2, is_verified=True)
-
         f3 = self.__create_friend()
-        f3_account = baker.make(models.Account, user=f3, is_verified=True)
 
         mock_friends.return_value = [
             {
@@ -152,9 +172,9 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
 
         account = baker.make(models.Account, user=self.user)
         with self.settings(TEST_MODE=False):
-            self.assertTrue(account.check_friendship(f1_account))
-            self.assertTrue(account.check_friendship(f2_account))
-            self.assertFalse(account.check_friendship(f3_account))
+            self.assertTrue(account.check_friendship(f1.account))
+            self.assertTrue(account.check_friendship(f2.account))
+            self.assertFalse(account.check_friendship(f3.account))
 
 
 class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):

@@ -294,7 +294,7 @@ class Account(models.Model):
 
     def get_friends(self) -> list:
         if settings.TEST_MODE:
-            Account.objects.filter(
+            return Account.objects.filter(
                 user__is_active=True,
                 is_verified=True,
                 user__is_staff=False,
