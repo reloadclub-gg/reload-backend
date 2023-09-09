@@ -31,11 +31,6 @@ scp /tmp/application.tar.gz .env.$ENVIRONMENT $USER@$SERVER:/tmp/
 DATE_NOW=$(date +"%Y%m%d_%H%M%S")
 
 ssh $USER@$SERVER '
-echo
-echo "-> Ativando variáveis de ambiente..."
-source ~/.bash_profile
-
-echo
 echo "-> Parando serviços..."
 sudo systemctl stop nginx
 sudo systemctl stop celery
@@ -64,7 +59,7 @@ rm -Rf ~/bkp-'$DATE_NOW'
 
 echo
 echo "-> Replicando envvars..."
-
+> ~/.bash_profile
 echo "" > ~/application/.env
 while IFS== read -r key value
 do
@@ -75,8 +70,11 @@ do
   value="\"$value\""
 
   echo "$key=$value" >> ~/application/.env
+  echo "export $key=$value" >> ~/.bash_profile
 done </tmp/.env.'$ENVIRONMENT'
-source ~/application/.env
+sed -i '/^$/d' ~/application/.env
+source ~/.bash_profile
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/ubuntu/.local/bin/:/home/ubuntu/.local/bin/:/home/ubuntu/.local/bin/
 rm /tmp/.env.'$ENVIRONMENT'
 
 echo
@@ -86,7 +84,6 @@ pipenv install
 
 echo
 echo "-> Rodando migrations..."
-cd ~/application
 pipenv run migrate
 
 echo
