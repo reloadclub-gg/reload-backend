@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [08/09/2023 - ]
 
 ### Added
 
@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Ajusta propagação de eventos de login e logout de amigos [#665](https://github.com/3C-gg/reload-backend/issues/665).
 - Conserta deploy que estava rodando com arquivo de variável de ambiente antiga.
 - Adiciona proteção nas configs de log para que o sistema ignore essas configs quando não houver envvars do papertrail setadas.
 - Corrige estatísticas agregadas no esquema de perfil [#646](https://github.com/3C-gg/reload-backend/issues/646).

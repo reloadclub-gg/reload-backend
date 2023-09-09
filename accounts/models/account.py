@@ -264,18 +264,47 @@ class Account(models.Model):
             status=Match.Status.FINISHED,
         ).count()
 
+    def fetch_steam_friends(self) -> list:
+        steam_friends = Steam.get_player_friends(self.user.steam_user)
+        steam_friends_ids = {
+            friend['steamid']
+            for friend in steam_friends
+            if friend['steamid'] != self.user.steam_user.steamid
+        }
+
+        # it will perform better by getting all accounts and then
+        # filter the steamids in python
+        all_accounts = Account.objects.filter(
+            user__is_active=True,
+            is_verified=True,
+            user__is_staff=False,
+        ).prefetch_related('user')
+
+        friends_accounts = [
+            account for account in all_accounts if account.steamid in steam_friends_ids
+        ]
+
+        if friends_accounts:
+            cache.sadd(
+                f'__friendlist:user:{self.user.id}',
+                *[friend_account.user.id for friend_account in friends_accounts],
+            )
+
+        return friends_accounts
+
     def get_friends(self) -> list:
         if settings.TEST_MODE:
-            friends = Account.objects.filter(
+            Account.objects.filter(
                 user__is_active=True,
                 is_verified=True,
                 user__is_staff=False,
             ).exclude(user_id=self.user.id)
         else:
             friends_ids = cache.smembers(f'__friendlist:user:{self.user.id}')
-            friends = Account.objects.filter(user__id__in=friends_ids)
+            if not friends_ids:
+                return self.fetch_steam_friends()
 
-        return friends
+            return Account.objects.filter(user__id__in=friends_ids)
 
     def get_online_friends(self) -> list:
         return [friend for friend in self.get_friends() if friend.user.is_online]
