@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Move função de pegar amigos da steam do controller de Friend para model Account.
 - Altera namespace de url do websocket para um nome mais adequado (`ws_auth -> ws_app`).
 - Ajusta estatísticas do modelo `MatchPlayerStats` para que fique mais fácil de agregar os resultados de todas as partidas.
 - Refatora lista de partidas de perfil para entregar somente o que é necessário ao FE [#634](https://github.com/3C-gg/reload-backend/issues/634).
