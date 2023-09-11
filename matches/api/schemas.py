@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from ninja import Field, ModelSchema, Schema
 
 from accounts.utils import calc_level_and_points, steamid64_to_hex
+from core.utils import get_full_file_path
 from steam import Steam
 
 from .. import models
@@ -135,9 +136,18 @@ class MatchTeamSchema(ModelSchema):
 
 
 class MapSchema(ModelSchema):
+    thumbnail: str = None
+
     class Config:
         model = models.Map
         model_fields = '__all__'
+
+    @staticmethod
+    def resolve_thumbnail(obj):
+        if obj.thumbnail:
+            return get_full_file_path(obj.thumbnail)
+
+        return None
 
 
 class MatchSchema(ModelSchema):
@@ -273,6 +283,9 @@ class MatchListItemStatsSchema(Schema):
 class MatchListItemSchema(Schema):
     id: int
     map_name: str
+    map_image: str = None
+    game_type: str
+    start_date: str
     end_date: str
     won: bool
     score: str

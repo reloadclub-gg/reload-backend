@@ -20,6 +20,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             models.Match,
             server=self.server,
             status=models.Match.Status.FINISHED,
+            start_date=timezone.now(),
             end_date=timezone.now(),
         )
         self.match.matchteam_set.create(name=self.team1.name, score=10)
@@ -32,6 +33,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             models.Match,
             server=self.server,
             status=models.Match.Status.FINISHED,
+            start_date=timezone.now(),
             end_date=timezone.now(),
         )
         team1 = match2.matchteam_set.create(name=self.team1.name, score=10)
@@ -45,6 +47,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             models.Match,
             server=self.server,
             status=models.Match.Status.FINISHED,
+            start_date=timezone.now(),
             end_date=timezone.now(),
         )
         team1 = match.matchteam_set.create(name=self.team1.name, score=10)

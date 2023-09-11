@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [08/09/2023 - ]
+## [Unreleased]
+
+### Added
+
+- Adiciona campo `thumbnail` no modelo `Map`.
+- Adiciona método de apoio que monta URL de arquivos estáticos.
+
+### Changed
+
+- Esquema `MatchListItemSchema` agora possui 3 novos campos: `map_image`, `game_type` e `start_date`.
+
+## [08/09/2023 - 2f353fd8]
 
 ### Added
 
@@ -53,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alteramos os nomes dos arquivos de deploy para deixar somente o que executa no EC2.
 - Alteramos o conteúdo da mensagem que vai para o sistema do Freshdesk. E adicionamos as informações do usuário denunciado, caso tenha.
 
-## Fixed
+### Fixed
 
 - Ajusta propagação de eventos de login e logout de amigos [#665](https://github.com/3C-gg/reload-backend/issues/665).
 - Conserta deploy que estava rodando com arquivo de variável de ambiente antiga.

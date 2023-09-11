@@ -607,14 +607,6 @@
         }
     },
     {
-        "model": "matches.map",
-        "pk": 1,
-        "fields": {
-            "name": "Auditório",
-            "sys_name": "auditorium"
-        }
-    },
-    {
         "model": "matches.match",
         "pk": 1,
         "fields": {
