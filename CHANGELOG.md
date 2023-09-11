@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Ping websocket de 7 em 7 segundos para manter conexão ativa sem que browsers derrubem a conexão quando o aplicativo estiver em background (`alt+tab`) [#667](https://github.com/3C-gg/reload-backend/issues/667).
 - Adiciona campo `thumbnail` no modelo `Map`.
 - Adiciona método de apoio que monta URL de arquivos estáticos.
 
