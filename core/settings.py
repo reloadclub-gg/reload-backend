@@ -228,6 +228,7 @@ if ENVIRONMENT != LOCAL:
         'ACL': config('AWS_S3_OBJECT_PARAMETERS__ACL', default='public-read'),
     }
     STATICFILES_STORAGE = 'core.cdn.StaticRootS3BotoStorage'
+    DEFAULT_FILE_STORAGE = 'core.cdn.MediaRootS3BotoStorage'
 
 # Email Settings
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')

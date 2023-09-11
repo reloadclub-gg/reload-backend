@@ -8,6 +8,7 @@ from ninja.errors import Http404
 
 from accounts.utils import hex_to_steamid64
 from accounts.websocket import ws_update_user
+from core.utils import get_full_file_path
 from friends.websocket import ws_friend_update_or_create
 
 from .. import models, websocket
@@ -115,6 +116,11 @@ def get_user_matches(
             {
                 'id': match.id,
                 'map_name': match.map.name,
+                'map_image': get_full_file_path(match.map.thumbnail)
+                if match.map.thumbnail
+                else None,
+                'game_type': match.game_type,
+                'start_date': match.start_date.isoformat(),
                 'end_date': match.end_date.isoformat(),
                 'won': user_team.id == match.winner.id,
                 'score': f'{user_team.score}:{opponent_team.score}',

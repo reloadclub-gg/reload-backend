@@ -56,3 +56,10 @@ class CoreUtilsTestCase(TestCase):
         url = b'key=5'
         value = utils.get_url_param(url, 'key')
         self.assertEqual(value, '5')
+
+    def test_get_full_file_path_local(self):
+        file = type('File', (object,), {'url': '/media/image.jpg'})()
+        self.assertEqual(
+            utils.get_full_file_path(file),
+            'http://localhost:8000/media/image.jpg',
+        )

@@ -2,6 +2,7 @@ from model_bakery import baker
 
 from accounts.utils import calc_level_and_points, steamid64_to_hex
 from core.tests import TestCase
+from core.utils import get_full_file_path
 from matches import models
 from matches.api import schemas
 from pre_matches.tests.mixins import TeamsMixin
@@ -17,6 +18,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'name': 'Map name',
             'sys_name': 'map_name',
             'is_active': True,
+            'thumbnail': get_full_file_path(map.thumbnail) if map.thumbnail else None,
         }
 
         self.assertEqual(payload, expected_payload)
