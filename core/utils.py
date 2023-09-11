@@ -87,3 +87,10 @@ def send_mail(mail_to: str, subject: str, content: str):
         mail_to,
         html_message=content,
     )
+
+
+def get_full_file_path(file):
+    if hasattr(settings, 'AWS_LOCATION'):
+        return file.url
+
+    return settings.SITE_URL + file.url
