@@ -27,6 +27,10 @@ app.conf.beat_schedule = {
         'task': 'matches.tasks.delete_old_cancelled_matches',
         'schedule': crontab(minute=0, hour=0),
     },
+    'keep_alive': {
+        'task': 'websocket.tasks.keep_alive',
+        'schedule': 7.0,
+    },
 }
 
 

@@ -62,3 +62,23 @@ def ws_maintenance(status: str):
         None,
         groups=[user.id for user in User.online_users()],
     )
+
+
+def ws_ping():
+    """
+    Sends a ping to all online users.
+
+    Cases:
+    null
+
+    Payload:
+    null
+
+    Actions:
+    - keep_alive/ping
+    """
+    return async_to_sync(ws_send)(
+        'keep_alive/ping',
+        None,
+        groups=[user.id for user in User.online_users()],
+    )
