@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Esquema `MatchListItemSchema` agora possui 3 novos campos: `map_image`, `game_type` e `start_date`.
+- Campo `score` do esquema `MatchListItemSchema` agora é exibido da seguinte forma "X - Y" ao invés de "X:Y" [#671](https://github.com/3C-gg/reload-backend/issues/671).
 
 ## [08/09/2023 - 2f353fd8]
 

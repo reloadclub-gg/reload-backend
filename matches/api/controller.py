@@ -123,7 +123,7 @@ def get_user_matches(
                 'start_date': match.start_date.isoformat(),
                 'end_date': match.end_date.isoformat(),
                 'won': user_team.id == match.winner.id,
-                'score': f'{user_team.score}:{opponent_team.score}',
+                'score': f'{user_team.score} - {opponent_team.score}',
                 'stats': {
                     'kda': f'{player.stats.kills}/{player.stats.deaths}/{player.stats.assists}',
                     'kdr': player.stats.kdr,
