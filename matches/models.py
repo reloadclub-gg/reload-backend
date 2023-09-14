@@ -304,12 +304,11 @@ class MatchPlayer(models.Model):
         if self.stats.afk:
             points = self.points_penalties
 
-        if (
-            self.user.account.level <= 0
-            and self.user.account.level_points <= 0
-            and points < 0
-        ):
+        if self.level <= 0 and self.level_points <= 0 and points < 0:
             return 0
+
+        if self.level <= 0 and self.level_points - abs(points) < 0 and points < 0:
+            return self.level_points * -1
 
         return points
 
