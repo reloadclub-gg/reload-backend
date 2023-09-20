@@ -28,7 +28,7 @@ def handle_create_fivem_match(match: Match) -> Match:
         fivem_response = FiveMMatchResponseMock.from_orm({'status_code': status_code})
         time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
     else:
-        server_url = f'http://{match.server.ip}:3000/api/matches'
+        server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
         payload = MatchFiveMSchema.from_orm(match).dict()
         fivem_response = requests.post(server_url, json=payload)
 

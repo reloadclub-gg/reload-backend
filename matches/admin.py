@@ -13,7 +13,7 @@ from . import models
 
 @admin.register(models.Server)
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('ip', 'name', 'running_matches')
+    list_display = ('ip', 'name', 'running_matches', 'port', 'api_port')
     ordering = (
         'ip',
         'name',
