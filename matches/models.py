@@ -81,6 +81,10 @@ class Map(models.Model):
 
 
 class Match(models.Model):
+    class Meta:
+        verbose_name_plural = 'matches'
+        ordering = ['-end_date']
+
     class Status(models.TextChoices):
         LOADING = 'loading'
         WARMUP = 'warmup'
@@ -110,9 +114,6 @@ class Match(models.Model):
     game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)
     chat = models.JSONField(null=True)
-
-    class Meta:
-        ordering = ['-end_date']
 
     @property
     def team_a(self) -> MatchTeam:

@@ -11,6 +11,7 @@ from social_django.models import Association, Nonce, UserSocialAuth
 
 from core import admin_mixins
 from matches.models import MatchPlayer
+from store.models import UserBox, UserItem
 
 from . import models
 
@@ -128,6 +129,68 @@ class UserReportsAdminInline(admin.TabularInline):
     subject_link.short_description = 'Subject'
 
 
+class UserItemAdminInline(admin.TabularInline):
+    model = UserItem
+    readonly_fields = [
+        'item_name',
+        'item_type',
+        'item_subtype',
+        'item_is_available',
+        'item_can_use',
+        'purchase_date',
+        'in_use',
+    ]
+    exclude = ['item']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def item_name(self, obj):
+        return obj.item.name
+
+    def item_type(self, obj):
+        return obj.item.type
+
+    def item_subtype(self, obj):
+        return obj.item.subtype
+
+    def item_is_available(self, obj):
+        return obj.item.is_available
+
+    def item_can_use(self, obj):
+        return obj.item.can_use
+
+
+class UserBoxAdminInline(admin.TabularInline):
+    model = UserBox
+    readonly_fields = [
+        'box_name',
+        'box_is_available',
+        'box_can_open',
+        'purchase_date',
+        'open_date',
+    ]
+    exclude = ['box']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def box_name(self, obj):
+        return obj.box.name
+
+    def box_is_available(self, obj):
+        return obj.box.is_available
+
+    def box_can_open(self, obj):
+        return obj.box.can_open
+
+
 @admin.register(models.User)
 class UserAdmin(
     DjangoObjectActions,
@@ -212,7 +275,13 @@ class UserAdmin(
     )
     ordering = ('-date_joined', '-last_login', 'email', 'account__level')
     list_filter = ('is_active', 'is_staff', 'account__is_verified')
-    inlines = [UserLoginAdminInline, UserMatchesAdminInline, UserReportsAdminInline]
+    inlines = [
+        UserLoginAdminInline,
+        UserMatchesAdminInline,
+        UserReportsAdminInline,
+        UserItemAdminInline,
+        UserBoxAdminInline,
+    ]
 
     def is_online(self, obj):
         return obj.is_online

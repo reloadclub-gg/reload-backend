@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Novas traduções.
+- Novas configs de loja: `STORE_LENGTH`, `STORE_FEATURED_MAX_LENGTH` e `STORE_ROTATION_DAYS`.
 - Campo de porta de API do servidor FiveM [#681](https://github.com/3C-gg/reload-backend/issues/681).
 - Ping websocket de 7 em 7 segundos para manter conexão ativa sem que browsers derrubem a conexão quando o aplicativo estiver em background (`alt+tab`) [#667](https://github.com/3C-gg/reload-backend/issues/667).
 - Adiciona campo `thumbnail` no modelo `Map`.
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ajusta dados do arquivo `seed.json` que era carregado ao iniciar a aplicação.
 - Ajusta quantidade de pontos perdidos ao estrapolar quantidade de pontos atuais do jogador [#673](https://github.com/3C-gg/reload-backend/issues/673).
 
 ## [08/09/2023 - 2f353fd8]
