@@ -406,3 +406,8 @@ FIVEM_MATCH_MOCK_START_SUCCESS = config(
     default=True,
     cast=bool,
 )
+
+# Store Settings
+STORE_LENGTH = 8
+STORE_FEATURED_MAX_LENGTH = 3
+STORE_ROTATION_DAYS = 1
