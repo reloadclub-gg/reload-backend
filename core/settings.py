@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'notifications.apps.NotificationsConfig',
     'websocket.apps.WebsocketConfig',
     'lobbies.apps.LobbiesConfig',
+    'store.apps.StoreConfig',
 ]
 
 if ENVIRONMENT == LOCAL:
@@ -364,7 +365,7 @@ PLAYER_MAX_LOSE_LEVEL_POINTS = config(
     cast=int,
 )
 
-MATCH_ROUNDS_TO_WIN = config('MATCH_ROUNDS_TO_WIN', default=15, cast=int)
+MATCH_ROUNDS_TO_WIN = config('MATCH_ROUNDS_TO_WIN', default=13, cast=int)
 
 # Other App Settings
 APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)
@@ -405,3 +406,8 @@ FIVEM_MATCH_MOCK_START_SUCCESS = config(
     default=True,
     cast=bool,
 )
+
+# Store Settings
+STORE_LENGTH = 8
+STORE_FEATURED_MAX_LENGTH = 3
+STORE_ROTATION_DAYS = 1
