@@ -1,8 +1,11 @@
 import os
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
+from django.utils.translation import gettext as _
 
 User = get_user_model()
 
@@ -23,7 +26,7 @@ class Box(models.Model):
         verbose_name_plural = 'boxes'
 
     name = models.CharField(max_length=128)
-    handle = models.CharField(max_length=128)
+    handle = models.CharField(max_length=128, unique=True, editable=False)
     owners = models.ManyToManyField(User, through='UserBox')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     create_date = models.DateTimeField(auto_now_add=True)
@@ -46,7 +49,7 @@ class Box(models.Model):
 
 class Collection(models.Model):
     name = models.CharField(max_length=128)
-    handle = models.CharField(max_length=128)
+    handle = models.CharField(max_length=128, unique=True, editable=False)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     create_date = models.DateTimeField(auto_now_add=True)
     release_date = models.DateTimeField(null=True, blank=True)
@@ -83,7 +86,7 @@ class Item(models.Model):
         null=True,
         blank=True,
     )
-    handle = models.CharField(max_length=128, unique=True)
+    handle = models.CharField(max_length=128, unique=True, editable=False)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     create_date = models.DateTimeField(auto_now_add=True)
     release_date = models.DateTimeField(null=True)
@@ -99,9 +102,13 @@ class Item(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     collection = models.ForeignKey(
-        Collection, on_delete=models.CASCADE, null=True, blank=True
+        Collection,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
     featured = models.BooleanField(default=False)
 
@@ -116,6 +123,21 @@ class Item(models.Model):
     def save(self, *args, **kwargs):
         subtype_handle = f'-{self.subtype}' if self.subtype else ''
         self.handle = f'{self.item_type}{subtype_handle}-{slugify(self.name)}'
+
+        if self.box:
+            total_chance = (
+                Item.objects.filter(box=self.box)
+                .exclude(id=self.id)
+                .aggregate(models.Sum('box_draw_chance'))['box_draw_chance__sum']
+                or 0
+            )
+            total_chance += self.box_draw_chance or 0
+
+            if total_chance > 100:
+                raise ValidationError(
+                    _('The total sum of items on this box cannot be greater then 100%.')
+                )
+
         super().save(*args, **kwargs)
 
     def __str__(self):
