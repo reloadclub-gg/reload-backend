@@ -125,7 +125,7 @@ class UserStoreSchema(ModelSchema):
             models.Item.objects.filter(is_available=True)
             .exclude(
                 id__in=Subquery(
-                    getattr(models, f'UserItem')
+                    getattr(models, 'UserItem')
                     .objects.filter(user=user)
                     .values('item__id')
                 )
@@ -137,7 +137,7 @@ class UserStoreSchema(ModelSchema):
             models.Box.objects.filter(is_available=True)
             .exclude(
                 id__in=Subquery(
-                    getattr(models, f'UserBox')
+                    getattr(models, 'UserBox')
                     .objects.filter(user=user)
                     .values('box__id')
                 )
