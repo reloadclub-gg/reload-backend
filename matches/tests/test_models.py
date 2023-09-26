@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from model_bakery import baker
 
@@ -269,7 +270,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
 
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.rounds_played, self.match.rounds)
 
@@ -283,7 +284,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         player.stats.clutch_v1 = 5
         player.stats.clutch_v2 = 3
@@ -296,7 +297,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         player.stats.head_shots = 5
         player.stats.chest_shots = 3
@@ -309,7 +310,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         player.stats.kills = 5
         player.stats.deaths = 1
@@ -322,19 +323,19 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.adr, 0.0)
 
         player.stats.damage = 350
         player.stats.save()
-        self.assertEqual(player.stats.adr, 15.22)
+        self.assertEqual(player.stats.adr, 16.67)
 
     def test_kdr(self):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.kdr, 0.0)
 
@@ -351,7 +352,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.kda, 0.0)
 
@@ -372,7 +373,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.ahk, 0.0)
 
@@ -386,20 +387,20 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.ahr, 0.0)
 
         player.stats.head_shots = 7
         player.stats.save()
 
-        self.assertEqual(player.stats.ahr, 0.3)
+        self.assertEqual(player.stats.ahr, 0.33)
 
     def test_accuracy(self):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.accuracy, 0.0)
 
@@ -415,7 +416,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.head_accuracy, 0.0)
 
@@ -430,7 +431,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.chest_accuracy, 0.0)
 
@@ -445,7 +446,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.others_accuracy, 0.0)
 
@@ -460,7 +461,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)
         self.team1.score = 8
         self.team1.save()
-        self.team2.score = 15
+        self.team2.score = settings.MATCH_ROUNDS_TO_WIN
         self.team2.save()
         self.assertEqual(player.stats.hsk, 0.0)
 
