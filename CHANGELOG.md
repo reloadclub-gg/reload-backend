@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- API para sistema de iventário/itens [#694](https://github.com/3C-gg/reload-backend/issues/694).
 - Novas traduções.
 - Novas configs de loja: `STORE_LENGTH`, `STORE_FEATURED_MAX_LENGTH` e `STORE_ROTATION_DAYS`.
 - Campo de porta de API do servidor FiveM [#681](https://github.com/3C-gg/reload-backend/issues/681).
