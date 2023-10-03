@@ -136,7 +136,7 @@ class UserItemAdminInline(admin.TabularInline):
         'item_type',
         'item_subtype',
         'item_is_available',
-        'item_can_use',
+        'can_use',
         'purchase_date',
         'in_use',
     ]
@@ -160,16 +160,13 @@ class UserItemAdminInline(admin.TabularInline):
     def item_is_available(self, obj):
         return obj.item.is_available
 
-    def item_can_use(self, obj):
-        return obj.item.can_use
-
 
 class UserBoxAdminInline(admin.TabularInline):
     model = UserBox
     readonly_fields = [
         'box_name',
         'box_is_available',
-        'box_can_open',
+        'can_open',
         'purchase_date',
         'open_date',
     ]
@@ -186,9 +183,6 @@ class UserBoxAdminInline(admin.TabularInline):
 
     def box_is_available(self, obj):
         return obj.box.is_available
-
-    def box_can_open(self, obj):
-        return obj.box.can_open
 
 
 @admin.register(models.User)
