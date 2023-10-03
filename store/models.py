@@ -32,7 +32,6 @@ class Box(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     release_date = models.DateTimeField(null=True, blank=True)
     is_available = models.BooleanField(default=False)
-    can_open = models.BooleanField(default=True)
     description = models.TextField()
     discount = models.IntegerField(default=0)
     background_image = models.ImageField(upload_to=item_media_path)
@@ -91,7 +90,6 @@ class Item(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     release_date = models.DateTimeField(null=True)
     is_available = models.BooleanField(default=False)
-    can_use = models.BooleanField(default=True)
     description = models.TextField()
     discount = models.IntegerField(default=0)
     background_image = models.ImageField(upload_to=item_media_path)
@@ -159,7 +157,18 @@ class UserItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     purchase_date = models.DateTimeField(auto_now_add=True)
     in_use = models.BooleanField(default=False)
+    can_use = models.BooleanField(default=True)
     # TODO: add transaction field
+
+    def save(self, *args, **kwargs):
+        existing = UserItem.objects.filter(
+            user=self.user,
+            item__item_type=self.item.item_type,
+            item__subtype=self.item.subtype,
+        ).exclude(pk=self.pk)
+
+        existing.update(in_use=False)
+        super(UserItem, self).save(*args, **kwargs)
 
 
 class UserBox(models.Model):
@@ -167,4 +176,8 @@ class UserBox(models.Model):
     box = models.ForeignKey(Box, on_delete=models.CASCADE)
     purchase_date = models.DateTimeField(auto_now_add=True)
     open_date = models.DateTimeField(null=True)
+    can_open = models.BooleanField(default=True)
     # TODO: add transaction field
+
+    class Meta:
+        verbose_name_plural = 'user boxes'
