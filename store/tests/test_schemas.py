@@ -76,7 +76,6 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'handle': self.item.handle,
             'price': Decimal(str(self.item.price)),
             'release_date': self.item.release_date,
-            'can_use': self.item.can_use,
             'description': self.item.description,
             'discount': self.item.discount,
             'background_image': get_full_file_path(self.item.background_image),
@@ -87,6 +86,8 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             if self.item.collection
             else None,
             'featured': self.item.featured,
+            'in_use': None,
+            'can_use': None,
         }
         self.assertEqual(payload, expected_payload)
 
@@ -100,17 +101,18 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'handle': self.box_item.handle,
             'price': Decimal(str(self.box_item.price)),
             'release_date': self.box_item.release_date,
-            'can_use': self.box_item.can_use,
             'description': self.box_item.description,
             'discount': self.box_item.discount,
             'background_image': get_full_file_path(self.box_item.background_image),
             'foreground_image': get_full_file_path(self.box_item.foreground_image),
-            'box': schemas.BoxSchema.from_orm(self.box),
+            'box': schemas.BoxSchema.from_orm(self.box).dict(),
             'box_draw_chance': self.box_item.box_draw_chance,
-            'collection': schemas.CollectionSchema.from_orm(self.collection)
+            'collection': schemas.CollectionSchema.from_orm(self.collection).dict()
             if self.box_item.collection
             else None,
             'featured': self.box_item.featured,
+            'in_use': None,
+            'can_use': None,
         }
         self.assertEqual(payload, expected_payload)
 
@@ -124,7 +126,6 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'handle': self.collection_item.handle,
             'price': Decimal(str(self.collection_item.price)),
             'release_date': self.collection_item.release_date,
-            'can_use': self.collection_item.can_use,
             'description': self.collection_item.description,
             'discount': self.collection_item.discount,
             'background_image': get_full_file_path(
@@ -133,12 +134,14 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'foreground_image': get_full_file_path(
                 self.collection_item.foreground_image
             ),
-            'box': schemas.BoxSchema.from_orm(self.collection_item.box)
+            'box': schemas.BoxSchema.from_orm(self.collection_item.box).dict()
             if self.collection_item.box
             else None,
             'box_draw_chance': self.collection_item.box_draw_chance,
-            'collection': schemas.CollectionSchema.from_orm(self.collection),
+            'collection': schemas.CollectionSchema.from_orm(self.collection).dict(),
             'featured': self.collection_item.featured,
+            'in_use': None,
+            'can_use': None,
         }
         self.assertEqual(payload, expected_payload)
 
@@ -150,12 +153,12 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'handle': self.box.handle,
             'price': Decimal(str(self.box.price)),
             'release_date': self.box.release_date,
-            'can_open': self.box.can_open,
             'description': self.box.description,
             'discount': self.box.discount,
             'background_image': get_full_file_path(self.box.background_image),
             'foreground_image': get_full_file_path(self.box.foreground_image),
             'featured': self.box.featured,
+            'can_open': None,
         }
         self.assertEqual(payload, expected_payload)
 
@@ -186,36 +189,45 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
 
         self.assertEqual(payload, expected_payload)
 
-        baker.make(models.UserItem, item=self.item, user=self.user)
+        user_owned_item = baker.make(models.UserItem, item=self.item, user=self.user)
         payload = schemas.UserInventorySchema.from_orm(self.user).dict()
         expected_payload = {
             'id': f'{self.user.email}{self.user.id}inventory',
             'user_id': self.user.id,
             'items': [
-                schemas.ItemSchema.from_orm(user_item.item)
+                dict(
+                    schemas.ItemSchema.from_orm(user_item.item).dict(),
+                    in_use=user_owned_item.in_use,
+                    can_use=user_owned_item.can_use,
+                )
                 for user_item in models.UserItem.objects.filter(user=self.user)
             ],
-            'boxes': [
-                schemas.BoxSchema.from_orm(user_box.box)
-                for user_box in models.UserBox.objects.filter(user=self.user)
-            ],
+            'boxes': [],
         }
         self.assertEqual(payload, expected_payload)
 
-        baker.make(models.UserBox, box=self.box, user=self.user)
+        user_owned_box = baker.make(models.UserBox, box=self.box, user=self.user)
         payload = schemas.UserInventorySchema.from_orm(self.user).dict()
         expected_payload = {
             'id': f'{self.user.email}{self.user.id}inventory',
             'user_id': self.user.id,
             'items': [
-                schemas.ItemSchema.from_orm(user_item.item)
+                dict(
+                    schemas.ItemSchema.from_orm(user_item.item).dict(),
+                    in_use=user_owned_item.in_use,
+                    can_use=user_owned_item.can_use,
+                )
                 for user_item in models.UserItem.objects.filter(user=self.user)
             ],
             'boxes': [
-                schemas.BoxSchema.from_orm(user_box.box)
+                dict(
+                    schemas.BoxSchema.from_orm(user_box.box).dict(),
+                    can_open=user_owned_box.can_open,
+                )
                 for user_box in models.UserBox.objects.filter(user=self.user)
             ],
         }
+
         self.assertEqual(payload, expected_payload)
 
     def test_user_store_schema(self):

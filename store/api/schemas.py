@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Subquery
 from django.utils import timezone
-from ninja import ModelSchema
+from ninja import ModelSchema, Schema
 
 from core.redis import RedisClient
 from core.utils import get_full_file_path, str_to_timezone
@@ -20,6 +20,7 @@ cache = RedisClient()
 class BoxSchema(ModelSchema):
     background_image: str
     foreground_image: str
+    can_open: bool = None
 
     class Config:
         model = models.Box
@@ -56,6 +57,8 @@ class ItemSchema(ModelSchema):
     foreground_image: str
     box: BoxSchema = None
     collection: CollectionSchema = None
+    in_use: bool = None
+    can_use: bool = None
 
     class Config:
         model = models.Item
@@ -84,17 +87,32 @@ class UserInventorySchema(ModelSchema):
     def resolve_items(obj):
         user_items = models.UserItem.objects.filter(
             user=obj,
-            item__can_use=True,
-        )
-        return [user_item.item for user_item in user_items]
+            can_use=True,
+        ).select_related('item')
+
+        items = []
+        for user_item in user_items:
+            item = user_item.item
+            item.in_use = user_item.in_use
+            item.can_use = user_item.can_use
+            items.append(item)
+
+        return items
 
     @staticmethod
     def resolve_boxes(obj):
         user_boxes = models.UserBox.objects.filter(
             user=obj,
-            box__can_open=True,
-        )
-        return [user_boxes.box for user_boxes in user_boxes]
+            can_open=True,
+        ).select_related('box')
+
+        boxes = []
+        for user_box in user_boxes:
+            box = user_box.box
+            box.can_open = user_box.can_open
+            boxes.append(box)
+
+        return boxes
 
     @staticmethod
     def resolve_id(obj):
@@ -206,3 +224,7 @@ class UserStoreSchema(ModelSchema):
     @staticmethod
     def resolve_user_id(obj):
         return obj.id
+
+
+class UserItemUpdateSchema(Schema):
+    in_use: bool
