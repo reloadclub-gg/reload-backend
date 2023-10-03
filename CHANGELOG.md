@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desbloqueia adição/remoção de itens e caixas de usuário via admin para superusuários, deixando somente a opção de alteração bloqueada [#679](https://github.com/3C-gg/reload-backend/issues/697).
 - Métodos que usavam `15` "hardcoded" para determinar vitória de um dos times agora usam a configuração de rounds necessários para vencer (`MATCH_ROUNDS_TO_WIN`).
 - Configuração da quantidade de rounds necessários a ganhar por um dos times para que a partida seja considerada finalizada (15 -> 13) [#689](https://github.com/3C-gg/reload-backend/issues/689).
 - Esquema `MatchListItemSchema` agora possui 3 novos campos: `map_image`, `game_type` e `start_date`.
