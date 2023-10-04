@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [04/10/2023 - 69f2c75]
+
 ### Added
 
 - API para sistema de iventário/itens [#694](https://github.com/3C-gg/reload-backend/issues/694).
