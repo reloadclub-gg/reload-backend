@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- API para sistema de iventário/itens [#694](https://github.com/3C-gg/reload-backend/issues/694).
+- Novas traduções.
+- Novas configs de loja: `STORE_LENGTH`, `STORE_FEATURED_MAX_LENGTH` e `STORE_ROTATION_DAYS`.
+- Campo de porta de API do servidor FiveM [#681](https://github.com/3C-gg/reload-backend/issues/681).
+- Ping websocket de 7 em 7 segundos para manter conexão ativa sem que browsers derrubem a conexão quando o aplicativo estiver em background (`alt+tab`) [#667](https://github.com/3C-gg/reload-backend/issues/667).
+- Adiciona campo `thumbnail` no modelo `Map`.
+- Adiciona método de apoio que monta URL de arquivos estáticos.
+
+### Changed
+
+- Métodos que usavam `15` "hardcoded" para determinar vitória de um dos times agora usam a configuração de rounds necessários para vencer (`MATCH_ROUNDS_TO_WIN`).
+- Configuração da quantidade de rounds necessários a ganhar por um dos times para que a partida seja considerada finalizada (15 -> 13) [#689](https://github.com/3C-gg/reload-backend/issues/689).
+- Esquema `MatchListItemSchema` agora possui 3 novos campos: `map_image`, `game_type` e `start_date`.
+- Campo `score` do esquema `MatchListItemSchema` agora é exibido da seguinte forma "X - Y" ao invés de "X:Y" [#671](https://github.com/3C-gg/reload-backend/issues/671).
+
+### Fixed
+
+- Ajusta dados do arquivo `seed.json` que era carregado ao iniciar a aplicação.
+- Ajusta quantidade de pontos perdidos ao estrapolar quantidade de pontos atuais do jogador [#673](https://github.com/3C-gg/reload-backend/issues/673).
+
+## [08/09/2023 - 2f353fd8]
+
+### Added
+
 - Campo para porta de servidor Fivem.
 - Novo comando de admin que simula um update de partida vindo do FiveM.
 - Nova config `DOCKER_SITE_URL` que expõe a "url dockerizada" da aplicação (ex: `http://django:8000`).
@@ -31,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Move função de pegar amigos da steam do controller de Friend para model Account.
 - Altera namespace de url do websocket para um nome mais adequado (`ws_auth -> ws_app`).
 - Ajusta estatísticas do modelo `MatchPlayerStats` para que fique mais fácil de agregar os resultados de todas as partidas.
 - Refatora lista de partidas de perfil para entregar somente o que é necessário ao FE [#634](https://github.com/3C-gg/reload-backend/issues/634).
@@ -52,8 +77,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alteramos os nomes dos arquivos de deploy para deixar somente o que executa no EC2.
 - Alteramos o conteúdo da mensagem que vai para o sistema do Freshdesk. E adicionamos as informações do usuário denunciado, caso tenha.
 
-## Fixed
+### Fixed
 
+- Ajusta propagação de eventos de login e logout de amigos [#665](https://github.com/3C-gg/reload-backend/issues/665).
 - Conserta deploy que estava rodando com arquivo de variável de ambiente antiga.
 - Adiciona proteção nas configs de log para que o sistema ignore essas configs quando não houver envvars do papertrail setadas.
 - Corrige estatísticas agregadas no esquema de perfil [#646](https://github.com/3C-gg/reload-backend/issues/646).

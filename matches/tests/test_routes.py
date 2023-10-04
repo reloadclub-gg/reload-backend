@@ -18,6 +18,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             models.Match,
             server=server,
             status=models.Match.Status.FINISHED,
+            start_date=timezone.now(),
+            end_date=timezone.now(),
         )
         team1 = match.matchteam_set.create(name=self.team1.name)
         match.matchteam_set.create(name=self.team2.name)
@@ -32,6 +34,7 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             models.Match,
             server=server,
             status=models.Match.Status.FINISHED,
+            start_date=timezone.now(),
             end_date=timezone.now(),
         )
         team1 = match1.matchteam_set.create(name=self.team1.name, score=10)
@@ -42,6 +45,7 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             models.Match,
             server=server,
             status=models.Match.Status.FINISHED,
+            start_date=timezone.now(),
             end_date=timezone.now(),
         )
         team1 = match2.matchteam_set.create(name=self.team1.name, score=10)
@@ -54,6 +58,7 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             models.Match,
             server=server,
             status=models.Match.Status.FINISHED,
+            start_date=timezone.now(),
             end_date=timezone.now(),
         )
         team1 = match.matchteam_set.create(name=self.team1.name, score=10)
@@ -72,7 +77,7 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             models.Match,
             server=server,
             status=models.Match.Status.RUNNING,
-            end_date=timezone.now(),
+            start_date=timezone.now(),
         )
         match.matchteam_set.create(name=self.team1.name, score=10)
         match.matchteam_set.create(name=self.team2.name, score=6)

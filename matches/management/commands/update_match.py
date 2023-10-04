@@ -46,8 +46,10 @@ class Command(BaseCommand):
         response = requests.patch(
             url,
             json={
-                'team_a_score': random.randint(0, 14) if not options['finish'] else 15,
-                'team_b_score': random.randint(0, 14),
+                'team_a_score': random.randint(0, settings.MATCH_ROUNDS_TO_WIN - 1)
+                if not options['finish']
+                else settings.MATCH_ROUNDS_TO_WIN,
+                'team_b_score': random.randint(0, settings.MATCH_ROUNDS_TO_WIN - 1),
                 'end_reason': None,
                 'players_stats': [],
                 'is_overtime': False,

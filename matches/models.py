@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import List
 
 from django.contrib.auth import get_user_model
@@ -18,10 +19,17 @@ from appsettings.services import (
 User = get_user_model()
 
 
+def map_media_path(instance, filename):
+    extension = os.path.splitext(filename)[1]
+    new_filename = f'{instance.sys_name}{extension}'
+    return f'maps/thumbnails/{new_filename}'
+
+
 class Server(models.Model):
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=32)
     port = models.IntegerField(default=30120)
+    api_port = models.IntegerField(default=3000)
 
     @property
     def is_full(self) -> bool:
@@ -64,14 +72,19 @@ class Server(models.Model):
 class Map(models.Model):
     id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=32)
-    sys_name = models.CharField(max_length=32)
+    sys_name = models.CharField(max_length=32, unique=True)
     is_active = models.BooleanField(default=True)
+    thumbnail = models.ImageField(upload_to=map_media_path, null=True)
 
     def __str__(self):
         return self.name
 
 
 class Match(models.Model):
+    class Meta:
+        verbose_name_plural = 'matches'
+        ordering = ['-end_date']
+
     class Status(models.TextChoices):
         LOADING = 'loading'
         WARMUP = 'warmup'
@@ -101,9 +114,6 @@ class Match(models.Model):
     game_type = models.CharField(max_length=16, choices=GameType.choices)
     game_mode = models.IntegerField(choices=GameMode.choices)
     chat = models.JSONField(null=True)
-
-    class Meta:
-        ordering = ['-end_date']
 
     @property
     def team_a(self) -> MatchTeam:
@@ -296,12 +306,11 @@ class MatchPlayer(models.Model):
         if self.stats.afk:
             points = self.points_penalties
 
-        if (
-            self.user.account.level <= 0
-            and self.user.account.level_points <= 0
-            and points < 0
-        ):
+        if self.level <= 0 and self.level_points <= 0 and points < 0:
             return 0
+
+        if self.level <= 0 and self.level_points - abs(points) < 0 and points < 0:
+            return self.level_points * -1
 
         return points
 

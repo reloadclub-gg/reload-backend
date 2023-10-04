@@ -18,4 +18,4 @@ ENTRYPOINT [ "pipenv", "run" ]
 
 COPY . $WORKDIR/
 
-CMD [ "pipenv", "run", "start"]
+CMD ["pipenv", "run", "start"]

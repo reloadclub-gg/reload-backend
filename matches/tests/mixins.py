@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from model_bakery import baker
@@ -20,7 +21,10 @@ class FinishedMatchesMixin(TeamsMixin):
             status=models.Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = self.match1.matchteam_set.create(name=self.team1.name, score=15)
+        team1 = self.match1.matchteam_set.create(
+            name=self.team1.name,
+            score=settings.MATCH_ROUNDS_TO_WIN,
+        )
         team2 = self.match1.matchteam_set.create(name=self.team2.name, score=5)
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
@@ -39,7 +43,10 @@ class FinishedMatchesMixin(TeamsMixin):
             status=models.Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = self.match2.matchteam_set.create(name=self.team1.name, score=15)
+        team1 = self.match2.matchteam_set.create(
+            name=self.team1.name,
+            score=settings.MATCH_ROUNDS_TO_WIN,
+        )
         team2 = self.match2.matchteam_set.create(name=self.team2.name, score=5)
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
@@ -59,7 +66,10 @@ class FinishedMatchesMixin(TeamsMixin):
             end_date=timezone.now(),
         )
         team1 = self.match3.matchteam_set.create(name=self.team1.name, score=5)
-        team2 = self.match3.matchteam_set.create(name=self.team2.name, score=15)
+        team2 = self.match3.matchteam_set.create(
+            name=self.team2.name,
+            score=settings.MATCH_ROUNDS_TO_WIN,
+        )
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_3)
