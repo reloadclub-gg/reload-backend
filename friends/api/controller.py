@@ -1,9 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from core.redis import RedisClient
-
 User = get_user_model()
-cache = RedisClient()
 
 
 def list(user: User) -> dict:

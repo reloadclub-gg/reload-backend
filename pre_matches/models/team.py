@@ -10,10 +10,9 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from lobbies.models import Lobby
 
-cache = RedisClient()
 User = get_user_model()
 
 
@@ -167,13 +166,12 @@ class Team(BaseModel):
         """
         Fetch and return all Teams on Redis db.
         """
-        all_teams_keys = cache.keys(f'{TeamConfig.CACHE_PREFIX}*')
-        teams_keys = []
-        for key in all_teams_keys:
-            if len(key.split(':')) == 3:
-                teams_keys.append(key)
+        keys = list(cache.scan_keys(f'{TeamConfig.CACHE_PREFIX}*'))
+        if not keys:
+            return []
 
-        return [Team.get_by_id(team_key.split(':')[2]) for team_key in teams_keys]
+        filtered_keys = [key for key in keys if len(key.split(':')) == 3]
+        return [Team.get_by_id(key.split(':')[2]) for key in filtered_keys]
 
     @staticmethod
     def get_all_not_ready() -> list[Team]:
@@ -283,9 +281,10 @@ class Team(BaseModel):
             return team
 
         # get all queued lobbies
+        queued_keys = list(cache.scan_keys('__mm:lobby:*:queue'))
         lobby_ids = [
             int(key.split(':')[2])
-            for key in cache.keys('__mm:lobby:*:queue')
+            for key in queued_keys
             if lobby.id != int(key.split(':')[2])
         ]
 
@@ -319,8 +318,9 @@ class Team(BaseModel):
         """
         Delete team from Redis db.
         """
-        for key in cache.keys(f'{self.cache_key}:*'):
-            cache.delete(key)
+        keys = list(cache.scan_keys(f'{self.cache_key}:*'))
+        if keys:
+            cache.delete(*keys)
 
         cache.delete(self.cache_key)
 

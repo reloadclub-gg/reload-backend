@@ -168,7 +168,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
 
         self.assertIsNone(self.user.account.lobby)
         self.assertFalse(self.user.is_online)
-        mock_cache_delete.assert_called_once_with(f'__friendlist:user:{self.user.id}')
+        mock_cache_delete.assert_called_with(f'__friendlist:user:{self.user.id}')
         mock_user_logout.assert_called_once()
 
     def test_logout_other_lobby(self):

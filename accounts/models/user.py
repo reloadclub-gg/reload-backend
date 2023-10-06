@@ -10,11 +10,9 @@ from django.utils import timezone
 from pydantic import BaseModel, Field
 from social_django.models import UserSocialAuth
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 
 from .auth import Auth
-
-cache = RedisClient()
 
 
 class UserManager(BaseUserManager):

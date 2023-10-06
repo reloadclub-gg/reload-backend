@@ -8,13 +8,12 @@ from django.db.models import Subquery
 from django.utils import timezone
 from ninja import ModelSchema, Schema
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import get_full_file_path, str_to_timezone
 
 from .. import models
 
 User = get_user_model()
-cache = RedisClient()
 
 
 class BoxSchema(ModelSchema):

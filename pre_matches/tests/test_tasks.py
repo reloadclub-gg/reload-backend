@@ -2,15 +2,13 @@ from unittest import mock
 
 from django.utils import timezone
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.tests import TestCase
 from lobbies.models import Player
 
 from ..models import PreMatch, PreMatchException, Team, TeamException
 from ..tasks import cancel_match_after_countdown
 from . import mixins
-
-cache = RedisClient()
 
 
 class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
