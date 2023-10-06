@@ -3,15 +3,13 @@ from unittest import mock
 from django.test import override_settings
 from django.utils import timezone
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.tests import TestCase
 from pre_matches.models import Team
 from pre_matches.tests.mixins import TeamsMixin
 
 from .. import models, tasks
 from . import mixins
-
-cache = RedisClient()
 
 
 class LobbyTasksTestCase(TeamsMixin, TestCase):

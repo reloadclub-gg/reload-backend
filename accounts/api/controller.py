@@ -7,7 +7,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string, get_ip_address
 from friends.tasks import (
     add_user_to_friends_friendlist,
@@ -24,7 +24,6 @@ from ..models import Account, Auth, Invite, UserLogin
 from .authorization import is_verified
 
 User = get_user_model()
-cache = RedisClient()
 
 
 def handle_verify_tasks(user: User):

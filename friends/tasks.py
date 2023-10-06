@@ -3,13 +3,12 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import activate
 from django.utils.translation import gettext as _
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from notifications.websocket import ws_new_notification
 
 from .websocket import ws_friend_update_or_create
 
 User = get_user_model()
-cache = RedisClient()
 
 
 @shared_task

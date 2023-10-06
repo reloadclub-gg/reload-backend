@@ -3,12 +3,9 @@ import tempfile
 from model_bakery import baker
 
 from accounts.tests.mixins import VerifiedAccountsMixin
-from core.redis import RedisClient
 from core.tests import APIClient, TestCase
 
 from .. import models
-
-cache = RedisClient()
 
 
 class StoreRoutesTestCase(VerifiedAccountsMixin, TestCase):

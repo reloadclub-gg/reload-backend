@@ -4,11 +4,9 @@ from django.contrib.auth import get_user_model
 
 from accounts.models import Auth
 from accounts.tasks import watch_user_status_change
-from core.redis import RedisClient
 from core.utils import get_url_param
 
 User = get_user_model()
-cache = RedisClient()
 
 
 class WSAuthConfig:

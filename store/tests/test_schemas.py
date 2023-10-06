@@ -5,14 +5,12 @@ from django.test import override_settings
 from model_bakery import baker
 
 from accounts.tests.mixins import AccountOneMixin
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.tests import TestCase
 from core.utils import get_full_file_path
 
 from .. import models
 from ..api import schemas
-
-cache = RedisClient()
 
 
 class StoreSchemaTestCase(AccountOneMixin, TestCase):
