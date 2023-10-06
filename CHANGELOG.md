@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Altera configs do Nginx para melhorar performance e segurança [#709](https://github.com/3C-gg/reload-backend/issues/709).
 - Altera quantidade de workers locais do Uvicorn para permitir maior número de conexões simultâneas.
+- Altera bootstrap de aplicação pra refletir novas configs do Nginx [#711](https://github.com/3C-gg/reload-backend/issues/711).
 - Todos os `cache.keys({PATTERN})` foram alterados para usar a nova função `scan_keys` que tem uma performance muito melhor e não "trava" a conexão com o Redis [#704](https://github.com/3C-gg/reload-backend/issues/704).
 - Alteramos a maneira como instanciávamos o `RedisClient`. Antes, estávamos abrindo um pool de conexão por acesso. Agora, estamos usando sempre o mesmo pool [#704](https://github.com/3C-gg/reload-backend/issues/704).
 

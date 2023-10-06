@@ -30,6 +30,15 @@ echo export PATH=$PATH:~/.local/bin/ >> ~/.bash_profile
 source ~/.bash_profile
 pipenv --python `which python3.8`
 
+### Performance e Network
+
+```conf
+# /etc/security/limits.conf
+
+* soft nofile 65535
+* hard nofile 65535
+```
+
 ## Deploy
 
 Nesse momento, faça o deploy da aplicação para o ambiente.
