@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Todos os `cache.keys({PATTERN})` foram alterados para usar a nova função `scan_keys` que tem uma performance muito melhor e não "trava" a conexão com o Redis [#704](https://github.com/3C-gg/reload-backend/issues/704).
 - Alteramos a maneira como instanciávamos o `RedisClient`. Antes, estávamos abrindo um pool de conexão por acesso. Agora, estamos usando sempre o mesmo pool [#704](https://github.com/3C-gg/reload-backend/issues/704).
 
+### Fixed
+
+- Adiciona `id` correto de item e caixa no esquema `UserInventorySchema`. O campo `id` estava o do item ou caixa originais (`Item`/`Box`), fazendo com que o backend retornasse `404`, pois o `id` correto é o do `UserItem`/`UserBox` [#707](https://github.com/3C-gg/reload-backend/issues/707).
+
 ## [04/10/2023 - 69f2c75]
 
 ### Added

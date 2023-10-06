@@ -197,6 +197,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
                     schemas.ItemSchema.from_orm(user_item.item).dict(),
                     in_use=user_owned_item.in_use,
                     can_use=user_owned_item.can_use,
+                    id=user_owned_item.id,
                 )
                 for user_item in models.UserItem.objects.filter(user=self.user)
             ],
@@ -214,6 +215,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
                     schemas.ItemSchema.from_orm(user_item.item).dict(),
                     in_use=user_owned_item.in_use,
                     can_use=user_owned_item.can_use,
+                    id=user_owned_item.id,
                 )
                 for user_item in models.UserItem.objects.filter(user=self.user)
             ],
@@ -221,6 +223,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
                 dict(
                     schemas.BoxSchema.from_orm(user_box.box).dict(),
                     can_open=user_owned_box.can_open,
+                    id=user_owned_box.id,
                 )
                 for user_box in models.UserBox.objects.filter(user=self.user)
             ],
