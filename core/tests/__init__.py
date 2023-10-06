@@ -1,9 +1,7 @@
 from django.test import Client
 from django.test import TestCase as DjangoTestCase
 
-from core.redis import RedisClient
-
-cache = RedisClient()
+from core.redis import redis_client_instance as cache
 
 
 class TestCase(DjangoTestCase):

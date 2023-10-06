@@ -3,6 +3,15 @@ from collections.abc import Callable
 from django.conf import settings
 from redis import ConnectionPool, Redis, exceptions
 
+pool = ConnectionPool(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    username=settings.REDIS_USERNAME,
+    password=settings.REDIS_PASSWORD,
+    db=settings.REDIS_TEST_DB if settings.TEST_MODE else settings.REDIS_APP_DB,
+    decode_responses=True,
+)
+
 
 class RedisClient(Redis):
     TRANSACTION_MAX_RETRIES_DEFAULT = 3
@@ -11,14 +20,6 @@ class RedisClient(Redis):
         pass
 
     def __init__(self):
-        pool = ConnectionPool(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            username=settings.REDIS_USERNAME,
-            password=settings.REDIS_PASSWORD,
-            db=settings.REDIS_TEST_DB if settings.TEST_MODE else settings.REDIS_APP_DB,
-            decode_responses=True,
-        )
         super().__init__(
             connection_pool=pool,
             charset='utf-8',
@@ -51,3 +52,13 @@ class RedisClient(Redis):
                 raise self.RetryException(
                     f'Concurrency reached maximum of {max_retries} retries.'
                 )
+
+    def scan_keys(self, pattern: str, count: int = 100):
+        cursor = '0'
+        while cursor != 0:
+            cursor, keys = self.scan(cursor=cursor, match=pattern, count=count)
+            for key in keys:
+                yield key
+
+
+redis_client_instance = RedisClient()

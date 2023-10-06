@@ -2,11 +2,9 @@ from threading import Thread
 
 from django.utils import timezone
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 
 from . import TestCase
-
-cache = RedisClient()
 
 
 class TestWatchError(TestCase):

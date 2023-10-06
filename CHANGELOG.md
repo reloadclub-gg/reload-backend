@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Função `scan_keys` no `RedisClient` que faz o scan baseado em um pattern recebido.
+
+### Changed
+
+- Altera configs do Nginx para melhorar performance e segurança [#709](https://github.com/3C-gg/reload-backend/issues/709).
+- Altera quantidade de workers locais do Uvicorn para permitir maior número de conexões simultâneas.
+- Altera bootstrap de aplicação pra refletir novas configs do Nginx [#711](https://github.com/3C-gg/reload-backend/issues/711).
+- Todos os `cache.keys({PATTERN})` foram alterados para usar a nova função `scan_keys` que tem uma performance muito melhor e não "trava" a conexão com o Redis [#704](https://github.com/3C-gg/reload-backend/issues/704).
+- Alteramos a maneira como instanciávamos o `RedisClient`. Antes, estávamos abrindo um pool de conexão por acesso. Agora, estamos usando sempre o mesmo pool [#704](https://github.com/3C-gg/reload-backend/issues/704).
+
+### Fixed
+
+- Adiciona `id` correto de item e caixa no esquema `UserInventorySchema`. O campo `id` estava o do item ou caixa originais (`Item`/`Box`), fazendo com que o backend retornasse `404`, pois o `id` correto é o do `UserItem`/`UserBox` [#707](https://github.com/3C-gg/reload-backend/issues/707).
+
+## [04/10/2023 - 69f2c75]
+
+### Added
+
 - API para sistema de iventário/itens [#694](https://github.com/3C-gg/reload-backend/issues/694).
 - Novas traduções.
 - Novas configs de loja: `STORE_LENGTH`, `STORE_FEATURED_MAX_LENGTH` e `STORE_ROTATION_DAYS`.
@@ -19,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desbloqueia adição/remoção de itens e caixas de usuário via admin para superusuários, deixando somente a opção de alteração bloqueada [#679](https://github.com/3C-gg/reload-backend/issues/697).
 - Métodos que usavam `15` "hardcoded" para determinar vitória de um dos times agora usam a configuração de rounds necessários para vencer (`MATCH_ROUNDS_TO_WIN`).
 - Configuração da quantidade de rounds necessários a ganhar por um dos times para que a partida seja considerada finalizada (15 -> 13) [#689](https://github.com/3C-gg/reload-backend/issues/689).
 - Esquema `MatchListItemSchema` agora possui 3 novos campos: `map_image`, `game_type` e `start_date`.

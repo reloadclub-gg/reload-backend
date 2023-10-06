@@ -5,14 +5,12 @@ from django.test import override_settings
 from model_bakery import baker
 
 from accounts.tests.mixins import AccountOneMixin
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.tests import TestCase
 from core.utils import get_full_file_path
 
 from .. import models
 from ..api import schemas
-
-cache = RedisClient()
 
 
 class StoreSchemaTestCase(AccountOneMixin, TestCase):
@@ -199,6 +197,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
                     schemas.ItemSchema.from_orm(user_item.item).dict(),
                     in_use=user_owned_item.in_use,
                     can_use=user_owned_item.can_use,
+                    id=user_owned_item.id,
                 )
                 for user_item in models.UserItem.objects.filter(user=self.user)
             ],
@@ -216,6 +215,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
                     schemas.ItemSchema.from_orm(user_item.item).dict(),
                     in_use=user_owned_item.in_use,
                     can_use=user_owned_item.can_use,
+                    id=user_owned_item.id,
                 )
                 for user_item in models.UserItem.objects.filter(user=self.user)
             ],
@@ -223,6 +223,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
                 dict(
                     schemas.BoxSchema.from_orm(user_box.box).dict(),
                     can_open=user_owned_box.can_open,
+                    id=user_owned_box.id,
                 )
                 for user_box in models.UserBox.objects.filter(user=self.user)
             ],

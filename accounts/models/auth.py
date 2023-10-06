@@ -2,9 +2,7 @@ import secrets
 
 from pydantic import BaseModel
 
-from core.redis import RedisClient
-
-cache = RedisClient()
+from core.redis import redis_client_instance as cache
 
 
 class AuthConfig:
@@ -85,10 +83,12 @@ class Auth(BaseModel):
         """
         Searchs for `user_id` value in all token keys on Redis.
         """
-        entries = cache.keys(f'{AuthConfig.CACHE_PREFIX_TOKEN}*')
-        for entry in entries:
-            if int(cache.get(entry)) == self.user_id:
-                return entry.split(':')[-1:][0]
+        keys = list(cache.scan_keys(f'{AuthConfig.CACHE_PREFIX_TOKEN}*'))
+        values = cache.mget(keys)
+
+        for key, value in zip(keys, values):
+            if int(value) == self.user_id:
+                return key.split(':')[-1:][0]
 
     def refresh_token(self):
         """

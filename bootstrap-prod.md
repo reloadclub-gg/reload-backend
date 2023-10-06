@@ -30,6 +30,15 @@ echo export PATH=$PATH:~/.local/bin/ >> ~/.bash_profile
 source ~/.bash_profile
 pipenv --python `which python3.8`
 
+### Performance e Network
+
+```conf
+# /etc/security/limits.conf
+
+* soft nofile 65535
+* hard nofile 65535
+```
+
 ## Deploy
 
 Nesse momento, faça o deploy da aplicação para o ambiente.
@@ -115,12 +124,29 @@ curl --unix-socket /run/celery.sock localhost
 
 ## Nginx
 
+Primeiro, vamos alterar algumas configs do Nginx para melhor atender nossas necessidades.
+
+```conf
+# /etc/nginx/nginx.conf
+
+http {
+    ...
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    limit_req_zone $binary_remote_addr zone=mylimit:10m rate=5r/s;
+    ...
+}
+```
+
 ```conf
 # /etc/nginx/sites-available/api.reloadclub.gg
 
 server {
     listen 80;
     server_name api.reloadclub.gg;
+    client_max_body_size 10M;
 
     location = /favicon.ico {
         access_log off;
@@ -136,6 +162,7 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
+        limit_req zone=mylimit burst=10;
     }
 }
 ```
