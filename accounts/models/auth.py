@@ -11,7 +11,7 @@ class AuthConfig:
     in Django settings because those settings are specific to the Auth model.
     """
 
-    TOKEN_SIZE: int = 128
+    TOKEN_SIZE: int = 6
     CACHE_TTL_TOKEN: int = 3600 * 24 * 3
     CACHE_TTL_SESSIONS: int = 10
     CACHE_PREFIX_TOKEN: str = '__auth:token:'
@@ -65,7 +65,8 @@ class Auth(BaseModel):
         """
         self.token = self.get_token()
         if not self.token:
-            self.token = secrets.token_urlsafe(AuthConfig.TOKEN_SIZE)
+            token_suffix = secrets.token_urlsafe(AuthConfig.TOKEN_SIZE)
+            self.token = f'{self.user_id}__{token_suffix}'
 
     def __init_sessions(self):
         """
