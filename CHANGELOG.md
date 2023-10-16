@@ -9,10 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona lógica para que todo usuário logado seja colocado em um grupo global de websocket.
+- Método `resetlocust` no Makefile para facilitar os testes de performance.
 - Função `scan_keys` no `RedisClient` que faz o scan baseado em um pattern recebido.
 
 ### Changed
 
+- Refatora lógica do Locust para representar, de maneira mais fiel, a utilização do sistema em um ambiente estressado.
+- Altera configurações de infra da aplicação para reproduzir um ambiente de produção. Adiciona melhorias nessas configurações para melhorar a performance e reduzir latência.
+- Remove a obrigatoriedade do parâmetro (`user_id`) no websocket `ws_create_toast`, fazendo com que o toast seja enviado para todos os usuários que estão conectados a um websocket.
+- Adiciona parâmetro de timeout (`socket_timeout`) pool de conexões do Redis.
+- Altera chave de autenticação (`auth token`) no Redis. Diminui o tamanho da string (128 -> 6) e adiciona o `id` do usuário na chave, tornando cada chave única.
+- Refatora lógica de criação de usuário fake, utilizando um parâmetro para criar token na criação da sessão e não depois dela. Também remove a atualização do campo `last_login`, que não é necessário.
 - Altera configs do Nginx para melhorar performance e segurança [#709](https://github.com/3C-gg/reload-backend/issues/709).
 - Altera quantidade de workers locais do Uvicorn para permitir maior número de conexões simultâneas.
 - Altera bootstrap de aplicação pra refletir novas configs do Nginx [#711](https://github.com/3C-gg/reload-backend/issues/711).
