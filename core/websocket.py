@@ -9,13 +9,15 @@ from .api import schemas
 User = get_user_model()
 
 
-def ws_create_toast(user_id: int, content: str, variant: str = 'info'):
+def ws_create_toast(content: str, variant: str = 'info', user_id: int = None):
     """
     Sends a websocket to the client so it can show a toast
     to the user.
 
     Cases:
     - User got kicked from lobby.
+    - There isn't available servers to create a match.
+    - Started/Ended maintenence.
 
     Payload:
     core.api.schemas.ToastSchema: object
@@ -30,11 +32,8 @@ def ws_create_toast(user_id: int, content: str, variant: str = 'info'):
         }
     ).dict()
 
-    return async_to_sync(ws_send)(
-        'toasts/create',
-        payload,
-        groups=[user_id],
-    )
+    groups = [user_id] if user_id else ['global']
+    return async_to_sync(ws_send)('toasts/create', payload, groups=groups)
 
 
 def ws_maintenance(status: str):
@@ -57,11 +56,7 @@ def ws_maintenance(status: str):
     if status not in available_statuses:
         raise ValueError(_('Invalid status.'))
 
-    return async_to_sync(ws_send)(
-        f'maintenance/{status}',
-        None,
-        groups=[user.id for user in User.online_users()],
-    )
+    return async_to_sync(ws_send)(f'maintenance/{status}', None)
 
 
 def ws_ping():

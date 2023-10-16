@@ -56,28 +56,23 @@ class AppSettings(models.Model):
 @receiver(signals.post_save, sender=AppSettings)
 def update_maintanence(sender, instance: AppSettings, created: bool, **kwargs):
     if instance.name == 'Maintenance Window' and not created:
-        online_users_ids = [user.id for user in User.online_users()]
-
         if AppSettings.get(instance.name) is True:
             Lobby.cancel_all_queues()
             ws_maintenance('start')
-            for user_id in online_users_ids:
-                ws_create_toast(
-                    user_id,
-                    _(
-                        'We\'re about to start a maintenance. '
-                        'All queues and invites will be disabled.'
-                    ),
-                    variant='warning',
-                )
+            ws_create_toast(
+                _(
+                    'We\'re about to start a maintenance. '
+                    'All queues and invites will be disabled.'
+                ),
+                variant='warning',
+            )
+
         else:
             ws_maintenance('end')
-            for user_id in online_users_ids:
-                ws_create_toast(
-                    user_id,
-                    _(
-                        'The maintenance is over. '
-                        'Queues and invites were enabled again. GLHF!'
-                    ),
-                    variant='success',
-                )
+            ws_create_toast(
+                _(
+                    'The maintenance is over. '
+                    'Queues and invites were enabled again. GLHF!'
+                ),
+                variant='success',
+            )
