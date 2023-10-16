@@ -127,9 +127,7 @@ def create_fake_user(email: str) -> User:
     Creates a user that doesn't need a Steam account.
     """
     user = User.objects.create(email=email)
-    auth = Auth(user_id=user.pk)
-    auth.create_token()
-    user.last_login = timezone.now()
+    Auth(user_id=user.pk, force_token_create=True)
     utils.create_social_auth(user, username=user.email)
     return user
 
