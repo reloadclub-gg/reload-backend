@@ -45,7 +45,7 @@ services:
         condition: service_started
       nginx:
         condition: service_started
-    command: pipenv run gunicorn
+    command: pipenv run gunicorn_dev
     restart: unless-stopped
 
   ws:
