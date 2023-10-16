@@ -10,6 +10,7 @@ pool = ConnectionPool(
     password=settings.REDIS_PASSWORD,
     db=settings.REDIS_TEST_DB if settings.TEST_MODE else settings.REDIS_APP_DB,
     decode_responses=True,
+    socket_timeout=2,
 )
 
 
