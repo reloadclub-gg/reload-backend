@@ -21,7 +21,9 @@ class JsonAuthWebsocketConsumer(AsyncJsonWebsocketConsumer):
             return await self.close()
 
         self.group_name = f'{settings.GROUP_NAME_PREFIX}.{self.user.id}'
+        global_group_name = f'{settings.GROUP_NAME_PREFIX}.global'
         await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.channel_layer.group_add(global_group_name, self.channel_name)
         await super().accept()
 
     async def send_payload(self, event):

@@ -1,8 +1,9 @@
-import itertools
+import random
+import string
 
 import psycopg2
 
-from locust import FastHttpUser, between, events, task
+from locust import FastHttpUser, events, task
 
 user_ids = []
 
@@ -36,129 +37,112 @@ def on_test_stop(environment, **kwargs):
 
 
 class AppUser(FastHttpUser):
-    wait_time = between(1, 2.5)
-    id_auto_number = itertools.count(start=1)
     user = None
     token = None
-    verification_token = None
-    queued_lobby = False
 
-    def _fake_signup(self):
-        email = f'email{next(self.id_auto_number)}@locust.com'
+    def __generate_random_email(self):
+        domain = "@locust.com"
+        username_length = random.randint(3, 20)
+        username = ''.join(
+            random.choice(string.ascii_lowercase) for _ in range(username_length)
+        )
+        return username + domain
 
-        with self.client.post(
+    @task
+    def verify(self):
+        if not self.user:
+            return
+
+        account = self.user.get('account')
+        is_verified = account and account.get('is_verified')
+        if is_verified:
+            return
+
+        # print('VERIFICA', self.user)
+        self.token = self.user.get('token')
+        verification_token = self.user.get('verification_token')
+        verify = self.client.post(
+            '/api/accounts/verify/',
+            json={'verification_token': verification_token},
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="accounts/verify/",
+        )
+        self.user = verify.json()
+
+    @task
+    def signup(self):
+        if self.user:
+            return
+
+        email = self.__generate_random_email()
+        fake_signup = self.client.post(
             '/api/accounts/fake-signup/',
             json={'email': email},
-            name="accounts/signup/",
-        ) as response:
-            return (
-                response.json().get('token'),
-                response.json().get('verification_token'),
-            )
-
-    def _verify(self, token: str):
-        with self.client.post(
-            '/api/accounts/verify/',
-            json={
-                'verification_token': self.verification_token,
-            },
-            headers={'Authorization': f'Bearer {token}'},
-            name="accounts/verify/",
-        ) as response:
-            return response.json()
-
-    def _auth(self, token: str):
-        with self.client.get(
-            '/api/accounts/auth/',
-            headers={'Authorization': f'Bearer {token}'},
-            name="accounts/detail/",
-        ) as response:
-            return response.json()
-
-    def _logout(self, token: str):
-        with self.client.patch(
-            '/api/accounts/logout/',
-            headers={'Authorization': f'Bearer {token}'},
-            name="accounts/logout/",
-        ) as response:
-            return response.json()
-
-    def _prepare(self):
-        if not self.token:
-            self.token, self.verification_token = self._fake_signup()
-            self.user = self._auth(self.token)
-
-            if not self.user.get('account').get('is_verified'):
-                self._verify(self.token)
-                self.user = self._auth(self.token)
-        else:
-            self.user = self._auth(self.token)
-            if not self.user.get('account').get('is_verified'):
-                self._verify(self.token)
-
-        if not self.user.get('id') in user_ids:
-            user_ids.append(self.user.get('id'))
-
-    def _fetch_maintenance(self):
-        with self.client.get(
-            '/api/',
-            headers={'Authorization': f'Bearer {self.token}'},
-            name="app/maintenance/",
-        ):
-            pass
-
-    def _fetch_lobby(self):
-        lobby_id = self.user.get('lobby_id')
-        with self.client.get(
-            f'/api/lobbies/{lobby_id}/',
-            headers={'Authorization': f'Bearer {self.token}'},
-            name="lobbies/detail/",
-        ):
-            pass
-
-    def _fetch_friends(self):
-        with self.client.get(
-            '/api/friends/',
-            headers={'Authorization': f'Bearer {self.token}'},
-            name="friends/list/",
-        ):
-            pass
-
-    def _fetch_invites(self):
-        with self.client.get(
-            '/api/lobbies/invites/?received=true',
-            headers={'Authorization': f'Bearer {self.token}'},
-            name="lobbies/invites/",
-        ):
-            pass
-
-    def _fetch_notifications(self):
-        with self.client.get(
-            '/api/notifications/',
-            headers={'Authorization': f'Bearer {self.token}'},
-            name="notifications/list/",
-        ):
-            pass
-
-    def _fetch_mock(self):
-        with self.client.get(
-            '/api/list/',
-            name="app/mock/",
-        ):
-            pass
+            name='accounts/signup',
+        )
+        self.user = fake_signup.json()
 
     @task
     def usage(self):
-        self._fetch_mock()
-        # self._fake_signup()
-        # if not self.user or not self.token:
-        #     self._prepare()
-        # else:
-        #     self._fetch_maintenance()
-        # self._fetch_lobby()
-        # self._fetch_friends()
-        # self._fetch_invites()
-        # self._fetch_notifications()
+        if not self.user or not self.token:
+            return
+
+        account = self.user.get('account')
+        is_verified = account and account.get('is_verified')
+        if not is_verified:
+            return
+
+        # print('NAVEGA', self.user)
+
+        self.client.get(
+            '/api/accounts/auth/',
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="accounts/detail/",
+        )
+
+        self.client.get(
+            '/api/',
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="app/maintenance/",
+        )
+
+        self.client.get(
+            '/api/friends/',
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="friends/list/",
+        )
+
+        self.client.get(
+            '/api/lobbies/invites/?received=true',
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="lobbies/invites/",
+        )
+
+        self.client.get(
+            '/api/notifications/',
+            headers={'Authorization': f'Bearer {self.token}'},
+            name="notifications/list/",
+        )
+
+    @task
+    def get(self):
+        self.client.get("/api/", name="get")
+
+    @task
+    def post(self):
+        self.client.post("/api/", name="post")
+
+    @task
+    def put(self):
+        self.client.put("/api/", name="put")
+
+    @task
+    def patch(self):
+        self.client.patch("/api/", name="patch")
+
+    @task
+    def delete(self):
+        self.client.delete("/api/", name="delete")
 
 
 events.test_stop.add_listener(on_test_stop)
