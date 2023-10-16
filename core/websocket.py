@@ -77,8 +77,4 @@ def ws_ping():
     Actions:
     - keep_alive/ping
     """
-    return async_to_sync(ws_send)(
-        'keep_alive/ping',
-        None,
-        groups=[user.id for user in User.online_users()],
-    )
+    return async_to_sync(ws_send)('keep_alive/ping', None)
