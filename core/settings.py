@@ -277,13 +277,13 @@ REDIS_CONN_PROTOCOL = 'rediss' if REDIS_SSL else 'redis'
 
 
 # Sentry Settings
-if config('SENTRY_DSN', default=None):
+SENTRY_DSN = config('SENTRY_DSN', default=None)
+if SENTRY_DSN:
     sentry_sdk.init(
-        dsn=config('SENTRY_DSN', default=''),
+        dsn=SENTRY_DSN,
         integrations=[
             DjangoIntegration(),
         ],
-        traces_sample_rate=config('SENTRY_SAMPLE_RATE', default=1.0),
         send_default_pii=True,
         environment=ENVIRONMENT,
         attach_stacktrace=True,
