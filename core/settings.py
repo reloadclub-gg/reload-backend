@@ -22,7 +22,7 @@ TEST_MODE = sys.argv[1:2] == ['test']
 ADMINS = [('Gabriel Gularte', 'ggularte@3c.gg')]
 FRONT_END_URL = config('FRONT_END_URL', default='http://localhost:3000')
 HOST_URL = config('HOST_URL', default='localhost')
-ALLOWED_HOSTS_DEFAULTS = 'localhost,django,nginx,locust'
+ALLOWED_HOSTS_DEFAULTS = 'localhost,api,ws,nginx,locust_master'
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=ALLOWED_HOSTS_DEFAULTS).split(',')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default=FRONT_END_URL).split(',')
 
@@ -36,7 +36,7 @@ SITE_URL_PREFIX = 'https://' if HTTPS else 'http://'
 SITE_URL_PORT = config('HOST_PORT', default=8000 if ENVIRONMENT == LOCAL else None)
 SITE_URL_SUFFIX = f':{SITE_URL_PORT}' if SITE_URL_PORT else ''
 SITE_URL = SITE_URL_PREFIX + HOST_URL + SITE_URL_SUFFIX
-DOCKER_SITE_URL = SITE_URL_PREFIX + 'django' + SITE_URL_SUFFIX
+DOCKER_SITE_URL = SITE_URL_PREFIX + 'api' + SITE_URL_SUFFIX
 
 CSRF_TRUSTED_ORIGINS = [SITE_URL, FRONT_END_URL]
 
