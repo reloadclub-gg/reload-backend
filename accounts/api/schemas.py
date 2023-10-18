@@ -1,11 +1,11 @@
-from typing import Optional
+from typing import List, Optional
 
 import pydantic
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
-from ..models import Account
+from ..models import Account, Invite
 
 User = get_user_model()
 
@@ -30,6 +30,18 @@ class AccountSchema(ModelSchema):
         return obj.avatar_dict
 
 
+class InviteSchema(ModelSchema):
+    accepted: bool = False
+
+    class Config:
+        model = Invite
+        model_fields = ['email']
+
+    @staticmethod
+    def resolve_accepted(obj):
+        return bool(obj.datetime_accepted)
+
+
 class UserSchema(ModelSchema):
     account: Optional[AccountSchema] = None
     email: Optional[pydantic.EmailStr] = None
@@ -38,6 +50,8 @@ class UserSchema(ModelSchema):
     lobby_id: int = None
     match_id: int = None
     pre_match_id: str = None
+    invites: List[InviteSchema] = []
+    invites_available_count: int = 0
 
     class Config:
         model = User
@@ -83,6 +97,20 @@ class UserSchema(ModelSchema):
                 return obj.account.pre_match.id
 
         return None
+
+    @staticmethod
+    def resolve_invites(obj):
+        if hasattr(obj, 'account'):
+            return obj.account.invite_set.all()
+
+        return []
+
+    @staticmethod
+    def resolve_invites_available_count(obj):
+        if hasattr(obj, 'account'):
+            return Invite.MAX_INVITES_PER_ACCOUNT - obj.account.invite_set.all().count()
+
+        return 0
 
 
 class FakeUserSchema(UserSchema):
@@ -154,4 +182,18 @@ class UpdateUserEmailSchema(Schema):
     @pydantic.validator('email')
     def email_must_be_unique(cls, v):
         assert not User.objects.filter(email=v).exists(), _('E-mail must be unique.')
+        return v
+
+
+class InviteCreationSchema(Schema):
+    email: pydantic.EmailStr
+
+    @pydantic.validator('email')
+    def email_should_be_new(cls, v):
+        assert not Invite.objects.filter(email=v).exists(), _(
+            'User already invited by someone else.'
+        )
+        assert not Account.objects.filter(user__email=v).exists(), _(
+            'User has already been registered.'
+        )
         return v
