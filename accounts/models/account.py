@@ -318,7 +318,7 @@ class Account(models.Model):
 
 
 class Invite(models.Model):
-    MAX_INVITES_PER_ACCOUNT = 4
+    MAX_INVITES_PER_ACCOUNT = 5
 
     owned_by = models.ForeignKey(Account, on_delete=models.CASCADE)
     datetime_created = models.DateTimeField(auto_now_add=True)
