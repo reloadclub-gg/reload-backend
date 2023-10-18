@@ -9,12 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint de criação de convite.
+- Métodos e background tasks para envio de email de convite para convidados.
+- Campos `invites` e `invites_available_count` no `UserSchema` [#720](https://github.com/3C-gg/reload-backend/issues/720).
 - Adiciona lógica para que todo usuário logado seja colocado em um grupo global de websocket.
 - Método `resetlocust` no Makefile para facilitar os testes de performance.
 - Função `scan_keys` no `RedisClient` que faz o scan baseado em um pattern recebido.
 
 ### Changed
 
+- Quantidade de convites que um usuário pode criar `4 -> 5`.
 - Altera documentação de bootstrap de server para staging e prod para refletir mudanças de infra e performance [#716](https://github.com/3C-gg/reload-backend/issues/716).
 - Altera comandos do script de deploy para funcionar com novas aplicações separadas (gunicorn, uvicorn e celery workers).
 - Altera algumas configs de infra, como por exemplo, a quantidade de `burst` em que o NGINX deve se proteger no caso de um DDoS. Também renomeia e cria alguns scripts no `Pipfile` para ajudar na manutenção.
