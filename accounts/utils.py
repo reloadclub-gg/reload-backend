@@ -137,3 +137,17 @@ def hex_to_steamid64(steamid_hex: str) -> str:
     if not steamid_hex.startswith('0x'):
         steamid_hex = f'0x{steamid_hex}'
     return str(int(steamid_hex, 0)).zfill(17)  # 17 is the size of steamid64
+
+
+def send_invite_mail(mail_to: str, from_username: str):
+    """
+    Send an e-mail to a user that has been invited.
+    """
+    # TODO replace welcome-email by the invite-email
+    # https://github.com/3C-gg/reload-backend/issues/721
+    html_content = render_to_string(
+        'accounts/emails/welcome-email.html',
+        {'username': from_username},
+    )
+
+    send_mail([mail_to], 'ReloadClub - Você foi convidado!', html_content)
