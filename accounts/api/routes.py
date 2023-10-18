@@ -7,28 +7,20 @@ from ninja.errors import Http404
 
 from matches.api.schemas import MatchSchema
 
-from . import controller
+from . import controller, schemas
 from .authentication import VerifiedExemptAuth, VerifiedRequiredAuth
-from .schemas import (
-    FakeSignUpSchema,
-    FakeUserSchema,
-    SignUpSchema,
-    UpdateUserEmailSchema,
-    UserSchema,
-    VerifyUserEmailSchema,
-)
 
 User = get_user_model()
 router = Router(tags=["accounts"])
 
 
-@router.post('/', auth=VerifiedExemptAuth(), response={201: UserSchema})
-def signup(request, payload: SignUpSchema):
+@router.post('/', auth=VerifiedExemptAuth(), response={201: schemas.UserSchema})
+def signup(request, payload: schemas.SignUpSchema):
     return controller.signup(request.user, payload.email)
 
 
-@router.post('fake-signup/', response={201: FakeUserSchema})
-def fake_signup(request, payload: FakeSignUpSchema):
+@router.post('fake-signup/', response={201: schemas.FakeUserSchema})
+def fake_signup(request, payload: schemas.FakeSignUpSchema):
     if not settings.DEBUG:
         raise Http404()
 
@@ -42,7 +34,9 @@ def fake_signup(request, payload: FakeSignUpSchema):
     return controller.auth(user[0], from_fake_signup=True)
 
 
-@router.patch('inactivate/', auth=VerifiedRequiredAuth(), response={200: UserSchema})
+@router.patch(
+    'inactivate/', auth=VerifiedRequiredAuth(), response={200: schemas.UserSchema}
+)
 def account_inactivation(request):
     return controller.inactivate(request.user)
 
@@ -53,13 +47,15 @@ def account_cancel(request):
 
 
 @router.post(
-    'verify/', auth=VerifiedExemptAuth(), response={200: UserSchema, 422: UserSchema}
+    'verify/',
+    auth=VerifiedExemptAuth(),
+    response={200: schemas.UserSchema, 422: schemas.UserSchema},
 )
-def account_verification(request, payload: VerifyUserEmailSchema):
+def account_verification(request, payload: schemas.VerifyUserEmailSchema):
     return controller.verify_account(request.user, payload.verification_token)
 
 
-@router.get('auth/', auth=VerifiedExemptAuth(), response=UserSchema)
+@router.get('auth/', auth=VerifiedExemptAuth(), response=schemas.UserSchema)
 def user_detail(request):
     return controller.auth(request.user)
 
@@ -67,9 +63,9 @@ def user_detail(request):
 @router.patch(
     'update-email/',
     auth=VerifiedExemptAuth(),
-    response={200: UserSchema, 422: UserSchema},
+    response={200: schemas.UserSchema, 422: schemas.UserSchema},
 )
-def update_email(request, payload: UpdateUserEmailSchema):
+def update_email(request, payload: schemas.UpdateUserEmailSchema):
     return controller.update_email(request.user, payload.email)
 
 
@@ -81,3 +77,12 @@ def logout(request):
 @router.get('{user_id}/matches/', response={200: List[MatchSchema]})
 def user_matches(request, user_id: int):
     return controller.user_matches(user_id)
+
+
+@router.post(
+    'invites/',
+    auth=VerifiedRequiredAuth(),
+    response={201: schemas.InviteSchema},
+)
+def create_invite(request, payload: schemas.InviteCreationSchema):
+    return controller.send_invite(request.user, payload.email)
