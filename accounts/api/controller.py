@@ -146,7 +146,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
     if not is_fake and check_invite_required() and not invites.exists():
-        raise HttpError(403, _('User must be invited.'))
+        raise HttpError(401, _('User must be invited.'))
 
     invites.update(datetime_accepted=timezone.now())
 
@@ -156,7 +156,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
         Account.objects.create(user=user)
 
     if not is_fake:
-        tasks.send_verify_email(
+        tasks.send_verify_email.delay(
             user.email,
             user.account.username,
             user.account.verification_token,
@@ -246,3 +246,9 @@ def delete_account(user: User) -> dict:
     logout(user)
     user.delete()
     return {'status': 'deleted'}
+
+
+def send_invite(user: User, email: str) -> Invite:
+    invite = user.account.invite_set.create(email=email)
+    tasks.send_invite_mail.delay(email, user.account.username)
+    return invite
