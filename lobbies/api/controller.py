@@ -265,8 +265,8 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
         player = User.objects.get(pk=player_id)
         handle_player_move(player, player.id)
         ws_create_toast(
-            player_id,
             _('{} kicked you from lobby.').format(user.account.username),
+            user_id=player_id,
         )
 
     return lobby

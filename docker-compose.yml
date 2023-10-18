@@ -6,15 +6,22 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
     environment:
+      - PGUSER=postgres
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - TZ=America/Sao_Paulo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis
     environment:
       - TZ=America/Sao_Paulo
+    command: redis-server --save 86400 1
 
   nginx:
     image: nginx:latest
@@ -23,7 +30,7 @@ services:
     ports:
       - 8000:80
 
-  django:
+  api:
     build: .
     env_file:
       - .env
@@ -32,10 +39,31 @@ services:
     expose:
       - 8000
     depends_on:
-      - db
-      - redis
-      - nginx
-    command: pipenv run dev
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      nginx:
+        condition: service_started
+    command: pipenv run gunicorn_dev
+    restart: unless-stopped
+
+  ws:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    expose:
+      - 8000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      nginx:
+        condition: service_started
+    command: pipenv run uvicorn
     restart: unless-stopped
 
   celery:
@@ -45,24 +73,124 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - db
-      - redis
-    command: pipenv run celery_dev
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      api:
+        condition: service_started
+    command: celery -A core.celery.app beat
     restart: unless-stopped
 
-  locust:
+  celery_w1:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      api:
+        condition: service_started
+    command: celery -A core.celery.app worker -c 2 -n celery_w1
+    restart: unless-stopped
+
+  celery_w2:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      api:
+        condition: service_started
+    command: celery -A core.celery.app worker -c 2 -n celery_w2
+    restart: unless-stopped
+
+  celery_w3:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      api:
+        condition: service_started
+    command: celery -A core.celery.app worker -c 2 -n celery_w3
+    restart: unless-stopped
+
+  locust_master:
     build: .
     env_file:
       - .env
     ports:
-      - 8089:8089
+      - "8089:8089"
     depends_on:
-      - django
-      - celery
-    command: pipenv run locust
+      - api
     volumes:
       - .:/app
-    restart: unless-stopped
+    command: locust -f locust/locustfile.py --master -H http://nginx:80
+
+  locust_w1:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - locust_master
+    volumes:
+      - .:/app
+    command: locust -f locust/locustfile.py --worker --master-host locust_master
+
+  locust_w2:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - locust_master
+    volumes:
+      - .:/app
+    command: locust -f locust/locustfile.py --worker --master-host locust_master
+
+  locust_w3:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - locust_master
+    volumes:
+      - .:/app
+    command: locust -f locust/locustfile.py --worker --master-host locust_master
+
+  locust_w4:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - locust_master
+    volumes:
+      - .:/app
+    command: locust -f locust/locustfile.py --worker --master-host locust_master
+
+  locust_w5:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - locust_master
+    volumes:
+      - .:/app
+    command: locust -f locust/locustfile.py --worker --master-host locust_master
 
 volumes:
   db:
