@@ -95,7 +95,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
             data={'email': 'noninvited@email.com', 'terms': True, 'policy': True},
             token=invited_user.auth.token,
         )
-        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.status_code, 401)
 
     def test_signup_with_existing_account(self):
         baker.make(Account, user=self.user)
@@ -254,7 +254,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         )
         invited_user.refresh_from_db()
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
     def test_logout(self):
         self.user.auth.create_token()
@@ -266,3 +266,17 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.user.status, 'offline')
         self.assertEqual(r.json().get('detail'), 'Logout successful.')
+
+
+class AccountsRoutesTestCase(mixins.VerifiedAccountMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.api = APIClient('/api/accounts')
+
+    def test_create_invite(self):
+        self.user.auth.create_token()
+        payload = {'email': 'any@email.com'}
+        r = self.api.call('post', '/invites', data=payload, token=self.user.auth.token)
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.json().get('email'), 'any@email.com')
+        self.assertEqual(r.json().get('accepted'), False)
