@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Comando de sistema para enviar emails de verificação de conta para usuários não verificados [#714](https://github.com/3C-gg/reload-backend/issues/714).
 - Endpoint de criação de convite.
 - Métodos e background tasks para envio de email de convite para convidados.
 - Campos `invites` e `invites_available_count` no `UserSchema` [#720](https://github.com/3C-gg/reload-backend/issues/720).
