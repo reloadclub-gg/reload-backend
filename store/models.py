@@ -160,6 +160,9 @@ class UserItem(models.Model):
     can_use = models.BooleanField(default=True)
     # TODO: add transaction field
 
+    class Meta:
+        unique_together = ['user', 'item']
+
     def save(self, *args, **kwargs):
         existing = UserItem.objects.filter(
             user=self.user,
@@ -169,6 +172,9 @@ class UserItem(models.Model):
 
         existing.update(in_use=False)
         super(UserItem, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.item.name
 
 
 class UserBox(models.Model):
@@ -181,3 +187,7 @@ class UserBox(models.Model):
 
     class Meta:
         verbose_name_plural = 'user boxes'
+        unique_together = ['user', 'box']
+
+    def __str__(self):
+        return self.box.name

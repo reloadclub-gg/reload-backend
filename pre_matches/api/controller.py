@@ -82,11 +82,11 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
 def handle_create_match_failed(pre_match: models.PreMatch):
     for player in pre_match.players:
         ws_create_toast(
-            player.id,
             _(
                 'All our servers are unavailable at this moment. Please, try again later.'
             ),
             'warning',
+            user_id=player.id,
         )
 
     # send ws call to lobbies to cancel that match

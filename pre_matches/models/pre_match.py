@@ -6,12 +6,11 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
 
 from .team import Team
 
-cache = RedisClient()
 User = get_user_model()
 
 
@@ -180,10 +179,14 @@ class PreMatch(BaseModel):
 
     @staticmethod
     def get_by_team_id(team1_id: str, team2_id: str = None):
-        matches_keys = cache.keys(f'{PreMatch.Config.CACHE_PREFIX}*')
-        for key in matches_keys:
+        keys = list(cache.scan_keys(f'{PreMatch.Config.CACHE_PREFIX}*'))
+        if not keys:
+            return None
+
+        values = cache.mget(keys)
+
+        for key, value in zip(keys, values):
             match_id = key.split(':')[2]
-            value = cache.get(key)
             if team2_id:
                 if value == f'{team1_id}:{team2_id}':
                     return PreMatch(id=match_id)
@@ -196,13 +199,12 @@ class PreMatch(BaseModel):
         """
         Fetch and return all PreMatches on Redis db.
         """
-        all_keys = cache.keys(f'{PreMatch.Config.CACHE_PREFIX}*')
-        result = []
-        for key in all_keys:
-            if len(key.split(':')) == 3:
-                result.append(key)
+        keys = list(cache.scan_keys(f'{PreMatch.Config.CACHE_PREFIX}*'))
+        if not keys:
+            return []
 
-        return [PreMatch.get_by_id(key.split(':')[2]) for key in result]
+        filtered_keys = [key for key in keys if len(key.split(':')) == 3]
+        return [PreMatch.get_by_id(key.split(':')[2]) for key in filtered_keys]
 
     @staticmethod
     def get_by_player_id(player_id: int):
@@ -231,8 +233,8 @@ class PreMatch(BaseModel):
     @staticmethod
     def delete(id: int, pipe=None):
         pre_match = PreMatch(id=id)
-        keys = cache.keys(f'{pre_match.cache_key}:*')
-        if len(keys) >= 1:
+        keys = list(cache.scan_keys(f'{pre_match.cache_key}:*'))
+        if keys:
             if pipe:
                 pipe.delete(*keys)
                 pipe.delete(pre_match.cache_key)

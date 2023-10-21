@@ -33,7 +33,11 @@ DATE_NOW=$(date +"%Y%m%d_%H%M%S")
 ssh $USER@$SERVER '
 echo "-> Parando serviços..."
 sudo systemctl stop nginx
-sudo systemctl stop celery
+sudo systemctl stop celery_beat
+sudo systemctl stop celery_w1
+sudo systemctl stop celery_w2
+sudo systemctl stop celery_w3
+sudo systemctl stop gunicorn
 sudo systemctl stop uvicorn
 
 echo
@@ -97,7 +101,11 @@ sudo chown -R ubuntu:www-data ~/application
 
 echo
 echo "-> Reiniciando serviços..."
-sudo systemctl start uvicorn
-sudo systemctl start celery
+sudo systemctl start gunicorn && \
+sudo systemctl start uvicorn && \
+sudo systemctl start celery_beat && \
+sudo systemctl start celery_w1 && \
+sudo systemctl start celery_w2 && \
+sudo systemctl start celery_w3 && \
 sudo systemctl start nginx
 '

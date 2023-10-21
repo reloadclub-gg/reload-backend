@@ -2,7 +2,7 @@ from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import handle_player_move
 from lobbies.models import LobbyException
@@ -11,7 +11,6 @@ from lobbies.websocket import ws_expire_player_invites
 from . import utils, websocket
 from .models import Account, UserLogin
 
-cache = RedisClient()
 User = get_user_model()
 
 
@@ -90,3 +89,8 @@ def send_verify_email(email_to: str, username: str, verification_token: str):
 @shared_task
 def send_inactivation_mail(email_to: str):
     utils.send_inactivation_mail(email_to)
+
+
+@shared_task
+def send_invite_mail(email_to: str, from_username: str):
+    utils.send_invite_mail(email_to, from_username)

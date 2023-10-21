@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 04:05-0300\n"
-"PO-Revision-Date: 2023-09-26 04:09-0300\n"
+"POT-Creation-Date: 2023-10-20 21:09-0300\n"
+"PO-Revision-Date: 2023-10-20 21:15-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -19,79 +19,88 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Translated-Using: django-rosetta 0.9.9\n"
 
-#: accounts/admin.py:202
+#: accounts/admin.py:190
 msgid "ACCOUNT"
 msgstr "CONTA"
 
-#: accounts/admin.py:212
+#: accounts/admin.py:200
 msgid "IMPORTANT DATES"
 msgstr "DATAS IMPORTANTES"
 
-#: accounts/admin.py:213
+#: accounts/admin.py:201
 msgid "PROFILE"
 msgstr "PERFIL"
 
-#: accounts/admin.py:215
+#: accounts/admin.py:203
 msgid "STATUSES"
 msgstr "STATUS"
 
-#: accounts/admin.py:227
+#: accounts/admin.py:215
 msgid "ACTIVATION"
 msgstr "ATIVAÇÃO"
 
-#: accounts/admin.py:316
+#: accounts/admin.py:304
 msgid "Assume Identity"
 msgstr "Assumir Identidade"
 
-#: accounts/admin.py:317
+#: accounts/admin.py:305
 msgid "Assume a user identity and use the application as the user"
 msgstr ""
 "Assuma a identidade de um usuário e utiliza a aplicação como se fosse ele"
 
-#: accounts/api/controller.py:145
+#: accounts/api/controller.py:142
 msgid "User already has an account."
 msgstr "Usuário já possui uma conta."
 
-#: accounts/api/controller.py:152 lobbies/models/lobby.py:322
+#: accounts/api/controller.py:149 lobbies/models/lobby.py:325
 msgid "User must be invited."
 msgstr "Usuário deve ser convidado."
 
-#: accounts/api/controller.py:185 accounts/api/schemas.py:146
+#: accounts/api/controller.py:182 accounts/api/schemas.py:174
 msgid "Invalid verification token."
 msgstr "Código de verificação inválido."
 
-#: accounts/api/schemas.py:109 accounts/api/schemas.py:156
+#: accounts/api/schemas.py:137 accounts/api/schemas.py:184
 msgid "E-mail must be unique."
 msgstr "O e-mail informado já está sendo utilizado."
 
-#: accounts/api/schemas.py:114 accounts/api/schemas.py:119
+#: accounts/api/schemas.py:142 accounts/api/schemas.py:147
 msgid "User must read and agree with our Terms and Policy."
 msgstr ""
 "Usuário precisa ler e aceitar os Termos de Uso e a Política de Privacidade."
 
-#: accounts/api/schemas.py:138
+#: accounts/api/schemas.py:166
 msgid "One of e-mail or verification_token must have a value."
 msgstr "É preciso informar ao menos o e-mail ou o código de verificação."
 
-#: accounts/models/account.py:159
+#: accounts/api/schemas.py:194
+#| msgid "User already invited."
+msgid "User already invited by someone else."
+msgstr "Usuário já foi convidado."
+
+#: accounts/api/schemas.py:197
+#| msgid "User already invited."
+msgid "User has already been registered."
+msgstr "Usuário já se cadastrou."
+
+#: accounts/models/account.py:158
 msgid "Steam account not found."
 msgstr "Conta Steam não encontrada."
 
-#: accounts/models/account.py:184
-#| msgid "User should not be in more then one match."
+#: accounts/models/account.py:183
 msgid "User should not be in more than one match."
 msgstr "Usuário não pode estar em mais de uma partida ao mesmo tempo."
 
-#: accounts/models/account.py:337
+#: accounts/models/account.py:336
 #, python-brace-format
 msgid "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
 msgstr "Máximo número de convites atingido ({self.MAX_INVITES_PER_ACCOUNT})."
 
-#: accounts/models/account.py:341
+#: accounts/models/account.py:340
 msgid "Accepted invites cannot be modified."
 msgstr "Convites aceitos não podem ser modificados."
 
-#: accounts/models/account.py:344
+#: accounts/models/account.py:343
 msgid "An invite already exists for this email."
 msgstr "Já existe um convite para este e-mail."
 
@@ -121,14 +130,14 @@ msgstr "Inteiro"
 msgid "Boolean"
 msgstr "Boleano"
 
-#: appsettings/models.py:68
+#: appsettings/models.py:64
 msgid ""
 "We're about to start a maintenance. All queues and invites will be disabled."
 msgstr ""
 "Estamos iniciando uma manutenção. As filas e convites de lobby serão "
 "desativados temporariamente."
 
-#: appsettings/models.py:79
+#: appsettings/models.py:74
 msgid "The maintenance is over. Queues and invites were enabled again. GLHF!"
 msgstr ""
 "A manutenção foi finalizada. Filas e convites de lobby estão habilitados "
@@ -462,11 +471,11 @@ msgstr "O valor do discriminador {} está faltando."
 msgid "No match for discriminator {}"
 msgstr "Nenhuma correspondência para o discriminador {}."
 
-#: core/api/routes.py:38
+#: core/api/routes.py:39
 msgid "Unauthorized."
 msgstr "Não autorizado."
 
-#: core/api/routes.py:46
+#: core/api/routes.py:47
 msgid "Internationalization works."
 msgstr "A internacionalização está funcionando."
 
@@ -474,11 +483,11 @@ msgstr "A internacionalização está funcionando."
 msgid "Invalid toast variant."
 msgstr "Variante de toast inválida."
 
-#: core/websocket.py:58
+#: core/websocket.py:57
 msgid "Invalid status."
 msgstr "Status inválido."
 
-#: friends/tasks.py:22
+#: friends/tasks.py:21
 msgid "Your friend {} just joined ReloadClub!"
 msgstr "O seu amigo {} acabou de entrar para a ReloadClub!"
 
@@ -492,7 +501,7 @@ msgstr "Convite inválido."
 msgid "We are under maintenance. Try again later."
 msgstr "Estamos em manutenção. Tente novamente mais tarde."
 
-#: lobbies/api/controller.py:269
+#: lobbies/api/controller.py:268
 msgid "{} kicked you from lobby."
 msgstr "{} removeu você do lobby."
 
@@ -500,71 +509,71 @@ msgstr "{} removeu você do lobby."
 msgid "Invite must be accepted or refused. Can't be none."
 msgstr "Convite precisa ser aceito ou recusado."
 
-#: lobbies/models/invite.py:53 lobbies/models/invite.py:105
-#: lobbies/models/lobby.py:468
+#: lobbies/models/invite.py:51 lobbies/models/invite.py:114
+#: lobbies/models/lobby.py:473
 msgid "Invite not found."
 msgstr "Convite não encontrado."
 
-#: lobbies/models/lobby.py:231 lobbies/models/lobby.py:292
-#: lobbies/models/lobby.py:420
+#: lobbies/models/lobby.py:234 lobbies/models/lobby.py:295
+#: lobbies/models/lobby.py:425
 msgid "User not found."
 msgstr "Usuário não encontrado."
 
-#: lobbies/models/lobby.py:236 lobbies/models/lobby.py:301
-#: lobbies/models/lobby.py:425
+#: lobbies/models/lobby.py:239 lobbies/models/lobby.py:304
+#: lobbies/models/lobby.py:430
 msgid "A verified account is required to perform this action."
 msgstr "Uma conta verificada é necessária para realizar esta ação."
 
-#: lobbies/models/lobby.py:240 lobbies/models/lobby.py:305
-#: lobbies/models/lobby.py:429
+#: lobbies/models/lobby.py:243 lobbies/models/lobby.py:308
+#: lobbies/models/lobby.py:434
 msgid "Offline user."
 msgstr "Usuário offline."
 
-#: lobbies/models/lobby.py:243 lobbies/models/lobby.py:530
+#: lobbies/models/lobby.py:246 lobbies/models/lobby.py:535
 msgid "The given type is not valid."
 msgstr "O tipo informado não é válido."
 
-#: lobbies/models/lobby.py:249 lobbies/models/lobby.py:544
+#: lobbies/models/lobby.py:252 lobbies/models/lobby.py:549
 msgid "The given mode is not valid."
 msgstr "O modo informado não é válido."
 
-#: lobbies/models/lobby.py:286
+#: lobbies/models/lobby.py:289
 msgid "Lobby not found."
 msgstr "Lobby não encontrado."
 
-#: lobbies/models/lobby.py:308 lobbies/models/lobby.py:396
-#: lobbies/models/lobby.py:480 lobbies/models/lobby.py:507
-#: lobbies/models/lobby.py:516 lobbies/models/lobby.py:527
-#: lobbies/models/lobby.py:541
+#: lobbies/models/lobby.py:311 lobbies/models/lobby.py:401
+#: lobbies/models/lobby.py:485 lobbies/models/lobby.py:512
+#: lobbies/models/lobby.py:521 lobbies/models/lobby.py:532
+#: lobbies/models/lobby.py:546
 msgid "Lobby is queued."
 msgstr "Lobby está em fila."
 
-#: lobbies/models/lobby.py:319 lobbies/models/lobby.py:393
+#: lobbies/models/lobby.py:322 lobbies/models/lobby.py:398
 msgid "Lobby is full."
 msgstr "Lobby está cheio."
 
-#: lobbies/models/lobby.py:413
+#: lobbies/models/lobby.py:418
 msgid "Invited user is already a lobby player."
 msgstr "Usuário convidado já faz parte do lobby."
 
-#: lobbies/models/lobby.py:416
+#: lobbies/models/lobby.py:421
 msgid "User already invited."
 msgstr "Usuário já foi convidado."
 
-#: lobbies/models/lobby.py:484
+#: lobbies/models/lobby.py:489
 msgid "Can't start queue due to player restriction."
 msgstr "Não foi possível iniciar a fila por causa de uma restrição."
 
-#: lobbies/models/lobby.py:550
+#: lobbies/models/lobby.py:555
 msgid "Owner cannot be removed."
 msgstr "O dono não pode ser removido."
 
-#: lobbies/models/player.py:100
+#: lobbies/models/player.py:99
 msgid "Player cannot dodge while in queue restriction."
 msgstr ""
 "Jogador não pode escapar de uma partida enquanto estiver em uma restrição."
 
-#: lobbies/models/player.py:169
+#: lobbies/models/player.py:168
 msgid "Player not found"
 msgstr "Jogador não encontrado."
 
@@ -573,13 +582,11 @@ msgid "Unable to finish match while not running."
 msgstr "Não é possível finalizar uma partida que não foi iniciada."
 
 #: matches/models.py:193
-#| msgid "Unable to start match while not ready."
 msgid "Unable to warmup while not loaded."
 msgstr ""
 "Não é possível iniciar o aquecimento para uma partida que não está pronta."
 
 #: matches/models.py:200
-#| msgid "Unable to start match while not ready."
 msgid "Unable to start match while not warmed up."
 msgstr "Não é possível iniciar uma partida que não está pronta."
 
@@ -599,11 +606,11 @@ msgstr "Usuários ativos"
 msgid "Online users"
 msgstr "Usuários online"
 
-#: notifications/models.py:180
+#: notifications/models.py:179
 msgid "Notification not found."
 msgstr "Notificação não encontrada."
 
-#: pre_matches/api/controller.py:87
+#: pre_matches/api/controller.py:86
 msgid ""
 "All our servers are unavailable at this moment. Please, try again later."
 msgstr ""
@@ -628,42 +635,42 @@ msgstr ""
 msgid "Player already set as ready."
 msgstr "Jogador já foi marcado como pronto."
 
-#: pre_matches/models/pre_match.py:157
+#: pre_matches/models/pre_match.py:156
 msgid "All teams must be ready in order to create a PreMatch."
 msgstr "Todos os times precisam estar prontos para criar uma partida."
 
-#: pre_matches/models/pre_match.py:178
+#: pre_matches/models/pre_match.py:177
 msgid "PreMatch not found."
 msgstr "Pré partida não encontrada."
 
-#: pre_matches/models/pre_match.py:221
+#: pre_matches/models/pre_match.py:223
 msgid "PreMatch is not ready for ready players."
 msgstr ""
 "Partida ainda não está pronta para receber pedidos de jogadores prontos."
 
-#: pre_matches/models/pre_match.py:227
+#: pre_matches/models/pre_match.py:229
 msgid "PreMatch is not ready to lock in players."
 msgstr ""
 "Partida ainda não está pronta para receber pedidos de jogadores a "
 "participar."
 
-#: pre_matches/models/team.py:204 pre_matches/models/team.py:217
+#: pre_matches/models/team.py:202 pre_matches/models/team.py:215
 msgid "Team not found."
 msgstr "Time não encontrado."
 
-#: pre_matches/models/team.py:232
+#: pre_matches/models/team.py:230
 msgid "Lobbies have differents types or modes."
 msgstr "Os lobbies tem modos ou tipos diferentes."
 
-#: pre_matches/models/team.py:235
+#: pre_matches/models/team.py:233
 msgid "Team players count exceeded."
 msgstr "A quantidade de jogadores em time foi excedida."
 
-#: pre_matches/models/team.py:249 pre_matches/models/team.py:273
+#: pre_matches/models/team.py:247 pre_matches/models/team.py:271
 msgid "Lobby already on a team."
 msgstr "O lobby já está em um time."
 
-#: pre_matches/models/team.py:253 pre_matches/models/team.py:277
+#: pre_matches/models/team.py:251 pre_matches/models/team.py:275
 msgid "Lobby not queued."
 msgstr "Lobby não está em fila."
 
@@ -677,7 +684,7 @@ msgstr ""
 "partida foi cancelada. A recorrência dessa conduta pode resultar em "
 "restrições."
 
-#: store/models.py:138
+#: store/models.py:136
 msgid "The total sum of items on this box cannot be greater then 100%."
 msgstr "A soma total dos itens da caixa não podem ultrapassar 100%"
 

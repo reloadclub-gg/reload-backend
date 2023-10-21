@@ -37,3 +37,9 @@ pipinstall:
 pipremove:
 	docker-compose run --rm django pipenv uninstall $(params)
 	make reset
+
+resetlocust:
+	docker-compose down -v
+	docker-compose up -d
+	sh ./pipenv-run migrate
+	sh ./pipenv-run createsuperuser

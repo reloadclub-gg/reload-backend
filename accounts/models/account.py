@@ -12,7 +12,7 @@ from django.dispatch import receiver
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string
 from lobbies.models import Lobby, LobbyInvite
 from matches.models import Match, MatchPlayer
@@ -23,7 +23,6 @@ from steam import Steam
 from ..utils import calc_level_and_points, create_social_auth
 
 User = get_user_model()
-cache = RedisClient()
 
 
 def get_default_social_handles():
@@ -319,7 +318,7 @@ class Account(models.Model):
 
 
 class Invite(models.Model):
-    MAX_INVITES_PER_ACCOUNT = 4
+    MAX_INVITES_PER_ACCOUNT = 5
 
     owned_by = models.ForeignKey(Account, on_delete=models.CASCADE)
     datetime_created = models.DateTimeField(auto_now_add=True)

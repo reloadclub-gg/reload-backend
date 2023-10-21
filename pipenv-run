@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-docker-compose run --rm django $*
+docker-compose run --rm api $*

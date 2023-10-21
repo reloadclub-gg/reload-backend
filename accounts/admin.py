@@ -140,13 +140,7 @@ class UserItemAdminInline(admin.TabularInline):
         'purchase_date',
         'in_use',
     ]
-    exclude = ['item']
-
-    def has_add_permission(self, request, obj=None) -> bool:
-        return False
-
-    def has_delete_permission(self, request, obj=None) -> bool:
-        return False
+    extra = 0
 
     def item_name(self, obj):
         return obj.item.name
@@ -160,6 +154,9 @@ class UserItemAdminInline(admin.TabularInline):
     def item_is_available(self, obj):
         return obj.item.is_available
 
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
 
 class UserBoxAdminInline(admin.TabularInline):
     model = UserBox
@@ -170,19 +167,16 @@ class UserBoxAdminInline(admin.TabularInline):
         'purchase_date',
         'open_date',
     ]
-    exclude = ['box']
-
-    def has_add_permission(self, request, obj=None) -> bool:
-        return False
-
-    def has_delete_permission(self, request, obj=None) -> bool:
-        return False
+    extra = 0
 
     def box_name(self, obj):
         return obj.box.name
 
     def box_is_available(self, obj):
         return obj.box.is_available
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
 
 
 @admin.register(models.User)

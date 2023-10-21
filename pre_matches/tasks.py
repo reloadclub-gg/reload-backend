@@ -46,7 +46,7 @@ def handle_dodges(lobby: Lobby, ready_players_ids: List[int]):
             'timer ran out and the match was cancelled. The recurrence'
             'of this conduct may result in restrictions.'
         )
-        ws_create_toast(player_id, msg, 'warning')
+        ws_create_toast(msg, 'warning', user_id=player_id)
         if player_id not in ready_players_ids:
             player = Player.get_by_user_id(player_id)
             restriction_end_date = player.dodge_add()

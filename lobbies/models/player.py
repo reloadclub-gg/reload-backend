@@ -8,10 +8,9 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
 
-cache = RedisClient()
 User = get_user_model()
 
 

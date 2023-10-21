@@ -8,13 +8,12 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
 
 from .invite import LobbyInvite
 from .player import Player
 
-cache = RedisClient()
 User = get_user_model()
 
 
@@ -194,9 +193,8 @@ class Lobby(BaseModel):
     @staticmethod
     def delete(lobby_id: int, pipe=None):
         lobby = Lobby(owner_id=lobby_id)
-
-        keys = cache.keys(f'{lobby.cache_key}:*')
-        if len(keys) >= 1:
+        keys = list(cache.scan_keys(f'{lobby.cache_key}:*'))
+        if keys:
             if pipe:
                 pipe.delete(*keys)
                 pipe.delete(lobby.cache_key)
@@ -206,7 +204,12 @@ class Lobby(BaseModel):
 
     @staticmethod
     def cancel_all_queues():
-        lobby_ids = [int(key.split(':')[2]) for key in cache.keys('__mm:lobby:*:queue')]
+        keys = list(cache.scan_keys('__mm:lobby:*:queue'))
+        if not keys:
+            return
+
+        lobby_ids = [int(key.split(':')[2]) for key in keys]
+
         for lobby_id in lobby_ids:
             lobby = Lobby(owner_id=lobby_id)
             lobby.cancel_queue()
@@ -375,9 +378,11 @@ class Lobby(BaseModel):
 
     @staticmethod
     def get_all_queued():
-        queued_ids = [
-            int(key.split(':')[2]) for key in cache.keys('__mm:lobby:*:queue')
-        ]
+        keys = list(cache.scan_keys('__mm:lobby:*:queue'))
+        if not keys:
+            return []
+
+        queued_ids = [int(key.split(':')[2]) for key in keys]
         return [Lobby(owner_id=queued_id) for queued_id in queued_ids]
 
     def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:

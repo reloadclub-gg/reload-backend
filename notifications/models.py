@@ -14,13 +14,12 @@ from pydantic import BaseModel
 from appsettings.services import (
     max_notification_history_count_per_player as notification_limit,
 )
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
 from websocket.utils import ws_send
 
 from .api.schemas import NotificationSchema
 
-cache = RedisClient()
 User = get_user_model()
 
 

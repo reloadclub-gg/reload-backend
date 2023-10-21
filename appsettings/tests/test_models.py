@@ -40,7 +40,7 @@ class AppSettingsTestCase(TestCase):
         maintanence.save()
 
         mock_ws_maintanence.assert_called_once_with('start')
-        mock_ws_create_toast.assert_not_called()
+        mock_ws_create_toast.assert_called_once()
         mock_cancel_queues.assert_called_once()
 
     @mock.patch('appsettings.models.ws_maintenance')
@@ -57,5 +57,5 @@ class AppSettingsTestCase(TestCase):
         maintanence.save()
 
         mock_ws_maintanence.assert_called_once_with('end')
-        mock_ws_create_toast.assert_not_called()
+        mock_ws_create_toast.assert_called_once()
         mock_cancel_queues.assert_not_called()

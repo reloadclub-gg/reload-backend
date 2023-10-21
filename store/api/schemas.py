@@ -8,13 +8,12 @@ from django.db.models import Subquery
 from django.utils import timezone
 from ninja import ModelSchema, Schema
 
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import get_full_file_path, str_to_timezone
 
 from .. import models
 
 User = get_user_model()
-cache = RedisClient()
 
 
 class BoxSchema(ModelSchema):
@@ -95,6 +94,7 @@ class UserInventorySchema(ModelSchema):
             item = user_item.item
             item.in_use = user_item.in_use
             item.can_use = user_item.can_use
+            item.id = user_item.id
             items.append(item)
 
         return items
@@ -110,6 +110,7 @@ class UserInventorySchema(ModelSchema):
         for user_box in user_boxes:
             box = user_box.box
             box.can_open = user_box.can_open
+            box.id = user_box.id
             boxes.append(box)
 
         return boxes

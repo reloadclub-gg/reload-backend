@@ -34,7 +34,7 @@ def ws_friend_update_or_create(user: User, action: str = 'update'):
         raise ValueError('action param should be "update" or "create".')
 
     if settings.DEBUG:
-        groups = [user.id for user in User.online_users()]
+        groups = ['global']
     else:
         groups = [account.user.id for account in user.account.get_online_friends()]
 

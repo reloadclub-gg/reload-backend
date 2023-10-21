@@ -2,9 +2,7 @@ import secrets
 
 from pydantic import BaseModel
 
-from core.redis import RedisClient
-
-cache = RedisClient()
+from core.redis import redis_client_instance as cache
 
 
 class AuthConfig:
@@ -13,7 +11,7 @@ class AuthConfig:
     in Django settings because those settings are specific to the Auth model.
     """
 
-    TOKEN_SIZE: int = 128
+    TOKEN_SIZE: int = 6
     CACHE_TTL_TOKEN: int = 3600 * 24 * 3
     CACHE_TTL_SESSIONS: int = 10
     CACHE_PREFIX_TOKEN: str = '__auth:token:'
@@ -67,7 +65,8 @@ class Auth(BaseModel):
         """
         self.token = self.get_token()
         if not self.token:
-            self.token = secrets.token_urlsafe(AuthConfig.TOKEN_SIZE)
+            token_suffix = secrets.token_urlsafe(AuthConfig.TOKEN_SIZE)
+            self.token = f'{self.user_id}__{token_suffix}'
 
     def __init_sessions(self):
         """
@@ -85,10 +84,12 @@ class Auth(BaseModel):
         """
         Searchs for `user_id` value in all token keys on Redis.
         """
-        entries = cache.keys(f'{AuthConfig.CACHE_PREFIX_TOKEN}*')
-        for entry in entries:
-            if int(cache.get(entry)) == self.user_id:
-                return entry.split(':')[-1:][0]
+        keys = list(cache.scan_keys(f'{AuthConfig.CACHE_PREFIX_TOKEN}*'))
+        values = cache.mget(keys)
+
+        for key, value in zip(keys, values):
+            if int(value) == self.user_id:
+                return key.split(':')[-1:][0]
 
     def refresh_token(self):
         """

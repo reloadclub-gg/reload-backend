@@ -7,7 +7,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from appsettings.services import check_invite_required
-from core.redis import RedisClient
+from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string, get_ip_address
 from friends.tasks import (
     add_user_to_friends_friendlist,
@@ -24,7 +24,6 @@ from ..models import Account, Auth, Invite, UserLogin
 from .authorization import is_verified
 
 User = get_user_model()
-cache = RedisClient()
 
 
 def handle_verify_tasks(user: User):
@@ -128,9 +127,7 @@ def create_fake_user(email: str) -> User:
     Creates a user that doesn't need a Steam account.
     """
     user = User.objects.create(email=email)
-    auth = Auth(user_id=user.pk)
-    auth.create_token()
-    user.last_login = timezone.now()
+    Auth(user_id=user.pk, force_token_create=True)
     utils.create_social_auth(user, username=user.email)
     return user
 
@@ -149,7 +146,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
 
     if not is_fake and check_invite_required() and not invites.exists():
-        raise HttpError(403, _('User must be invited.'))
+        raise HttpError(401, _('User must be invited.'))
 
     invites.update(datetime_accepted=timezone.now())
 
@@ -159,7 +156,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
         Account.objects.create(user=user)
 
     if not is_fake:
-        tasks.send_verify_email(
+        tasks.send_verify_email.delay(
             user.email,
             user.account.username,
             user.account.verification_token,
@@ -249,3 +246,9 @@ def delete_account(user: User) -> dict:
     logout(user)
     user.delete()
     return {'status': 'deleted'}
+
+
+def send_invite(user: User, email: str) -> Invite:
+    invite = user.account.invite_set.create(email=email)
+    tasks.send_invite_mail.delay(email, user.account.username)
+    return invite
