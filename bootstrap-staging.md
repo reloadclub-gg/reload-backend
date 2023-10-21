@@ -256,19 +256,20 @@ WantedBy=multi-user.target
 ```
 
 ```bash
-sudo systemctl start gunicorn.socket
-sudo systemctl enable gunicorn.socket
-sudo systemctl start uvicorn.socket
-sudo systemctl enable uvicorn.socket
-sudo systemctl start celery_beat.socket
-sudo systemctl enable celery_beat.socket
-sudo systemctl start celery_w1.socket
-sudo systemctl enable celery_w1.socket
-sudo systemctl start celery_w2.socket
-sudo systemctl enable celery_w2.socket
-sudo systemctl start celery_w3.socket
+sudo systemctl start gunicorn.socket && \
+sudo systemctl enable gunicorn.socket && \
+sudo systemctl start uvicorn.socket && \
+sudo systemctl enable uvicorn.socket && \
+sudo systemctl start celery_beat.socket && \
+sudo systemctl enable celery_beat.socket && \
+sudo systemctl start celery_w1.socket && \
+sudo systemctl enable celery_w1.socket && \
+sudo systemctl start celery_w2.socket && \
+sudo systemctl enable celery_w2.socket && \
+sudo systemctl start celery_w3.socket && \
 sudo systemctl enable celery_w3.socket
 
+# Rodar um comando de cada vez
 curl --unix-socket /run/gunicorn.sock localhost
 curl --unix-socket /run/uvicorn.sock localhost
 curl --unix-socket /run/celery_beat.sock localhost

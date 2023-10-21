@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera docs de bootstrap.
 - Altera maneira como comandos de start/restart de serviços são rodados no deploy e nos docs de bootstrap.
 - Quantidade de convites que um usuário pode criar `4 -> 5`.
 - Altera documentação de bootstrap de server para staging e prod para refletir mudanças de infra e performance [#716](https://github.com/3C-gg/reload-backend/issues/716).
