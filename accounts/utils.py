@@ -143,10 +143,8 @@ def send_invite_mail(mail_to: str, from_username: str):
     """
     Send an e-mail to a user that has been invited.
     """
-    # TODO replace welcome-email by the invite-email
-    # https://github.com/3C-gg/reload-backend/issues/721
     html_content = render_to_string(
-        'accounts/emails/welcome-email.html',
+        'accounts/emails/invite-email.html',
         {'username': from_username},
     )
 
