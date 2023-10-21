@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Comando de sistema para enviar emails de verificação de conta para usuários não verificados [#714](https://github.com/3C-gg/reload-backend/issues/714).
 - Endpoint de criação de convite.
 - Métodos e background tasks para envio de email de convite para convidados.
 - Campos `invites` e `invites_available_count` no `UserSchema` [#720](https://github.com/3C-gg/reload-backend/issues/720).
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera maneira como comandos de start/restart de serviços são rodados no deploy e nos docs de bootstrap.
 - Quantidade de convites que um usuário pode criar `4 -> 5`.
 - Altera documentação de bootstrap de server para staging e prod para refletir mudanças de infra e performance [#716](https://github.com/3C-gg/reload-backend/issues/716).
 - Altera comandos do script de deploy para funcionar com novas aplicações separadas (gunicorn, uvicorn e celery workers).

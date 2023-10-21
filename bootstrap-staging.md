@@ -368,6 +368,12 @@ pipenv run createsuperuser
 ## Restart de todos os serviços necessários
 
 ```bash
-sudo systemctl enable redis-server
-sudo systemctl restart redis postgresql uvicorn celery nginx
+sudo systemctl enable redis-server && \
+sudo systemctl restart gunicorn && \
+sudo systemctl restart uvicorn && \
+sudo systemctl restart celery_beat && \
+sudo systemctl restart celery_w1 && \
+sudo systemctl restart celery_w2 && \
+sudo systemctl restart celery_w3 && \
+sudo systemctl restart nginx
 ```
