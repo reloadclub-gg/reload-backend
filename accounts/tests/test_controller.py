@@ -319,3 +319,11 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
         controller.verify_account(self.user_1, self.user_1.account.verification_token)
         self.assertEqual(len(self.user_2.account.get_online_friends()), 5)
         self.assertEqual(mock_verify_tasks.call_count, 1)
+
+    @mock.patch('accounts.api.controller.tasks.send_invite_mail.delay')
+    def test_send_invite(self, mock_send_email):
+        controller.send_invite(self.user_1, 'test@email.com')
+        self.assertTrue(
+            self.user_1.account.invite_set.filter(email='test@email.com').exists()
+        )
+        mock_send_email.assert_called_once()

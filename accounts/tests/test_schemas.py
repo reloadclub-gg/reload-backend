@@ -1,3 +1,4 @@
+from accounts import models
 from accounts.api import schemas
 from core.tests import TestCase
 from lobbies.models import Lobby
@@ -41,6 +42,8 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'pre_match_id': self.user.account.pre_match.id
             if self.user.account.pre_match
             else None,
+            'invites': [],
+            'invites_available_count': models.Invite.MAX_INVITES_PER_ACCOUNT,
         }
 
         self.assertDictEqual(payload, expected_payload)
