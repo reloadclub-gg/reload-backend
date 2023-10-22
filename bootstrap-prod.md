@@ -147,93 +147,31 @@ WantedBy=multi-user.target
 ### Celery Workers
 
 ```socket
-# /etc/systemd/system/celery_w1.socket
+# /etc/systemd/system/celery_worker.socket
 
 [Unit]
-Description=celery_w1 socket
+Description=celery_worker socket
 
 [Socket]
-ListenStream=/run/celery_w1.sock
+ListenStream=/run/celery_worker.sock
 
 [Install]
 WantedBy=sockets.target
 ```
 
 ```service
-# /etc/systemd/system/celery_w1.service
+# /etc/systemd/system/celery_worker.service
 
 [Unit]
-Description=celery_w1 daemon
-Requires=celery_w1.socket
+Description=celery_worker daemon
+Requires=celery_worker.socket
 After=network.target
 
 [Service]
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
-ExecStart=/home/ubuntu/.local/bin/pipenv run celery_w1
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```socket
-# /etc/systemd/system/celery_w2.socket
-
-[Unit]
-Description=celery_w2 socket
-
-[Socket]
-ListenStream=/run/celery_w2.sock
-
-[Install]
-WantedBy=sockets.target
-```
-
-```service
-# /etc/systemd/system/celery_w2.service
-
-[Unit]
-Description=celery_w2 daemon
-Requires=celery_w2.socket
-After=network.target
-
-[Service]
-User=ubuntu
-Group=www-data
-WorkingDirectory=/home/ubuntu/application
-ExecStart=/home/ubuntu/.local/bin/pipenv run celery_w2
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```socket
-# /etc/systemd/system/celery_w3.socket
-
-[Unit]
-Description=celery_w3 socket
-
-[Socket]
-ListenStream=/run/celery_w3.sock
-
-[Install]
-WantedBy=sockets.target
-```
-
-```service
-# /etc/systemd/system/celery_w3.service
-
-[Unit]
-Description=celery_w3 daemon
-Requires=celery_w3.socket
-After=network.target
-
-[Service]
-User=ubuntu
-Group=www-data
-WorkingDirectory=/home/ubuntu/application
-ExecStart=/home/ubuntu/.local/bin/pipenv run celery_w3
+ExecStart=/home/ubuntu/.local/bin/pipenv run celery_worker
 
 [Install]
 WantedBy=multi-user.target
@@ -246,20 +184,14 @@ sudo systemctl start uvicorn.socket && \
 sudo systemctl enable uvicorn.socket && \
 sudo systemctl start celery_beat.socket && \
 sudo systemctl enable celery_beat.socket && \
-sudo systemctl start celery_w1.socket && \
-sudo systemctl enable celery_w1.socket && \
-sudo systemctl start celery_w2.socket && \
-sudo systemctl enable celery_w2.socket && \
-sudo systemctl start celery_w3.socket && \
-sudo systemctl enable celery_w3.socket
+sudo systemctl start celery_worker.socket && \
+sudo systemctl enable celery_worker.socket
 
 # Rodar um comando de cada vez
 curl --unix-socket /run/gunicorn.sock localhost
 curl --unix-socket /run/uvicorn.sock localhost
 curl --unix-socket /run/celery_beat.sock localhost
-curl --unix-socket /run/celery_w1.sock localhost
-curl --unix-socket /run/celery_w2.sock localhost
-curl --unix-socket /run/celery_w3.sock localhost
+curl --unix-socket /run/celery_worker.sock localhost
 ```
 
 ## Nginx
@@ -331,9 +263,7 @@ sudo nginx -t
 sudo systemctl restart gunicorn && \
 sudo systemctl restart uvicorn && \
 sudo systemctl restart celery_beat && \
-sudo systemctl restart celery_w1 && \
-sudo systemctl restart celery_w2 && \
-sudo systemctl restart celery_w3 && \
+sudo systemctl restart celery_worker && \
 sudo systemctl restart nginx
 ```
 
@@ -362,8 +292,6 @@ sudo systemctl enable redis-server && \
 sudo systemctl restart gunicorn && \
 sudo systemctl restart uvicorn && \
 sudo systemctl restart celery_beat && \
-sudo systemctl restart celery_w1 && \
-sudo systemctl restart celery_w2 && \
-sudo systemctl restart celery_w3 && \
+sudo systemctl restart celery_worker && \
 sudo systemctl restart nginx
 ```

@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Adiciona `id` correto de item e caixa no esquema `UserInventorySchema`. O campo `id` estava o do item ou caixa originais (`Item`/`Box`), fazendo com que o backend retornasse `404`, pois o `id` correto é o do `UserItem`/`UserBox` [#707](https://github.com/3C-gg/reload-backend/issues/707).
 
+### Removed
+
+- Múltiplos workers do Celery. Estavam criando problemas de concorrência, atropelando um ao outro enquanto realizavam as tarefas, causando _race conditions_.
+
 ## [04/10/2023 - 69f2c75]
 
 ### Added
