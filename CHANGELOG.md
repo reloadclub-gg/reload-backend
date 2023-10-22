@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrige tarefa de montar times no mm que estava fazendo com que o mesmo lobby fosse adicionado a vários times diferentes [#730](https://github.com/3C-gg/reload-backend/issues/730).
+
+### Removed
+
+- Múltiplos workers do Celery. Estavam criando problemas de concorrência, atropelando um ao outro enquanto realizavam as tarefas, causando _race conditions_ [#727](https://github.com/3C-gg/reload-backend/issues/727).
+
+## [e13e4c0 - 21/10/2023]
+
 ### Added
 
 - Comando de sistema para enviar emails de verificação de conta para usuários não verificados [#714](https://github.com/3C-gg/reload-backend/issues/714).
@@ -40,10 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Adiciona `id` correto de item e caixa no esquema `UserInventorySchema`. O campo `id` estava o do item ou caixa originais (`Item`/`Box`), fazendo com que o backend retornasse `404`, pois o `id` correto é o do `UserItem`/`UserBox` [#707](https://github.com/3C-gg/reload-backend/issues/707).
-
-### Removed
-
-- Múltiplos workers do Celery. Estavam criando problemas de concorrência, atropelando um ao outro enquanto realizavam as tarefas, causando _race conditions_.
 
 ## [04/10/2023 - 69f2c75]
 

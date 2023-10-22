@@ -43,6 +43,7 @@ def handle_teaming():
                 for team in not_ready_teams:
                     if team.players_count + lobby.players_count <= lobby.max_players:
                         team.add_lobby(lobby.id)
+                        break
             else:
                 Team.create([lobby.id])
 
