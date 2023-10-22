@@ -104,8 +104,6 @@ echo "-> Reiniciando serviços..."
 sudo systemctl start gunicorn && \
 sudo systemctl start uvicorn && \
 sudo systemctl start celery_beat && \
-sudo systemctl start celery_w1 && \
-sudo systemctl start celery_w2 && \
-sudo systemctl start celery_w3 && \
+sudo systemctl start celery_worker && \
 sudo systemctl start nginx
 '
