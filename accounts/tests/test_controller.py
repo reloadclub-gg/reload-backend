@@ -198,9 +198,15 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertFalse(self.user.is_online)
 
     def test_delete_account(self):
+        self.user.auth.add_session()
         self.user.account.is_verified = True
         self.user.account.save()
         user_id = self.user.id
+
+        with self.assertRaises(HttpError):
+            controller.delete_account(self.user)
+
+        Lobby.create(self.user.id)
         controller.delete_account(self.user)
 
         with self.assertRaises(ObjectDoesNotExist):
@@ -327,3 +333,7 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
             self.user_1.account.invite_set.filter(email='test@email.com').exists()
         )
         mock_send_email.assert_called_once()
+
+    def test_logout_no_account(self):
+        user = baker.make(User)
+        controller.logout(user)

@@ -6,7 +6,7 @@ from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
 
 from ..api import controller, schemas
-from ..models import Lobby, LobbyInvite
+from ..models import Lobby, LobbyException, LobbyInvite
 
 
 class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
@@ -417,7 +417,7 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         mock_expire_invites.assert_called_once_with(self.user_1, sent=True)
 
     def test_handle_player_move_error(self):
-        with self.assertRaises(HttpError):
+        with self.assertRaises(LobbyException):
             controller.handle_player_move(self.user_2, self.user_1.id)
 
     def test_get_lobby(self):

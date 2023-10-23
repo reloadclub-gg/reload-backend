@@ -15,7 +15,7 @@ from friends.tasks import (
     send_user_update_to_friendlist,
 )
 from lobbies.api.controller import handle_player_move
-from lobbies.models import Lobby
+from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import Match
 
@@ -101,18 +101,20 @@ def logout(user: User) -> dict:
     # Expiring player invites
     ws_expire_player_invites(user)
 
-    # If user has an account and it is in a lobby, handle the player move
-    try:
-        if user.account.lobby:
+    # If user has an account
+    if hasattr(user, 'account'):
+        try:
             handle_player_move(user, user.id, delete_lobby=True)
-    except Account.DoesNotExist:
-        pass
+        except LobbyException as e:
+            raise HttpError(400, e)
+
+        # Update or create friend
+        send_user_update_to_friendlist.delay(user.id)
 
     # Expiring user session
     user.auth.expire_session(seconds=0)
 
-    # Update or create friend and send websocket logout message
-    send_user_update_to_friendlist.delay(user.id)
+    # Send websocket logout message
     websocket.ws_user_logout(user.id)
 
     # Deleting user from friend list cache
@@ -232,7 +234,10 @@ def update_email(user: User, email: str) -> User:
 
     websocket.ws_update_user(user)
     if user.account.lobby:
-        handle_player_move(user, user.id, delete_lobby=True)
+        try:
+            handle_player_move(user, user.id, delete_lobby=True)
+        except LobbyException as e:
+            raise HttpError(400, e)
 
     return user
 

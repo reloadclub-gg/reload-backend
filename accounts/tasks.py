@@ -9,7 +9,7 @@ from lobbies.models import LobbyException
 from lobbies.websocket import ws_expire_player_invites
 
 from . import utils, websocket
-from .models import Account, UserLogin
+from .models import UserLogin
 
 User = get_user_model()
 
@@ -25,21 +25,20 @@ def watch_user_status_change(user_id: int):
         # Expiring player invites
         ws_expire_player_invites(user)
 
-        # If user has an account and it is in a lobby, handle the player move
-        try:
-            if user.account.lobby:
+        # If user has an account
+        if hasattr(user, 'account'):
+            try:
                 handle_player_move(user, user.id, delete_lobby=True)
-        except (Account.DoesNotExist, LobbyException) as e:
-            if isinstance(e, Account.DoesNotExist):
-                pass
-            else:
+            except LobbyException as e:
                 raise e
+
+            # Update or create friend
+            ws_friend_update_or_create(user)
 
         # Expiring user session
         user.auth.expire_session(seconds=0)
 
-        # Update or create friend and send websocket logout message
-        ws_friend_update_or_create(user)
+        # Send websocket logout message
         websocket.ws_user_logout(user.id)
 
         # Deleting user from friend list cache
