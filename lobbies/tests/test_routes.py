@@ -216,3 +216,15 @@ class LobbyRoutesTestCase(VerifiedAccountsMixin, TestCase):
 
         response = self.api.call('get', f'/{lobby_1.id}', token=self.user_2.auth.token)
         self.assertEqual(response.status_code, 401)
+
+    def test_lobby_update_bad_data(self):
+        lobby_1 = Lobby.create(self.user_1.id)
+
+        response = self.api.call(
+            'patch',
+            f'/{lobby_1.id}',
+            token=self.user_1.auth.token,
+            data={'bad_data': 3},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(lobby_1.queue)
