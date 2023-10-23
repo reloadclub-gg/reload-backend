@@ -2,7 +2,6 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
-from accounts.api.authorization import is_verified
 from websocket.utils import ws_send
 
 from .api import schemas

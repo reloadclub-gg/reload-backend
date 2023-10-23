@@ -9,7 +9,7 @@ from lobbies.models import LobbyException
 from lobbies.websocket import ws_expire_player_invites
 
 from . import utils, websocket
-from .models import Account, UserLogin
+from .models import UserLogin
 
 User = get_user_model()
 
