@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Filtro de "disponível" para usuários que estão online mas não estão em nenhum time, fila ou partida.
+
 ### Changed
 
+- Filtro de online no admin agora reflete todos os usuários que estão com sessão ativa, independente de estarem nos outros estados de MM (em fila, em time, em partida, etc) [#703](https://github.com/3C-gg/reload-backend/issues/703).
+- Métodos de login e logout no admin para atualizar campo `status` dependendo da ação do usuário.
 - Altera a maneira como verificamos o status do usuário. Ao invés de verificar se usuário tem partida, time ou lobby, agora nós atualizamos um campo `status` no model `User` [#734](https://github.com/3C-gg/reload-backend/issues/734).
 
 ### Fixed
@@ -19,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Arquivo `WORKFLOW.md` do websockets, uma vez que já possuímos o `/ws/docs` que lista todos os endpoints de websocket, suas propriedades e retornos.
 - Múltiplos workers do Celery. Estavam criando problemas de concorrência, atropelando um ao outro enquanto realizavam as tarefas, causando _race conditions_ [#727](https://github.com/3C-gg/reload-backend/issues/727).
 
 ## [e13e4c0 - 21/10/2023]
