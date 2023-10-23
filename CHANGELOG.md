@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige método que move usuário entre lobbies, adicionando proteção caso o `from_lobby_id` não exista.
 - Adiciona proteção no websocket `ws_friend_update_or_create` e em alguns pontos do código que chamam esse WS para usuários que não possuem conta [#732](https://github.com/3C-gg/reload-backend/issues/732).
 - Corrige tarefa de montar times no mm que estava fazendo com que o mesmo lobby fosse adicionado a vários times diferentes [#730](https://github.com/3C-gg/reload-backend/issues/730).
 

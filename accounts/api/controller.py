@@ -106,7 +106,7 @@ def logout(user: User) -> dict:
         try:
             handle_player_move(user, user.id, delete_lobby=True)
         except LobbyException as e:
-            raise e
+            raise HttpError(400, e)
 
         # Update or create friend
         send_user_update_to_friendlist.delay(user.id)
@@ -234,7 +234,10 @@ def update_email(user: User, email: str) -> User:
 
     websocket.ws_update_user(user)
     if user.account.lobby:
-        handle_player_move(user, user.id, delete_lobby=True)
+        try:
+            handle_player_move(user, user.id, delete_lobby=True)
+        except LobbyException as e:
+            raise HttpError(400, e)
 
     return user
 

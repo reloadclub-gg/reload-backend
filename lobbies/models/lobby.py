@@ -281,6 +281,9 @@ class Lobby(BaseModel):
         """
 
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
+        if not from_lobby_id:
+            raise LobbyException(_('There is no lobby to move user from.'))
+
         from_lobby = Lobby(owner_id=from_lobby_id)
         to_lobby = Lobby(owner_id=to_lobby_id)
 

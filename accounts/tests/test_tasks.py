@@ -35,7 +35,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         mock_user_logout_ws.assert_called_once()
         mock_friend_update.assert_called_once()
         mock_expire_invites.assert_called_once()
-        mock_lobby_move.assert_not_called()
+        mock_lobby_move.assert_called_once()
 
     @mock.patch('accounts.tasks.ws_expire_player_invites')
     @mock.patch('accounts.tasks.handle_player_move')
