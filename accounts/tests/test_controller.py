@@ -327,3 +327,7 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
             self.user_1.account.invite_set.filter(email='test@email.com').exists()
         )
         mock_send_email.assert_called_once()
+
+    def test_logout_no_account(self):
+        user = baker.make(User)
+        controller.logout(user)

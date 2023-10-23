@@ -2,6 +2,7 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
+from accounts.api.authorization import is_verified
 from websocket.utils import ws_send
 
 from .api import schemas
@@ -32,6 +33,9 @@ def ws_friend_update_or_create(user: User, action: str = 'update'):
     """
     if action not in ['update', 'create']:
         raise ValueError('action param should be "update" or "create".')
+
+    if not hasattr(user, 'account'):
+        return
 
     if settings.DEBUG:
         groups = ['global']

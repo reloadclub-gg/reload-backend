@@ -2,6 +2,7 @@ from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from model_bakery import baker
 
 from core.tests import TestCase
 from lobbies.models import Lobby
@@ -90,3 +91,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.user.account.refresh_from_db()
         self.assertEqual(self.user.account.level, 34)
         self.assertEqual(self.user.account.level_points, 0)
+
+    def test_watch_user_status_change(self):
+        user = baker.make(User)
+        tasks.watch_user_status_change(user.id)
