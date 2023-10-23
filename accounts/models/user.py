@@ -130,7 +130,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_online(self):
-        return self.is_verified() and self.auth.sessions is not None
+        return self.is_verified() and self.status != User.Statuses.OFFLINE
 
     @property
     def is_in_game(self):

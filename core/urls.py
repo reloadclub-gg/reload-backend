@@ -5,13 +5,17 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path, reverse_lazy
 from django.views.generic.base import RedirectView
 
+from accounts.views import AdminLogin, AdminLogout
+
 from .api.routes import api
 
-admin.site.site_header = 'GTA MM Admin'
+admin.site.site_header = 'ReloadClub Admin'
 admin.site.enable_nav_sidebar = False
 
 urlpatterns = [
     path('', RedirectView.as_view(url=reverse_lazy('admin:index'))),
+    path('admin/login/', AdminLogin.as_view(), name='login'),
+    path('admin/logout/', AdminLogout.as_view(), name='logout'),
     path('admin/', admin.site.urls, name='admin'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('api/', api.urls),
