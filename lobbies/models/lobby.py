@@ -169,7 +169,10 @@ class Lobby(BaseModel):
         on this lobby. The returned value is the same return of
         the mode property.
         """
-        return self.mode
+        if self.mode:
+            return self.mode
+
+        return 0
 
     @property
     def restriction_countdown(self) -> int:

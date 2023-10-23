@@ -13,13 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Taxa de sample de erros enviados para o Sentry: `1.0 (default - 100%) -> 0.25 (25%)` []().
+- Taxa de sample de erros enviados para o Sentry: `1.0 (default - 100%) -> 0.25 (25%)` [#741](https://github.com/3C-gg/reload-backend/issues/741).
 - Filtro de online no admin agora reflete todos os usuários que estão com sessão ativa, independente de estarem nos outros estados de MM (em fila, em time, em partida, etc) [#703](https://github.com/3C-gg/reload-backend/issues/703).
 - Métodos de login e logout no admin para atualizar campo `status` dependendo da ação do usuário.
 - Altera a maneira como verificamos o status do usuário. Ao invés de verificar se usuário tem partida, time ou lobby, agora nós atualizamos um campo `status` no model `User` [#734](https://github.com/3C-gg/reload-backend/issues/734).
 
 ### Fixed
 
+- Adiciona possível correção e proteção em `max_players` no modelo `Lobby`. Essa propriedade retorna o valor de `self.mode`. Mas a propriedade `mode` tem um `if`, que só retorna um valor se existir a chave `lobby:{lobby_id}:mode` no Redis. Não consegui entender ou reproduzir um cenário em que o `max_players` fosse chamado sem que a chave `mode` exista, então apenas adicionei uma proteção para retornar `0` no `max_players` caso a chave `mode` volte nula [#739](https://github.com/3C-gg/reload-backend/issues/739).
 - Corrige método que move usuário entre lobbies, adicionando proteção caso o `from_lobby_id` não exista.
 - Adiciona proteção no websocket `ws_friend_update_or_create` e em alguns pontos do código que chamam esse WS para usuários que não possuem conta [#732](https://github.com/3C-gg/reload-backend/issues/732).
 - Corrige tarefa de montar times no mm que estava fazendo com que o mesmo lobby fosse adicionado a vários times diferentes [#730](https://github.com/3C-gg/reload-backend/issues/730).
