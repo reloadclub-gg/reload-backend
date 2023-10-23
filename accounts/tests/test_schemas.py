@@ -8,7 +8,7 @@ from . import mixins
 
 class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
     def test_account_schema(self):
-        self.user.auth.add_session()
+        self.user.add_session()
         Lobby.create(self.user.id)
         payload = schemas.AccountSchema.from_orm(self.user.account).dict()
 
@@ -24,7 +24,7 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.assertDictEqual(payload, expected_payload)
 
     def test_user_schema(self):
-        self.user.auth.add_session()
+        self.user.add_session()
         Lobby.create(self.user.id)
         payload = schemas.UserSchema.from_orm(self.user).dict()
 

@@ -13,7 +13,7 @@ class SupportRoutesTestCase(VerifiedAccountMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.api = APIClient('/api/support')
-        self.user.auth.add_session()
+        self.user.add_session()
         self.user.auth.create_token()
 
     def tearDown(self):

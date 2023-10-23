@@ -101,13 +101,13 @@ class Auth(BaseModel):
         """
         Increment the sessions counter key on Redis.
         """
-        cache.incr(self.sessions_cache_key)
+        return cache.incr(self.sessions_cache_key)
 
     def remove_session(self):
         """
         Decrement the sessions counter key on Redis.
         """
-        cache.decr(self.sessions_cache_key)
+        return cache.decr(self.sessions_cache_key)
 
     def expire_session(self, seconds: int = AuthConfig.CACHE_TTL_SESSIONS):
         """

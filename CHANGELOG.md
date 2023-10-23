@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Altera a maneira como verificamos o status do usuário. Ao invés de verificar se usuário tem partida, time ou lobby, agora nós atualizamos um campo `status` no model `User` [#734](https://github.com/3C-gg/reload-backend/issues/734).
+
 ### Fixed
 
 - Corrige método que move usuário entre lobbies, adicionando proteção caso o `from_lobby_id` não exista.

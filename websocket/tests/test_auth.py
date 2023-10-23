@@ -38,13 +38,13 @@ class WSAuthTestCase(AccountOneMixin, TestCase):
         self.assertIsNone(user)
 
     def test_disconnect(self):
-        self.user.auth.add_session()
+        self.user.add_session()
         auth.disconnect(self.user)
         self.assertEqual(self.user.auth.sessions_ttl, AuthConfig.CACHE_TTL_SESSIONS)
 
-        self.user.auth.expire_session(0)
-        self.user.auth.add_session()
-        self.user.auth.add_session()
+        self.user.logout()
+        self.user.add_session()
+        self.user.add_session()
         auth.disconnect(self.user)
         self.assertEqual(self.user.auth.sessions, 1)
         self.assertEqual(self.user.auth.sessions_ttl, -1)

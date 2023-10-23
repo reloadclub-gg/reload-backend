@@ -367,7 +367,7 @@ class Lobby(BaseModel):
 
             return new_lobby
 
-        return cache.protected_handler(
+        remnant_lobby = cache.protected_handler(
             transaction_operations,
             f'{from_lobby.cache_key}:players',
             f'{from_lobby.cache_key}:queue',
@@ -378,6 +378,19 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
             value_from_callable=True,
         )
+
+        User.objects.filter(id__in=to_lobby.players_ids).update(
+            status=User.Statuses.TEAMING
+            if to_lobby.players_count > 1
+            else User.Statuses.ONLINE
+        )
+
+        if from_lobby.players_count <= 1:
+            User.objects.filter(id__in=from_lobby.players_ids).update(
+                status=User.Statuses.ONLINE
+            )
+
+        return remnant_lobby
 
     @staticmethod
     def get_all_queued():

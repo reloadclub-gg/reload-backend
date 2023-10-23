@@ -21,14 +21,14 @@ from ..models import (
 class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
-        self.user_4.auth.add_session()
-        self.user_5.auth.add_session()
-        self.user_6.auth.add_session()
-        self.online_noaccount_user.auth.add_session()
-        self.online_unverified_user.auth.add_session()
+        self.user_1.add_session()
+        self.user_2.add_session()
+        self.user_3.add_session()
+        self.user_4.add_session()
+        self.user_5.add_session()
+        self.user_6.add_session()
+        self.online_noaccount_user.add_session()
+        self.online_unverified_user.add_session()
 
     def test_create(self):
         lobby = Lobby(owner_id=self.user_1.id)
@@ -756,12 +756,12 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 class LobbyInviteModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
-        self.user_4.auth.add_session()
-        self.user_5.auth.add_session()
-        self.user_6.auth.add_session()
+        self.user_1.add_session()
+        self.user_2.add_session()
+        self.user_3.add_session()
+        self.user_4.add_session()
+        self.user_5.add_session()
+        self.user_6.add_session()
 
         self.lobby1 = Lobby.create(owner_id=self.user_1.id)
         self.lobby2 = Lobby.create(owner_id=self.user_2.id)

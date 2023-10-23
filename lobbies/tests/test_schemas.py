@@ -8,8 +8,8 @@ from ..models import Lobby
 class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
+        self.user_1.add_session()
+        self.user_2.add_session()
 
     def test_lobby_player_schema(self):
         Lobby.create(self.user_1.id)
@@ -72,6 +72,9 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
         lobby_1.invite(self.user_1.id, self.user_2.id)
         Lobby.move(self.user_2.id, lobby_1.id)
         payload = schemas.LobbySchema.from_orm(lobby_1).dict()
+
+        self.user_1.refresh_from_db()
+        self.user_2.refresh_from_db()
 
         expected_payload = {
             'id': self.user_1.id,

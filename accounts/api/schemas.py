@@ -46,7 +46,6 @@ class UserSchema(ModelSchema):
     account: Optional[AccountSchema] = None
     email: Optional[pydantic.EmailStr] = None
     is_online: bool = None
-    status: str
     lobby_id: int = None
     match_id: int = None
     pre_match_id: str = None
