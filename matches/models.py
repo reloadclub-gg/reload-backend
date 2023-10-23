@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -503,3 +505,17 @@ class MatchPlayerStats(models.Model):
 
     def __str__(self):
         return f'{self.player.user.steam_user.username}'
+
+
+@receiver(post_save, sender=MatchPlayer)
+def match_team_save_signal(sender, instance, created, **kwargs):
+    if created:
+        instance.user.status = User.Statuses.IN_GAME
+        instance.user.save()
+
+
+@receiver(post_save, sender=Match)
+def match_update_signal(sender, instance, created, **kwargs):
+    if instance.status in [Match.Status.CANCELLED, Match.Status.FINISHED]:
+        players_ids = [player.user.id for player in instance.players]
+        User.objects.filter(id__in=players_ids).update(status=User.Statuses.ONLINE)

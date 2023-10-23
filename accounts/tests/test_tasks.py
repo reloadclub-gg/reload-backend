@@ -26,10 +26,10 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         mock_lobby_move,
         mock_expire_invites,
     ):
-        self.user.auth.add_session()
+        self.user.add_session()
 
-        self.friend1.auth.add_session()
-        self.friend1.auth.expire_session(seconds=0)
+        self.friend1.add_session()
+        self.friend1.logout()
 
         tasks.watch_user_status_change(self.friend1.id)
         mock_user_logout_ws.assert_called_once()
@@ -48,11 +48,11 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         mock_lobby_move,
         mock_expire_invites,
     ):
-        self.user.auth.add_session()
+        self.user.add_session()
 
-        self.friend1.auth.add_session()
+        self.friend1.add_session()
         Lobby.create(owner_id=self.friend1.id)
-        self.friend1.auth.expire_session(seconds=0)
+        self.friend1.logout()
 
         tasks.watch_user_status_change(self.friend1.id)
         mock_user_logout_ws.assert_called_once()

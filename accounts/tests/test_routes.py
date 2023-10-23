@@ -136,7 +136,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
 
     def test_inactivate_account(self):
         self.user.auth.create_token()
-        self.user.auth.add_session()
+        self.user.add_session()
         baker.make(Account, user=self.user, is_verified=True)
         Lobby.create(self.user.id)
         r = self.api.patch('/inactivate', token=self.user.auth.token)
@@ -146,7 +146,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
 
     def test_cancel_account(self):
         self.user.auth.create_token()
-        self.user.auth.add_session()
+        self.user.add_session()
         baker.make(Account, user=self.user, is_verified=True)
         Lobby.create(self.user.id)
         user_id = self.user.id
@@ -191,7 +191,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         self.user.account.is_verified = True
         self.user.account.save()
         self.user.auth.create_token()
-        self.user.auth.add_session()
+        self.user.add_session()
         Lobby.create(self.user.id)
         payload = {'email': 'new@email.com'}
         response = self.api.call(
@@ -258,7 +258,7 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
 
     def test_logout(self):
         self.user.auth.create_token()
-        self.user.auth.add_session()
+        self.user.add_session()
         baker.make(Account, user=self.user, is_verified=True)
         Lobby.create(self.user.id)
         r = self.api.patch('/logout', token=self.user.auth.token)

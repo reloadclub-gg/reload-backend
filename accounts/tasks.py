@@ -36,7 +36,7 @@ def watch_user_status_change(user_id: int):
             ws_friend_update_or_create(user)
 
         # Expiring user session
-        user.auth.expire_session(seconds=0)
+        user.logout()
 
         # Send websocket logout message
         websocket.ws_user_logout(user.id)

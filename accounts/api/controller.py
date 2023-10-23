@@ -45,7 +45,7 @@ def auth(user: User, from_fake_signup=False) -> User:
 
     # Adding and persisting session
     if not from_fake_signup:
-        user.auth.add_session()
+        user.add_session()
         user.auth.persist_session()
 
         # Creating lobby if user does not have one
@@ -112,7 +112,7 @@ def logout(user: User) -> dict:
         send_user_update_to_friendlist.delay(user.id)
 
     # Expiring user session
-    user.auth.expire_session(seconds=0)
+    user.logout()
 
     # Send websocket logout message
     websocket.ws_user_logout(user.id)

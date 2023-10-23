@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.contrib.auth import get_user_model
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.tests.mixins import VerifiedAccountsMixin
@@ -8,17 +9,19 @@ from core.tests import TestCase
 from ..api import controller, schemas
 from ..models import Lobby, LobbyException, LobbyInvite
 
+User = get_user_model()
+
 
 class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
-        self.user_4.auth.add_session()
-        self.user_5.auth.add_session()
-        self.user_6.auth.add_session()
-        self.user_7.auth.add_session()
+        self.user_1.add_session()
+        self.user_2.add_session()
+        self.user_3.add_session()
+        self.user_4.add_session()
+        self.user_5.add_session()
+        self.user_6.add_session()
+        self.user_7.add_session()
         Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
         Lobby.create(self.user_3.id)
@@ -610,6 +613,11 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         )
         self.assertIsNotNone(self.user_1.account.lobby.queue)
         mock_update_lobby.assert_called_once_with(self.user_1.account.lobby)
+
+        self.user_1.refresh_from_db()
+        self.user_2.refresh_from_db()
+        self.assertEqual(self.user_1.status, User.Statuses.QUEUED)
+        self.assertEqual(self.user_2.status, User.Statuses.QUEUED)
 
         mock_calls = [
             mock.call(self.user_1),
