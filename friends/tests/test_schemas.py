@@ -22,8 +22,8 @@ class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(payload, expected_payload)
 
     def test_friend_list_schema(self):
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
+        self.user_2.add_session()
+        self.user_3.add_session()
         payload = FriendListSchema.from_orm(
             {
                 'online': self.user_1.account.get_online_friends(),

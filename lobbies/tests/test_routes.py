@@ -10,11 +10,11 @@ class LobbyRoutesTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.api = APIClient('/api/lobbies')
-        self.user_1.auth.add_session()
+        self.user_1.add_session()
         self.user_1.auth.create_token()
-        self.user_2.auth.add_session()
+        self.user_2.add_session()
         self.user_2.auth.create_token()
-        self.user_3.auth.add_session()
+        self.user_3.add_session()
         self.user_3.auth.create_token()
 
     def test_invites_list(self):

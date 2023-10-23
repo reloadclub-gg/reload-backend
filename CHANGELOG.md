@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Altera a maneira como verificamos o status do usuário. Ao invés de verificar se usuário tem partida, time ou lobby, agora nós atualizamos um campo `status` no model `User` [#734](https://github.com/3C-gg/reload-backend/issues/734).
+
+### Fixed
+
+- Corrige método que move usuário entre lobbies, adicionando proteção caso o `from_lobby_id` não exista.
+- Adiciona proteção no websocket `ws_friend_update_or_create` e em alguns pontos do código que chamam esse WS para usuários que não possuem conta [#732](https://github.com/3C-gg/reload-backend/issues/732).
+- Corrige tarefa de montar times no mm que estava fazendo com que o mesmo lobby fosse adicionado a vários times diferentes [#730](https://github.com/3C-gg/reload-backend/issues/730).
+
+### Removed
+
+- Múltiplos workers do Celery. Estavam criando problemas de concorrência, atropelando um ao outro enquanto realizavam as tarefas, causando _race conditions_ [#727](https://github.com/3C-gg/reload-backend/issues/727).
+
+## [e13e4c0 - 21/10/2023]
+
 ### Added
 
 - Comando de sistema para enviar emails de verificação de conta para usuários não verificados [#714](https://github.com/3C-gg/reload-backend/issues/714).
@@ -19,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera docs de bootstrap.
 - Altera maneira como comandos de start/restart de serviços são rodados no deploy e nos docs de bootstrap.
 - Quantidade de convites que um usuário pode criar `4 -> 5`.
 - Altera documentação de bootstrap de server para staging e prod para refletir mudanças de infra e performance [#716](https://github.com/3C-gg/reload-backend/issues/716).
