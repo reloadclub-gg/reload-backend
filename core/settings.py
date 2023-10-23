@@ -287,6 +287,7 @@ if SENTRY_DSN:
         send_default_pii=True,
         environment=ENVIRONMENT,
         attach_stacktrace=True,
+        sample_rate=0.25,
     )
 
 
