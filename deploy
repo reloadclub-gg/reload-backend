@@ -34,9 +34,7 @@ ssh $USER@$SERVER '
 echo "-> Parando serviços..."
 sudo systemctl stop nginx
 sudo systemctl stop celery_beat
-sudo systemctl stop celery_w1
-sudo systemctl stop celery_w2
-sudo systemctl stop celery_w3
+sudo systemctl stop celery_worker
 sudo systemctl stop gunicorn
 sudo systemctl stop uvicorn
 

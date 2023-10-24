@@ -88,8 +88,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         with self.assertRaises(HttpError):
             controller.signup(user, email=user.email)
 
-    @mock.patch('matches.models.send_request')
-    def test_signup_on_beta(self, mock_request):
+    def test_signup_on_beta(self):
         beta_required = AppSettings.objects.get(name='Beta Required')
         beta_required.value = '1'
         beta_required.save()
@@ -115,8 +114,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         baker.make(BetaUser, email=user.email)
         controller.signup(user, email=user.email)
 
-    @mock.patch('matches.models.send_request')
-    def test_auth_on_beta(self, mock_request):
+    def test_auth_on_beta(self):
         user = baker.make(User)
         utils.create_social_auth(user)
         baker.make(Account, user=user, is_verified=True)
