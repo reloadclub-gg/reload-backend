@@ -89,6 +89,11 @@ class Match(models.Model):
     class Meta:
         verbose_name_plural = 'matches'
         ordering = ['-end_date']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['end_date']),
+            models.Index(fields=['start_date']),
+        ]
 
     class Status(models.TextChoices):
         LOADING = 'loading'
@@ -512,8 +517,14 @@ class MatchPlayerStats(models.Model):
 
 class BetaUser(models.Model):
     steamid_hex = models.CharField(max_length=64)
+    email = models.EmailField(unique=True)
     username = models.CharField(max_length=32)
     date_add = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = 'beta users'
+        ordering = ['-date_add']
+        indexes = [models.Index(fields=['email'])]
 
     def save(self, *args, **kwargs):
         payload = {'steamid': self.steamid_hex, 'username': self.username}
