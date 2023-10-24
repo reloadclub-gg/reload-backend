@@ -12,9 +12,8 @@ class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
 
         expected_payload = {
             'id': pre_match.id,
-            'state': list(PreMatch.Config.STATES.keys())[
-                list(PreMatch.Config.STATES.values()).index(pre_match.state)
-            ],
+            'status': pre_match.status,
+            'state': pre_match.status,
             'countdown': pre_match.countdown,
             'players_ready_count': len(pre_match.players_ready),
             'players_total': len(pre_match.players),
