@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Campo `steamid_hex` do modelo `BetaUser` passa a ser único.
 - Taxa de sample de erros enviados para o Sentry: `1.0 (default - 100%) -> 0.25 (25%)` [#741](https://github.com/3C-gg/reload-backend/issues/741).
 - Filtro de online no admin agora reflete todos os usuários que estão com sessão ativa, independente de estarem nos outros estados de MM (em fila, em time, em partida, etc) [#703](https://github.com/3C-gg/reload-backend/issues/703).
 - Métodos de login e logout no admin para atualizar campo `status` dependendo da ação do usuário.
