@@ -466,7 +466,9 @@ class Lobby(BaseModel):
         )
 
         return LobbyInvite(
-            from_id=from_player_id, to_id=to_player_id, lobby_id=self.owner_id
+            from_id=from_player_id,
+            to_id=to_player_id,
+            lobby_id=self.owner_id,
         )
 
     def get_invite_by_to_player_id(self, to_player_id: int) -> str:

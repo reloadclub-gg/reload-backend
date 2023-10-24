@@ -71,7 +71,7 @@ def cancel_match_after_countdown(pre_match_id: int, lang: str = None):
         time.sleep(2)
         return cancel_match_after_countdown(pre_match.id)
 
-    if pre_match.state != models.PreMatch.Config.STATES.get('ready'):
+    if pre_match.status != models.PreMatch.Statuses.READY:
         team1 = pre_match.teams[0]
         team2 = pre_match.teams[1]
         lobbies = team1.lobbies + team2.lobbies

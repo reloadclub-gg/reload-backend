@@ -283,8 +283,10 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
 
 def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby:
     lobby = get_lobby(lobby_id)
+    updated = False
 
     if payload.start_queue:
+        updated = True
         if maintenance_window():
             raise HttpError(400, _('We are under maintenance. Try again later.'))
 
@@ -300,6 +302,7 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
             raise HttpError(400, e)
 
     elif payload.cancel_queue:
+        updated = True
         lobby.cancel_queue()
 
         User.objects.filter(id__in=lobby.players_ids).update(
@@ -310,14 +313,15 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         if team:
             team.remove_lobby(lobby_id)
 
-    websocket.ws_update_lobby(lobby)
+    if updated:
+        websocket.ws_update_lobby(lobby)
 
-    lobby_players = User.objects.filter(id__in=lobby.players_ids)
-    for player in lobby_players:
-        ws_update_user(player)
-        ws_friend_update_or_create(player)
-        send_user_update_to_friendlist.delay(player.id)
-        websocket.ws_expire_player_invites(player)
+        lobby_players = User.objects.filter(id__in=lobby.players_ids)
+        for player in lobby_players:
+            ws_update_user(player)
+            ws_friend_update_or_create(player)
+            send_user_update_to_friendlist.delay(player.id)
+            websocket.ws_expire_player_invites(player)
 
     return lobby
 
