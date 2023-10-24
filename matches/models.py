@@ -516,7 +516,7 @@ class MatchPlayerStats(models.Model):
 
 
 class BetaUser(models.Model):
-    steamid_hex = models.CharField(max_length=64)
+    steamid_hex = models.CharField(max_length=64, unique=True)
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=32)
     date_add = models.DateTimeField(auto_now_add=True)
