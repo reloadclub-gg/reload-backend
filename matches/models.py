@@ -4,6 +4,7 @@ import os
 from typing import List
 
 import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -18,8 +19,6 @@ from appsettings.services import (
     matches_limit_per_server_gap,
     player_max_losing_level_points,
 )
-
-from .utils import send_request
 
 User = get_user_model()
 
@@ -527,9 +526,13 @@ class BetaUser(models.Model):
         indexes = [models.Index(fields=['email'])]
 
     def save(self, *args, **kwargs):
-        payload = {'steamid': self.steamid_hex, 'username': self.username}
-        r = requests.Request('POST', json=payload)
-        send_request(r, '/core/addAllowList', Server.objects.first())
+        if settings.ENVIRONMENT != settings.LOCAL:
+            payload = {'steamid': self.steamid_hex, 'username': self.username}
+            server = Server.objects.first()
+            requests.post(
+                f'http://{server.ip}:{server.port}/core/addAllowlist',
+                json=payload,
+            )
 
         super(BetaUser, self).save(*args, **kwargs)
 

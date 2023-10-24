@@ -1,6 +1,7 @@
 import json
 
 import requests
+from django.conf import settings
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
@@ -10,7 +11,6 @@ from accounts.utils import hex_to_steamid64
 from core.admin_mixins import ReadOnlyModelAdminMixin, SuperUserOnlyAdminMixin
 
 from . import models
-from .utils import send_request
 
 
 @admin.register(models.Server)
@@ -210,8 +210,12 @@ class BetaUserAdmin(admin.ModelAdmin):
     search_fields = ['steamid_hex', 'username', 'email']
 
     def delete_model(self, request, obj):
-        payload = {'steamid': obj.steamid_hex, 'username': obj.username}
-        r = requests.Request('POST', json=payload)
-        send_request(r, '/core/remAllowList')
+        if settings.ENVIRONMENT != settings.LOCAL:
+            payload = {'steamid': obj.steamid_hex, 'username': obj.username}
+            server = models.Server.objects.first()
+            requests.post(
+                f'http://{server.ip}:{server.port}/core/remAllowlist',
+                json=payload,
+            )
 
         super().delete_model(request, obj)
