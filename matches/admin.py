@@ -202,11 +202,12 @@ class MatchPlayerStatsAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
 class BetaUserAdmin(admin.ModelAdmin):
     list_display = (
         'steamid_hex',
+        'email',
         'username',
         'date_add',
     )
     ordering = ('-date_add',)
-    search_fields = ['steamid_hex', 'username']
+    search_fields = ['steamid_hex', 'username', 'email']
 
     def delete_model(self, request, obj):
         payload = {'steamid': obj.steamid_hex, 'username': obj.username}

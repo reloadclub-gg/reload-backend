@@ -9,6 +9,7 @@ from ninja.errors import HttpError
 from appsettings.models import AppSettings
 from core.tests import TestCase
 from lobbies.models import Lobby
+from matches.models import BetaUser
 
 from .. import utils
 from ..api import controller
@@ -86,6 +87,50 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         user = baker.make(User)
         with self.assertRaises(HttpError):
             controller.signup(user, email=user.email)
+
+    @mock.patch('matches.models.send_request')
+    def test_signup_on_beta(self, mock_request):
+        beta_required = AppSettings.objects.get(name='Beta Required')
+        beta_required.value = '1'
+        beta_required.save()
+
+        user = baker.make(User)
+        utils.create_social_auth(user)
+
+        with self.assertRaises(HttpError):
+            controller.signup(user, email=user.email)
+
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
+
+        signed_user = baker.make(User)
+        utils.create_social_auth(signed_user)
+        signed_account = baker.make(Account, user=signed_user, is_verified=True)
+        Invite.objects.create(owned_by=signed_account, email=user.email)
+
+        with self.assertRaises(HttpError):
+            controller.signup(user, email=user.email)
+
+        baker.make(BetaUser, email=user.email)
+        controller.signup(user, email=user.email)
+
+    @mock.patch('matches.models.send_request')
+    def test_auth_on_beta(self, mock_request):
+        user = baker.make(User)
+        utils.create_social_auth(user)
+        baker.make(Account, user=user, is_verified=True)
+        controller.auth(user)
+
+        beta_required = AppSettings.objects.get(name='Beta Required')
+        beta_required.value = '1'
+        beta_required.save()
+
+        with self.assertRaises(HttpError):
+            controller.auth(user)
+
+        baker.make(BetaUser, email=user.email)
+        controller.auth(user)
 
     @mock.patch('accounts.api.controller.tasks.send_welcome_email.delay')
     @mock.patch('accounts.api.controller.handle_verify_tasks')
