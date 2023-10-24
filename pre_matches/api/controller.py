@@ -155,7 +155,11 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
     if user in pre_match.players_ready:
         raise HttpError(400, _('Player already set as ready.'))
 
-    pre_match.set_player_ready(user.id)
+    try:
+        pre_match.set_player_ready(user.id)
+    except models.PreMatchException as e:
+        raise HttpError(403, e)
+
     websocket.ws_pre_match_update(pre_match)
     if len(pre_match.players_ready) >= len(pre_match.players):
         match = handle_create_match(pre_match)

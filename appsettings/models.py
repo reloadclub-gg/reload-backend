@@ -32,6 +32,7 @@ class AppSettings(models.Model):
     class Meta:
         verbose_name = 'App Settings'
         verbose_name_plural = 'App Settings'
+        indexes = [models.Index(fields=['name'])]
 
     @staticmethod
     def get(name, default=None):

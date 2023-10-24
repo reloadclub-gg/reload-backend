@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Mais BetaUsers. Agora criamos uma flag para definir se o site está fechado para betas, e caso seja positivo, somente usuários cadastrados como Beta poderão utilizar o site [#750](https://github.com/3C-gg/reload-backend/issues/750).
+- BetaUsers. Funcionalidade que permite usuários beta serem adicionados a uma whitelist no servidor para testarem o servidor [#746](https://github.com/3C-gg/reload-backend/issues/746).
+- Filtro de "disponível" para usuários que estão online mas não estão em nenhum time, fila ou partida.
+
+### Changed
+
+- Remove campo `state` que estava obsoleto no esquema do modelo `PreMatch`.
+- Campo `steamid_hex` do modelo `BetaUser` passa a ser único.
+- Taxa de sample de erros enviados para o Sentry: `1.0 (default - 100%) -> 0.25 (25%)` [#741](https://github.com/3C-gg/reload-backend/issues/741).
+- Filtro de online no admin agora reflete todos os usuários que estão com sessão ativa, independente de estarem nos outros estados de MM (em fila, em time, em partida, etc) [#703](https://github.com/3C-gg/reload-backend/issues/703).
+- Métodos de login e logout no admin para atualizar campo `status` dependendo da ação do usuário.
+- Altera a maneira como verificamos o status do usuário. Ao invés de verificar se usuário tem partida, time ou lobby, agora nós atualizamos um campo `status` no model `User` [#734](https://github.com/3C-gg/reload-backend/issues/734).
+
+### Fixed
+
+- Ajusta arquivo de deploy.
+- Possível correção para erro de pré partida tentando dar `ready` em players com `state` errado. Antes checávamos cada variação da partida, por exemplo, se ainda não tinha acabado o countdown e não tinha todos os players `ready`, então ela estava em `lock_in`. Alteramos isso para, sempre que houver uma alteração na `pre_match`, a gente salvar uma entrada no Redis para dizer o status dessa `PreMatch`. Também mudamos os estados para `lock_in`, `ready_in` e `ready` (nessa ordem). O campo também foi alterado de `state` para `status`, mas uma cópia do campo ficou no esquema para ser removido quando o client removê-lo também [#744](https://github.com/3C-gg/reload-backend/issues/744).
+- Adiciona possível correção e proteção em `max_players` no modelo `Lobby`. Essa propriedade retorna o valor de `self.mode`. Mas a propriedade `mode` tem um `if`, que só retorna um valor se existir a chave `lobby:{lobby_id}:mode` no Redis. Não consegui entender ou reproduzir um cenário em que o `max_players` fosse chamado sem que a chave `mode` exista, então apenas adicionei uma proteção para retornar `0` no `max_players` caso a chave `mode` volte nula [#739](https://github.com/3C-gg/reload-backend/issues/739).
+- Corrige método que move usuário entre lobbies, adicionando proteção caso o `from_lobby_id` não exista.
+- Adiciona proteção no websocket `ws_friend_update_or_create` e em alguns pontos do código que chamam esse WS para usuários que não possuem conta [#732](https://github.com/3C-gg/reload-backend/issues/732).
+- Corrige tarefa de montar times no mm que estava fazendo com que o mesmo lobby fosse adicionado a vários times diferentes [#730](https://github.com/3C-gg/reload-backend/issues/730).
+
+### Removed
+
+- Arquivo `WORKFLOW.md` do websockets, uma vez que já possuímos o `/ws/docs` que lista todos os endpoints de websocket, suas propriedades e retornos.
+- Múltiplos workers do Celery. Estavam criando problemas de concorrência, atropelando um ao outro enquanto realizavam as tarefas, causando _race conditions_ [#727](https://github.com/3C-gg/reload-backend/issues/727).
+
+## [e13e4c0 - 21/10/2023]
+
+### Added
+
 - Comando de sistema para enviar emails de verificação de conta para usuários não verificados [#714](https://github.com/3C-gg/reload-backend/issues/714).
 - Endpoint de criação de convite.
 - Métodos e background tasks para envio de email de convite para convidados.
@@ -19,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera docs de bootstrap.
 - Altera maneira como comandos de start/restart de serviços são rodados no deploy e nos docs de bootstrap.
 - Quantidade de convites que um usuário pode criar `4 -> 5`.
 - Altera documentação de bootstrap de server para staging e prod para refletir mudanças de infra e performance [#716](https://github.com/3C-gg/reload-backend/issues/716).

@@ -1,8 +1,12 @@
 import secrets
 
 from django.conf import settings
-from django.contrib.auth import REDIRECT_FIELD_NAME, logout
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView, LogoutView
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -16,7 +20,33 @@ from social_django.views import _do_login
 
 from accounts.social_actions import do_complete
 
-from .models import Auth
+from .models import Auth, User
+
+
+class AdminLogin(LoginView):
+    def form_valid(self, form):
+        auth_login(self.request, form.get_user())
+        if self.request.user.is_authenticated:
+            self.request.user.status = User.Statuses.ONLINE
+            self.request.user.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class AdminLogout(LogoutView):
+    def get(self, request, *args, **kwargs):
+        if (
+            self.request.user.is_authenticated
+            and self.request.user.status != User.Statuses.OFFLINE
+        ):
+            self.request.user.status = User.Statuses.OFFLINE
+            self.request.user.save()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.request.user.status = User.Statuses.OFFLINE
+        self.request.user.save()
+        return super().post(request, *args, **kwargs)
 
 
 class SteamAuthWebHook(View):
@@ -50,7 +80,9 @@ class SteamAuthWebHook(View):
         # strategy in case of a exception. So, we add a random email so UserSocialDjango don't
         # fuck with session scope.
         if not request.user.email:
-            request.user.email = f'not_registered__{secrets.token_urlsafe(10)}@3c.gg'
+            request.user.email = (
+                f'not_registered__{secrets.token_urlsafe(10)}@reloadclub.gg'
+            )
             request.user.save()
 
         logout(request)

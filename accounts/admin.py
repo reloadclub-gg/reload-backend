@@ -179,6 +179,31 @@ class UserBoxAdminInline(admin.TabularInline):
         return False
 
 
+class CustomUserStatusFilter(admin.SimpleListFilter):
+    title = 'Status'
+    parameter_name = 'status'
+
+    def lookups(self, request, model_admin):
+        return models.User.Statuses.choices + [('available', 'Available')]
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        if self.value() == models.User.Statuses.ONLINE:
+            online_statuses = [
+                models.User.Statuses.ONLINE,
+                models.User.Statuses.IN_GAME,
+                models.User.Statuses.QUEUED,
+                models.User.Statuses.TEAMING,
+            ]
+            return queryset.filter(status__in=online_statuses)
+        elif self.value() == 'available':
+            return queryset.filter(status=models.User.Statuses.ONLINE)
+        else:
+            return queryset.filter(status=self.value())
+
+
 @admin.register(models.User)
 class UserAdmin(
     DjangoObjectActions,
@@ -207,7 +232,6 @@ class UserAdmin(
                     'is_staff',
                     'is_superuser',
                     'is_verified',
-                    'is_online',
                     'groups',
                 )
             },
@@ -237,7 +261,7 @@ class UserAdmin(
         'last_login',
         'is_verified',
         'is_active',
-        'is_online',
+        'status',
         'level',
         'level_points',
     )
@@ -247,7 +271,7 @@ class UserAdmin(
         'last_login',
         'date_joined',
         'is_active',
-        'is_online',
+        'status',
         'is_verified',
         'level',
         'level_points',
@@ -262,7 +286,12 @@ class UserAdmin(
         'account__username',
     )
     ordering = ('-date_joined', '-last_login', 'email', 'account__level')
-    list_filter = ('is_active', 'is_staff', 'account__is_verified')
+    list_filter = (
+        CustomUserStatusFilter,
+        'is_active',
+        'is_staff',
+        'account__is_verified',
+    )
     inlines = [
         UserLoginAdminInline,
         UserMatchesAdminInline,
@@ -270,9 +299,6 @@ class UserAdmin(
         UserItemAdminInline,
         UserBoxAdminInline,
     ]
-
-    def is_online(self, obj):
-        return obj.is_online
 
     def steamid(self, obj):
         return obj.steam_user.steamid
@@ -316,7 +342,6 @@ class UserAdmin(
         models.IdentityManager.objects.create(user=obj, agent=request.user)
         return HttpResponseRedirect(settings.FRONT_END_AUTH_URL.format(token))
 
-    is_online.boolean = True
     is_verified.boolean = True
 
     def get_change_actions(self, request, object_id, form_url):

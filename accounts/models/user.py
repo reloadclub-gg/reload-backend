@@ -6,6 +6,7 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from pydantic import BaseModel, Field
 from social_django.models import UserSocialAuth
@@ -64,13 +65,27 @@ class SteamUser(BaseModel):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    class Statuses(models.TextChoices):
+        ONLINE = 'online'
+        OFFLINE = 'offline'
+        TEAMING = 'teaming'
+        QUEUED = 'queued'
+        IN_GAME = 'in_game'
+
     email = models.EmailField(unique=True)
     is_staff = models.BooleanField('staff status', default=False)
     is_active = models.BooleanField('active', default=True)
     date_joined = models.DateTimeField('date joined', default=timezone.now)
     date_inactivation = models.DateTimeField('date inactivation', blank=True, null=True)
     date_email_update = models.DateTimeField(
-        'latest email update date', blank=True, null=True
+        'latest email update date',
+        blank=True,
+        null=True,
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=Statuses.choices,
+        default='offline',
     )
 
     objects = UserManager()
@@ -85,6 +100,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             models.Index(fields=['email']),
             models.Index(fields=['is_active']),
             models.Index(fields=['is_staff']),
+            models.Index(fields=['status']),
         ]
 
     @property
@@ -114,28 +130,23 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_online(self):
-        return self.auth.sessions is not None
+        return self.is_verified() and self.status != User.Statuses.OFFLINE
 
     @property
-    def status(self):
-        if not self.is_verified():
-            return 'offline'
+    def is_in_game(self):
+        return self.status == User.Statuses.IN_GAME
 
-        account = self.account
+    @property
+    def is_queued(self):
+        return self.status == User.Statuses.QUEUED
 
-        if account.get_match():
-            return 'in_game'
+    @property
+    def is_teaming(self):
+        return self.status == User.Statuses.TEAMING
 
-        if account.pre_match and account.pre_match.state >= 0:
-            return 'queued'
-
-        if account.lobby:
-            if account.lobby.queue:
-                return 'queued'
-            if account.lobby.players_count > 1:
-                return 'teaming'
-
-        return 'online' if self.is_online else 'offline'
+    @property
+    def is_available(self):
+        return self.is_online and not self.is_in_game and not self.is_queued
 
     def __str__(self):
         return self.email if self.email else str(self.id)
@@ -161,15 +172,26 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.date_inactivation = timezone.now()
         self.save()
 
+    def add_session(self):
+        sessions = self.auth.add_session()
+        if sessions == 1:
+            self.status = User.Statuses.ONLINE
+            self.save()
+
+    def remove_session(self):
+        sessions = self.auth.remove_session()
+        if sessions is None:
+            self.status = User.Statuses.OFFLINE
+            self.save()
+
+    def logout(self):
+        self.auth.expire_session(seconds=0)
+        self.status = User.Statuses.OFFLINE
+        self.save()
+
     @staticmethod
     def online_users():
-        active_users = User.objects.filter(
-            is_active=True,
-            is_superuser=False,
-            is_staff=False,
-        )
-        online_users = [user for user in active_users if user.is_online]
-        return online_users
+        return User.objects.filter(~Q(status=User.Statuses.OFFLINE))
 
 
 class UserLogin(models.Model):

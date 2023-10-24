@@ -25,7 +25,7 @@ def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) ->
     try:
         remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id, remove=delete_lobby)
     except LobbyException as exc:
-        raise HttpError(400, str(exc))
+        raise exc
 
     # if we got remnants_lobby, means that player was owner
     # and there was other players left to move
@@ -229,7 +229,10 @@ def accept_invite(user: User, invite_id: str):
         return {'status': None}
 
     websocket.ws_delete_invite(invite, 'accepted')
-    handle_player_move(user, new_lobby.id)
+    try:
+        handle_player_move(user, new_lobby.id)
+    except LobbyException as e:
+        raise HttpError(400, e)
     return {'status': 'accepted'}
 
 
@@ -258,12 +261,18 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
         return lobby
 
     if player_id == user.id:
-        return handle_player_move(user, user.id)
+        try:
+            return handle_player_move(user, user.id)
+        except LobbyException as e:
+            raise HttpError(400, e)
     elif user.id != lobby.owner_id:
         raise AuthenticationError()
     else:
         player = User.objects.get(pk=player_id)
-        handle_player_move(player, player.id)
+        try:
+            handle_player_move(player, player.id)
+        except LobbyException as e:
+            raise HttpError(400, e)
         ws_create_toast(
             _('{} kicked you from lobby.').format(user.account.username),
             user_id=player_id,
@@ -274,8 +283,10 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
 
 def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby:
     lobby = get_lobby(lobby_id)
+    updated = False
 
     if payload.start_queue:
+        updated = True
         if maintenance_window():
             raise HttpError(400, _('We are under maintenance. Try again later.'))
 
@@ -284,24 +295,33 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
 
         try:
             lobby.start_queue()
+            User.objects.filter(id__in=lobby.players_ids).update(
+                status=User.Statuses.QUEUED
+            )
         except LobbyException as e:
             raise HttpError(400, e)
 
     elif payload.cancel_queue:
+        updated = True
         lobby.cancel_queue()
+
+        User.objects.filter(id__in=lobby.players_ids).update(
+            status=User.Statuses.ONLINE
+        )
 
         team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
         if team:
             team.remove_lobby(lobby_id)
 
-    websocket.ws_update_lobby(lobby)
+    if updated:
+        websocket.ws_update_lobby(lobby)
 
-    lobby_players = User.objects.filter(id__in=lobby.players_ids)
-    for player in lobby_players:
-        ws_update_user(player)
-        ws_friend_update_or_create(player)
-        send_user_update_to_friendlist.delay(player.id)
-        websocket.ws_expire_player_invites(player)
+        lobby_players = User.objects.filter(id__in=lobby.players_ids)
+        for player in lobby_players:
+            ws_update_user(player)
+            ws_friend_update_or_create(player)
+            send_user_update_to_friendlist.delay(player.id)
+            websocket.ws_expire_player_invites(player)
 
     return lobby
 

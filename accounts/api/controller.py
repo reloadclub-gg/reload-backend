@@ -6,6 +6,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
+from appsettings.models import AppSettings
 from appsettings.services import check_invite_required
 from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string, get_ip_address
@@ -15,9 +16,9 @@ from friends.tasks import (
     send_user_update_to_friendlist,
 )
 from lobbies.api.controller import handle_player_move
-from lobbies.models import Lobby
+from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
-from matches.models import Match
+from matches.models import BetaUser, Match
 
 from .. import tasks, utils, websocket
 from ..models import Account, Auth, Invite, UserLogin
@@ -41,11 +42,16 @@ def auth(user: User, from_fake_signup=False) -> User:
     if not is_verified(user):
         return user
 
+    if AppSettings.get('Beta Required', False):
+        is_beta = BetaUser.objects.filter(email=user.email).exists()
+        if not is_beta:
+            raise HttpError(401, _('User must be invited.'))
+
     from_offline_status = user.auth.sessions is None
 
     # Adding and persisting session
     if not from_fake_signup:
-        user.auth.add_session()
+        user.add_session()
         user.auth.persist_session()
 
         # Creating lobby if user does not have one
@@ -101,18 +107,20 @@ def logout(user: User) -> dict:
     # Expiring player invites
     ws_expire_player_invites(user)
 
-    # If user has an account and it is in a lobby, handle the player move
-    try:
-        if user.account.lobby:
+    # If user has an account
+    if hasattr(user, 'account'):
+        try:
             handle_player_move(user, user.id, delete_lobby=True)
-    except Account.DoesNotExist:
-        pass
+        except LobbyException as e:
+            raise HttpError(400, e)
+
+        # Update or create friend
+        send_user_update_to_friendlist.delay(user.id)
 
     # Expiring user session
-    user.auth.expire_session(seconds=0)
+    user.logout()
 
-    # Update or create friend and send websocket logout message
-    send_user_update_to_friendlist.delay(user.id)
+    # Send websocket logout message
     websocket.ws_user_logout(user.id)
 
     # Deleting user from friend list cache
@@ -143,12 +151,16 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     except Account.DoesNotExist:
         pass
 
-    invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
+    if AppSettings.get('Beta Required', False):
+        is_beta = BetaUser.objects.filter(email=email).exists()
+        if not is_beta:
+            raise HttpError(401, _('User must be invited.'))
+    else:
+        invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
+        if not is_fake and check_invite_required() and not invites.exists():
+            raise HttpError(401, _('User must be invited.'))
 
-    if not is_fake and check_invite_required() and not invites.exists():
-        raise HttpError(401, _('User must be invited.'))
-
-    invites.update(datetime_accepted=timezone.now())
+        invites.update(datetime_accepted=timezone.now())
 
     with transaction.atomic():
         user.email = email
@@ -232,7 +244,10 @@ def update_email(user: User, email: str) -> User:
 
     websocket.ws_update_user(user)
     if user.account.lobby:
-        handle_player_move(user, user.id, delete_lobby=True)
+        try:
+            handle_player_move(user, user.id, delete_lobby=True)
+        except LobbyException as e:
+            raise HttpError(400, e)
 
     return user
 

@@ -147,119 +147,51 @@ WantedBy=multi-user.target
 ### Celery Workers
 
 ```socket
-# /etc/systemd/system/celery_w1.socket
+# /etc/systemd/system/celery_worker.socket
 
 [Unit]
-Description=celery_w1 socket
+Description=celery_worker socket
 
 [Socket]
-ListenStream=/run/celery_w1.sock
+ListenStream=/run/celery_worker.sock
 
 [Install]
 WantedBy=sockets.target
 ```
 
 ```service
-# /etc/systemd/system/celery_w1.service
+# /etc/systemd/system/celery_worker.service
 
 [Unit]
-Description=celery_w1 daemon
-Requires=celery_w1.socket
+Description=celery_worker daemon
+Requires=celery_worker.socket
 After=network.target
 
 [Service]
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
-ExecStart=/home/ubuntu/.local/bin/pipenv run celery_w1
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```socket
-# /etc/systemd/system/celery_w2.socket
-
-[Unit]
-Description=celery_w2 socket
-
-[Socket]
-ListenStream=/run/celery_w2.sock
-
-[Install]
-WantedBy=sockets.target
-```
-
-```service
-# /etc/systemd/system/celery_w2.service
-
-[Unit]
-Description=celery_w2 daemon
-Requires=celery_w2.socket
-After=network.target
-
-[Service]
-User=ubuntu
-Group=www-data
-WorkingDirectory=/home/ubuntu/application
-ExecStart=/home/ubuntu/.local/bin/pipenv run celery_w2
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```socket
-# /etc/systemd/system/celery_w3.socket
-
-[Unit]
-Description=celery_w3 socket
-
-[Socket]
-ListenStream=/run/celery_w3.sock
-
-[Install]
-WantedBy=sockets.target
-```
-
-```service
-# /etc/systemd/system/celery_w3.service
-
-[Unit]
-Description=celery_w3 daemon
-Requires=celery_w3.socket
-After=network.target
-
-[Service]
-User=ubuntu
-Group=www-data
-WorkingDirectory=/home/ubuntu/application
-ExecStart=/home/ubuntu/.local/bin/pipenv run celery_w3
+ExecStart=/home/ubuntu/.local/bin/pipenv run celery_worker
 
 [Install]
 WantedBy=multi-user.target
 ```
 
 ```bash
-sudo systemctl start gunicorn.socket
-sudo systemctl enable gunicorn.socket
-sudo systemctl start uvicorn.socket
-sudo systemctl enable uvicorn.socket
-sudo systemctl start celery_beat.socket
-sudo systemctl enable celery_beat.socket
-sudo systemctl start celery_w1.socket
-sudo systemctl enable celery_w1.socket
-sudo systemctl start celery_w2.socket
-sudo systemctl enable celery_w2.socket
-sudo systemctl start celery_w3.socket
-sudo systemctl enable celery_w3.socket
+sudo systemctl start gunicorn.socket && \
+sudo systemctl enable gunicorn.socket && \
+sudo systemctl start uvicorn.socket && \
+sudo systemctl enable uvicorn.socket && \
+sudo systemctl start celery_beat.socket && \
+sudo systemctl enable celery_beat.socket && \
+sudo systemctl start celery_worker.socket && \
+sudo systemctl enable celery_worker.socket
 
+# Rodar um comando de cada vez
 curl --unix-socket /run/gunicorn.sock localhost
 curl --unix-socket /run/uvicorn.sock localhost
 curl --unix-socket /run/celery_beat.sock localhost
-curl --unix-socket /run/celery_w1.sock localhost
-curl --unix-socket /run/celery_w2.sock localhost
-curl --unix-socket /run/celery_w3.sock localhost
-
+curl --unix-socket /run/celery_worker.sock localhost
 ```
 
 ## Nginx
@@ -304,20 +236,15 @@ server {
     }
 
     location / {
-        try_files $uri @proxy_to_app;
-    }
-
-    location @proxy_to_app {
-        proxy_pass http://localhost:9000;
+        proxy_pass http://unix:/run/gunicorn.sock;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_redirect off;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host $server_name;
-        limit_req zone=mylimit burst=50;
+        limit_req zone=mylimit burst=30;
     }
 
     location /ws/ {
@@ -325,11 +252,7 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_redirect off;
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host $server_name;
     }
 }
 ```
@@ -337,7 +260,11 @@ server {
 ```bash
 sudo ln -s /etc/nginx/sites-available/api.reloadclub.gg /etc/nginx/sites-enabled
 sudo nginx -t
-sudo systemctl restart gunicorn uvicorn celery_beat celery_w1 celery_w2 celery_w3 nginx
+sudo systemctl restart gunicorn && \
+sudo systemctl restart uvicorn && \
+sudo systemctl restart celery_beat && \
+sudo systemctl restart celery_worker && \
+sudo systemctl restart nginx
 ```
 
 ## Let's Encrypt
@@ -365,8 +292,6 @@ sudo systemctl enable redis-server && \
 sudo systemctl restart gunicorn && \
 sudo systemctl restart uvicorn && \
 sudo systemctl restart celery_beat && \
-sudo systemctl restart celery_w1 && \
-sudo systemctl restart celery_w2 && \
-sudo systemctl restart celery_w3 && \
+sudo systemctl restart celery_worker && \
 sudo systemctl restart nginx
 ```

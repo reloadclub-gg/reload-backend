@@ -1,5 +1,7 @@
 import json
 
+import requests
+from django.conf import settings
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
@@ -194,3 +196,26 @@ class MatchPlayerStatsAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
 
     def points_earned(self, obj):
         return obj.points_earned
+
+
+@admin.register(models.BetaUser)
+class BetaUserAdmin(admin.ModelAdmin):
+    list_display = (
+        'steamid_hex',
+        'email',
+        'username',
+        'date_add',
+    )
+    ordering = ('-date_add',)
+    search_fields = ['steamid_hex', 'username', 'email']
+
+    def delete_model(self, request, obj):
+        if settings.ENVIRONMENT != settings.LOCAL:
+            payload = {'steamid': obj.steamid_hex, 'username': obj.username}
+            server = models.Server.objects.first()
+            requests.post(
+                f'http://{server.ip}:{server.port}/core/remAllowlist',
+                json=payload,
+            )
+
+        super().delete_model(request, obj)

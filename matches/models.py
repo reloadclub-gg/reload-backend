@@ -3,10 +3,14 @@ from __future__ import annotations
 import os
 from typing import List
 
+import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -84,6 +88,11 @@ class Match(models.Model):
     class Meta:
         verbose_name_plural = 'matches'
         ordering = ['-end_date']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['end_date']),
+            models.Index(fields=['start_date']),
+        ]
 
     class Status(models.TextChoices):
         LOADING = 'loading'
@@ -503,3 +512,43 @@ class MatchPlayerStats(models.Model):
 
     def __str__(self):
         return f'{self.player.user.steam_user.username}'
+
+
+class BetaUser(models.Model):
+    steamid_hex = models.CharField(max_length=64, unique=True)
+    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=32)
+    date_add = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = 'beta users'
+        ordering = ['-date_add']
+        indexes = [models.Index(fields=['email'])]
+
+    def save(self, *args, **kwargs):
+        if settings.ENVIRONMENT != settings.LOCAL:
+            payload = {'steamid': self.steamid_hex, 'username': self.username}
+            server = Server.objects.first()
+            requests.post(
+                f'http://{server.ip}:{server.port}/core/addAllowlist',
+                json=payload,
+            )
+
+        super(BetaUser, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.username
+
+
+@receiver(post_save, sender=MatchPlayer)
+def match_team_save_signal(sender, instance, created, **kwargs):
+    if created:
+        instance.user.status = User.Statuses.IN_GAME
+        instance.user.save()
+
+
+@receiver(post_save, sender=Match)
+def match_update_signal(sender, instance, created, **kwargs):
+    if instance.status in [Match.Status.CANCELLED, Match.Status.FINISHED]:
+        players_ids = [player.user.id for player in instance.players]
+        User.objects.filter(id__in=players_ids).update(status=User.Statuses.ONLINE)

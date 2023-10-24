@@ -32,7 +32,9 @@ def generate_steam_extra_data(
 
 
 def create_social_auth(
-    user, public_profile: bool = True, username: bool = None
+    user,
+    public_profile: bool = True,
+    username: str = None,
 ) -> UserSocialAuth:
     """
     Add a fake UserSocialAuth entry using the `generate_steam_extra_data` method

@@ -15,16 +15,16 @@ from ..models import PreMatch, PreMatchException, Team, TeamException
 class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
-        self.user_4.auth.add_session()
-        self.user_5.auth.add_session()
-        self.user_6.auth.add_session()
-        self.user_7.auth.add_session()
-        self.user_8.auth.add_session()
-        self.user_9.auth.add_session()
-        self.user_10.auth.add_session()
+        self.user_1.add_session()
+        self.user_2.add_session()
+        self.user_3.add_session()
+        self.user_4.add_session()
+        self.user_5.add_session()
+        self.user_6.add_session()
+        self.user_7.add_session()
+        self.user_8.add_session()
+        self.user_9.add_session()
+        self.user_10.add_session()
 
         self.lobby1 = Lobby.create(owner_id=self.user_1.id)
         self.lobby2 = Lobby.create(owner_id=self.user_2.id)
@@ -423,21 +423,21 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
 class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.user_1.auth.add_session()
-        self.user_2.auth.add_session()
-        self.user_3.auth.add_session()
-        self.user_4.auth.add_session()
-        self.user_5.auth.add_session()
-        self.user_6.auth.add_session()
-        self.user_7.auth.add_session()
-        self.user_8.auth.add_session()
-        self.user_9.auth.add_session()
-        self.user_10.auth.add_session()
-        self.user_11.auth.add_session()
-        self.user_12.auth.add_session()
-        self.user_13.auth.add_session()
-        self.user_14.auth.add_session()
-        self.user_15.auth.add_session()
+        self.user_1.add_session()
+        self.user_2.add_session()
+        self.user_3.add_session()
+        self.user_4.add_session()
+        self.user_5.add_session()
+        self.user_6.add_session()
+        self.user_7.add_session()
+        self.user_8.add_session()
+        self.user_9.add_session()
+        self.user_10.add_session()
+        self.user_11.add_session()
+        self.user_12.add_session()
+        self.user_13.add_session()
+        self.user_14.add_session()
+        self.user_15.add_session()
 
         self.lobby1 = Lobby.create(owner_id=self.user_1.id)
         self.lobby2 = Lobby.create(owner_id=self.user_2.id)
@@ -517,41 +517,25 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
 
     def test_set_player_lock_in_wrong_state(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
+        pre_match.set_status_ready_in()
 
         with self.assertRaises(PreMatchException):
             pre_match.set_player_lock_in(self.user_1.id)
 
-    def test_state(self):
+    def test_status(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('pre_start'))
+        self.assertEqual(pre_match.status, PreMatch.Statuses.LOCK_IN)
 
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('idle'))
 
         pre_match.start_players_ready_countdown()
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('lock_in'))
+        self.assertEqual(pre_match.status, PreMatch.Statuses.READY_IN)
 
         for player in pre_match.players:
             pre_match.set_player_ready(player.id)
 
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('ready'))
-
-    def test_state_cancelled(self):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
-
-        seconds_with_gap = (
-            PreMatch.Config.READY_COUNTDOWN - PreMatch.Config.READY_COUNTDOWN_GAP
-        )
-        elapsed_time = timezone.timedelta(seconds=seconds_with_gap)
-        past_time = (timezone.now() - elapsed_time).isoformat()
-        cache.set(f'{pre_match.cache_key}:ready_time', past_time)
-
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('cancelled'))
+        self.assertEqual(pre_match.status, PreMatch.Statuses.READY)
 
     def test_countdown(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)

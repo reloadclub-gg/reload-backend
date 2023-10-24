@@ -1,21 +1,13 @@
 from ninja import Schema
 
-from ..models import PreMatch
-
 
 class PreMatchSchema(Schema):
     id: int
-    state: str
+    status: str
     countdown: int = None
     players_ready_count: int
     players_total: int
     user_ready: bool = False
-
-    @staticmethod
-    def resolve_state(obj):
-        return list(PreMatch.Config.STATES.keys())[
-            list(PreMatch.Config.STATES.values()).index(obj.state)
-        ]
 
     @staticmethod
     def resolve_players_total(obj):

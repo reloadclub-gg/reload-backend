@@ -94,7 +94,7 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         ]
 
         baker.make(models.Account, user=self.user)
-        f1.auth.add_session()
+        f1.add_session()
         self.assertEqual(len(self.user.account.get_online_friends()), 1)
 
     @mock.patch('accounts.models.account.Steam.get_player_friends')
@@ -468,34 +468,126 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
 
     def test_user_auth(self):
         self.assertIsNotNone(self.user.auth)
-        self.user.auth.add_session()
+        self.user.add_session()
         self.assertEqual(self.user.auth.sessions, 1)
 
     def test_is_online(self):
         self.assertFalse(self.user.is_online)
-        self.user.auth.add_session()
+        self.user.add_session()
         self.assertTrue(self.user.is_online)
         self.user.auth.remove_session()
         self.assertTrue(self.user.is_online)
 
     def test_user_status(self):
-        self.assertEqual(self.user.status, 'offline')
-        self.user.auth.add_session()
-        self.assertEqual(self.user.status, 'online')
-        Lobby.create(self.user.id)
-        self.assertEqual(self.user.status, 'online')
+        self.assertFalse(self.user.is_online)
+        self.user.add_session()
+        self.assertTrue(self.user.is_online)
+        lobby = Lobby.create(self.user.id)
+        lobby.set_public()
 
-        with mock.patch(
-            'lobbies.models.lobby.Lobby.players_count',
-            new_callable=mock.PropertyMock,
-        ) as mocker:
-            mocker.return_value = 2
-            self.assertEqual(self.user.status, 'teaming')
+        user2 = baker.make(models.User)
+        baker.make(
+            UserSocialAuth,
+            user=user2,
+            extra_data=utils.generate_steam_extra_data(),
+        )
+        baker.make(models.Account, user=user2, is_verified=True)
+        user2.add_session()
+        Lobby.create(user2.id)
+        Lobby.move(user2.id, lobby.id)
 
-        self.user.account.lobby.start_queue()
-        self.assertEqual(self.user.status, 'queued')
-        self.user.account.lobby.cancel_queue()
-        self.assertEqual(self.user.status, 'online')
+        user2.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.TEAMING)
+        self.assertEqual(user2.status, models.User.Statuses.TEAMING)
+
+        Lobby.move(user2.id, user2.id)
+
+        user2.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.ONLINE)
+        self.assertEqual(user2.status, models.User.Statuses.ONLINE)
+
+        user3 = baker.make(models.User)
+        baker.make(
+            UserSocialAuth,
+            user=user3,
+            extra_data=utils.generate_steam_extra_data(),
+        )
+        baker.make(models.Account, user=user3, is_verified=True)
+        user3.add_session()
+        Lobby.create(user3.id)
+        Lobby.move(user2.id, lobby.id)
+        Lobby.move(user3.id, lobby.id)
+
+        user2.refresh_from_db()
+        user3.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.TEAMING)
+        self.assertEqual(user2.status, models.User.Statuses.TEAMING)
+        self.assertEqual(user3.status, models.User.Statuses.TEAMING)
+
+        Lobby.move(user3.id, user3.id)
+
+        user2.refresh_from_db()
+        user3.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.TEAMING)
+        self.assertEqual(user2.status, models.User.Statuses.TEAMING)
+        self.assertEqual(user3.status, models.User.Statuses.ONLINE)
+
+        server = baker.make(Server)
+        match = Match.objects.create(
+            server=server,
+            game_type=Match.GameType.COMPETITIVE,
+            game_mode=Match.GameMode.DEFUSE,
+        )
+        team_a = match.matchteam_set.create(name='team_a')
+        team_b = match.matchteam_set.create(name='team_b')
+
+        MatchPlayer.objects.create(user=self.user, team=team_a)
+        MatchPlayer.objects.create(user=user2, team=team_b)
+
+        user2.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.IN_GAME)
+        self.assertEqual(user2.status, models.User.Statuses.IN_GAME)
+
+        match.cancel()
+        user2.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.ONLINE)
+        self.assertEqual(user2.status, models.User.Statuses.ONLINE)
+
+        server = baker.make(Server)
+        match = Match.objects.create(
+            server=server,
+            game_type=Match.GameType.COMPETITIVE,
+            game_mode=Match.GameMode.DEFUSE,
+        )
+        team_a = match.matchteam_set.create(name='team_a')
+        team_b = match.matchteam_set.create(name='team_b')
+
+        MatchPlayer.objects.create(user=self.user, team=team_a)
+        MatchPlayer.objects.create(user=user2, team=team_b)
+
+        match.warmup()
+        user2.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.IN_GAME)
+        self.assertEqual(user2.status, models.User.Statuses.IN_GAME)
+
+        match.start()
+        user2.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.IN_GAME)
+        self.assertEqual(user2.status, models.User.Statuses.IN_GAME)
+
+        match.finish()
+        user2.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, models.User.Statuses.ONLINE)
+        self.assertEqual(user2.status, models.User.Statuses.ONLINE)
 
     def test_inactivate(self):
         self.assertTrue(self.user.is_active)
@@ -506,7 +598,7 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
 
     def test_online_users(self):
         self.assertEqual(len(models.User.online_users()), 0)
-        self.user.auth.add_session()
+        self.user.add_session()
         self.assertEqual(len(models.User.online_users()), 1)
 
 
