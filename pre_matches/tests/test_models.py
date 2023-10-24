@@ -517,41 +517,25 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
 
     def test_set_player_lock_in_wrong_state(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
+        pre_match.set_status_ready_in()
 
         with self.assertRaises(PreMatchException):
             pre_match.set_player_lock_in(self.user_1.id)
 
-    def test_state(self):
+    def test_status(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('pre_start'))
+        self.assertEqual(pre_match.status, PreMatch.Statuses.LOCK_IN)
 
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('idle'))
 
         pre_match.start_players_ready_countdown()
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('lock_in'))
+        self.assertEqual(pre_match.status, PreMatch.Statuses.READY_IN)
 
         for player in pre_match.players:
             pre_match.set_player_ready(player.id)
 
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('ready'))
-
-    def test_state_cancelled(self):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
-
-        seconds_with_gap = (
-            PreMatch.Config.READY_COUNTDOWN - PreMatch.Config.READY_COUNTDOWN_GAP
-        )
-        elapsed_time = timezone.timedelta(seconds=seconds_with_gap)
-        past_time = (timezone.now() - elapsed_time).isoformat()
-        cache.set(f'{pre_match.cache_key}:ready_time', past_time)
-
-        self.assertEqual(pre_match.state, PreMatch.Config.STATES.get('cancelled'))
+        self.assertEqual(pre_match.status, PreMatch.Statuses.READY)
 
     def test_countdown(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)

@@ -1,5 +1,6 @@
 import json
 
+import requests
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
@@ -9,6 +10,7 @@ from accounts.utils import hex_to_steamid64
 from core.admin_mixins import ReadOnlyModelAdminMixin, SuperUserOnlyAdminMixin
 
 from . import models
+from .utils import send_request
 
 
 @admin.register(models.Server)
@@ -194,3 +196,21 @@ class MatchPlayerStatsAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
 
     def points_earned(self, obj):
         return obj.points_earned
+
+
+@admin.register(models.BetaUser)
+class BetaUserAdmin(admin.ModelAdmin):
+    list_display = (
+        'steamid_hex',
+        'username',
+        'date_add',
+    )
+    ordering = ('-date_add',)
+    search_fields = ['steamid_hex', 'username']
+
+    def delete_model(self, request, obj):
+        payload = {'steamid': obj.steamid_hex, 'username': obj.username}
+        r = requests.Request('POST', json=payload)
+        send_request(r, '/core/remAllowList')
+
+        super().delete_model(request, obj)

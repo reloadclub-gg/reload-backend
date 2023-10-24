@@ -1,21 +1,15 @@
-from ninja import Schema
-
-from ..models import PreMatch
+from ninja import Field, Schema
 
 
 class PreMatchSchema(Schema):
     id: int
-    state: str
+    status: str
+    # TODO: Remove state alias after https://github.com/3C-gg/reload-frontend/issues/774 is done.
+    state: str = Field(None, alias='status')
     countdown: int = None
     players_ready_count: int
     players_total: int
     user_ready: bool = False
-
-    @staticmethod
-    def resolve_state(obj):
-        return list(PreMatch.Config.STATES.keys())[
-            list(PreMatch.Config.STATES.values()).index(obj.state)
-        ]
 
     @staticmethod
     def resolve_players_total(obj):
