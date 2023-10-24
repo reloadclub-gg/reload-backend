@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- BetaUsers. Funcionalidade que permite usuários beta serem adicionados a uma whitelist no servidor para testarem o servidor [#746](https://github.com/3C-gg/reload-backend/issues/746).
 - Filtro de "disponível" para usuários que estão online mas não estão em nenhum time, fila ou partida.
 
 ### Changed
