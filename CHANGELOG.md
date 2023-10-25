@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [902e820 - 24/10/2023]
+
 ### Added
 
 - Mais BetaUsers. Agora criamos uma flag para definir se o site está fechado para betas, e caso seja positivo, somente usuários cadastrados como Beta poderão utilizar o site [#750](https://github.com/3C-gg/reload-backend/issues/750).
