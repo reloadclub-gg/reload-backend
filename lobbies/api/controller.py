@@ -295,20 +295,12 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
 
         try:
             lobby.start_queue()
-            User.objects.filter(id__in=lobby.players_ids).update(
-                status=User.Statuses.QUEUED
-            )
         except LobbyException as e:
             raise HttpError(400, e)
 
     elif payload.cancel_queue:
         updated = True
         lobby.cancel_queue()
-
-        User.objects.filter(id__in=lobby.players_ids).update(
-            status=User.Statuses.ONLINE
-        )
-
         team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
         if team:
             team.remove_lobby(lobby_id)

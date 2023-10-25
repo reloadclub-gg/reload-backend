@@ -519,11 +519,14 @@ class Lobby(BaseModel):
             f'{self.cache_key}:invites',
         )
 
+        User.objects.filter(id__in=self.players_ids).update(status=User.Statuses.QUEUED)
+
     def cancel_queue(self):
         """
         Remove lobby from queue.
         """
         cache.delete(f'{self.cache_key}:queue')
+        User.objects.filter(id__in=self.players_ids).update(status=User.Statuses.ONLINE)
 
     def set_public(self):
         """

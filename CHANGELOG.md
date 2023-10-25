@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrigimos um erro que fazia com que o status de usuário não fosse atualizado ao iniciar uma manutenção.
 - Ajusta arquivo de deploy.
 - Possível correção para erro de pré partida tentando dar `ready` em players com `state` errado. Antes checávamos cada variação da partida, por exemplo, se ainda não tinha acabado o countdown e não tinha todos os players `ready`, então ela estava em `lock_in`. Alteramos isso para, sempre que houver uma alteração na `pre_match`, a gente salvar uma entrada no Redis para dizer o status dessa `PreMatch`. Também mudamos os estados para `lock_in`, `ready_in` e `ready` (nessa ordem). O campo também foi alterado de `state` para `status`, mas uma cópia do campo ficou no esquema para ser removido quando o client removê-lo também [#744](https://github.com/3C-gg/reload-backend/issues/744).
 - Adiciona possível correção e proteção em `max_players` no modelo `Lobby`. Essa propriedade retorna o valor de `self.mode`. Mas a propriedade `mode` tem um `if`, que só retorna um valor se existir a chave `lobby:{lobby_id}:mode` no Redis. Não consegui entender ou reproduzir um cenário em que o `max_players` fosse chamado sem que a chave `mode` exista, então apenas adicionei uma proteção para retornar `0` no `max_players` caso a chave `mode` volte nula [#739](https://github.com/3C-gg/reload-backend/issues/739).
