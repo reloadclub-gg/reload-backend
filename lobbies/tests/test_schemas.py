@@ -49,6 +49,7 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
     def test_lobby_queued_schema(self):
         lobby = Lobby.create(self.user_1.id)
         lobby.start_queue()
+        self.user_1.refresh_from_db()
         payload = schemas.LobbySchema.from_orm(lobby).dict()
 
         expected_payload = {
