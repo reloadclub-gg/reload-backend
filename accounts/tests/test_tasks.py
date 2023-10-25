@@ -27,10 +27,14 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         mock_expire_invites,
     ):
         self.user.add_session()
+        self.user.status = User.Statuses.ONLINE
+        self.user.save()
 
         self.friend1.add_session()
-        self.friend1.logout()
+        self.friend1.status = User.Statuses.ONLINE
+        self.friend1.save()
 
+        self.friend1.auth.expire_session(0)
         tasks.watch_user_status_change(self.friend1.id)
         mock_user_logout_ws.assert_called_once()
         mock_friend_update.assert_called_once()
