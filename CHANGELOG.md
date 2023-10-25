@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Propriedade `has_sessions` no modelo `User` para retornar se usuário tem sessões ativas.
+
+### Fixed
+
+- Corrigimos um problema na tarefa de deslogar usuários por falta de sessão. Ela não verificava corretamente a quantidade de sessões e sim o estado do usuário no campo `status`, através da propriedade `user.is_online`. Isso fazia com que a tarefa rodasse para todos os usuários, causando um erro. Alteramos a verificação para `user.has_sessions` para corrigir o problema [#755](https://github.com/3C-gg/reload-backend/issues/755).
+
 ## [902e820 - 24/10/2023]
 
 ### Added
