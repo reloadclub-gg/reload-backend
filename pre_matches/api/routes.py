@@ -1,3 +1,5 @@
+from typing import Union
+
 from ninja import Router
 
 from accounts.api.authentication import VerifiedRequiredAuth
@@ -21,7 +23,7 @@ def lock_in(request):
 @router.post(
     '/ready/',
     auth=VerifiedRequiredAuth(),
-    response={200: schemas.PreMatchSchema, 201: MatchSchema},
+    response={200: Union[schemas.PreMatchSchema, None], 201: MatchSchema},
 )
 def ready(request):
     result = controller.set_player_ready(request.user)
