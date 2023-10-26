@@ -59,19 +59,21 @@ def handle_dodges(lobby: Lobby, ready_players_ids: List[int]):
 
 
 @shared_task
-def cancel_match_after_countdown(pre_match_id: int, lang: str = None):
+def cancel_match_after_countdown(
+    pre_match_id: int,
+    lang: str = None,
+    run_once: bool = False,
+):
     pre_match = get_match(pre_match_id)
-    if not pre_match:
+    if not pre_match or pre_match.status == models.PreMatch.Statuses.READY:
         return
 
     lang and activate(lang)
 
-    if pre_match.countdown >= models.PreMatch.Config.READY_COUNTDOWN_GAP:
-        # schedule this task again two seconds later
-        time.sleep(2)
-        return cancel_match_after_countdown(pre_match.id)
-
-    if pre_match.status != models.PreMatch.Statuses.READY:
+    if (
+        pre_match.countdown
+        and pre_match.countdown < models.PreMatch.Config.READY_COUNTDOWN_GAP
+    ):
         team1 = pre_match.teams[0]
         team2 = pre_match.teams[1]
         lobbies = team1.lobbies + team2.lobbies
@@ -93,3 +95,7 @@ def cancel_match_after_countdown(pre_match_id: int, lang: str = None):
                 handle_dodges(lobby, ready_players_ids)
 
             ws_update_lobby(lobby)
+    elif not run_once:
+        # schedule this task again two seconds later
+        time.sleep(2)
+        return cancel_match_after_countdown(pre_match.id)
