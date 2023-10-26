@@ -616,8 +616,8 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
 
         self.user_1.refresh_from_db()
         self.user_2.refresh_from_db()
-        self.assertEqual(self.user_1.status, User.Statuses.QUEUED)
-        self.assertEqual(self.user_2.status, User.Statuses.QUEUED)
+        self.assertEqual(self.user_1.status, User.Status.QUEUED)
+        self.assertEqual(self.user_2.status, User.Status.QUEUED)
 
         mock_calls = [
             mock.call(self.user_1),

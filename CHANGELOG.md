@@ -14,9 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige detalhe de partida que não estava lidando corretamente com o status [#754](https://github.com/3C-gg/reload-backend/issues/754).
+- Atualiza url da chamada simulada do FiveM para nossa API iniciando ou cancelando a partida.
 - Consertamos um bug que fazia com que, caso a partida não fosse criada no servidor quando o último jogador de uma `PreMatch` se marcasse como pronto, um erro era levantado na rota `pre-matches/ready/`.
 - Se por acaso, a tarefa de checar a `PreMatch` rodasse antes do esperado, o sistema encontrava um erro devido a verificações ruins na tarefa. Corrigimos a tarefa e adicionamos um parâmetro extra para que a tarefa não rode em looping.
 - Corrigimos um problema na tarefa de deslogar usuários por falta de sessão. Ela não verificava corretamente a quantidade de sessões e sim o estado do usuário no campo `status`, através da propriedade `user.is_online`. Isso fazia com que a tarefa rodasse para todos os usuários, causando um erro. Alteramos a verificação para `user.has_sessions` para corrigir o problema [#755](https://github.com/3C-gg/reload-backend/issues/755).
+
+### Changed
+
+- Troca subclasse `Statuses` por `Status` pela simplicidade.
 
 ## [902e820 - 24/10/2023]
 

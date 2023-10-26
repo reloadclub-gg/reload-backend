@@ -206,6 +206,14 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             )
 
     def test_get_match(self):
+        self.match.status = models.Match.Status.WARMUP
+        self.match.save()
+        match = controller.get_match(self.user_1, self.match.id)
+        self.assertEqual(match, self.match)
+
+        with self.assertRaises(Http404):
+            controller.get_match(self.user_3, self.match.id)
+
         self.match.status = models.Match.Status.RUNNING
         self.match.save()
         match = controller.get_match(self.user_1, self.match.id)
@@ -218,6 +226,11 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.match.save()
         match = controller.get_match(self.user_3, self.match.id)
         self.assertEqual(match, self.match)
+
+        self.match.status = models.Match.Status.CANCELLED
+        self.match.save()
+        with self.assertRaises(Http404):
+            controller.get_match(self.user_1, self.match.id)
 
     @mock.patch('matches.api.controller.ws_update_user')
     @mock.patch('matches.api.controller.ws_friend_update_or_create')

@@ -65,7 +65,7 @@ def cancel_match_after_countdown(
     run_once: bool = False,
 ):
     pre_match = get_match(pre_match_id)
-    if not pre_match or pre_match.status == models.PreMatch.Statuses.READY:
+    if not pre_match or pre_match.status == models.PreMatch.Status.READY:
         return
 
     lang and activate(lang)

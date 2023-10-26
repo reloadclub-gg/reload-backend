@@ -27,7 +27,7 @@ class AdminLogin(LoginView):
     def form_valid(self, form):
         auth_login(self.request, form.get_user())
         if self.request.user.is_authenticated:
-            self.request.user.status = User.Statuses.ONLINE
+            self.request.user.status = User.Status.ONLINE
             self.request.user.save()
 
         return HttpResponseRedirect(self.get_success_url())
@@ -37,14 +37,14 @@ class AdminLogout(LogoutView):
     def get(self, request, *args, **kwargs):
         if (
             self.request.user.is_authenticated
-            and self.request.user.status != User.Statuses.OFFLINE
+            and self.request.user.status != User.Status.OFFLINE
         ):
-            self.request.user.status = User.Statuses.OFFLINE
+            self.request.user.status = User.Status.OFFLINE
             self.request.user.save()
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        self.request.user.status = User.Statuses.OFFLINE
+        self.request.user.status = User.Status.OFFLINE
         self.request.user.save()
         return super().post(request, *args, **kwargs)
 

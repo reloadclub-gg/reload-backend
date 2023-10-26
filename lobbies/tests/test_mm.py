@@ -153,7 +153,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
             )
             self.assertEqual(r.status_code, 200)
             self.assertEqual(r.json().get('id'), pre_match.id)
-            self.assertEqual(r.json().get('status'), PreMatch.Statuses.LOCK_IN)
+            self.assertEqual(r.json().get('status'), PreMatch.Status.LOCK_IN)
             queue()
 
         # test lockin
@@ -165,7 +165,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
             )
             self.assertEqual(r.status_code, 200)
             self.assertEqual(r.json().get('id'), pre_match.id)
-            self.assertEqual(r.json().get('status'), PreMatch.Statuses.LOCK_IN)
+            self.assertEqual(r.json().get('status'), PreMatch.Status.LOCK_IN)
             queue()
 
         cancel_match_after_countdown(pre_match.id, run_once=True)
@@ -190,7 +190,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         )
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json().get('id'), pre_match.id)
-        self.assertEqual(r.json().get('status'), PreMatch.Statuses.READY_IN)
+        self.assertEqual(r.json().get('status'), PreMatch.Status.READY_IN)
         self.assertEqual(r.json().get('countdown'), settings.MATCH_READY_COUNTDOWN)
 
         queue()
@@ -208,7 +208,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
             )
             self.assertEqual(r.status_code, 200)
             self.assertEqual(r.json().get('id'), pre_match.id)
-            self.assertEqual(r.json().get('status'), PreMatch.Statuses.READY_IN)
+            self.assertEqual(r.json().get('status'), PreMatch.Status.READY_IN)
 
             queue()
             cancel_match_after_countdown(pre_match.id, run_once=True)
