@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [acbf98c - 26/10/2023]
+
 ### Added
 
 - Teste ponta a ponta de um mm entre 2 lobbies com 2 players em cada [#758](https://github.com/3C-gg/reload-backend/issues/758).
