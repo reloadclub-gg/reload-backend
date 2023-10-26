@@ -498,15 +498,15 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
 
         user2.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.TEAMING)
-        self.assertEqual(user2.status, models.User.Statuses.TEAMING)
+        self.assertEqual(self.user.status, models.User.Status.TEAMING)
+        self.assertEqual(user2.status, models.User.Status.TEAMING)
 
         Lobby.move(user2.id, user2.id)
 
         user2.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.ONLINE)
-        self.assertEqual(user2.status, models.User.Statuses.ONLINE)
+        self.assertEqual(self.user.status, models.User.Status.ONLINE)
+        self.assertEqual(user2.status, models.User.Status.ONLINE)
 
         user3 = baker.make(models.User)
         baker.make(
@@ -523,18 +523,18 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         user2.refresh_from_db()
         user3.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.TEAMING)
-        self.assertEqual(user2.status, models.User.Statuses.TEAMING)
-        self.assertEqual(user3.status, models.User.Statuses.TEAMING)
+        self.assertEqual(self.user.status, models.User.Status.TEAMING)
+        self.assertEqual(user2.status, models.User.Status.TEAMING)
+        self.assertEqual(user3.status, models.User.Status.TEAMING)
 
         Lobby.move(user3.id, user3.id)
 
         user2.refresh_from_db()
         user3.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.TEAMING)
-        self.assertEqual(user2.status, models.User.Statuses.TEAMING)
-        self.assertEqual(user3.status, models.User.Statuses.ONLINE)
+        self.assertEqual(self.user.status, models.User.Status.TEAMING)
+        self.assertEqual(user2.status, models.User.Status.TEAMING)
+        self.assertEqual(user3.status, models.User.Status.ONLINE)
 
         server = baker.make(Server)
         match = Match.objects.create(
@@ -550,14 +550,14 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
 
         user2.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.IN_GAME)
-        self.assertEqual(user2.status, models.User.Statuses.IN_GAME)
+        self.assertEqual(self.user.status, models.User.Status.IN_GAME)
+        self.assertEqual(user2.status, models.User.Status.IN_GAME)
 
         match.cancel()
         user2.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.ONLINE)
-        self.assertEqual(user2.status, models.User.Statuses.ONLINE)
+        self.assertEqual(self.user.status, models.User.Status.ONLINE)
+        self.assertEqual(user2.status, models.User.Status.ONLINE)
 
         server = baker.make(Server)
         match = Match.objects.create(
@@ -574,20 +574,20 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         match.warmup()
         user2.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.IN_GAME)
-        self.assertEqual(user2.status, models.User.Statuses.IN_GAME)
+        self.assertEqual(self.user.status, models.User.Status.IN_GAME)
+        self.assertEqual(user2.status, models.User.Status.IN_GAME)
 
         match.start()
         user2.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.IN_GAME)
-        self.assertEqual(user2.status, models.User.Statuses.IN_GAME)
+        self.assertEqual(self.user.status, models.User.Status.IN_GAME)
+        self.assertEqual(user2.status, models.User.Status.IN_GAME)
 
         match.finish()
         user2.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Statuses.ONLINE)
-        self.assertEqual(user2.status, models.User.Statuses.ONLINE)
+        self.assertEqual(self.user.status, models.User.Status.ONLINE)
+        self.assertEqual(user2.status, models.User.Status.ONLINE)
 
     def test_inactivate(self):
         self.assertTrue(self.user.is_active)

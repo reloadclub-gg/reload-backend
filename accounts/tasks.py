@@ -21,7 +21,7 @@ def watch_user_status_change(user_id: int):
     If user is in lobby, the lobby should be purged.
     """
     user = User.objects.get(pk=user_id)
-    if not user.is_online:
+    if not user.has_sessions:
         # Expiring player invites
         ws_expire_player_invites(user)
 
