@@ -3,7 +3,8 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
 
 from accounts.utils import hex_to_steamid64
@@ -138,19 +139,18 @@ def get_user_matches(
 
 
 def get_match(user: User, match_id: int) -> models.Match:
-    try:
-        match = models.Match.objects.get(
-            id=match_id,
-            status__in=[models.Match.Status.FINISHED, models.Match.Status.RUNNING],
-        )
-    except ObjectDoesNotExist:
-        raise Http404
-
-    if (
-        match.status != models.Match.Status.FINISHED
-        and not match.players.filter(user=user.id).exists()
-    ):
-        raise Http404
+    match = get_object_or_404(
+        models.Match,
+        ~Q(status=models.Match.Status.CANCELLED),
+        id=match_id,
+    )
+    if match.status in [
+        models.Match.Status.LOADING,
+        models.Match.Status.WARMUP,
+        models.Match.Status.RUNNING,
+    ]:
+        if not match.players.filter(user=user.id).exists():
+            raise Http404
 
     return match
 

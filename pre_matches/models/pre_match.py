@@ -57,7 +57,7 @@ class PreMatch(BaseModel):
         READY_COUNTDOWN: int = settings.MATCH_READY_COUNTDOWN
         READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
 
-    class Statuses(TextChoices):
+    class Status(TextChoices):
         LOCK_IN = 'lock_in'
         READY_IN = 'ready_in'
         READY = 'ready'
@@ -149,7 +149,7 @@ class PreMatch(BaseModel):
             )
             pipe.set(
                 f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:status',
-                PreMatch.Statuses.LOCK_IN,
+                PreMatch.Status.LOCK_IN,
             )
 
             pipe.set(f'{team1.cache_key}:pre_match', auto_id)
@@ -223,16 +223,16 @@ class PreMatch(BaseModel):
         cache.set(f'{self.cache_key}:ready_time', timezone.now().isoformat())
 
     def set_status_ready_in(self):
-        if self.status != PreMatch.Statuses.LOCK_IN:
+        if self.status != PreMatch.Status.LOCK_IN:
             raise PreMatchException(_('PreMatch is not ready to lock in players.'))
 
-        cache.set(f'{self.cache_key}:status', PreMatch.Statuses.READY_IN)
+        cache.set(f'{self.cache_key}:status', PreMatch.Status.READY_IN)
 
     def set_status_ready(self):
-        cache.set(f'{self.cache_key}:status', PreMatch.Statuses.READY)
+        cache.set(f'{self.cache_key}:status', PreMatch.Status.READY)
 
     def set_player_ready(self, user_id: int):
-        if self.status != PreMatch.Statuses.READY_IN:
+        if self.status != PreMatch.Status.READY_IN:
             raise PreMatchException(_('PreMatch is not ready for ready players.'))
 
         cache.sadd(f'{self.cache_key}:ready_players_ids', user_id)
@@ -241,7 +241,7 @@ class PreMatch(BaseModel):
             self.set_status_ready()
 
     def set_player_lock_in(self, user_id: int):
-        if self.status != PreMatch.Statuses.LOCK_IN:
+        if self.status != PreMatch.Status.LOCK_IN:
             raise PreMatchException(_('PreMatch is not ready to lock in players.'))
 
         cache.sadd(f'{self.cache_key}:in_players_ids', user_id)

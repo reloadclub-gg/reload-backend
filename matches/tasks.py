@@ -11,7 +11,7 @@ from . import models
 @shared_task
 def mock_fivem_match_start(match_id: int):
     if settings.ENVIRONMENT == settings.LOCAL:
-        url = f'http://django:8000/api/matches/{match_id}/'
+        url = f'http://api:8000/api/matches/{match_id}/'
         r = requests.patch(
             url,
             json={'status': 'running'},
@@ -22,7 +22,7 @@ def mock_fivem_match_start(match_id: int):
 @shared_task
 def mock_fivem_match_cancel(match_id: int):
     if settings.ENVIRONMENT == settings.LOCAL:
-        url = f'http://django:8000/api/matches/{match_id}/'
+        url = f'http://api:8000/api/matches/{match_id}/'
         r = requests.delete(
             url,
             json={'status': 'cancelled'},
