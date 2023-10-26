@@ -383,14 +383,14 @@ class Lobby(BaseModel):
         )
 
         User.objects.filter(id__in=to_lobby.players_ids).update(
-            status=User.Statuses.TEAMING
+            status=User.Status.TEAMING
             if to_lobby.players_count > 1
-            else User.Statuses.ONLINE
+            else User.Status.ONLINE
         )
 
         if from_lobby.players_count <= 1:
             User.objects.filter(id__in=from_lobby.players_ids).update(
-                status=User.Statuses.ONLINE
+                status=User.Status.ONLINE
             )
 
         return remnant_lobby
@@ -519,14 +519,14 @@ class Lobby(BaseModel):
             f'{self.cache_key}:invites',
         )
 
-        User.objects.filter(id__in=self.players_ids).update(status=User.Statuses.QUEUED)
+        User.objects.filter(id__in=self.players_ids).update(status=User.Status.QUEUED)
 
     def cancel_queue(self):
         """
         Remove lobby from queue.
         """
         cache.delete(f'{self.cache_key}:queue')
-        User.objects.filter(id__in=self.players_ids).update(status=User.Statuses.ONLINE)
+        User.objects.filter(id__in=self.players_ids).update(status=User.Status.ONLINE)
 
     def set_public(self):
         """

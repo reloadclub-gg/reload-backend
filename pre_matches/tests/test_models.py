@@ -524,18 +524,18 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
 
     def test_status(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
-        self.assertEqual(pre_match.status, PreMatch.Statuses.LOCK_IN)
+        self.assertEqual(pre_match.status, PreMatch.Status.LOCK_IN)
 
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
         pre_match.start_players_ready_countdown()
-        self.assertEqual(pre_match.status, PreMatch.Statuses.READY_IN)
+        self.assertEqual(pre_match.status, PreMatch.Status.READY_IN)
 
         for player in pre_match.players:
             pre_match.set_player_ready(player.id)
 
-        self.assertEqual(pre_match.status, PreMatch.Statuses.READY)
+        self.assertEqual(pre_match.status, PreMatch.Status.READY)
 
     def test_countdown(self):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)

@@ -543,7 +543,7 @@ class BetaUser(models.Model):
 @receiver(post_save, sender=MatchPlayer)
 def match_team_save_signal(sender, instance, created, **kwargs):
     if created:
-        instance.user.status = User.Statuses.IN_GAME
+        instance.user.status = User.Status.IN_GAME
         instance.user.save()
 
 
@@ -551,4 +551,4 @@ def match_team_save_signal(sender, instance, created, **kwargs):
 def match_update_signal(sender, instance, created, **kwargs):
     if instance.status in [Match.Status.CANCELLED, Match.Status.FINISHED]:
         players_ids = [player.user.id for player in instance.players]
-        User.objects.filter(id__in=players_ids).update(status=User.Statuses.ONLINE)
+        User.objects.filter(id__in=players_ids).update(status=User.Status.ONLINE)

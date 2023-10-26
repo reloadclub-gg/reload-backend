@@ -65,7 +65,7 @@ class SteamUser(BaseModel):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    class Statuses(models.TextChoices):
+    class Status(models.TextChoices):
         ONLINE = 'online'
         OFFLINE = 'offline'
         TEAMING = 'teaming'
@@ -84,7 +84,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     status = models.CharField(
         max_length=16,
-        choices=Statuses.choices,
+        choices=Status.choices,
         default='offline',
     )
 
@@ -130,7 +130,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_online(self):
-        return self.is_verified() and self.status != User.Statuses.OFFLINE
+        return self.is_verified() and self.status != User.Status.OFFLINE
 
     @property
     def has_sessions(self):
@@ -138,15 +138,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_in_game(self):
-        return self.status == User.Statuses.IN_GAME
+        return self.status == User.Status.IN_GAME
 
     @property
     def is_queued(self):
-        return self.status == User.Statuses.QUEUED
+        return self.status == User.Status.QUEUED
 
     @property
     def is_teaming(self):
-        return self.status == User.Statuses.TEAMING
+        return self.status == User.Status.TEAMING
 
     @property
     def is_available(self):
@@ -179,23 +179,23 @@ class User(AbstractBaseUser, PermissionsMixin):
     def add_session(self):
         sessions = self.auth.add_session()
         if sessions == 1:
-            self.status = User.Statuses.ONLINE
+            self.status = User.Status.ONLINE
             self.save()
 
     def remove_session(self):
         sessions = self.auth.remove_session()
         if sessions is None:
-            self.status = User.Statuses.OFFLINE
+            self.status = User.Status.OFFLINE
             self.save()
 
     def logout(self):
         self.auth.expire_session(seconds=0)
-        self.status = User.Statuses.OFFLINE
+        self.status = User.Status.OFFLINE
         self.save()
 
     @staticmethod
     def online_users():
-        return User.objects.filter(~Q(status=User.Statuses.OFFLINE))
+        return User.objects.filter(~Q(status=User.Status.OFFLINE))
 
 
 class UserLogin(models.Model):
