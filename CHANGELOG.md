@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Altera a maneira como fazemos logging na aplicação. Agora passamos a utilizar o nível de log pela variável de ambiente `LOG_LEVEL` [#765](https://github.com/3C-gg/reload-backend/issues/765).
 
+### Fixed
+
+- Corrigimos algumas situações na tarefa que desloga usuários que geravam erros:
+  - Se usuário estivesse em uma `pre_match`, um erro ocorria para outros usuários da `pre_match`, que não era possível se marcar como pronto, pois um dos lobbies/times já não estava presente. Corrigimos isso cancelando a `pre_match` e enviando um `Toast` aos outros participantes. Em alguns casos, o botão de jogar pode ficar apagado até que o sistema se recupere.
+  - Se usuário estivesse em um time, `ready` ou não, procurando partida, um erro era gerado ao encontrar a partida, que não contava com todos os participantes e lobbies presentes. Corrigimos esse problema removendo o lobby desse usuário do time.
+  - Se por algum motivo encontrássemos um erro ao tentar remover o usuário do lobby que ele estava, estávamos ignorando esse erro e seguindo em frente sem deletar o lobby do usuário deslogado. Também corrigimos isso.
+
 ## [acbf98c - 26/10/2023]
 
 ### Added
