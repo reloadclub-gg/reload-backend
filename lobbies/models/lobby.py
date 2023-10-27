@@ -393,6 +393,12 @@ class Lobby(BaseModel):
                 status=User.Status.ONLINE
             )
 
+        if remnant_lobby:
+            if remnant_lobby.players_count <= 1:
+                User.objects.filter(id__in=remnant_lobby.players_ids).update(
+                    status=User.Status.ONLINE
+                )
+
         return remnant_lobby
 
     @staticmethod
@@ -526,7 +532,14 @@ class Lobby(BaseModel):
         Remove lobby from queue.
         """
         cache.delete(f'{self.cache_key}:queue')
-        User.objects.filter(id__in=self.players_ids).update(status=User.Status.ONLINE)
+        if self.players_count > 1:
+            User.objects.filter(id__in=self.players_ids).update(
+                status=User.Status.TEAMING
+            )
+        else:
+            User.objects.filter(id__in=self.players_ids).update(
+                status=User.Status.ONLINE
+            )
 
     def set_public(self):
         """
