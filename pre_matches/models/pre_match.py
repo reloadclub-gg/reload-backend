@@ -246,6 +246,9 @@ class PreMatch(BaseModel):
 
         cache.sadd(f'{self.cache_key}:in_players_ids', user_id)
 
+        if len(self.players_in) >= len(self.players):
+            self.start_players_ready_countdown()
+
     @staticmethod
     def delete(id: int, pipe=None):
         pre_match = PreMatch(id=id)

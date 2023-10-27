@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Move método `start_players_ready_countdown` do controller de `PreMatch` para modelo. É interessante mover todos os métodos que alteram os campos ou detalhes dos modelos para o próprio modelo, assim tornamos os modelos mais independentes das APIs [#769](https://github.com/3C-gg/reload-backend/issues/769).
 - Altera a maneira como fazemos logging na aplicação. Agora passamos a utilizar o nível de log pela variável de ambiente `LOG_LEVEL` [#765](https://github.com/3C-gg/reload-backend/issues/765).
 
 ### Fixed

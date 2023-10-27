@@ -24,8 +24,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
-        pre_match.start_players_ready_countdown()
-
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
 
@@ -51,8 +49,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
-        pre_match.start_players_ready_countdown()
-
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
 
@@ -76,8 +72,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
-
-        pre_match.start_players_ready_countdown()
 
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
@@ -169,8 +163,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
-        pre_match.start_players_ready_countdown()
-
         controller.set_player_ready(self.user_1)
         self.assertTrue(self.user_1 in pre_match.players_ready)
         mock_pre_match_update.assert_called_once()
@@ -188,8 +180,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_fivem.return_value.status_code = 201
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
-
-        pre_match.start_players_ready_countdown()
 
         for player in pre_match.players[:-1]:
             pre_match.set_player_ready(player.id)
@@ -216,8 +206,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_fivem.return_value.status_code = 201
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
-
-        pre_match.start_players_ready_countdown()
 
         for player in pre_match.players[:-1]:
             pre_match.set_player_ready(player.id)

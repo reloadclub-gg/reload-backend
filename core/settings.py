@@ -177,7 +177,7 @@ assert LOG_LEVEL in AVAILABLE_LOG_LEVELS
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': TEST_MODE,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',

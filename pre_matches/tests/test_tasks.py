@@ -5,9 +5,9 @@ from django.utils import timezone
 from core.redis import redis_client_instance as cache
 from core.tests import TestCase
 from lobbies.models import Player
+from pre_matches.tasks import cancel_match_after_countdown
 
 from ..models import PreMatch, PreMatchException, Team, TeamException
-from ..tasks import cancel_match_after_countdown
 from . import mixins
 
 
@@ -30,13 +30,14 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
-        pre_match.start_players_ready_countdown()
         pre_match.set_player_ready(player1.user_id)
 
         past_time = (timezone.now() - timezone.timedelta(seconds=40)).isoformat()
         cache.set(f'{pre_match.cache_key}:ready_time', past_time)
 
-        cancel_match_after_countdown(pre_match.id)
+        cancel_match_after_countdown(
+            pre_match.id,
+        )
 
         self.assertEqual(player1.dodges, 0)
         self.assertEqual(player2.dodges, 1)
@@ -71,11 +72,8 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match_2.players:
             pre_match_2.set_player_lock_in(player.id)
 
-        pre_match_1.start_players_ready_countdown()
         past_time = (timezone.now() - timezone.timedelta(seconds=15)).isoformat()
         cache.set(f'{pre_match_1.cache_key}:ready_time', past_time)
-
-        pre_match_2.start_players_ready_countdown()
 
         past_time = (timezone.now() - timezone.timedelta(seconds=40)).isoformat()
         cache.set(f'{pre_match_1.cache_key}:ready_time', past_time)
