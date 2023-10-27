@@ -130,7 +130,6 @@ def set_player_lock_in(user: User) -> models.PreMatch:
         raise HttpError(403, e)
 
     if len(pre_match.players_in) >= len(pre_match.players):
-        pre_match.start_players_ready_countdown()
         websocket.ws_pre_match_update(pre_match)
         # delay task to check if countdown is over to READY_COUNTDOWN seconds
         # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
