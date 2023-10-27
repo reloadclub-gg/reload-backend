@@ -16,7 +16,7 @@ def mock_fivem_match_start(match_id: int):
             url,
             json={'status': 'running'},
         )
-        print(r)
+        return r
 
 
 @shared_task
@@ -27,7 +27,7 @@ def mock_fivem_match_cancel(match_id: int):
             url,
             json={'status': 'cancelled'},
         )
-        print(r)
+        return r
 
 
 @shared_task
