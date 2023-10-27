@@ -171,38 +171,23 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 
 # Logging Settings
-PAPERTRAIL_ADDRESS = config('PAPERTRAIL_ADDRESS', default=None)
-if PAPERTRAIL_ADDRESS and ENVIRONMENT != LOCAL:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'SysLog': {
-                'level': config('APPLICATION_LOG_LEVEL', default='DEBUG', cast=str),
-                'class': 'logging.handlers.SysLogHandler',
-                'formatter': 'simple',
-                'address': (
-                    PAPERTRAIL_ADDRESS,
-                    config('PAPERTRAIL_PORT', cast=int),
-                ),
-            },
+AVAILABLE_LOG_LEVELS = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+LOG_LEVEL = config('LOG_LEVEL', default='WARNING').upper()
+assert LOG_LEVEL in AVAILABLE_LOG_LEVELS
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': TEST_MODE,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
         },
-        'formatters': {
-            'simple': {
-                'format': f'%(asctime)s {SITE_URL} {ENVIRONMENT}: %(message)s',
-                'datefmt': '%Y-%m-%dT%H:%M:%S',
-            },
-        },
-        'loggers': {
-            'django': {
-                'handlers': ['SysLog'],
-                'level': config(
-                    'APPLICATION_LOG_LEVEL', default='DEBUG', cast=str
-                ).upper(),
-                'propagate': True,
-            },
-        },
-    }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': LOG_LEVEL,
+    },
+}
 
 
 # Static files (CSS, JavaScript, Images)

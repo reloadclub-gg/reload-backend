@@ -41,5 +41,6 @@ def ws_friend_update_or_create(user: User, action: str = 'update'):
     else:
         groups = [account.user.id for account in user.account.get_online_friends()]
 
+    user.refresh_from_db()
     payload = schemas.FriendSchema.from_orm(user.account).dict()
     return async_to_sync(ws_send)(f'friends/{action}', payload, groups=groups)

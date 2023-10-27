@@ -1,4 +1,3 @@
-import logging
 import os
 
 import celery
@@ -35,11 +34,8 @@ app.conf.beat_schedule = {
 
 
 @celery.signals.after_setup_logger.connect
-def on_after_setup_logger(**kwargs):
-    logger = logging.getLogger('celery')
-    logger.propagate = True
-    logger = logging.getLogger('celery.app.trace')
-    logger.propagate = True
+def on_after_setup_logger(logger, **kwargs):
+    logger.setLevel(settings.LOG_LEVEL)
 
 
 app.autodiscover_tasks()

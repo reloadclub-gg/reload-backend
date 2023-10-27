@@ -1,3 +1,5 @@
+import logging
+
 from django.test import Client
 from django.test import TestCase as DjangoTestCase
 
@@ -5,6 +7,10 @@ from core.redis import redis_client_instance as cache
 
 
 class TestCase(DjangoTestCase):
+    def setUp(self):
+        logging.getLogger().setLevel(logging.ERROR)
+        super().setUp()
+
     def tearDown(self):
         cache.flushdb()
         return super().tearDown()
