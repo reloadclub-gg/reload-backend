@@ -497,7 +497,6 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
-        pre_match.start_players_ready_countdown()
         self.assertEqual(len(pre_match.players_ready), 0)
 
         pre_match.set_player_ready(self.user_1.id)
@@ -529,7 +528,6 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
-        pre_match.start_players_ready_countdown()
         self.assertEqual(pre_match.status, PreMatch.Status.READY_IN)
 
         for player in pre_match.players:
