@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona áudio de partida encontrada.
 - Adiciona logs de info na task de matchmaking.
 
 ### Changed
