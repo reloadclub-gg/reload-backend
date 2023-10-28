@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Método `cancel_pre_match` que faz o cancelamento de uma `PreMatch`, excluindo os times e enviando os websockets necessários.
+
+### Fixed
+
+- Adiciona traduções faltantes [#782](https://github.com/3C-gg/reload-backend/issues/782).
+- Ao deletar uma `PreMatch` não estávamos deletando a chave de correspondência dos seus times.
+- Proíbe times de adicionarem lobbies caso estejam prontos [#780](https://github.com/3C-gg/reload-backend/issues/780).
+- Proíbe times de removerem lobbies enquanto estão em pré-partida.
+- Exclui `teams` e cancela `pre_matches` ao entrar em manutenção.
+- Ajusta ordem de exclusão de `teams` e cancelamento de `pre_matches` na tarefa que desloga usuário (`watch_user_status_change`).
+
+### Changed
+
+- Ajusta MM para incluir lobbies queued em times não prontos que estão mais perto de ficarem prontos [#778](https://github.com/3C-gg/reload-backend/issues/778).
+- Move sinal de `post_save` do modelo `AppSettings` pra seu próprio arquivo.
+- Padroniza `logging` e adiciona mais logs pelo código.
+
+## [48ac08c - 27/10/2023]
+
+### Added
+
 - Adiciona áudio de partida encontrada.
 - Adiciona logs de info na task de matchmaking.
 

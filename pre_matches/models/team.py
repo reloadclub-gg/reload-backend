@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import random
 import secrets
 from math import ceil
@@ -179,7 +180,8 @@ class Team(BaseModel):
         Fetch all non ready teams in Redis db.
         """
         teams = Team.get_all()
-        return [team for team in teams if team and not team.ready]
+        not_ready = [team for team in teams if team and not team.ready]
+        return sorted(not_ready, key=lambda team: team.players_count, reverse=True)
 
     @staticmethod
     def get_all_ready() -> list[Team]:
@@ -331,6 +333,8 @@ class Team(BaseModel):
         lobby = Lobby(owner_id=lobby_id)
 
         def transaction_operations(pipe, pre_result):
+            if self.ready:
+                raise TeamException(_('Team is full. Can\'t add a lobby.'))
             pipe.sadd(self.cache_key, lobby_id)
 
         cache.protected_handler(
@@ -347,9 +351,24 @@ class Team(BaseModel):
         Remove a lobby from a Team on Redis db.
         If that team was ready, then it becomes not ready.
         """
-        cache.srem(self.cache_key, lobby_id)
+        lobby = Lobby(owner_id=lobby_id)
+
+        def transaction_operations(pipe, pre_result):
+            if self.pre_match_id:
+                raise TeamException(_('Can\'t remove a lobby while in pre_match.'))
+            cache.srem(self.cache_key, lobby_id)
+
+        cache.protected_handler(
+            transaction_operations,
+            f'{lobby.cache_key}:players',
+            f'{lobby.cache_key}:queue',
+            f'{self.cache_key}',
+            f'{self.cache_key}:pre_match',
+            f'{self.cache_key}:ready',
+        )
 
         if len(self.lobbies_ids) <= 1:
+            logging.info(f'[remove_lobby] delete team {self.id}')
             self.delete()
 
     def get_opponent_team(self):
