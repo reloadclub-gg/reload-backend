@@ -32,17 +32,19 @@ def handle_match_found(team: Team, opponent: Team):
     teams_ids = [team.id for team in pre_match.teams]
     logging.info(f'[handle_match_found] pre_match players: {players_ids}')
     logging.info(f'[handle_match_found] pre_match teams: {teams_ids}')
+    logging.info(f'[handle_match_found] team1 ready: {team.ready}')
+    logging.info(f'[handle_match_found] team2 ready: {opponent.ready}')
     logging.info('')
     logging.info('-- handle_match_found end --')
     logging.info('')
 
 
 def handle_matchmaking():
-    logging.info('')
-    logging.info('-- handle_matchmaking start --')
-    logging.info('')
     ready_teams = Team.get_all_ready()
     if len(ready_teams) > 1:
+        logging.info('')
+        logging.info('-- handle_matchmaking start --')
+        logging.info('')
         team = ready_teams[0]
         logging.info(f'[handle_teaming] ready team: {team.id}')
         logging.info(f'[handle_teaming] team lobbies: {team.lobbies_ids}')
@@ -57,9 +59,9 @@ def handle_matchmaking():
             )
             handle_match_found(team, opponent)
 
-    logging.info('')
-    logging.info('-- handle_matchmaking end --')
-    logging.info('')
+        logging.info('')
+        logging.info('-- handle_matchmaking end --')
+        logging.info('')
 
 
 def handle_teaming():
@@ -80,19 +82,23 @@ def handle_teaming():
         if not lobby_team:
             not_ready_teams = Team.get_all_not_ready()
             for team in not_ready_teams:
-                logging.info(f'[handle_teaming] not ready team: {team.id}')
-                logging.info(f'[handle_teaming] team lobbies: {team.lobbies_ids}')
                 if team.players_count + lobby.players_count <= lobby.max_players:
                     team.add_lobby(lobby.id)
+                    logging.info(f'[handle_teaming] not ready team: {team.id}')
                     logging.info(f'[handle_teaming] lobby size: {lobby.players_count}')
                     logging.info(f'[handle_teaming] team size: {team.players_count}')
                     logging.info(f'[handle_teaming] team lobby add: {lobby.id}')
                     logging.info(f'[handle_teaming] team ready: {team.ready}')
+                    logging.info(f'[handle_teaming] team lobbies: {team.lobbies_ids}')
                     break
 
             else:
                 team = Team.create([lobby.id])
                 logging.info(f'[handle_teaming] created team: {team.id}')
+
+    logging.info('')
+    logging.info('-- handle_teaming end --')
+    logging.info('')
 
 
 @shared_task
