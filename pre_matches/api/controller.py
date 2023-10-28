@@ -22,6 +22,25 @@ from .. import models, tasks, websocket
 User = get_user_model()
 
 
+def cancel_pre_match(pre_match: models.PreMatch, toast_msg: str = None):
+    if toast_msg:
+        for player in pre_match.players:
+            ws_create_toast(toast_msg, 'warning', user_id=player.id)
+
+    # send ws call to lobbies to cancel that match
+    websocket.ws_pre_match_delete(pre_match)
+    for player in pre_match.players:
+        ws_update_user(player)
+        ws_friend_update_or_create(player)
+
+    # delete the pre_match and teams from Redis
+    team1 = pre_match.teams[0]
+    team2 = pre_match.teams[1]
+    models.PreMatch.delete(pre_match.id)
+    team1.delete()
+    team2.delete()
+
+
 def handle_create_fivem_match(match: Match) -> Match:
     if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
         status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
@@ -77,30 +96,6 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
         pass
 
     return match
-
-
-def handle_create_match_failed(pre_match: models.PreMatch):
-    for player in pre_match.players:
-        ws_create_toast(
-            _(
-                'All our servers are unavailable at this moment. Please, try again later.'
-            ),
-            'warning',
-            user_id=player.id,
-        )
-
-    # send ws call to lobbies to cancel that match
-    websocket.ws_pre_match_delete(pre_match)
-    for player in pre_match.players:
-        ws_update_user(player)
-        ws_friend_update_or_create(player)
-
-    # delete the pre_match and teams from Redis
-    team1 = pre_match.teams[0]
-    team2 = pre_match.teams[1]
-    models.PreMatch.delete(pre_match.id)
-    team1.delete()
-    team2.delete()
 
 
 def handle_pre_match_checks(user: User, error: str) -> User:
@@ -164,7 +159,12 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
         match = handle_create_match(pre_match)
         if not match:
             # cancel match due to lack of available servers
-            return handle_create_match_failed(pre_match)
+            return cancel_pre_match(
+                pre_match,
+                _(
+                    'All our servers are unavailable at this moment. Please, try again later.'
+                ),
+            )
         else:
             fivem_response = handle_create_fivem_match(match)
             if fivem_response.status_code != 201:

@@ -419,6 +419,38 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertIsNotNone(team1.name)
         self.assertTrue(team1.name in players_usernames)
 
+    @override_settings(TEAM_READY_PLAYERS_MIN=1)
+    def test_add_lobby_full(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        team = Team.create(lobbies_ids=[self.lobby1.id])
+        self.assertTrue(team.ready)
+        with self.assertRaises(TeamException):
+            team.add_lobby(self.lobby2.id)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=1)
+    def test_remove_lobby_pre_match(self):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        t1 = Team.create(lobbies_ids=[self.lobby1.id])
+        t2 = Team.create(lobbies_ids=[self.lobby2.id])
+        self.assertTrue(t1.ready)
+        self.assertTrue(t2.ready)
+        pm = PreMatch.create(t1.id, t2.id)
+
+        self.assertIsNotNone(t1.pre_match_id)
+        self.assertIsNotNone(t2.pre_match_id)
+
+        with self.assertRaises(TeamException):
+            t1.remove_lobby(self.lobby1.id)
+
+        PreMatch.delete(pm.id)
+        t1.remove_lobby(self.lobby1.id)
+        t2.remove_lobby(self.lobby2.id)
+
+        self.assertEqual(PreMatch.get_all(), [])
+        self.assertEqual(Team.get_all(), [])
+
 
 class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
     def setUp(self) -> None:

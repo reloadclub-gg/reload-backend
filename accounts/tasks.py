@@ -5,42 +5,18 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from accounts.websocket import ws_update_user
 from core.redis import redis_client_instance as cache
-from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
+from pre_matches.api.controller import cancel_pre_match
 from pre_matches.models import PreMatch, Team
-from pre_matches.websocket import ws_pre_match_delete
 
 from . import utils, websocket
 from .models import UserLogin
 
 User = get_user_model()
-
-
-def cancel_pre_match(pre_match: PreMatch):
-    for player in pre_match.players:
-        ws_create_toast(
-            _('Match cancelled due to user not locked in.'),
-            'warning',
-            user_id=player.id,
-        )
-
-    # send ws call to lobbies to cancel that match
-    ws_pre_match_delete(pre_match)
-    for player in pre_match.players:
-        ws_update_user(player)
-        ws_friend_update_or_create(player)
-
-    # delete the pre_match and teams from Redis
-    team1 = pre_match.teams[0]
-    team2 = pre_match.teams[1]
-    PreMatch.delete(pre_match.id)
-    team1.delete()
-    team2.delete()
 
 
 @shared_task
@@ -51,35 +27,51 @@ def watch_user_status_change(user_id: int):
     """
     user = User.objects.get(pk=user_id)
     if not user.has_sessions:
-        logging.info('watch_user_status_change')
-        logging.info(user.email)
+        logging.info('')
+        logging.info('-- watch_user_status_change start --')
+        logging.info('')
+        logging.info(f'[watch_user_status_change] user {user.id} ({user.email})')
         # Expiring player invites
         ws_expire_player_invites(user)
 
         # If user has an account
         if hasattr(user, 'account'):
             if user.account.lobby:
-                team = Team.get_by_lobby_id(user.account.lobby.id, fail_silently=True)
-                if team:
-                    team.remove_lobby(user.account.lobby.id)
+                lobby_id = user.account.lobby.id
+                logging.info(f'[watch_user_status_change] lobby {lobby_id}')
 
-            pre_match = PreMatch.get_by_player_id(user.id)
-            if pre_match:
-                logging.info('cancel_pre_match')
-                cancel_pre_match(pre_match)
+                pre_match = PreMatch.get_by_player_id(user.id)
+                if pre_match:
+                    logging.info(f'[watch_user_status_change] pre_match {pre_match.id}')
+                    cancel_pre_match(
+                        pre_match,
+                        _('Match cancelled due to user not locked in.'),
+                    )
+
+                team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
+                if team:
+                    logging.info(f'[watch_user_status_change] team {team.id}')
+                    team.remove_lobby(lobby_id)
 
             try:
                 handle_player_move(user, user.id, delete_lobby=True)
             except LobbyException as e:
-                logging.info('handle_player_move error - deleting lobby mannualy')
-                logging.info(e)
+                logging.info(f'[watch_user_status_change] lobby move error: {e}')
                 if user.account.lobby:
+                    logging.info('[watch_user_status_change] manually lobby move')
                     Lobby.delete(user.account.lobby.id)
 
         # Expiring user session
         user.logout()
-        logging.info('user status')
-        logging.info(user.status)
+        user.refresh_from_db()
+        logging.info(f'[watch_user_status_change] user logout: {user.id}')
+        logging.info(f'[watch_user_status_change] status: {user.status}')
+        if hasattr(user, 'account'):
+            logging.info(f'[watch_user_status_change] lobby: {user.account.lobby}')
+            logging.info(
+                f'[watch_user_status_change] pre_match: {user.account.pre_match}'
+            )
+        logging.info(f'[watch_user_status_change] sessions: {user.auth.sessions}')
 
         # Update or create friend
         ws_friend_update_or_create(user)
@@ -89,6 +81,10 @@ def watch_user_status_change(user_id: int):
 
         # Deleting user from friend list cache
         cache.delete(f'__friendlist:user:{user.id}')
+
+        logging.info('')
+        logging.info('-- watch_user_status_change end --')
+        logging.info('')
 
 
 @shared_task
