@@ -1,15 +1,7 @@
 from __future__ import annotations
 
-from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import signals
-from django.dispatch import receiver
 from django.utils.translation import gettext as _
-
-from core.websocket import ws_create_toast, ws_maintenance
-from lobbies.models import Lobby
-
-User = get_user_model()
 
 
 class AppSettings(models.Model):
@@ -52,28 +44,3 @@ class AppSettings(models.Model):
 
     def __str__(self):
         return self.name
-
-
-@receiver(signals.post_save, sender=AppSettings)
-def update_maintanence(sender, instance: AppSettings, created: bool, **kwargs):
-    if instance.name == 'Maintenance Window' and not created:
-        if AppSettings.get(instance.name) is True:
-            Lobby.cancel_all_queues()
-            ws_maintenance('start')
-            ws_create_toast(
-                _(
-                    'We\'re about to start a maintenance. '
-                    'All queues and invites will be disabled.'
-                ),
-                variant='warning',
-            )
-
-        else:
-            ws_maintenance('end')
-            ws_create_toast(
-                _(
-                    'The maintenance is over. '
-                    'Queues and invites were enabled again. GLHF!'
-                ),
-                variant='success',
-            )
