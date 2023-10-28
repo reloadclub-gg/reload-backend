@@ -13,11 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ao deletar uma `PreMatch` não estávamos deletando a chave de correspondência dos seus times.
+- Proíbe times de adicionarem lobbies caso estejam prontos [#780](https://github.com/3C-gg/reload-backend/issues/780).
+- Proíbe times de removerem lobbies enquanto estão em pré-partida.
 - Exclui `teams` e cancela `pre_matches` ao entrar em manutenção.
 - Ajusta ordem de exclusão de `teams` e cancelamento de `pre_matches` na tarefa que desloga usuário (`watch_user_status_change`).
 
 ### Changed
 
+- Ajusta MM para incluir lobbies queued em times não prontos que estão mais perto de ficarem prontos [#778](https://github.com/3C-gg/reload-backend/issues/778).
 - Move sinal de `post_save` do modelo `AppSettings` pra seu próprio arquivo.
 - Padroniza `logging` e adiciona mais logs pelo código.
 
