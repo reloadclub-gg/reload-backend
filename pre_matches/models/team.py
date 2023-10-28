@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import random
 import secrets
 from math import ceil
@@ -350,6 +351,7 @@ class Team(BaseModel):
         cache.srem(self.cache_key, lobby_id)
 
         if len(self.lobbies_ids) <= 1:
+            logging.info(f'[remove_lobby] delete team {self.id}')
             self.delete()
 
     def get_opponent_team(self):
