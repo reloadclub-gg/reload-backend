@@ -76,7 +76,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
 
-        controller.handle_create_match_failed(pre_match)
+        controller.cancel_pre_match(pre_match, 'any message')
 
         mock_calls = [
             mock.call(self.user_1),
