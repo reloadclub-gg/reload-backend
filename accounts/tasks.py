@@ -66,8 +66,11 @@ def watch_user_status_change(user_id: int):
         user.refresh_from_db()
         logging.info(f'[watch_user_status_change] user logout: {user.id}')
         logging.info(f'[watch_user_status_change] status: {user.status}')
-        logging.info(f'[watch_user_status_change] lobby: {user.account.lobby}')
-        logging.info(f'[watch_user_status_change] pre_match: {user.account.pre_match}')
+        if hasattr(user, 'account'):
+            logging.info(f'[watch_user_status_change] lobby: {user.account.lobby}')
+            logging.info(
+                f'[watch_user_status_change] pre_match: {user.account.pre_match}'
+            )
         logging.info(f'[watch_user_status_change] sessions: {user.auth.sessions}')
 
         # Update or create friend
