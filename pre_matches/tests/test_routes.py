@@ -38,7 +38,6 @@ class PreMatchRoutesTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(self.team1.id, self.team2.id)
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
-        pre_match.start_players_ready_countdown()
 
         response = self.api.call(
             'post',

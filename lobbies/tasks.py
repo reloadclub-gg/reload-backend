@@ -1,3 +1,5 @@
+import logging
+
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -13,17 +15,27 @@ User = get_user_model()
 
 
 def handle_match_found(team: Team, opponent: Team):
+    logging.info('handle_match_found')
     lobbies = team.lobbies + opponent.lobbies
+    logging.info('lobbies')
+    logging.info(lobbies)
     for lobby in lobbies:
+        logging.info('lobby to cancel queue')
+        logging.info(lobby)
         lobby.cancel_queue()
         ws_update_lobby(lobby)
 
     pre_match = PreMatch.create(team.id, opponent.id)
     ws_pre_match_create(pre_match)
+    logging.info('pre_match')
+    logging.info(pre_match.id)
 
 
 def handle_matchmaking():
+    logging.info('handle_matchmaking')
     ready_teams = Team.get_all_ready()
+    logging.info('ready_teams')
+    logging.info(ready_teams)
     if len(ready_teams) > 1:
         team = ready_teams[0]
         opponent = team.get_opponent_team()
@@ -32,20 +44,39 @@ def handle_matchmaking():
 
 
 def handle_teaming():
+    logging.info('handle_teaming')
     queued_lobbies = models.Lobby.get_all_queued()
+    logging.info('queued lobbies')
+    logging.info(queued_lobbies)
+    logging.info('players queued')
+    logging.info([lobby.players_ids for lobby in queued_lobbies])
     for lobby in queued_lobbies:
+        logging.info('mm lobby')
+        logging.info(lobby.id)
         ws_queue_tick(lobby)
         lobby_team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
+        logging.info('lobby team')
+        logging.info(lobby_team)
 
         if not lobby_team:
             not_ready_teams = Team.get_all_not_ready()
-            if len(not_ready_teams) > 0:
-                for team in not_ready_teams:
-                    if team.players_count + lobby.players_count <= lobby.max_players:
-                        team.add_lobby(lobby.id)
-                        break
+            logging.info('not_ready_teams')
+            logging.info(not_ready_teams)
+            for team in not_ready_teams:
+                logging.info('team lobby add')
+                logging.info(team.players_count)
+                logging.info(lobby.players_count)
+                logging.info(lobby.max_players)
+                if team.players_count + lobby.players_count <= lobby.max_players:
+                    team.add_lobby(lobby.id)
+                    break
+
             else:
-                Team.create([lobby.id])
+                team = Team.create([lobby.id])
+                logging.info('team created')
+                logging.info(team.id)
+                logging.info(team.ready)
+                logging.info(Team.get_all_not_ready())
 
 
 @shared_task
