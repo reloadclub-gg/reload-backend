@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import random
 from datetime import datetime
 
@@ -283,12 +284,25 @@ class Lobby(BaseModel):
         also need to cancel the queue for the current lobby.
         """
 
+        logging.info('')
+        logging.info('-- lobby_move start --')
+        logging.info('')
+
+        logging.info(f'[lobby_move] player_id {player_id}')
+        logging.info(f'[lobby_move] to_lobby_id {to_lobby_id}')
+        logging.info(f'[lobby_move] remove {remove}')
+
         from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
         if not from_lobby_id:
             raise LobbyException(_('There is no lobby to move user from.'))
 
+        logging.info(f'[lobby_move] from_lobby_id {from_lobby_id}')
+
         from_lobby = Lobby(owner_id=from_lobby_id)
         to_lobby = Lobby(owner_id=to_lobby_id)
+
+        logging.info(f'[lobby_move] from_lobby {from_lobby}')
+        logging.info(f'[lobby_move] to_lobby {to_lobby}')
 
         def transaction_pre(pipe):
             if not pipe.get(from_lobby.cache_key) or not pipe.get(to_lobby.cache_key):
@@ -317,12 +331,14 @@ class Lobby(BaseModel):
                     raise LobbyException(_('Lobby is queued.'))
 
                 is_owner = Lobby.is_owner(to_lobby_id, player_id)
-
                 can_join = (
                     to_lobby.is_public
                     or player_id in to_lobby.invited_players_ids
                     or is_owner
                 )
+
+                logging.info(f'[lobby_move] is_owner {is_owner}')
+                logging.info(f'[lobby_move] can_join {can_join}')
 
                 if not to_lobby.seats and to_lobby.owner_id != player_id:
                     raise LobbyException(_('Lobby is full.'))
@@ -332,37 +348,59 @@ class Lobby(BaseModel):
 
             if from_lobby_id != to_lobby_id:
                 pipe.srem(f'{from_lobby.cache_key}:players', player_id)
+                logging.info(f'[lobby_move] removed {player_id} from {from_lobby.id}')
                 pipe.sadd(f'{to_lobby.cache_key}:players', player_id)
+                logging.info(f'[lobby_move] added {player_id} to {to_lobby.id}')
                 pipe.set(f'{Lobby.Config.CACHE_PREFIX}:{player_id}', to_lobby.owner_id)
+                logging.info(
+                    f'[lobby_move] update player lobby: {player_id} - {to_lobby.owner_id}'
+                )
                 invite = to_lobby.get_invite_by_to_player_id(player_id)
                 if invite:
+                    logging.info(f'[lobby_move] invite: {invite.id}')
                     pipe.zrem(f'{to_lobby.cache_key}:invites', invite.id)
 
             if len(from_lobby.non_owners_ids) > 0 and from_lobby.owner_id == player_id:
                 new_owner_id = min(from_lobby.non_owners_ids)
+                logging.info(f'[lobby_move] new owner: {new_owner_id}')
                 new_lobby = Lobby(owner_id=new_owner_id)
+                logging.info(f'[lobby_move] new_lobby: {new_lobby.id}')
 
                 pipe.srem(f'{from_lobby.cache_key}:players', *from_lobby.non_owners_ids)
+                logging.info(
+                    f'[lobby_move] remove from lobby: {from_lobby.id} -> {from_lobby.non_owners_ids}'
+                )
 
                 # If another instance tries to move a player to the new_lobby,
                 # a transaction will start there and when we add a player here
                 # in the following line, the other transaction will fail and
                 # try again/rollback.
                 pipe.sadd(f'{new_lobby.cache_key}:players', *from_lobby.non_owners_ids)
+                logging.info(
+                    f'[lobby_move] add to lobby: {new_lobby.id} -> {from_lobby.non_owners_ids}'
+                )
+
+                logging.info(f'[lobby_move] new_lobby: {new_lobby.id}')
 
                 for other_player_id in from_lobby.non_owners_ids:
                     pipe.set(
                         f'{Lobby.Config.CACHE_PREFIX}:{other_player_id}',
                         new_lobby.owner_id,
                     )
+                    logging.info(
+                        f'[lobby_move] update player lobby: {other_player_id} - {new_lobby.owner_id}'
+                    )
                     invite = new_lobby.get_invite_by_to_player_id(other_player_id)
                     if invite:
+                        logging.info(f'[lobby_move] invite: {invite.id}')
                         pipe.zrem(f'{new_lobby.cache_key}:invites', invite)
 
             if remove:
+                logging.info('[lobby_move] lobby deletion')
                 Lobby.delete(to_lobby.id, pipe=pipe)
                 from_lobby.cancel_queue()
                 invites_to_player = LobbyInvite.get_by_to_user_id(player_id)
+                logging.info(f'[lobby_move] invites {invites_to_player}')
                 for invite in invites_to_player:
                     pipe.zrem(f'__mm:lobby:{invite.lobby_id}:invites', invite.id)
 
@@ -381,23 +419,34 @@ class Lobby(BaseModel):
             pre_func=transaction_pre,
             value_from_callable=True,
         )
+        logging.info(f'[lobby_move] remnant lobby: {remnant_lobby}')
 
-        User.objects.filter(id__in=to_lobby.players_ids).update(
-            status=User.Status.TEAMING
-            if to_lobby.players_count > 1
-            else User.Status.ONLINE
-        )
+        if to_lobby.players_count > 1:
+            status = User.Status.TEAMING
+        else:
+            status = User.Status.ONLINE
+        User.objects.filter(id__in=to_lobby.players_ids).update(status=status)
+        if to_lobby.players_ids:
+            logging.info(f'[lobby_move] to_lobby: {to_lobby.players_ids} -> {status}')
 
         if from_lobby.players_count <= 1:
             User.objects.filter(id__in=from_lobby.players_ids).update(
                 status=User.Status.ONLINE
             )
+            if from_lobby.players_count > 0:
+                logging.info(
+                    f'[lobby_move] from_lobby: {from_lobby.players_ids} -> online'
+                )
 
         if remnant_lobby:
             if remnant_lobby.players_count <= 1:
                 User.objects.filter(id__in=remnant_lobby.players_ids).update(
                     status=User.Status.ONLINE
                 )
+                if remnant_lobby.players_count > 0:
+                    logging.info(
+                        f'[lobby_move] remnant_lobby: {remnant_lobby.players_ids} -> online'
+                    )
 
         return remnant_lobby
 

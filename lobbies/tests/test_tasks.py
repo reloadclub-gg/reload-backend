@@ -5,7 +5,8 @@ from django.utils import timezone
 
 from core.redis import redis_client_instance as cache
 from core.tests import TestCase
-from pre_matches.models import Team, TeamException
+from lobbies.models import Lobby
+from pre_matches.models import PreMatch, Team, TeamException
 from pre_matches.tests.mixins import TeamsMixin
 
 from .. import models, tasks
@@ -120,3 +121,107 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
         tasks.handle_teaming()
         mock_tick.assert_called_once_with(self.user_4.account.lobby)
         self.assertIsNotNone(Team.get_by_lobby_id(self.user_4.account.lobby.id))
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=5)
+    @mock.patch('lobbies.tasks.ws_queue_tick')
+    def test_handle_queue_each_lobby(self, mock_tick):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
+        self.lobby4.start_queue()
+
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 1)
+        self.assertEqual(len(Team.get_all_not_ready()), 1)
+        self.lobby5.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 1)
+        self.assertEqual(len(Team.get_all_ready()), 1)
+        self.assertEqual(len(Team.get_all_not_ready()), 0)
+
+        self.lobby6.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 2)
+        self.assertEqual(len(Team.get_all_ready()), 1)
+        self.assertEqual(len(Team.get_all_not_ready()), 1)
+
+        self.lobby7.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 2)
+        self.assertEqual(len(Team.get_all_ready()), 1)
+        self.assertEqual(len(Team.get_all_not_ready()), 1)
+
+        self.lobby8.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 2)
+        self.assertEqual(len(Team.get_all_ready()), 1)
+        self.assertEqual(len(Team.get_all_not_ready()), 1)
+
+        self.lobby9.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all()), 2)
+        self.assertEqual(len(Team.get_all_ready()), 1)
+        self.assertEqual(len(Team.get_all_not_ready()), 1)
+
+        self.lobby10.start_queue()
+        tasks.queue()
+        self.assertEqual(len(PreMatch.get_all()), 1)
+        pm = PreMatch.get_all()[0]
+        self.assertIn(Team.get_all()[0], pm.teams)
+        self.assertIn(Team.get_all()[1], pm.teams)
+
+    @override_settings(TEAM_READY_PLAYERS_MIN=5)
+    @mock.patch('lobbies.tasks.ws_queue_tick')
+    def test_handle_queue_composed_lobbies(self, mock_tick):
+        self.lobby1.set_public()
+        self.lobby5.set_public()
+        self.lobby7.set_public()
+
+        Lobby.move(self.user_2.id, self.lobby1.id)
+        Lobby.move(self.user_3.id, self.lobby1.id)
+        Lobby.move(self.user_4.id, self.lobby1.id)
+
+        Lobby.move(self.user_6.id, self.lobby5.id)
+
+        Lobby.move(self.user_8.id, self.lobby7.id)
+        Lobby.move(self.user_9.id, self.lobby7.id)
+        Lobby.move(self.user_10.id, self.lobby7.id)
+
+        self.lobby1.start_queue()
+        tasks.queue()
+        t1 = Team.get_by_lobby_id(self.lobby1.id)
+        self.assertIsNotNone(t1)
+        self.assertFalse(t1.ready)
+        self.assertIn(self.lobby1.id, t1.lobbies_ids)
+        self.assertEqual(t1.players_count, self.lobby1.players_count)
+
+        self.lobby5.start_queue()
+        tasks.queue()
+        t2 = Team.get_by_lobby_id(self.lobby5.id)
+        self.assertIsNotNone(t2)
+        self.assertFalse(t2.ready)
+        self.assertIn(self.lobby5.id, t2.lobbies_ids)
+        self.assertEqual(t2.players_count, self.lobby5.players_count)
+        self.assertEqual(len(Team.get_all_not_ready()), 2)
+
+        self.lobby7.start_queue()
+        tasks.queue()
+        t3 = Team.get_by_lobby_id(self.lobby7.id)
+        self.assertFalse(t3.ready)
+        self.assertIn(self.lobby7.id, t3.lobbies_ids)
+        self.assertEqual(t3.players_count, self.lobby7.players_count)
+        self.assertEqual(len(Team.get_all_not_ready()), 3)
+
+        self.lobby11.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all_not_ready()), 2)
+        self.assertEqual(len(Team.get_all_ready()), 1)
+
+        self.lobby12.start_queue()
+        tasks.queue()
+        self.assertEqual(len(Team.get_all_not_ready()), 1)
+        self.assertIsNotNone(PreMatch.get_by_player_id(self.lobby12.id))
+        self.assertEqual(len(PreMatch.get_all()), 1)
+        self.assertIn(t1, PreMatch.get_all()[0].teams)
+        self.assertIn(t3, PreMatch.get_all()[0].teams)
+        self.assertNotIn(t2, PreMatch.get_all()[0].teams)
