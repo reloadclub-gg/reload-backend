@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Adiciona traduções faltantes [#782](https://github.com/3C-gg/reload-backend/issues/782).
 - Ao deletar uma `PreMatch` não estávamos deletando a chave de correspondência dos seus times.
 - Proíbe times de adicionarem lobbies caso estejam prontos [#780](https://github.com/3C-gg/reload-backend/issues/780).
 - Proíbe times de removerem lobbies enquanto estão em pré-partida.
