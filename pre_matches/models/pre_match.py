@@ -252,11 +252,17 @@ class PreMatch(BaseModel):
     @staticmethod
     def delete(id: int, pipe=None):
         pre_match = PreMatch(id=id)
+        t1, t2 = pre_match.teams
+
         keys = list(cache.scan_keys(f'{pre_match.cache_key}:*'))
         if keys:
             if pipe:
+                pipe.delete(f'{t1.cache_key}:pre_match')
+                pipe.delete(f'{t2.cache_key}:pre_match')
                 pipe.delete(*keys)
                 pipe.delete(pre_match.cache_key)
             else:
+                cache.delete(f'{t1.cache_key}:pre_match')
+                cache.delete(f'{t2.cache_key}:pre_match')
                 cache.delete(*keys)
                 cache.delete(pre_match.cache_key)

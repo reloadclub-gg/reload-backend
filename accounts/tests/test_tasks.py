@@ -104,6 +104,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         tasks.watch_user_status_change(user.id)
 
     @override_settings(TEAM_READY_PLAYERS_MIN=1)
+    @mock.patch('pre_matches.models.Team.remove_lobby')
     @mock.patch('accounts.tasks.cancel_pre_match')
     @mock.patch('accounts.tasks.ws_expire_player_invites')
     @mock.patch('accounts.tasks.handle_player_move')
@@ -116,6 +117,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         mock_lobby_move,
         mock_expire_invites,
         mock_cancel_pre_match,
+        mock_remove_lobby,
     ):
         self.user.add_session()
         self.friend1.add_session()
