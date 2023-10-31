@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Méotodo `delete` do modelo `PreMatch` não estava funcionando corretamente. Ao invés de tentar encontrar uma `pre_match` pelo `id` fornecido, estava simplesmente instanciando um modelo e tentando apagar suas chaves no redis [#788](https://github.com/3C-gg/reload-backend/issues/788).
+
+## [3d5c407 - 28/10/2023]
+
 ### Added
 
 - Método `cancel_pre_match` que faz o cancelamento de uma `PreMatch`, excluindo os times e enviando os websockets necessários.

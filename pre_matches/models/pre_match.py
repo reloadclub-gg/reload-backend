@@ -170,13 +170,15 @@ class PreMatch(BaseModel):
         return PreMatch.get_by_id(auto_id)
 
     @staticmethod
-    def get_by_id(id: int):
+    def get_by_id(id: int, fail_silently=False):
         """
         Searchs for a match given an id.
         """
         cache_key = f'{PreMatch.Config.CACHE_PREFIX}{id}'
         result = cache.get(cache_key)
         if not result:
+            if fail_silently:
+                return None
             raise PreMatchException(_('PreMatch not found.'))
         return PreMatch(id=id)
 
@@ -250,19 +252,23 @@ class PreMatch(BaseModel):
             self.start_players_ready_countdown()
 
     @staticmethod
-    def delete(id: int, pipe=None):
-        pre_match = PreMatch(id=id)
-        t1, t2 = pre_match.teams
+    def delete_cache_keys(keys, pipe=None):
+        if pipe:
+            pipe.delete(*keys)
+        else:
+            cache.delete(*keys)
 
-        keys = list(cache.scan_keys(f'{pre_match.cache_key}:*'))
-        if keys:
-            if pipe:
-                pipe.delete(f'{t1.cache_key}:pre_match')
-                pipe.delete(f'{t2.cache_key}:pre_match')
-                pipe.delete(*keys)
-                pipe.delete(pre_match.cache_key)
-            else:
-                cache.delete(f'{t1.cache_key}:pre_match')
-                cache.delete(f'{t2.cache_key}:pre_match')
-                cache.delete(*keys)
-                cache.delete(pre_match.cache_key)
+    @staticmethod
+    def delete(id: int, pipe=None):
+        pre_match = PreMatch.get_by_id(id, fail_silently=True)
+        if pre_match:
+            keys = list(cache.scan_keys(f'{pre_match.cache_key}:*'))
+            t1, t2 = pre_match.teams
+
+            team_keys = [f'{t1.cache_key}:pre_match', f'{t2.cache_key}:pre_match']
+
+            if keys:
+                keys.append(pre_match.cache_key)
+                PreMatch.delete_cache_keys(keys, pipe)
+
+            PreMatch.delete_cache_keys(team_keys, pipe)

@@ -618,3 +618,13 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
 
         pre_match = PreMatch.get_by_player_id(player_id=self.user_15.id)
         self.assertIsNone(pre_match)
+
+    def test_delete(self):
+        pm = PreMatch.create(self.team1.id, self.team2.id)
+        PreMatch.delete(pm.id)
+        with self.assertRaises(PreMatchException):
+            PreMatch.get_by_id(pm.id)
+
+        PreMatch.delete(pm.id)
+        pm = PreMatch.get_by_id(pm.id, fail_silently=True)
+        self.assertIsNone(pm)
