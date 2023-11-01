@@ -21,7 +21,11 @@ def handle_match_found(team: Team, opponent: Team):
 
     lobbies = team.lobbies + opponent.lobbies
     for lobby in lobbies:
-        logging.info(f'[handle_match_found] lobby queue cancel: {lobby.id}')
+        if not lobby.queue:
+            logging.info('[handle_teaming] lobby queued out - cancel')
+            return
+
+        logging.info(f'[handle_match_found] queue removal: {lobby.id}')
         lobby.cancel_queue()
         ws_update_lobby(lobby)
 
@@ -46,18 +50,22 @@ def handle_matchmaking():
         logging.info('-- handle_matchmaking start --')
         logging.info('')
         team = ready_teams[0]
-        logging.info(f'[handle_teaming] ready team: {team.id}')
-        logging.info(f'[handle_teaming] team lobbies: {team.lobbies_ids}')
+        logging.info(f'[handle_matchmaking] ready team: {team.id}')
+        logging.info(f'[handle_matchmaking] team lobbies: {team.lobbies_ids}')
         opponent = team.get_opponent_team()
-        logging.info(f'[handle_teaming] opponent team: {opponent.id}')
-        logging.info(f'[handle_teaming] opponent team lobbies: {opponent.lobbies_ids}')
-        logging.info(f'[handle_teaming] opponent team ready: {opponent.ready}')
         if opponent and opponent.ready:
-            logging.info(f'[handle_teaming] match found: {team.id} x {opponent.id}')
+            logging.info(f'[handle_matchmaking] opponent team: {opponent.id}')
             logging.info(
-                f'[handle_teaming] match lobbies: {team.lobbies_ids} x {opponent.lobbies_ids}'
+                f'[handle_matchmaking] opponent team lobbies: {opponent.lobbies_ids}'
+            )
+            logging.info(f'[handle_matchmaking] opponent team ready: {opponent.ready}')
+            logging.info(f'[handle_matchmaking] match found: {team.id} x {opponent.id}')
+            logging.info(
+                f'[handle_matchmaking] match lobbies: {team.lobbies_ids} x {opponent.lobbies_ids}'
             )
             handle_match_found(team, opponent)
+        else:
+            logging.info('[handle_matchmaking] opponent not found')
 
         logging.info('')
         logging.info('-- handle_matchmaking end --')
@@ -83,18 +91,23 @@ def handle_teaming():
             not_ready_teams = Team.get_all_not_ready()
             for team in not_ready_teams:
                 if team.players_count + lobby.players_count <= lobby.max_players:
+                    logging.info(f'[handle_teaming] join: {lobby.id} into {team.id}')
+                    if not lobby.queue:
+                        logging.info(f'[handle_teaming] lobby queued out - cancel')
+                        break
                     team.add_lobby(lobby.id)
-                    logging.info(f'[handle_teaming] not ready team: {team.id}')
                     logging.info(f'[handle_teaming] lobby size: {lobby.players_count}')
                     logging.info(f'[handle_teaming] team size: {team.players_count}')
-                    logging.info(f'[handle_teaming] team lobby add: {lobby.id}')
                     logging.info(f'[handle_teaming] team ready: {team.ready}')
                     logging.info(f'[handle_teaming] team lobbies: {team.lobbies_ids}')
                     break
 
             else:
-                team = Team.create([lobby.id])
-                logging.info(f'[handle_teaming] created team: {team.id}')
+                if lobby.queue:
+                    team = Team.create([lobby.id])
+                    logging.info(f'[handle_teaming] created team: {team.id}')
+                else:
+                    logging.info('[handle_teaming] lobby queued out - cancel')
 
     logging.info('')
     logging.info('-- handle_teaming end --')

@@ -95,9 +95,12 @@ class Team(BaseModel):
         This is effective because if there is only one lobby, it means that is a pre builded lobby
         with friends, and thus we want to pair by the highest skilled/leveled player.
         """
-        return ceil(
-            mean([Lobby(owner_id=lobby_id).overall for lobby_id in self.lobbies_ids])
-        )
+        if len(self.lobbies_ids) > 0:
+            return ceil(
+                mean(
+                    [Lobby(owner_id=lobby_id).overall for lobby_id in self.lobbies_ids]
+                )
+            )
 
     @property
     def min_max_overall_by_queue_time(self) -> tuple:
@@ -106,29 +109,32 @@ class Team(BaseModel):
         can team up or challenge.
         """
 
-        elapsed_time = ceil(
-            mean(
-                [lobby.queue_time if lobby.queue_time else 0 for lobby in self.lobbies]
-            )
-        )
+        if len(self.lobbies) <= 0 or self.overall is None:
+            return None
 
-        if elapsed_time < 30:
-            min = self.overall - 1 if self.overall > 0 else 0
-            max = self.overall + 1
-        elif elapsed_time < 60:
-            min = self.overall - 2 if self.overall > 1 else 0
-            max = self.overall + 2
-        elif elapsed_time < 90:
-            min = self.overall - 3 if self.overall > 2 else 0
-            max = self.overall + 3
-        elif elapsed_time < 120:
-            min = self.overall - 4 if self.overall > 3 else 0
-            max = self.overall + 4
-        else:
-            min = self.overall - 5 if self.overall > 4 else 0
-            max = self.overall + 5
+        queue_times = [
+            lobby.queue_time if lobby.queue_time else 0 for lobby in self.lobbies
+        ]
+        if len(queue_times) > 0:
+            elapsed_time = ceil(mean(queue_times))
 
-        return min, max
+            if elapsed_time < 30:
+                min = self.overall - 1 if self.overall > 0 else 0
+                max = self.overall + 1
+            elif elapsed_time < 60:
+                min = self.overall - 2 if self.overall > 1 else 0
+                max = self.overall + 2
+            elif elapsed_time < 90:
+                min = self.overall - 3 if self.overall > 2 else 0
+                max = self.overall + 3
+            elif elapsed_time < 120:
+                min = self.overall - 4 if self.overall > 3 else 0
+                max = self.overall + 4
+            else:
+                min = self.overall - 5 if self.overall > 4 else 0
+                max = self.overall + 5
+
+            return min, max
 
     @property
     def lobbies(self) -> list[Lobby]:
@@ -142,16 +148,18 @@ class Team(BaseModel):
         """
         Return team type and mode.
         """
-        return self.lobbies[0].lobby_type, self.lobbies[0].mode
+        if len(self.lobbies) > 0:
+            return self.lobbies[0].lobby_type, self.lobbies[0].mode
 
     @property
     def name(self) -> str:
         """
         Return team name defined randomly between owners in lobbies
         """
-        owners_ids = [lobby.owner_id for lobby in self.lobbies]
-        owner_chosen_id = random.choice(owners_ids)
-        return User.objects.get(pk=owner_chosen_id).steam_user.username
+        if len(self.lobbies) > 0:
+            owners_ids = [lobby.owner_id for lobby in self.lobbies]
+            owner_chosen_id = random.choice(owners_ids)
+            return User.objects.get(pk=owner_chosen_id).steam_user.username
 
     @property
     def pre_match_id(self) -> str:
@@ -159,8 +167,11 @@ class Team(BaseModel):
 
     @staticmethod
     def overall_match(team, lobby) -> bool:
-        min_overall, max_overall = team.min_max_overall_by_queue_time
-        return min_overall <= lobby.overall <= max_overall
+        if team.min_max_overall_by_queue_time is not None:
+            min_overall, max_overall = team.min_max_overall_by_queue_time
+            return min_overall <= lobby.overall <= max_overall
+
+        return False
 
     @staticmethod
     def get_all() -> list[Team]:
@@ -368,17 +379,42 @@ class Team(BaseModel):
         )
 
         if len(self.lobbies_ids) <= 1:
-            logging.info(f'[remove_lobby] delete team {self.id}')
+            logging.info(f'[team:remove_lobby] delete team {self.id}')
             self.delete()
 
     def get_opponent_team(self):
+        if not all(lobby.queue for lobby in self.lobbies):
+            logging.info('[team:get_opponent_team] some lobby isn\'t queued')
+            return
+
         ready_teams = self.get_all_ready()
         for team in ready_teams:
-            if not team.pre_match_id:
-                if self.id != team.id:
-                    # check if type and mode matches
-                    if self.type_mode == team.type_mode:
-                        # check if teams are in the same overall range
-                        min_overall, max_overall = team.min_max_overall_by_queue_time
-                        if min_overall <= self.overall <= max_overall:
-                            return team
+            logging.info(f'[team:get_opponent_team] try team: {team.id}')
+            if team.pre_match_id:
+                logging.info('[team:get_opponent_team] is in pre_match, continue')
+                continue
+
+            if self.id == team.id:
+                logging.info('[team:get_opponent_team] is same team, continue')
+                continue
+
+            if not all(lobby.queue for lobby in team.lobbies):
+                logging.info(
+                    '[team:get_opponent_team] some lobby isn\'t queued, continue'
+                )
+                continue
+
+            if self.type_mode is None or self.type_mode != team.type_mode:
+                logging.info('[team:get_opponent_team] mismatch type or mode, continue')
+                continue
+
+            if team.min_max_overall_by_queue_time is None or self.overall is None:
+                logging.info('[team:get_opponent_team] overalls missing, continue')
+                continue
+
+            min_overall, max_overall = team.min_max_overall_by_queue_time
+            if min_overall <= self.overall <= max_overall:
+                logging.info(f'[team:get_opponent_team] found opponent: {team.id}')
+                return team
+
+            logging.info('[team:get_opponent_team] didn\'t match the overall, continue')
