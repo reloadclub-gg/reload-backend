@@ -406,6 +406,9 @@ class Lobby(BaseModel):
 
                 Player.delete(player_id)
 
+            logging.info('')
+            logging.info('-- lobby_move end --')
+            logging.info('')
             return new_lobby
 
         remnant_lobby = cache.protected_handler(
