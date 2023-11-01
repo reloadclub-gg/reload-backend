@@ -1,7 +1,4 @@
-from unittest.mock import patch
-
 from accounts.tests.mixins import UserOneMixin
-from accounts.utils import generate_steam_extra_data
 from core.tests import TestCase
 
 from . import Steam
