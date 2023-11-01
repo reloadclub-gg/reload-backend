@@ -1,5 +1,3 @@
-import logging
-
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -9,7 +7,7 @@ from core.redis import redis_client_instance as cache
 from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby, LobbyException
-from lobbies.websocket import ws_expire_player_invites
+from lobbies.websocket import ws_expire_player_invites, ws_update_lobby
 from pre_matches.api.controller import cancel_pre_match
 from pre_matches.models import PreMatch, Team
 
@@ -27,10 +25,6 @@ def watch_user_status_change(user_id: int):
     """
     user = User.objects.get(pk=user_id)
     if not user.has_sessions:
-        logging.info('')
-        logging.info('-- watch_user_status_change start --')
-        logging.info('')
-        logging.info(f'[watch_user_status_change] user {user.id} ({user.email})')
         # Expiring player invites
         ws_expire_player_invites(user)
 
@@ -38,11 +32,9 @@ def watch_user_status_change(user_id: int):
         if hasattr(user, 'account'):
             if user.account.lobby:
                 lobby_id = user.account.lobby.id
-                logging.info(f'[watch_user_status_change] lobby {lobby_id}')
 
                 pre_match = PreMatch.get_by_player_id(user.id)
                 if pre_match:
-                    logging.info(f'[watch_user_status_change] pre_match {pre_match.id}')
                     cancel_pre_match(
                         pre_match,
                         _('Match cancelled due to user not locked in.'),
@@ -50,28 +42,18 @@ def watch_user_status_change(user_id: int):
 
                 team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
                 if team:
-                    logging.info(f'[watch_user_status_change] team {team.id}')
                     team.remove_lobby(lobby_id)
 
             try:
                 handle_player_move(user, user.id, delete_lobby=True)
-            except LobbyException as e:
-                logging.info(f'[watch_user_status_change] lobby move error: {e}')
+            except LobbyException:
                 if user.account.lobby:
-                    logging.info('[watch_user_status_change] manually lobby move')
+                    ws_update_lobby(user.account.lobby)
                     Lobby.delete(user.account.lobby.id)
 
         # Expiring user session
         user.logout()
         user.refresh_from_db()
-        logging.info(f'[watch_user_status_change] user logout: {user.id}')
-        logging.info(f'[watch_user_status_change] status: {user.status}')
-        if hasattr(user, 'account'):
-            logging.info(f'[watch_user_status_change] lobby: {user.account.lobby}')
-            logging.info(
-                f'[watch_user_status_change] pre_match: {user.account.pre_match}'
-            )
-        logging.info(f'[watch_user_status_change] sessions: {user.auth.sessions}')
 
         # Update or create friend
         ws_friend_update_or_create(user)
@@ -81,10 +63,6 @@ def watch_user_status_change(user_id: int):
 
         # Deleting user from friend list cache
         cache.delete(f'__friendlist:user:{user.id}')
-
-        logging.info('')
-        logging.info('-- watch_user_status_change end --')
-        logging.info('')
 
 
 @shared_task

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- MM agora procura time mais próximo de ficar pronto para inserir lobbies []().
+
 ### Fixed
 
 - Corrigimos um erro que fazia com que arquivos anexados não fossem enviados ao suporte ao abrir um ticket, exibindo um erro não tratado no FE para o usuário [#702](https://github.com/3C-gg/reload-backend/issues/702).
