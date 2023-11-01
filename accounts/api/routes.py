@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -86,3 +86,12 @@ def user_matches(request, user_id: int):
 )
 def create_invite(request, payload: schemas.InviteCreationSchema):
     return controller.send_invite(request.user, payload.email)
+
+
+@router.post(
+    'steam-sync/',
+    auth=VerifiedRequiredAuth(),
+    response={200: Optional[schemas.UserSchema]},
+)
+def sync_with_steam(request):
+    return controller.steam_sync(request.user)
