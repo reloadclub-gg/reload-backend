@@ -93,7 +93,7 @@ def handle_teaming():
                 if team.players_count + lobby.players_count <= lobby.max_players:
                     logging.info(f'[handle_teaming] join: {lobby.id} into {team.id}')
                     if not lobby.queue:
-                        logging.info(f'[handle_teaming] lobby queued out - cancel')
+                        logging.info('[handle_teaming] lobby queued out - cancel')
                         break
                     team.add_lobby(lobby.id)
                     logging.info(f'[handle_teaming] lobby size: {lobby.players_count}')
