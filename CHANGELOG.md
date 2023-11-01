@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrigimos um erro que fazia com que arquivos anexados não fossem enviados ao suporte ao abrir um ticket, exibindo um erro não tratado no FE para o usuário [#702](https://github.com/3C-gg/reload-backend/issues/702).
 - Adicionamos uma proteção na tarefa de MM (`lobbies.tasks.queue`), que passa a checar se Lobby está em fila antes de seguir com os processos de criação de time e partida [#790](https://github.com/3C-gg/reload-backend/issues/790).
 - Méotodo `delete` do modelo `PreMatch` não estava funcionando corretamente. Ao invés de tentar encontrar uma `pre_match` pelo `id` fornecido, estava simplesmente instanciando um modelo e tentando apagar suas chaves no redis [#788](https://github.com/3C-gg/reload-backend/issues/788).
 
