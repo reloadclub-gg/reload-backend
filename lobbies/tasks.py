@@ -1,6 +1,7 @@
 import logging
 
 from celery import shared_task
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -14,104 +15,99 @@ from .websocket import ws_queue_tick, ws_update_lobby
 User = get_user_model()
 
 
-def handle_match_found(team: Team, opponent: Team):
-    logging.info('')
-    logging.info('-- handle_match_found start --')
-    logging.info('')
+def log_teaming_info():
+    not_ready_teams = Team.get_all_not_ready()
+    ready_teams = Team.get_all_ready()
 
+    title_separator_line = "+" + "=" * 40
+    separator_line = "+" + "-" * 40
+    logging.info(title_separator_line)
+    logging.info("| lobbies.tasks.handle_teaming")
+    logging.info(title_separator_line)
+    logging.info("| unready teams:")
+    logging.info(separator_line)
+
+    for team in not_ready_teams:
+        for lobby in team.lobbies:
+            logging.info(
+                f"| team: {team.id} | lobby: {lobby.id} | players: {tuple(lobby.players_ids)}"
+            )
+
+    logging.info(separator_line)
+
+    # Log para times prontos
+    logging.info("| ready teams:")
+    logging.info(separator_line)
+
+    for team in ready_teams:
+        for lobby in team.lobbies:
+            logging.info(
+                f"| team: {team.id} | lobby: {lobby.id} | players: {tuple(lobby.players_ids)}"
+            )
+
+    logging.info(separator_line)
+
+
+def handle_match_found(team: Team, opponent: Team):
     lobbies = team.lobbies + opponent.lobbies
+    total_players = team.players_count + opponent.players_count
+
+    if total_players < settings.TEAM_READY_PLAYERS_MIN * 2:
+        return
+
     for lobby in lobbies:
         if not lobby.queue:
-            logging.info('[handle_teaming] lobby queued out - cancel')
             return
 
-        logging.info(f'[handle_match_found] queue removal: {lobby.id}')
         lobby.cancel_queue()
         ws_update_lobby(lobby)
 
     pre_match = PreMatch.create(team.id, opponent.id)
     ws_pre_match_create(pre_match)
-    logging.info(f'[handle_match_found] pre_match: {pre_match.id}')
-    players_ids = [player.id for player in pre_match.players]
-    teams_ids = [team.id for team in pre_match.teams]
-    logging.info(f'[handle_match_found] pre_match players: {players_ids}')
-    logging.info(f'[handle_match_found] pre_match teams: {teams_ids}')
-    logging.info(f'[handle_match_found] team1 ready: {team.ready}')
-    logging.info(f'[handle_match_found] team2 ready: {opponent.ready}')
-    logging.info('')
-    logging.info('-- handle_match_found end --')
-    logging.info('')
 
 
 def handle_matchmaking():
     ready_teams = Team.get_all_ready()
     if len(ready_teams) > 1:
-        logging.info('')
-        logging.info('-- handle_matchmaking start --')
-        logging.info('')
         team = ready_teams[0]
-        logging.info(f'[handle_matchmaking] ready team: {team.id}')
-        logging.info(f'[handle_matchmaking] team lobbies: {team.lobbies_ids}')
         opponent = team.get_opponent_team()
         if opponent and opponent.ready:
-            logging.info(f'[handle_matchmaking] opponent team: {opponent.id}')
-            logging.info(
-                f'[handle_matchmaking] opponent team lobbies: {opponent.lobbies_ids}'
-            )
-            logging.info(f'[handle_matchmaking] opponent team ready: {opponent.ready}')
-            logging.info(f'[handle_matchmaking] match found: {team.id} x {opponent.id}')
-            logging.info(
-                f'[handle_matchmaking] match lobbies: {team.lobbies_ids} x {opponent.lobbies_ids}'
-            )
             handle_match_found(team, opponent)
-        else:
-            logging.info('[handle_matchmaking] opponent not found')
-
-        logging.info('')
-        logging.info('-- handle_matchmaking end --')
-        logging.info('')
 
 
 def handle_teaming():
-    logging.info('')
-    logging.info('-- handle_teaming start --')
-    logging.info('')
-
     queued_lobbies = models.Lobby.get_all_queued()
-    logging.info(f'[handle_teaming] queued_lobbies: {queued_lobbies}')
 
     for lobby in queued_lobbies:
-        logging.info(f'[handle_teaming] lobby: {lobby.id}')
-        logging.info(f'[handle_teaming] players: {lobby.players_ids}')
         ws_queue_tick(lobby)
         lobby_team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
-        logging.info(f'[handle_teaming] team: {lobby_team.id if lobby_team else None}')
 
         if not lobby_team:
             not_ready_teams = Team.get_all_not_ready()
             for team in not_ready_teams:
                 if team.players_count + lobby.players_count <= lobby.max_players:
-                    logging.info(f'[handle_teaming] join: {lobby.id} into {team.id}')
                     if not lobby.queue:
-                        logging.info('[handle_teaming] lobby queued out - cancel')
                         break
                     team.add_lobby(lobby.id)
-                    logging.info(f'[handle_teaming] lobby size: {lobby.players_count}')
-                    logging.info(f'[handle_teaming] team size: {team.players_count}')
-                    logging.info(f'[handle_teaming] team ready: {team.ready}')
-                    logging.info(f'[handle_teaming] team lobbies: {team.lobbies_ids}')
                     break
 
             else:
                 if lobby.queue:
                     team = Team.create([lobby.id])
-                    logging.info(f'[handle_teaming] created team: {team.id}')
-                else:
-                    logging.info('[handle_teaming] lobby queued out - cancel')
 
-    logging.info('')
-    logging.info('-- handle_teaming end --')
-    logging.info('')
+        else:
+            not_ready_teams = Team.get_all_not_ready()
+            for team in not_ready_teams:
+                players_length = team.players_count + lobby.players_count
+                if (
+                    players_length <= lobby.max_players
+                    and players_length > lobby_team.players_count
+                ):
+                    if lobby.queue:
+                        lobby_team.remove_lobby(lobby.id)
+                        team.add_lobby(lobby.id)
+
+    log_teaming_info()
 
 
 @shared_task
