@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Endpoint para atualizar dados (username e avatar da Steam) [#700](https://github.com/3C-gg/reload-backend/issues/700).
+
 ### Changed
 
-- MM agora procura time mais próximo de ficar pronto para inserir lobbies []().
+- MM agora procura time mais próximo de ficar pronto para inserir lobbies [#786](https://github.com/3C-gg/reload-backend/issues/786).
 
 ### Fixed
 

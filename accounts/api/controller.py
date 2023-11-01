@@ -1,3 +1,4 @@
+import requests
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -19,9 +20,10 @@ from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import BetaUser, Match
+from steam import SteamClient
 
 from .. import tasks, utils, websocket
-from ..models import Account, Auth, Invite, UserLogin
+from ..models import Account, Auth, Invite, SteamUser, UserLogin
 from .authorization import is_verified
 
 User = get_user_model()
@@ -267,3 +269,13 @@ def send_invite(user: User, email: str) -> Invite:
     invite = user.account.invite_set.create(email=email)
     tasks.send_invite_mail.delay(email, user.account.username)
     return invite
+
+
+def steam_sync(user: User) -> User:
+    new_data = SteamClient.get_player_data(user.account.steamid)
+    steam_user = SteamUser(user_id=user.id, **new_data)
+    steam_user.save()
+    user.account.username = steam_user.username
+    user.account.save()
+    user.refresh_from_db()
+    return user
