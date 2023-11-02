@@ -1,4 +1,3 @@
-import os
 from smtplib import SMTPException
 from typing import List
 
@@ -26,7 +25,7 @@ class Ticket(BaseModel):
 def create_ticket(
     user: User,
     payload: TicketCreateSchema,
-    files: List[UploadedFile] = None,
+    files: List[UploadedFile] = [],
 ) -> Ticket:
     ticket_info = f"""
     INFOS DO TICKET
@@ -62,27 +61,28 @@ def create_ticket(
         headers={'Reply-To': user.email},
     )
 
-    if files:
-        for file in files:
-            if file.size > 3000000:
-                raise HttpError(400, _('Attachment is too large (max 3MB).'))
+    for file in files:
+        if file.size > 3000000:
+            raise HttpError(400, _('Attachment is too large (max 3MB).'))
 
-            with default_storage.open(f'uploads/{file.name}', 'wb+') as destination:
-                for chunk in file.chunks():
-                    destination.write(chunk)
-                    email.attach_file(destination.name)
+        with default_storage.open(f'uploads/{file.name}', 'wb+') as destination:
+            for chunk in file.chunks():
+                destination.write(chunk)
+
+        with default_storage.open(f'uploads/{file.name}', 'rb') as destination:
+            email.attach(file.name, destination.read(), 'application/octet-stream')
 
     try:
         email.send()
     except SMTPException as e:
         raise HttpError(400, e)
 
-    if files and not settings.TEST_MODE:
+    if not settings.TEST_MODE:
         for file in files:
-            os.remove(os.path.join(settings.MEDIA_ROOT, 'uploads', file.name))
+            default_storage.delete(f'uploads/{file.name}')
 
     return Ticket(
         subject=payload.subject,
         description=payload.description,
-        attachments_count=len(files) if files else 0,
+        attachments_count=len(files),
     )

@@ -1,7 +1,4 @@
-from unittest.mock import patch
-
 from accounts.tests.mixins import UserOneMixin
-from accounts.utils import generate_steam_extra_data
 from core.tests import TestCase
 
 from . import Steam
@@ -25,12 +22,3 @@ class SteamTestCase(UserOneMixin, TestCase):
         avatar = Steam.build_avatar_url()
         expected_url = f'{Steam.DEFAULT_AVATAR_URI}.jpg'
         self.assertEqual(avatar, expected_url)
-
-    @patch('steam.SteamClient.get_friends')
-    def test_get_player_friends(self, mock_friends):
-        mock_friends.return_value = [
-            generate_steam_extra_data(),
-            generate_steam_extra_data(),
-            generate_steam_extra_data(),
-        ]
-        pass

@@ -14,8 +14,19 @@ class SteamClient:
     This class should contain all methods that fetch external data from Steam.
     """
 
-    PLAYER_API_URL = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002'
+    PLAYER_API_URL = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/'
     FRIENDS_API_URL = 'http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?relationship=friend'
+
+    @staticmethod
+    def get_player_data(steamid: str) -> dict:
+        """
+        Fetch user data from SteamAPI given a user steamid.
+        """
+        base_url = SteamClient.PLAYER_API_URL
+        api_key = settings.STEAM_API_KEY
+        url = f'{base_url}?key={api_key}&steamids={steamid}'
+        r = requests.get(url)
+        return r.json().get('response').get('players')[0]
 
     @staticmethod
     def get_friends(steamid: str) -> list:
