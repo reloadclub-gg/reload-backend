@@ -32,28 +32,17 @@ class PreMatch(BaseModel):
     The Redis db keys from this model are described below:
 
     [key] __mm:pre_match__auto_id int
-
     [key] __mm:pre_match:[id] [team1_id:team2_id]
-    Stores a pre_match with teams ids.
-
-    [key] __mm:pre_match:[id]:ready_time
-    Stores the datetime that a pre_match was ready for players to confirm their seats.
-
-    [set] __mm:pre_match:[id]:ready_players_ids
-    Stores which players are ready.
-
-    [set] __mm:pre_match:[id]:in_players_ids
-    Stores which locked in players are in pre_match.
-
-    [key] __mm:pre_match:[id]:status
-    Stores the current status of the pre_match
+    [key] __mm:pre_match:[id]:ready_time str
+    [set] __mm:pre_match:[id]:ready_players_ids <(player_id,...)>
+    [set] __mm:pre_match:[id]:in_players_ids <(player_id,...)>
+    [key] __mm:pre_match:[id]:status str
     """
 
     id: int
 
     class Config:
         CACHE_PREFIX: str = '__mm:pre_match:'
-        ID_SIZE: int = 16
         READY_COUNTDOWN: int = settings.MATCH_READY_COUNTDOWN
         READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
 
@@ -264,11 +253,16 @@ class PreMatch(BaseModel):
         if pre_match:
             keys = list(cache.scan_keys(f'{pre_match.cache_key}:*'))
             t1, t2 = pre_match.teams
+            team_keys = []
 
-            team_keys = [f'{t1.cache_key}:pre_match', f'{t2.cache_key}:pre_match']
+            if t1:
+                team_keys.append(f'{t1.cache_key}:pre_match')
 
-            if keys:
-                keys.append(pre_match.cache_key)
-                PreMatch.delete_cache_keys(keys, pipe)
+            if t2:
+                team_keys.append(f'{t2.cache_key}:pre_match')
 
-            PreMatch.delete_cache_keys(team_keys, pipe)
+            keys.append(pre_match.cache_key)
+            PreMatch.delete_cache_keys(keys, pipe)
+
+            if team_keys:
+                PreMatch.delete_cache_keys(team_keys, pipe)

@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altera campo `name` do modelo `Server` para ser único.
 - Passa a chamar tarefas de servidores cheio ou quase cheios na criação de partida.
 
+### Fixed
+
+- Corrigimos um erro que acontecia na exclusão de uma pré-partida. Ao tentar excluir os times dessa pré-partida, nós assumíamos que os times dela existiam, mas isso pode não ser verdade. Adicionamos uma proteção para isso [#805](https://github.com/3C-gg/reload-backend/issues/805).
+
 ### Removed
 
 - Arquivos obsoletos relativos a infra kubernetes [#801](https://github.com/3C-gg/reload-backend/issues/801).
