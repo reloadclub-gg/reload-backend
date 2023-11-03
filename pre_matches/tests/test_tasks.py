@@ -23,7 +23,12 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
         mock_create_toast,
         mock_update_user,
     ):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         player1 = Player(user_id=pre_match.players[0].id)
         player2 = Player(user_id=pre_match.players[1].id)
 
@@ -64,11 +69,21 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
         self,
         mock_pre_match_delete,
     ):
-        pre_match_1 = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match_1 = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         for player in pre_match_1.players:
             pre_match_1.set_player_lock_in(player.id)
 
-        pre_match_2 = PreMatch.create(self.team3.id, self.team4.id)
+        pre_match_2 = PreMatch.create(
+            self.team3.id,
+            self.team4.id,
+            self.team3.type_mode[0],
+            self.team3.type_mode[1],
+        )
         for player in pre_match_2.players:
             pre_match_2.set_player_lock_in(player.id)
 

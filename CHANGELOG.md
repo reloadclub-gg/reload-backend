@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campos `match_type` e `mode` no modelo `PreMatch`. Assim podemos garantir melhor que essas informações serão respeitadas [#813](https://github.com/3C-gg/reload-backend/issues/813).
+- Adiciona proteções de quantidades mínimas de jogadores e logs de warning ao encontrar partida [#807](https://github.com/3C-gg/reload-backend/issues/807).
+- Adiciona tarefas de envio de email caso servidores fiquem cheios ou quase cheios [#803](https://github.com/3C-gg/reload-backend/issues/803).
+
+### Changed
+
+- Esquema `MatchFiveMSchema` e `MatchUpdateSchema` para incluirem arrays de times e usuários [#793](https://github.com/3C-gg/reload-backend/issues/793).
+- Altera campo `name` do modelo `Server` para ser único.
+- Passa a chamar tarefas de servidores cheio ou quase cheios na criação de partida.
+
+### Fixed
+
+- Adicionamos uma proteção de times e jogadores na criação de partida para tentar mitigar bugs [#815](https://github.com/3C-gg/reload-backend/issues/815).
+- Adicionamos a deleção de prá-partida e seus times no cancelamento de uma partida. Isso pode estar ligado a um bug que pode estar fazendo com que pré-partidas ou seus times fiquem vivos mesmo depois do cancelamento da partida, ocasionando assim jogadores em múltiplos times/partidas [#811](https://github.com/3C-gg/reload-backend/issues/811).
+- Corrigimos um erro que fazia com que o remanejamento de time ficasse removendo e adicionando os lobbies em seus próprios times [#809](https://github.com/3C-gg/reload-backend/issues/809).
+- Corrigimos um erro que acontecia na exclusão de uma pré-partida. Ao tentar excluir os times dessa pré-partida, nós assumíamos que os times dela existiam, mas isso pode não ser verdade. Adicionamos uma proteção para isso [#805](https://github.com/3C-gg/reload-backend/issues/805).
+
+### Removed
+
+- Arquivos obsoletos relativos a infra kubernetes [#801](https://github.com/3C-gg/reload-backend/issues/801).
+
+## [8950a21 - 2/11/2023]
+
+### Added
+
 - Endpoint para atualizar dados (username e avatar da Steam) [#700](https://github.com/3C-gg/reload-backend/issues/700).
 
 ### Changed
