@@ -2,16 +2,19 @@ import time
 from typing import List
 
 from celery import shared_task
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import activate
 from django.utils.translation import gettext as _
 
 from accounts.websocket import ws_update_user
+from core.utils import send_mail
 from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
 from lobbies.models import Lobby, Player
 from lobbies.tasks import end_player_restriction
 from lobbies.websocket import ws_queue_start, ws_update_lobby
+from matches.models import Match, Server
 
 from . import models, websocket
 
@@ -99,3 +102,38 @@ def cancel_match_after_countdown(
         # schedule this task again two seconds later
         time.sleep(2)
         return cancel_match_after_countdown(pre_match.id)
+
+
+@shared_task
+def send_server_almost_full_mail(name: str):
+    server = Server.objects.get(name=name)
+    running_matches = server.match_set.filter(
+        status__in=[
+            Match.Status.RUNNING,
+            Match.Status.LOADING,
+            Match.Status.WARMUP,
+        ]
+    ).count()
+
+    send_mail(
+        settings.ADMINS,
+        'Servidor quase cheio',
+        f'O servidor {server.name} ({server.ip}) está quase cheio: {running_matches}',
+    )
+
+
+@shared_task
+def send_servers_full_mail():
+    running_matches = Match.objects.filter(
+        status__in=[
+            Match.Status.RUNNING,
+            Match.Status.LOADING,
+            Match.Status.WARMUP,
+        ]
+    ).count()
+
+    send_mail(
+        settings.ADMINS,
+        'Servidores cheios',
+        f'Todos os servidores estão cheios. Total de partidas: {running_matches}',
+    )

@@ -49,20 +49,49 @@ def log_teaming_info():
 
 
 def handle_match_found(team: Team, opponent: Team):
+    if len(team.lobbies) < 1 or len(opponent.lobbies) < 1:
+        logging.warning(
+            f'[handle_match_found] lobbies missing ({len(team.lobbies)}, {len(opponent.lobbies)})'
+        )
+        return
+
+    if team.lobbies[0].max_players != opponent.lobbies[0].max_players:
+        logging_msg = (
+            f'({team.lobbies[0].max_players}, {opponent.lobbies[0].max_players})'
+        )
+        logging.warning('[handle_match_found] max_players diff ' + logging_msg)
+        return
+
+    max_players = team.lobbies[0].max_players
     lobbies = team.lobbies + opponent.lobbies
     total_players = team.players_count + opponent.players_count
 
-    if total_players < settings.TEAM_READY_PLAYERS_MIN * 2:
+    if (
+        total_players < settings.TEAM_READY_PLAYERS_MIN * 2
+        or total_players > max_players * 2
+    ):
+        logging.warning(f'[handle_match_found] wrong players length: {total_players}')
+        logging.warning(
+            f'[handle_match_found] deleting teams ({team.id}, {opponent.id})'
+        )
+        team.delete()
+        opponent.delete()
         return
 
     for lobby in lobbies:
         if not lobby.queue:
+            logging.warning(f'[handle_match_found] lobby not queued: {lobby.id}')
             return
 
         lobby.cancel_queue()
         ws_update_lobby(lobby)
 
-    pre_match = PreMatch.create(team.id, opponent.id)
+    pre_match = PreMatch.create(
+        team.id,
+        opponent.id,
+        lobbies[0].lobby_type,
+        lobbies[0].mode,
+    )
     ws_pre_match_create(pre_match)
 
 
@@ -86,26 +115,24 @@ def handle_teaming():
             not_ready_teams = Team.get_all_not_ready()
             for team in not_ready_teams:
                 if team.players_count + lobby.players_count <= lobby.max_players:
-                    if not lobby.queue:
-                        break
                     team.add_lobby(lobby.id)
                     break
 
             else:
-                if lobby.queue:
-                    team = Team.create([lobby.id])
+                team = Team.create([lobby.id])
 
         else:
             not_ready_teams = Team.get_all_not_ready()
             for team in not_ready_teams:
-                players_length = team.players_count + lobby.players_count
-                if (
-                    players_length <= lobby.max_players
-                    and players_length > lobby_team.players_count
-                ):
-                    if lobby.queue:
-                        lobby_team.remove_lobby(lobby.id)
-                        team.add_lobby(lobby.id)
+                if team.id != lobby_team.id:
+                    players_length = team.players_count + lobby.players_count
+                    if (
+                        players_length <= settings.TEAM_READY_PLAYERS_MIN
+                        and players_length > lobby_team.players_count
+                    ):
+                        if lobby.queue:
+                            lobby_team.remove_lobby(lobby.id)
+                            team.add_lobby(lobby.id)
 
     log_teaming_info()
 

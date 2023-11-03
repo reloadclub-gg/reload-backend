@@ -1,5 +1,3 @@
-import time
-from threading import Thread
 from unittest import mock
 
 from django.test import override_settings
@@ -9,8 +7,6 @@ from ninja.errors import Http404
 from accounts.tasks import watch_user_status_change
 from core.redis import redis_client_instance as cache
 from core.tests import TestCase
-from lobbies.api.controller import update_lobby
-from lobbies.api.schemas import LobbyUpdateSchema
 from lobbies.models import Lobby
 from pre_matches.api.controller import set_player_lock_in, set_player_ready
 from pre_matches.models import PreMatch, Team, TeamException
@@ -275,25 +271,6 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
         watch_user_status_change(pm.players_ready[0].id)
         with self.assertRaises(Http404):
             set_player_ready(left_out)
-
-    @override_settings(TEAM_READY_PLAYERS_MIN=1)
-    @mock.patch('lobbies.tasks.ws_queue_tick')
-    def test_handle_teaming_lobby_cancel_queue(self, mock_tick):
-        self.lobby1.start_queue()
-        self.lobby2.start_queue()
-        thread = Thread(target=tasks.handle_teaming)
-        thread.start()
-        time.sleep(0.001)
-        update_lobby(
-            self.user_2,
-            self.lobby2.id,
-            LobbyUpdateSchema.from_orm({'cancel_queue': True}),
-        )
-        thread.join()
-        t1 = Team.get_by_lobby_id(self.lobby1.id, fail_silently=True)
-        t2 = Team.get_by_lobby_id(self.lobby2.id, fail_silently=True)
-        self.assertIsNotNone(t1)
-        self.assertIsNone(t2)
 
     @override_settings(TEAM_READY_PLAYERS_MIN=1)
     @mock.patch('lobbies.tasks.ws_queue_tick')
