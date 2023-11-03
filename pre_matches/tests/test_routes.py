@@ -10,7 +10,12 @@ class PreMatchRoutesTestCase(mixins.TeamsMixin, TestCase):
         self.api = APIClient('/api/pre-matches')
 
     def test_lock_in(self):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         response = self.api.call(
             'post',
             '/lock-in/',
@@ -35,7 +40,12 @@ class PreMatchRoutesTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(len(pre_match.players_in), 2)
 
     def test_ready(self):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
@@ -63,7 +73,12 @@ class PreMatchRoutesTestCase(mixins.TeamsMixin, TestCase):
         self.assertEqual(len(pre_match.players_ready), 2)
 
     def test_detail(self):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         response = self.api.call(
             'get',
             '/',
