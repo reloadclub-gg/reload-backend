@@ -74,7 +74,7 @@ def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match
 def handle_create_match(pre_match: models.PreMatch) -> Match:
     server = Server.get_idle()
     if not server:
-        # TODO send alert (email, etc) to admins
+        tasks.send_servers_full_mail.delay()
         return
 
     game_type, game_mode = pre_match.teams[0].type_mode
@@ -83,6 +83,9 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
         game_type=game_type,
         game_mode=game_mode,
     )
+
+    if server.is_almost_full:
+        tasks.send_server_almost_full_mail.delay(server.name)
 
     handle_create_match_teams(match, pre_match)
 
