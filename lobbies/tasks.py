@@ -119,14 +119,15 @@ def handle_teaming():
         else:
             not_ready_teams = Team.get_all_not_ready()
             for team in not_ready_teams:
-                players_length = team.players_count + lobby.players_count
-                if (
-                    players_length <= lobby.max_players
-                    and players_length > lobby_team.players_count
-                ):
-                    if lobby.queue:
-                        lobby_team.remove_lobby(lobby.id)
-                        team.add_lobby(lobby.id)
+                if team.id != lobby_team.id:
+                    players_length = team.players_count + lobby.players_count
+                    if (
+                        players_length <= settings.TEAM_READY_PLAYERS_MIN
+                        and players_length > lobby_team.players_count
+                    ):
+                        if lobby.queue:
+                            lobby_team.remove_lobby(lobby.id)
+                            team.add_lobby(lobby.id)
 
     log_teaming_info()
 

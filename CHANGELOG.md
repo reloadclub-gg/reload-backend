@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrigimos um erro que fazia com que o remanejamento de time ficasse removendo e adicionando os lobbies em seus próprios times [#809](https://github.com/3C-gg/reload-backend/issues/809).
 - Corrigimos um erro que acontecia na exclusão de uma pré-partida. Ao tentar excluir os times dessa pré-partida, nós assumíamos que os times dela existiam, mas isso pode não ser verdade. Adicionamos uma proteção para isso [#805](https://github.com/3C-gg/reload-backend/issues/805).
 
 ### Removed
