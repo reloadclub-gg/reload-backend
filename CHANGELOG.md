@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Adiciona tarefas de envio de email caso servidores fiquem cheios ou quase cheios [#803](https://github.com/3C-gg/reload-backend/issues/803).
+
+### Changed
+
+- Altera campo `name` do modelo `Server` para ser único.
+- Passa a chamar tarefas de servidores cheio ou quase cheios na criação de partida.
+
 ### Removed
 
 - Arquivos obsoletos relativos a infra kubernetes [#801](https://github.com/3C-gg/reload-backend/issues/801).
