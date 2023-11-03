@@ -11,6 +11,7 @@ from accounts.utils import hex_to_steamid64
 from accounts.websocket import ws_update_user
 from core.utils import get_full_file_path
 from friends.websocket import ws_friend_update_or_create
+from pre_matches.models import PreMatch
 
 from .. import models, websocket
 from . import schemas
@@ -212,6 +213,18 @@ def cancel_match(match_id: int):
 
     match.cancel()
     websocket.ws_match_delete(match)
+
     for player in match.players:
+        pre_match = PreMatch.get_by_player_id(player.user.id)
+        if pre_match:
+            team1 = pre_match.teams[0]
+            if team1:
+                team1.delete()
+            team2 = pre_match.teams[1]
+            if team2:
+                team2.delete()
+
+            models.PreMatch.delete(pre_match.id)
+
         ws_update_user(player.user)
         ws_friend_update_or_create(player.user)
