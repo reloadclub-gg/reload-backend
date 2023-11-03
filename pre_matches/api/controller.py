@@ -35,10 +35,13 @@ def cancel_pre_match(pre_match: models.PreMatch, toast_msg: str = None):
 
     # delete the pre_match and teams from Redis
     team1 = pre_match.teams[0]
+    if team1:
+        team1.delete()
     team2 = pre_match.teams[1]
+    if team2:
+        team2.delete()
+
     models.PreMatch.delete(pre_match.id)
-    team1.delete()
-    team2.delete()
 
 
 def handle_create_fivem_match(match: Match) -> Match:
@@ -74,15 +77,26 @@ def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match
 def handle_create_match(pre_match: models.PreMatch) -> Match:
     server = Server.get_idle()
     if not server:
-        # TODO send alert (email, etc) to admins
+        tasks.send_servers_full_mail.delay()
         return
 
-    game_type, game_mode = pre_match.teams[0].type_mode
+    if (
+        len(pre_match.team1_players) < settings.TEAM_READY_PLAYERS_MIN
+        or len(pre_match.team2_players) < settings.TEAM_READY_PLAYERS_MIN
+        or len(pre_match.team1_players) > pre_match.mode
+        or len(pre_match.team2_players) > pre_match.mode
+    ):
+        cancel_pre_match(pre_match)
+        return
+
     match = Match.objects.create(
         server=server,
-        game_type=game_type,
-        game_mode=game_mode,
+        game_type=pre_match.match_type,
+        game_mode=pre_match.mode,
     )
+
+    if server.is_almost_full:
+        tasks.send_server_almost_full_mail.delay(server.name)
 
     handle_create_match_teams(match, pre_match)
 
@@ -90,10 +104,6 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     for match_player in match.players:
         ws_update_user(match_player.user)
         ws_friend_update_or_create(match_player.user)
-
-    if server.is_almost_full:
-        # TODO send alert (email, etc) to admins
-        pass
 
     return match
 
