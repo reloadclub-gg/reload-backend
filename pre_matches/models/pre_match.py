@@ -37,6 +37,8 @@ class PreMatch(BaseModel):
     [set] __mm:pre_match:[id]:ready_players_ids <(player_id,...)>
     [set] __mm:pre_match:[id]:in_players_ids <(player_id,...)>
     [key] __mm:pre_match:[id]:status str
+    [key] __mm:pre_match:[id]:type str
+    [key] __mm:pre_match:[id]:mode str
     """
 
     id: int
@@ -111,6 +113,16 @@ class PreMatch(BaseModel):
     def players(self) -> list[User]:
         return self.team1_players + self.team2_players
 
+    @property
+    def match_type(self) -> str:
+        return cache.get(f'{self.cache_key}:type')
+
+    @property
+    def mode(self) -> int:
+        mode = cache.get(f'{self.cache_key}:mode')
+        if mode:
+            return int(mode)
+
     @staticmethod
     def incr_auto_id() -> int:
         return int(cache.incr('__mm:pre_match__auto_id'))
@@ -121,7 +133,7 @@ class PreMatch(BaseModel):
         return int(count) if count else 0
 
     @staticmethod
-    def create(team1_id: str, team2_id: str) -> PreMatch:
+    def create(team1_id: str, team2_id: str, match_type: str, mode: str) -> PreMatch:
         team1 = Team.get_by_id(team1_id)
         team2 = Team.get_by_id(team2_id)
 
@@ -133,13 +145,14 @@ class PreMatch(BaseModel):
         def transaction_operations(pipe, pre_result):
             auto_id = PreMatch.incr_auto_id()
             pipe.set(
-                f'{PreMatch.Config.CACHE_PREFIX}{auto_id}',
-                f'{team1_id}:{team2_id}',
+                f'{PreMatch.Config.CACHE_PREFIX}{auto_id}', f'{team1_id}:{team2_id}'
             )
             pipe.set(
                 f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:status',
                 PreMatch.Status.LOCK_IN,
             )
+            pipe.set(f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:type', match_type)
+            pipe.set(f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:mode', mode)
 
             pipe.set(f'{team1.cache_key}:pre_match', auto_id)
             pipe.set(f'{team2.cache_key}:pre_match', auto_id)

@@ -3,6 +3,7 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from ninja.errors import Http404
@@ -11,6 +12,7 @@ from accounts.utils import hex_to_steamid64
 from accounts.websocket import ws_update_user
 from core.utils import get_full_file_path
 from friends.websocket import ws_friend_update_or_create
+from pre_matches.models import PreMatch
 
 from .. import models, websocket
 from . import schemas
@@ -155,6 +157,36 @@ def get_match(user: User, match_id: int) -> models.Match:
     return match
 
 
+def notify_users(match):
+    for player in match.players:
+        ws_update_user(player.user)
+        ws_friend_update_or_create(player.user)
+
+
+def should_finish_match(payload):
+    team_scores = {team.name: team.score for team in payload.teams}
+    if payload.is_overtime:
+        diff = abs(
+            team_scores[payload.teams[0].name] - team_scores[payload.teams[1].name]
+        )
+        return diff >= 2
+    else:
+        return any(
+            score >= settings.MATCH_ROUNDS_TO_WIN for score in team_scores.values()
+        )
+
+
+def update_scores(match, teams_data):
+    team_scores = {team.name: team.score for team in teams_data}
+    teams = models.MatchTeam.objects.filter(
+        match=match,
+        name__in=list(team_scores.keys()),
+    )
+    for team in teams:
+        team.score = team_scores[team.name]
+        team.save(update_fields=['score'])
+
+
 def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
     forbidden_statuses = [models.Match.Status.CANCELLED, models.Match.Status.FINISHED]
     try:
@@ -169,37 +201,23 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
         websocket.ws_match_update(match)
         return
 
-    team_a, team_b = models.MatchTeam.objects.filter(match=match)
+    with transaction.atomic():
+        update_scores(match, payload.teams)
+        stats_payload = payload.teams[0].players + payload.teams[1].players
+        handle_update_players_stats(stats_payload, match)
 
-    team_a.score = payload.team_a_score
-    team_a.save()
-
-    team_b.score = payload.team_b_score
-    team_b.save()
-
-    handle_update_players_stats(payload.players_stats, match)
-
-    if payload.is_overtime:
-        diff = abs(payload.team_a_score - payload.team_b_score)
-        if diff >= 2:
+        if should_finish_match(payload):
             match.finish()
-    elif (
-        payload.team_a_score >= settings.MATCH_ROUNDS_TO_WIN
-        or payload.team_b_score >= settings.MATCH_ROUNDS_TO_WIN
-    ):
-        match.finish()
 
-    if payload.chat:
-        match.chat = payload.chat
-        match.save()
+        if payload.chat:
+            match.chat = payload.chat
+            match.save()
 
     match.refresh_from_db()
     websocket.ws_match_update(match)
 
     if match.status == models.Match.Status.FINISHED:
-        for player in match.players:
-            ws_update_user(player.user)
-            ws_friend_update_or_create(player.user)
+        notify_users(match)
 
 
 def cancel_match(match_id: int):
@@ -212,6 +230,18 @@ def cancel_match(match_id: int):
 
     match.cancel()
     websocket.ws_match_delete(match)
+
     for player in match.players:
+        pre_match = PreMatch.get_by_player_id(player.user.id)
+        if pre_match:
+            team1 = pre_match.teams[0]
+            if team1:
+                team1.delete()
+            team2 = pre_match.teams[1]
+            if team2:
+                team2.delete()
+
+            models.PreMatch.delete(pre_match.id)
+
         ws_update_user(player.user)
         ws_friend_update_or_create(player.user)
