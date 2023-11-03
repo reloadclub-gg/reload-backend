@@ -86,7 +86,12 @@ def handle_match_found(team: Team, opponent: Team):
         lobby.cancel_queue()
         ws_update_lobby(lobby)
 
-    pre_match = PreMatch.create(team.id, opponent.id)
+    pre_match = PreMatch.create(
+        team.id,
+        opponent.id,
+        lobbies[0].lobby_type,
+        lobbies[0].mode,
+    )
     ws_pre_match_create(pre_match)
 
 

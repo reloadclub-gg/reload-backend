@@ -77,11 +77,10 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
         tasks.send_servers_full_mail.delay()
         return
 
-    game_type, game_mode = pre_match.teams[0].type_mode
     match = Match.objects.create(
         server=server,
-        game_type=game_type,
-        game_mode=game_mode,
+        game_type=pre_match.match_type,
+        game_mode=pre_match.mode,
     )
 
     if server.is_almost_full:
@@ -93,10 +92,6 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     for match_player in match.players:
         ws_update_user(match_player.user)
         ws_friend_update_or_create(match_player.user)
-
-    if server.is_almost_full:
-        # TODO send alert (email, etc) to admins
-        pass
 
     return match
 
