@@ -79,8 +79,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             status=models.Match.Status.RUNNING,
             start_date=timezone.now(),
         )
-        match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
+        team2 = match.matchteam_set.create(name=self.team2.name, score=6)
         player1 = baker.make(models.MatchPlayer, team=match.team_a, user=self.user_1)
         player2 = baker.make(models.MatchPlayer, team=match.team_b, user=self.user_2)
 
@@ -88,11 +88,12 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             'patch',
             f'/{match.id}',
             data={
-                'team_a_score': 9,
-                'team_b_score': 11,
+                'teams': [
+                    {'name': team1.name, 'score': 9, 'players': []},
+                    {'name': team2.name, 'score': 11, 'players': []},
+                ],
                 'end_reason': 0,
                 'is_overtime': False,
-                'players_stats': [],
             },
         )
 
@@ -104,11 +105,12 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             'patch',
             f'/{match.id}',
             data={
-                'team_a_score': 10,
-                'team_b_score': 11,
+                'teams': [
+                    {'name': team1.name, 'score': 10, 'players': []},
+                    {'name': team2.name, 'score': 11, 'players': []},
+                ],
                 'end_reason': 0,
                 'is_overtime': False,
-                'players_stats': [],
                 'chat': [
                     {
                         'steamid': player1.user.account.steamid,

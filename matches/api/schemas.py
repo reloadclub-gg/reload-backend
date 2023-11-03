@@ -209,11 +209,15 @@ class MatchUpdatePlayerStats(Schema):
     firstkill: bool = False
 
 
+class MatchUpdateTeam(Schema):
+    name: str
+    players: List[MatchUpdatePlayerStats]
+    score: int = 0
+
+
 class MatchUpdateSchema(Schema):
-    team_a_score: int = 0
-    team_b_score: int = 0
+    teams: List[MatchUpdateTeam] = []
     end_reason: int = None
-    players_stats: List[MatchUpdatePlayerStats] = []
     is_overtime: bool = False
     chat: list = None
     status: str = None
@@ -246,10 +250,21 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
         return Steam.build_avatar_url(obj.steam_user.avatarhash, 'medium')
 
 
+class MatchTeamFiveMSchema(ModelSchema):
+    players: List[MatchTeamPlayerFiveMSchema]
+
+    class Config:
+        model = models.MatchTeam
+        model_fields = ['name']
+
+    @staticmethod
+    def resolve_players(obj):
+        return [player.user for player in obj.players]
+
+
 class MatchFiveMSchema(ModelSchema):
     match_id: int = Field(None, alias='id')
-    team_a_players: List[MatchTeamPlayerFiveMSchema]
-    team_b_players: List[MatchTeamPlayerFiveMSchema]
+    teams: List[MatchTeamFiveMSchema]
 
     class Config:
         model = models.Match
@@ -258,14 +273,6 @@ class MatchFiveMSchema(ModelSchema):
     @staticmethod
     def resolve_map_id(obj):
         return obj.map.id
-
-    @staticmethod
-    def resolve_team_a_players(obj):
-        return [player.user for player in obj.team_a.players]
-
-    @staticmethod
-    def resolve_team_b_players(obj):
-        return [player.user for player in obj.team_b.players]
 
 
 class FiveMMatchResponseMock(Schema):

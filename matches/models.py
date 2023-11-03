@@ -31,7 +31,7 @@ def map_media_path(instance, filename):
 
 class Server(models.Model):
     ip = models.GenericIPAddressField()
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=32, unique=True)
     port = models.IntegerField(default=30120)
     api_port = models.IntegerField(default=3000)
 
@@ -43,7 +43,18 @@ class Server(models.Model):
         to admins and client application instead.
         """
         limit = matches_limit_per_server()
-        return len(self.match_set.filter(status=Match.Status.RUNNING)) == limit
+        return (
+            len(
+                self.match_set.filter(
+                    status__in=[
+                        Match.Status.RUNNING,
+                        Match.Status.WARMUP,
+                        Match.Status.LOADING,
+                    ]
+                )
+            )
+            == limit
+        )
 
     @property
     def is_almost_full(self) -> bool:
@@ -54,7 +65,15 @@ class Server(models.Model):
         """
         limit = matches_limit_per_server()
         gap = matches_limit_per_server_gap()
-        return len(self.match_set.filter(status=Match.Status.RUNNING)) == (limit - gap)
+        return len(
+            self.match_set.filter(
+                status__in=[
+                    Match.Status.RUNNING,
+                    Match.Status.WARMUP,
+                    Match.Status.LOADING,
+                ]
+            )
+        ) == (limit - gap)
 
     @staticmethod
     def get_idle() -> Server:

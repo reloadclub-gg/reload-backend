@@ -24,10 +24,10 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             start_date=timezone.now(),
             end_date=timezone.now(),
         )
-        self.match.matchteam_set.create(name=self.team1.name, score=10)
-        self.match.matchteam_set.create(name=self.team2.name, score=6)
-        baker.make(models.MatchPlayer, team=self.match.team_a, user=self.user_1)
-        baker.make(models.MatchPlayer, team=self.match.team_b, user=self.user_2)
+        self.match_t1 = self.match.matchteam_set.create(name=self.team1.name, score=10)
+        self.match_t2 = self.match.matchteam_set.create(name=self.team2.name, score=6)
+        baker.make(models.MatchPlayer, team=self.match_t1, user=self.user_1)
+        baker.make(models.MatchPlayer, team=self.match_t2, user=self.user_2)
 
     def test_get_user_matches(self):
         match2 = baker.make(
@@ -166,11 +166,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                 self.match.id,
                 schemas.MatchUpdateSchema.from_orm(
                     {
-                        'team_a_score': 0,
-                        'team_b_score': 1,
+                        'teams': [
+                            {'name': self.match_t1.name, 'score': 0, 'players': []},
+                            {'name': self.match_t2.name, 'score': 1, 'players': []},
+                        ],
                         'end_reason': 0,
                         'is_overtime': False,
-                        'players_stats': [],
                     }
                 ),
             )
@@ -182,11 +183,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                 self.match.id,
                 schemas.MatchUpdateSchema.from_orm(
                     {
-                        'team_a_score': 0,
-                        'team_b_score': 1,
+                        'teams': [
+                            {'name': self.match_t1.name, 'score': 0, 'players': []},
+                            {'name': self.match_t2.name, 'score': 1, 'players': []},
+                        ],
                         'end_reason': 0,
                         'is_overtime': False,
-                        'players_stats': [],
                     }
                 ),
             )
@@ -196,11 +198,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                 2904354758457854738543,
                 schemas.MatchUpdateSchema.from_orm(
                     {
-                        'team_a_score': 0,
-                        'team_b_score': 1,
+                        'teams': [
+                            {'name': self.match_t1.name, 'score': 0, 'players': []},
+                            {'name': self.match_t2.name, 'score': 1, 'players': []},
+                        ],
                         'end_reason': 0,
                         'is_overtime': False,
-                        'players_stats': [],
                     }
                 ),
             )
@@ -250,11 +253,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'team_a_score': 0,
-                    'team_b_score': 1,
+                    'teams': [
+                        {'name': self.match_t1.name, 'score': 0, 'players': []},
+                        {'name': self.match_t2.name, 'score': 1, 'players': []},
+                    ],
                     'end_reason': 0,
                     'is_overtime': False,
-                    'players_stats': [],
                 }
             ),
         )
@@ -303,11 +307,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'team_a_score': 16,
-                    'team_b_score': 6,
+                    'teams': [
+                        {'name': self.match_t1.name, 'score': 16, 'players': []},
+                        {'name': self.match_t2.name, 'score': 6, 'players': []},
+                    ],
                     'end_reason': 0,
                     'is_overtime': False,
-                    'players_stats': [],
                 }
             ),
         )
@@ -332,11 +337,20 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'team_a_score': settings.MATCH_ROUNDS_TO_WIN + 1,
-                    'team_b_score': settings.MATCH_ROUNDS_TO_WIN,
+                    'teams': [
+                        {
+                            'name': self.match_t1.name,
+                            'score': settings.MATCH_ROUNDS_TO_WIN + 1,
+                            'players': [],
+                        },
+                        {
+                            'name': self.match_t2.name,
+                            'score': settings.MATCH_ROUNDS_TO_WIN,
+                            'players': [],
+                        },
+                    ],
                     'end_reason': 0,
                     'is_overtime': True,
-                    'players_stats': [],
                 }
             ),
         )
@@ -365,11 +379,20 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'team_a_score': settings.MATCH_ROUNDS_TO_WIN,
-                    'team_b_score': settings.MATCH_ROUNDS_TO_WIN + 2,
+                    'teams': [
+                        {
+                            'name': self.match_t1.name,
+                            'score': settings.MATCH_ROUNDS_TO_WIN,
+                            'players': [],
+                        },
+                        {
+                            'name': self.match_t2.name,
+                            'score': settings.MATCH_ROUNDS_TO_WIN + 2,
+                            'players': [],
+                        },
+                    ],
                     'end_reason': 0,
                     'is_overtime': True,
-                    'players_stats': [],
                 }
             ),
         )
