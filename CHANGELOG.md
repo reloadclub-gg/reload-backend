@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Esquema `MatchFiveMSchema` e `MatchUpdateSchema` para incluirem arrays de times e usuários [#793](https://github.com/3C-gg/reload-backend/issues/793).
 - Altera campo `name` do modelo `Server` para ser único.
 - Passa a chamar tarefas de servidores cheio ou quase cheios na criação de partida.
 
