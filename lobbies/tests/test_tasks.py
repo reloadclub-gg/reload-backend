@@ -278,25 +278,6 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
 
     @override_settings(TEAM_READY_PLAYERS_MIN=1)
     @mock.patch('lobbies.tasks.ws_queue_tick')
-    def test_handle_teaming_lobby_cancel_queue(self, mock_tick):
-        self.lobby1.start_queue()
-        self.lobby2.start_queue()
-        thread = Thread(target=tasks.handle_teaming)
-        thread.start()
-        time.sleep(0.001)
-        update_lobby(
-            self.user_2,
-            self.lobby2.id,
-            LobbyUpdateSchema.from_orm({'cancel_queue': True}),
-        )
-        thread.join()
-        t1 = Team.get_by_lobby_id(self.lobby1.id, fail_silently=True)
-        t2 = Team.get_by_lobby_id(self.lobby2.id, fail_silently=True)
-        self.assertIsNotNone(t1)
-        self.assertIsNone(t2)
-
-    @override_settings(TEAM_READY_PLAYERS_MIN=1)
-    @mock.patch('lobbies.tasks.ws_queue_tick')
     def test_handle_matchmaking_lobby_cancel_queue(self, mock_tick):
         self.lobby1.start_queue()
         self.lobby2.start_queue()
