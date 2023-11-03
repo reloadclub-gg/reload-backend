@@ -1,5 +1,3 @@
-import time
-from threading import Thread
 from unittest import mock
 
 from django.test import override_settings
@@ -9,8 +7,6 @@ from ninja.errors import Http404
 from accounts.tasks import watch_user_status_change
 from core.redis import redis_client_instance as cache
 from core.tests import TestCase
-from lobbies.api.controller import update_lobby
-from lobbies.api.schemas import LobbyUpdateSchema
 from lobbies.models import Lobby
 from pre_matches.api.controller import set_player_lock_in, set_player_ready
 from pre_matches.models import PreMatch, Team, TeamException
