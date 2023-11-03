@@ -20,7 +20,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_match_create,
         mock_update_user,
     ):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
@@ -38,14 +43,21 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_match_create.assert_called_once_with(match)
         self.assertEqual(mock_update_user.call_count, 10)
 
+    @mock.patch('pre_matches.api.controller.tasks.send_servers_full_mail.delay')
     @mock.patch('pre_matches.api.controller.ws_update_user')
     @mock.patch('pre_matches.api.controller.ws_match_create')
     def test_handle_create_match_no_server_available(
         self,
         mock_match_create,
         mock_update_user,
+        mock_send_mail,
     ):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
@@ -57,6 +69,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
 
         mock_match_create.assert_not_called()
         mock_update_user.assert_not_called()
+        mock_send_mail.assert_called_once()
 
     @mock.patch('pre_matches.api.controller.ws_friend_update_or_create')
     @mock.patch('pre_matches.api.controller.ws_update_user')
@@ -69,7 +82,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_update_user,
         mock_friend_update,
     ):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
@@ -96,13 +114,23 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             Team.get_by_id(self.team2.id, raise_error=True)
 
     def test_handle_pre_match_checks(self):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         user = controller.handle_pre_match_checks(self.user_1, 'error')
         self.assertIsNotNone(user)
         self.assertTrue(user in pre_match.players)
 
     def test_handle_pre_match_checks_match_fail(self):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         controller.handle_create_match(pre_match)
 
@@ -114,7 +142,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             controller.handle_pre_match_checks(self.user_1, 'error')
 
     def test_get_pre_match(self):
-        created = PreMatch.create(self.team1.id, self.team2.id)
+        created = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         pre_match = controller.get_pre_match(self.user_1)
         self.assertEqual(created.id, pre_match.id)
 
@@ -123,7 +156,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertIsNone(pre_match)
 
     def test_set_player_lock_in(self):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         self.assertEqual(len(pre_match.players_in), 0)
         controller.set_player_lock_in(self.user_1)
         self.assertEqual(len(pre_match.players_in), 1)
@@ -145,7 +183,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_cancel_match_task,
         mock_pre_match_update,
     ):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         for player in pre_match.players[:-1]:
             pre_match.set_player_lock_in(player.id)
 
@@ -159,7 +202,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
     @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_update')
     def test_set_player_ready(self, mock_pre_match_update, mock_fivem):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         for player in pre_match.players:
             pre_match.set_player_lock_in(player.id)
 
@@ -175,7 +223,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     @mock.patch('pre_matches.api.controller.mock_fivem_match_start.apply_async')
     @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
     def test_set_player_ready_create_match(self, mock_fivem, mock_match_start):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         mock_fivem.return_value.status_code = 201
         for player in pre_match.players:
@@ -201,7 +254,12 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_fivem,
         mock_match_cancel,
     ):
-        pre_match = PreMatch.create(self.team1.id, self.team2.id)
+        pre_match = PreMatch.create(
+            self.team1.id,
+            self.team2.id,
+            self.team1.type_mode[0],
+            self.team1.type_mode[1],
+        )
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         mock_fivem.return_value.status_code = 201
         for player in pre_match.players:
