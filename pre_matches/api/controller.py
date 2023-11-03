@@ -35,10 +35,13 @@ def cancel_pre_match(pre_match: models.PreMatch, toast_msg: str = None):
 
     # delete the pre_match and teams from Redis
     team1 = pre_match.teams[0]
+    if team1:
+        team1.delete()
     team2 = pre_match.teams[1]
+    if team2:
+        team2.delete()
+
     models.PreMatch.delete(pre_match.id)
-    team1.delete()
-    team2.delete()
 
 
 def handle_create_fivem_match(match: Match) -> Match:
@@ -75,6 +78,15 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     server = Server.get_idle()
     if not server:
         tasks.send_servers_full_mail.delay()
+        return
+
+    if (
+        len(pre_match.team1_players) < settings.TEAM_READY_PLAYERS_MIN
+        or len(pre_match.team2_players) < settings.TEAM_READY_PLAYERS_MIN
+        or len(pre_match.team1_players) > pre_match.mode
+        or len(pre_match.team2_players) > pre_match.mode
+    ):
+        cancel_pre_match(pre_match)
         return
 
     match = Match.objects.create(
