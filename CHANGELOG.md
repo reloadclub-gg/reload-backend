@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- Arquivos obsoletos relativos a infra kubernetes [#801](https://github.com/3C-gg/reload-backend/issues/801).
+
+## [8950a21 - 2/11/2023]
+
 ### Added
 
 - Endpoint para atualizar dados (username e avatar da Steam) [#700](https://github.com/3C-gg/reload-backend/issues/700).
