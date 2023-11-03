@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona proteções de quantidades mínimas de jogadores e logs de warning ao encontrar partida [#807](https://github.com/3C-gg/reload-backend/issues/807).
 - Adiciona tarefas de envio de email caso servidores fiquem cheios ou quase cheios [#803](https://github.com/3C-gg/reload-backend/issues/803).
 
 ### Changed
