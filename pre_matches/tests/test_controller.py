@@ -5,7 +5,7 @@ from model_bakery import baker
 from ninja.errors import Http404, HttpError
 
 from core.tests import TestCase
-from matches.models import Match, Server
+from matches.models import Map, Match, Server
 
 from ..api import controller
 from ..models import PreMatch, PreMatchException, Team, TeamException
@@ -20,6 +20,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_match_create,
         mock_update_user,
     ):
+        baker.make(Map)
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
@@ -125,6 +126,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         self.assertTrue(user in pre_match.players)
 
     def test_handle_pre_match_checks_match_fail(self):
+        baker.make(Map)
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
@@ -223,6 +225,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     @mock.patch('pre_matches.api.controller.mock_fivem_match_start.apply_async')
     @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
     def test_set_player_ready_create_match(self, mock_fivem, mock_match_start):
+        baker.make(Map)
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
@@ -254,6 +257,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_fivem,
         mock_match_cancel,
     ):
+        baker.make(Map)
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,

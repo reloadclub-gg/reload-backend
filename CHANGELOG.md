@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Altera campo `report_points` do modelo `AccountReports` para ser inteiro e positivo (`PositiveIntegerField`).
+- Altera campo `map` do modelo `Match` para que não tenha um default. Ao invés disso, selecione randomicamente um dos mapas existentes [#817](https://github.com/3C-gg/reload-backend/issues/817).
 
 ### Fixed
 
