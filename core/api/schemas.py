@@ -18,3 +18,5 @@ class HealthCheckSchema(Schema):
     language: str
     i18n_check: str
     maintenance: bool
+    beta_required: bool
+    invite_required: bool
