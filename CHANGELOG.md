@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Atualiza admin de partidas para exibir partidas na seguinte ordem: primeiro as que terminaram mais recentemente, depois as que iniciaram mais recentemente e por último as que foram criadas mais recentemente [#800](https://github.com/3C-gg/reload-backend/issues/800).
+- Atualiza `seed.json` para refletir alterações da #817.
 - Desmembra a função `lobbies.api.controller.update_lobby` para ficar mais legível.
 - Altera campo `report_points` do modelo `AccountReports` para ser inteiro e positivo (`PositiveIntegerField`).
 - Altera campo `map` do modelo `Match` para que não tenha um default. Ao invés disso, selecione randomicamente um dos mapas existentes [#817](https://github.com/3C-gg/reload-backend/issues/817).
