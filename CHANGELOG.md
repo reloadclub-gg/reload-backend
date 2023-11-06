@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desmembra a função `lobbies.api.controller.update_lobby` para ficar mais legível.
 - Altera campo `report_points` do modelo `AccountReports` para ser inteiro e positivo (`PositiveIntegerField`).
 - Altera campo `map` do modelo `Match` para que não tenha um default. Ao invés disso, selecione randomicamente um dos mapas existentes [#817](https://github.com/3C-gg/reload-backend/issues/817).
 
 ### Fixed
 
+- Corrigimos um problema que fazia com que a lógica de remanejar lobbies que estão em fila entre os times levantasse o erro: `Não é possível remover um lobby de um time enquanto está em partida.`. Adicionamos uma proteção para evitar que times que já estão em uma pré-partida não sejam remanejados. Além disso, o mesmo erro era levantado quando um lobby tentava cancelar a fila enquanto estava em uma partida, também adicionamos uma proteção para impedir que isso aconteça [#822](https://github.com/3C-gg/reload-backend/issues/822).
 - Corrige admins não poderem inativar usuários [#824](https://github.com/3C-gg/reload-backend/issues/824).
 
 ### Removed

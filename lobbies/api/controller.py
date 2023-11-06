@@ -18,6 +18,41 @@ from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
 User = get_user_model()
 
 
+def handle_lobby_update_ws(lobby):
+    websocket.ws_update_lobby(lobby)
+    lobby_players = User.objects.filter(id__in=lobby.players_ids)
+    for player in lobby_players:
+        ws_update_user(player)
+        ws_friend_update_or_create(player)
+        send_user_update_to_friendlist.delay(player.id)
+        websocket.ws_expire_player_invites(player)
+
+
+def handle_cancel_queue(lobby):
+    team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
+    if not team or (team and not team.pre_match_id):
+        lobby.cancel_queue()
+
+        if team:
+            team.remove_lobby(lobby.id)
+
+    else:
+        raise HttpError(400, _('Can\'t cancel queue while in match.'))
+
+
+def handle_start_queue(lobby, user):
+    if maintenance_window():
+        raise HttpError(400, _('We are under maintenance. Try again later.'))
+
+    if user.id != lobby.owner_id:
+        raise AuthenticationError()
+
+    try:
+        lobby.start_queue()
+    except LobbyException as e:
+        raise HttpError(400, e)
+
+
 def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
     old_lobby = user.account.lobby
     new_lobby = Lobby(owner_id=lobby_id)
@@ -283,37 +318,13 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
 
 def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby:
     lobby = get_lobby(lobby_id)
-    updated = False
 
     if payload.start_queue:
-        updated = True
-        if maintenance_window():
-            raise HttpError(400, _('We are under maintenance. Try again later.'))
-
-        if user.id != lobby.owner_id:
-            raise AuthenticationError()
-
-        try:
-            lobby.start_queue()
-        except LobbyException as e:
-            raise HttpError(400, e)
-
+        handle_start_queue(lobby, user)
+        handle_lobby_update_ws(lobby)
     elif payload.cancel_queue:
-        updated = True
-        lobby.cancel_queue()
-        team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
-        if team:
-            team.remove_lobby(lobby_id)
-
-    if updated:
-        websocket.ws_update_lobby(lobby)
-
-        lobby_players = User.objects.filter(id__in=lobby.players_ids)
-        for player in lobby_players:
-            ws_update_user(player)
-            ws_friend_update_or_create(player)
-            send_user_update_to_friendlist.delay(player.id)
-            websocket.ws_expire_player_invites(player)
+        handle_cancel_queue(lobby)
+        handle_lobby_update_ws(lobby)
 
     return lobby
 

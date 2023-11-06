@@ -191,7 +191,9 @@ class Team(BaseModel):
         Fetch all non ready teams in Redis db.
         """
         teams = Team.get_all()
-        not_ready = [team for team in teams if team and not team.ready]
+        not_ready = [
+            team for team in teams if team and not team.ready and not team.pre_match_id
+        ]
         return sorted(not_ready, key=lambda team: team.players_count, reverse=True)
 
     @staticmethod
