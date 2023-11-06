@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [c61bc29 - 3/11/2023]
+
 ### Added
 
 - Campos `match_type` e `mode` no modelo `PreMatch`. Assim podemos garantir melhor que essas informações serão respeitadas [#813](https://github.com/3C-gg/reload-backend/issues/813).
