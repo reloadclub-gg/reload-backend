@@ -8,7 +8,7 @@ from social_django.models import UserSocialAuth
 
 from core.tests import TestCase, cache
 from lobbies.models import Lobby
-from matches.models import Match, MatchPlayer, Server
+from matches.models import Map, Match, MatchPlayer, Server
 from matches.tests.mixins import FinishedMatchesMixin
 
 from .. import models, utils
@@ -537,6 +537,7 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         self.assertEqual(user3.status, models.User.Status.ONLINE)
 
         server = baker.make(Server)
+        baker.make(Map)
         match = Match.objects.create(
             server=server,
             game_type=Match.GameType.COMPETITIVE,

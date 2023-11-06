@@ -130,7 +130,7 @@ class Match(models.Model):
         DM = 20
 
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
-    map = models.ForeignKey(Map, on_delete=models.CASCADE, default=1)
+    map = models.ForeignKey(Map, on_delete=models.CASCADE)
     create_date = models.DateTimeField(auto_now_add=True)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
@@ -199,6 +199,11 @@ class Match(models.Model):
         Fetch and return all players that are in match.
         """
         return MatchPlayer.objects.filter(Q(team=self.team_a) | Q(team=self.team_b))
+
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.map_id:
+            self.map = Map.objects.order_by('?').first()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         if self.team_a and self.team_b:
