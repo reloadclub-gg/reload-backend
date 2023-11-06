@@ -110,10 +110,10 @@ def handle_teaming():
     for lobby in queued_lobbies:
         ws_queue_tick(lobby)
         lobby_team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
+        unready_teams = Team.get_all_not_ready()
 
         if not lobby_team:
-            not_ready_teams = Team.get_all_not_ready()
-            for team in not_ready_teams:
+            for team in unready_teams:
                 if team.players_count + lobby.players_count <= lobby.max_players:
                     team.add_lobby(lobby.id)
                     break
@@ -122,15 +122,18 @@ def handle_teaming():
                 team = Team.create([lobby.id])
 
         else:
-            not_ready_teams = Team.get_all_not_ready()
-            for team in not_ready_teams:
+            for team in unready_teams:
                 if team.id != lobby_team.id:
                     players_length = team.players_count + lobby.players_count
                     if (
                         players_length <= settings.TEAM_READY_PLAYERS_MIN
                         and players_length > lobby_team.players_count
                     ):
-                        if lobby.queue:
+                        if (
+                            lobby.queue
+                            and not lobby_team.pre_match_id
+                            and not team.pre_match_id
+                        ):
                             lobby_team.remove_lobby(lobby.id)
                             team.add_lobby(lobby.id)
 
