@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Altera campo `report_points` do modelo `AccountReports` para ser inteiro e positivo (`PositiveIntegerField`).
+
+### Fixed
+
+- Corrige admins não poderem inativar usuários [#824](https://github.com/3C-gg/reload-backend/issues/824).
+
+### Removed
+
+- Criação de inlines de `Items`, `Boxes` e `Reports` do admin de usuário.
+
 ## [c61bc29 - 3/11/2023]
 
 ### Added
