@@ -6,6 +6,7 @@ from ninja import Field, ModelSchema, Schema
 from accounts.utils import calc_level_and_points, steamid64_to_hex
 from core.utils import get_full_file_path
 from steam import Steam
+from store.models import Item
 
 from .. import models
 
@@ -29,19 +30,19 @@ class MatchPlayerStatsSchema(ModelSchema):
 
     class Config:
         model = models.MatchPlayerStats
-        model_exclude = ['player', 'id']
+        model_exclude = ["player", "id"]
 
 
 class MatchPlayerProgressSchema(ModelSchema):
-    level_before: int = Field(None, alias='level')
+    level_before: int = Field(None, alias="level")
     level_after: int = None
-    level_points_before: int = Field(None, alias='level_points')
+    level_points_before: int = Field(None, alias="level_points")
     level_points_after: int = None
     points_earned: int = None
 
     class Config:
         model = models.MatchPlayer
-        model_exclude = ['id', 'user', 'team', 'level', 'level_points']
+        model_exclude = ["id", "user", "team", "level", "level_points"]
 
     @staticmethod
     def resolve_level_after(obj):
@@ -76,7 +77,7 @@ class MatchPlayerSchema(ModelSchema):
 
     class Config:
         model = models.MatchPlayer
-        model_exclude = ['user', 'team', 'level', 'level_points']
+        model_exclude = ["user", "team", "level", "level_points"]
 
     @staticmethod
     def resolve_user_id(obj):
@@ -128,7 +129,7 @@ class MatchTeamSchema(ModelSchema):
 
     class Config:
         model = models.MatchTeam
-        model_exclude = ['match']
+        model_exclude = ["match"]
 
     @staticmethod
     def resolve_match_id(obj):
@@ -140,7 +141,7 @@ class MapSchema(ModelSchema):
 
     class Config:
         model = models.Map
-        model_fields = '__all__'
+        model_fields = "__all__"
 
     @staticmethod
     def resolve_thumbnail(obj):
@@ -162,7 +163,7 @@ class MatchSchema(ModelSchema):
 
     class Config:
         model = models.Match
-        model_exclude = ['server', 'chat']
+        model_exclude = ["server", "chat"]
 
     @staticmethod
     def resolve_server_ip(obj):
@@ -228,6 +229,7 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
     steamid: str
     level: int
     avatar: str
+    assets: dict = {}
 
     class Config:
         model = User
@@ -248,6 +250,26 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
     @staticmethod
     def resolve_avatar(obj):
         return Steam.build_avatar_url(obj.steam_user.avatarhash, 'medium')
+
+    @staticmethod
+    def resolve_assets(obj):
+        item_types = {
+            Item.ItemType.SPRAY: 'spray',
+            Item.ItemType.PERSONA: 'persona',
+            Item.ItemType.WEAR: 'wear',
+        }
+
+        items = obj.useritem_set.filter(
+            item__item_type__in=item_types.keys(),
+            in_use=True,
+        )
+
+        item_mapping = {item.item.item_type: item for item in items}
+
+        return {
+            value: item_mapping.get(key).item.handle if key in item_mapping else None
+            for key, value in item_types.items()
+        }
 
 
 class MatchTeamFiveMSchema(ModelSchema):

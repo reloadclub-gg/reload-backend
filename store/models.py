@@ -162,6 +162,7 @@ class UserItem(models.Model):
 
     class Meta:
         unique_together = ['user', 'item']
+        indexes = [models.Index(fields=['in_use'])]
 
     def save(self, *args, **kwargs):
         existing = UserItem.objects.filter(
@@ -188,6 +189,7 @@ class UserBox(models.Model):
     class Meta:
         verbose_name_plural = 'user boxes'
         unique_together = ['user', 'box']
+        indexes = [models.Index(fields=['can_open'])]
 
     def __str__(self):
         return self.box.name
