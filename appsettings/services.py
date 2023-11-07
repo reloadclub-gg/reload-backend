@@ -38,3 +38,7 @@ def max_notification_history_count_per_player() -> int:
 
 def maintenance_window() -> bool:
     return AppSettings.get('Maintenance Window', False)
+
+
+def check_beta_required() -> bool:
+    return AppSettings.get('Beta Required', False)
