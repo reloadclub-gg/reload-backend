@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige o tamanho máximo para anexos no email de suporte no ambiente local (`10MB -> 5MB`) [#797](https://github.com/3C-gg/reload-backend/issues/797).
 - Corrige envio de formulário de suporte sem arquivos [#838](https://github.com/3C-gg/reload-backend/issues/838).
 
 ## [670dccc - 7/11/2023]
