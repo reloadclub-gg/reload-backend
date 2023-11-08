@@ -22,7 +22,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             name='Test Item',
             foreground_image=self.tmp_image,
             background_image=self.tmp_image,
-            price=9.90,
+            price=9,
             is_available=True,
         )
         self.box = baker.make(
@@ -30,7 +30,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             name='Test Box',
             foreground_image=self.tmp_image,
             background_image=self.tmp_image,
-            price=9.90,
+            price=9,
             is_available=True,
         )
         self.collection = baker.make(
@@ -38,7 +38,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             name='Test Collection',
             foreground_image=self.tmp_image,
             background_image=self.tmp_image,
-            price=9.90,
+            price=9,
             is_available=True,
         )
         self.box_item = baker.make(
@@ -47,7 +47,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             name='Test Box Item',
             foreground_image=self.tmp_image,
             background_image=self.tmp_image,
-            price=9.90,
+            price=9,
             is_available=True,
         )
         self.collection_item = baker.make(
@@ -56,7 +56,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             name='Test Collection Item',
             foreground_image=self.tmp_image,
             background_image=self.tmp_image,
-            price=9.90,
+            price=9,
             is_available=True,
         )
 
@@ -252,7 +252,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             name='Test Item 2',
             foreground_image=self.tmp_image,
             background_image=self.tmp_image,
-            price=9.90,
+            price=9,
             is_available=False,
             featured=True,
         )
