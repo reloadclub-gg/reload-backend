@@ -66,7 +66,7 @@ def create_ticket(
 
     if files:
         for file in files:
-            if file.size > max_file_size * 10000:
+            if file.size > max_file_size * 1000000:
                 raise HttpError(
                     400,
                     _(f'Attachment is too large (max {max_file_size}MB).'),
