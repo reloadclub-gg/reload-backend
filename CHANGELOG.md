@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Altera campo `price` nos modelos `Box`, `Collection` e `Item` para serem inteiros e não decimais.
+
+### Added
+
+- Adiciona dois modelos novos: `Product` e `ProductTransaction` representando, respectivamente, os produtos vendidos na loja através de um gateway, com dinheiro real, e a transação/compra de um produto realizada por um usuário.
+- Adiciona campo `coins` para representar os créditos (ReloadCoins) do usuário na plataforma.
+
 ## [5d431fa - 9/11/2023]
 
 ### Changed
