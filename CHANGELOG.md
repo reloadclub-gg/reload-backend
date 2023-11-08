@@ -5,9 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [670dccc - 7/11/2023]
-
 ## [Unreleased]
+
+### Added
+
+- Adiciona proteção ao atualizar pontuação de times de uma partida para que evitar pontuação invertida [#833](https://github.com/3C-gg/reload-backend/issues/833).
+
+## [670dccc - 7/11/2023]
 
 ### Added
 
