@@ -1,3 +1,4 @@
+import logging
 import math
 from typing import List
 
@@ -163,17 +164,12 @@ def notify_users(match):
         ws_friend_update_or_create(player.user)
 
 
-def should_finish_match(payload):
-    team_scores = {team.name: team.score for team in payload.teams}
-    if payload.is_overtime:
-        diff = abs(
-            team_scores[payload.teams[0].name] - team_scores[payload.teams[1].name]
-        )
+def should_finish_match(is_overtime, scores):
+    if is_overtime:
+        diff = abs(scores[0] - scores[1])
         return diff >= 2
     else:
-        return any(
-            score >= settings.MATCH_ROUNDS_TO_WIN for score in team_scores.values()
-        )
+        return any(score >= settings.MATCH_ROUNDS_TO_WIN for score in scores)
 
 
 def update_scores(match, teams_data):
@@ -182,9 +178,38 @@ def update_scores(match, teams_data):
         match=match,
         name__in=list(team_scores.keys()),
     )
-    for team in teams:
-        team.score = team_scores[team.name]
-        team.save(update_fields=['score'])
+    inverted = False
+    for idx, team in enumerate(teams):
+        if idx == 0:
+            if (
+                team_scores[team.name] - team.score >= 2
+                and team_scores[teams[1].name] <= teams[1].score
+            ):
+                logging.warning(
+                    f'[update_scores] match {match.id}: team {team.name} '
+                    f'{team_scores[team.name]} ({team.score})'
+                )
+                teams[1].score = team_scores[team.name]
+                teams[1].save(update_fields=['score'])
+                return teams[0].score, teams[1].score
+        else:
+            if (
+                team_scores[team.name] - team.score >= 2
+                and team_scores[teams[0].name] <= teams[0].score
+            ):
+                logging.warning(
+                    f'[update_scores] match {match.id}: team {team.name}'
+                    f'{team_scores[team.name]} ({team.score})'
+                )
+                teams[0].score = team_scores[team.name]
+                teams[0].save(update_fields=['score'])
+                return teams[0].score, teams[1].score
+
+        if not inverted:
+            team.score = team_scores[team.name]
+            team.save(update_fields=['score'])
+
+    return teams[0].score, teams[1].score
 
 
 def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
@@ -202,11 +227,11 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
         return
 
     with transaction.atomic():
-        update_scores(match, payload.teams)
+        scores = update_scores(match, payload.teams)
         stats_payload = payload.teams[0].players + payload.teams[1].players
         handle_update_players_stats(stats_payload, match)
 
-        if should_finish_match(payload):
+        if should_finish_match(payload.is_overtime, scores):
             match.finish()
 
         if payload.chat:
