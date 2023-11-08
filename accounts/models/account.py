@@ -51,6 +51,7 @@ class Account(models.Model):
         max_length=VERIFICATION_TOKEN_LENGTH,
     )
     social_handles = models.JSONField(default=get_default_social_handles)
+    coins = models.IntegerField(default=0)
 
     class Meta:
         indexes = [
