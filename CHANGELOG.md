@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Adiciona campo `assets` no `MatchTeamPlayerFiveMSchema` com um dicionário de itens que o usuário está equipado [#679](https://github.com/3C-gg/reload-backend/issues/679).
+
 ### Changed
 
 - Endpoint raiz da api passa a devolver dois novos campos: `beta_required` e `invite_required` [#821](https://github.com/3C-gg/reload-backend/issues/821).
