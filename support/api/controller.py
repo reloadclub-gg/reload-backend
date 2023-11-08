@@ -61,10 +61,16 @@ def create_ticket(
         headers={'Reply-To': user.email},
     )
 
+    # we need to set this to 5MB because of MailTrap, that have a message size limit of
+    max_file_size = 5 if settings.ENVIRONMENT == settings.LOCAL else 10
+
     if files:
         for file in files:
-            if file.size > 10000000:
-                raise HttpError(400, _('Attachment is too large (max 10MB).'))
+            if file.size > max_file_size * 10000:
+                raise HttpError(
+                    400,
+                    _(f'Attachment is too large (max {max_file_size}MB).'),
+                )
 
             with default_storage.open(f'uploads/{file.name}', 'wb+') as destination:
                 for chunk in file.chunks():
