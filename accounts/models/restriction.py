@@ -29,7 +29,7 @@ class AccountReport(models.Model):
     )
     subject = models.IntegerField(choices=Subject.choices)
     datetime_created = models.DateTimeField(auto_now_add=True)
-    report_points = models.IntegerField(default=0)
+    report_points = models.PositiveIntegerField(default=0)
     comments = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs) -> None:

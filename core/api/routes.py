@@ -7,7 +7,11 @@ from ninja.errors import AuthenticationError, Http404, ValidationError
 from ninja.pagination import paginate
 
 from accounts.api.routes import router as accounts_router
-from appsettings.services import maintenance_window
+from appsettings.services import (
+    check_beta_required,
+    check_invite_required,
+    maintenance_window,
+)
 from friends.api.routes import router as friends_router
 from lobbies.api.routes import router as lobbies_router
 from matches.api.routes import router as matches_router
@@ -46,6 +50,8 @@ def healty_check(request):
         'language': lang,
         'i18n_check': _('Internationalization works.'),
         'maintenance': maintenance_window(),
+        'invite_required': check_invite_required(),
+        'beta_required': check_beta_required(),
     }
 
 

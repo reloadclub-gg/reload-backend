@@ -588,6 +588,14 @@
         }
     },
     {
+        "model": "matches.map",
+        "fields": {
+            "id": 1,
+            "name": "Auditório",
+            "sys_name": "auditorium"
+        }
+    },
+    {
         "model": "matches.match",
         "pk": 1,
         "fields": {
@@ -597,6 +605,7 @@
             "end_date": "2023-04-19T15:36:06Z",
             "status": "finished",
             "game_type": "competitive",
+            "map": 1,
             "game_mode": 5,
             "chat": [
                 {
@@ -630,7 +639,8 @@
             "end_date": null,
             "status": "running",
             "game_type": "competitive",
-            "game_mode": 5
+            "game_mode": 5,
+            "map": 1
         }
     },
     {

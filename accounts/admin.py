@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
@@ -128,6 +130,12 @@ class UserReportsAdminInline(admin.TabularInline):
 
     subject_link.short_description = 'Subject'
 
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
 
 class UserItemAdminInline(admin.TabularInline):
     model = UserItem
@@ -157,6 +165,9 @@ class UserItemAdminInline(admin.TabularInline):
     def has_change_permission(self, request, obj=None) -> bool:
         return False
 
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
 
 class UserBoxAdminInline(admin.TabularInline):
     model = UserBox
@@ -176,6 +187,9 @@ class UserBoxAdminInline(admin.TabularInline):
         return obj.box.is_available
 
     def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_add_permission(self, request, obj=None) -> bool:
         return False
 
 
@@ -207,7 +221,8 @@ class CustomUserStatusFilter(admin.SimpleListFilter):
 @admin.register(models.User)
 class UserAdmin(
     DjangoObjectActions,
-    admin_mixins.ReadOnlyModelAdminMixin,
+    admin_mixins.CannotDeleteModelAdminMixin,
+    admin_mixins.CannotCreateModelAdminMixin,
     DjangoUserAdmin,
 ):
     fieldsets = (
@@ -270,7 +285,6 @@ class UserAdmin(
         'username',
         'last_login',
         'date_joined',
-        'is_active',
         'status',
         'is_verified',
         'level',
@@ -355,6 +369,18 @@ class UserAdmin(
         return actions
 
     change_actions = ('assume_identity',)
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if not request.user.is_superuser:
+            fieldsets = deepcopy(fieldsets)
+            for fieldset in fieldsets:
+                for field in ['is_staff', 'is_superuser', 'groups']:
+                    if field in fieldset[1]['fields']:
+                        fieldset[1]['fields'] = tuple(
+                            x for x in fieldset[1]['fields'] if x != field
+                        )
+        return fieldsets
 
 
 @admin.register(models.Invite)
