@@ -28,7 +28,7 @@ class Box(models.Model):
     name = models.CharField(max_length=128)
     handle = models.CharField(max_length=128, unique=True, editable=False)
     owners = models.ManyToManyField(User, through='UserBox')
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.PositiveIntegerField()
     create_date = models.DateTimeField(auto_now_add=True)
     release_date = models.DateTimeField(null=True, blank=True)
     is_available = models.BooleanField(default=False)
@@ -49,7 +49,7 @@ class Box(models.Model):
 class Collection(models.Model):
     name = models.CharField(max_length=128)
     handle = models.CharField(max_length=128, unique=True, editable=False)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.PositiveIntegerField()
     create_date = models.DateTimeField(auto_now_add=True)
     release_date = models.DateTimeField(null=True, blank=True)
     is_available = models.BooleanField(default=False)
@@ -86,7 +86,7 @@ class Item(models.Model):
         blank=True,
     )
     handle = models.CharField(max_length=128, unique=True, editable=False)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.PositiveIntegerField()
     create_date = models.DateTimeField(auto_now_add=True)
     release_date = models.DateTimeField(null=True)
     is_available = models.BooleanField(default=False)
@@ -158,7 +158,6 @@ class UserItem(models.Model):
     purchase_date = models.DateTimeField(auto_now_add=True)
     in_use = models.BooleanField(default=False)
     can_use = models.BooleanField(default=True)
-    # TODO: add transaction field
 
     class Meta:
         unique_together = ['user', 'item']
@@ -184,7 +183,6 @@ class UserBox(models.Model):
     purchase_date = models.DateTimeField(auto_now_add=True)
     open_date = models.DateTimeField(null=True)
     can_open = models.BooleanField(default=True)
-    # TODO: add transaction field
 
     class Meta:
         verbose_name_plural = 'user boxes'
@@ -193,3 +191,29 @@ class UserBox(models.Model):
 
     def __str__(self):
         return self.box.name
+
+
+class Product(models.Model):
+    amount = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    name = models.CharField(max_length=64)
+    gateway_id = models.CharField(max_length=256, unique=True)
+    is_available = models.BooleanField(default=False)
+    is_sandbox = models.BooleanField(default=False)
+    create_date = models.DateTimeField(auto_now_add=True)
+    description = models.TextField()
+    discount = models.IntegerField(default=0)
+
+    class Meta:
+        indexes = [models.Index(fields=['gateway_id'])]
+
+
+class ProductTransaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    gateway_id = models.CharField(max_length=256, unique=True)
+
+    class Meta:
+        verbose_name_plural = 'transactions'
+        indexes = [models.Index(fields=['gateway_id'])]
