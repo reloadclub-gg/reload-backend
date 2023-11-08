@@ -61,23 +61,24 @@ def create_ticket(
         headers={'Reply-To': user.email},
     )
 
-    for file in files:
-        if file.size > 3000000:
-            raise HttpError(400, _('Attachment is too large (max 3MB).'))
+    if files:
+        for file in files:
+            if file.size > 10000000:
+                raise HttpError(400, _('Attachment is too large (max 10MB).'))
 
-        with default_storage.open(f'uploads/{file.name}', 'wb+') as destination:
-            for chunk in file.chunks():
-                destination.write(chunk)
+            with default_storage.open(f'uploads/{file.name}', 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
 
-        with default_storage.open(f'uploads/{file.name}', 'rb') as destination:
-            email.attach(file.name, destination.read(), 'application/octet-stream')
+            with default_storage.open(f'uploads/{file.name}', 'rb') as destination:
+                email.attach(file.name, destination.read(), 'application/octet-stream')
 
     try:
         email.send()
     except SMTPException as e:
         raise HttpError(400, e)
 
-    if not settings.TEST_MODE:
+    if files and not settings.TEST_MODE:
         for file in files:
             default_storage.delete(f'uploads/{file.name}')
 
