@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona campo `assets` no `MatchTeamPlayerFiveMSchema` com um dicionário de itens que o usuário está equipado [#679](https://github.com/3C-gg/reload-backend/issues/679).
+
+### Changed
+
+- Endpoint raiz da api passa a devolver dois novos campos: `beta_required` e `invite_required` [#821](https://github.com/3C-gg/reload-backend/issues/821).
+- Atualiza admin de partidas para exibir partidas na seguinte ordem: primeiro as que terminaram mais recentemente, depois as que iniciaram mais recentemente e por último as que foram criadas mais recentemente [#800](https://github.com/3C-gg/reload-backend/issues/800).
+- Atualiza `seed.json` para refletir alterações da #817.
+- Desmembra a função `lobbies.api.controller.update_lobby` para ficar mais legível.
+- Altera campo `report_points` do modelo `AccountReports` para ser inteiro e positivo (`PositiveIntegerField`).
+- Altera campo `map` do modelo `Match` para que não tenha um default. Ao invés disso, selecione randomicamente um dos mapas existentes [#817](https://github.com/3C-gg/reload-backend/issues/817).
+
+### Fixed
+
+- Corrigimos um problema que fazia com que a lógica de remanejar lobbies que estão em fila entre os times levantasse o erro: `Não é possível remover um lobby de um time enquanto está em partida.`. Adicionamos uma proteção para evitar que times que já estão em uma pré-partida não sejam remanejados. Além disso, o mesmo erro era levantado quando um lobby tentava cancelar a fila enquanto estava em uma partida, também adicionamos uma proteção para impedir que isso aconteça [#822](https://github.com/3C-gg/reload-backend/issues/822).
+- Corrige admins não poderem inativar usuários [#824](https://github.com/3C-gg/reload-backend/issues/824).
+
+### Removed
+
+- Criação de inlines de `Items`, `Boxes` e `Reports` do admin de usuário.
+
+## [c61bc29 - 3/11/2023]
+
+### Added
+
 - Campos `match_type` e `mode` no modelo `PreMatch`. Assim podemos garantir melhor que essas informações serão respeitadas [#813](https://github.com/3C-gg/reload-backend/issues/813).
 - Adiciona proteções de quantidades mínimas de jogadores e logs de warning ao encontrar partida [#807](https://github.com/3C-gg/reload-backend/issues/807).
 - Adiciona tarefas de envio de email caso servidores fiquem cheios ou quase cheios [#803](https://github.com/3C-gg/reload-backend/issues/803).

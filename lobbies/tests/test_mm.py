@@ -7,7 +7,7 @@ from model_bakery import baker
 
 from core.tests import APIClient, TestCase
 from lobbies.tasks import queue
-from matches.models import Match, Server
+from matches.models import Map, Match, Server
 from pre_matches.models import PreMatch, PreMatchException, Team
 from pre_matches.tasks import cancel_match_after_countdown
 
@@ -26,6 +26,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
     )
     def test_teamed_mm_routes(self, mock_cancel_match_task):
         queue()
+        baker.make(Map)
 
         # lobby 1 & 2 preparation
         r = self.lobby_api.call(

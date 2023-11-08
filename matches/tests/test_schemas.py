@@ -7,6 +7,7 @@ from matches import models
 from matches.api import schemas
 from pre_matches.tests.mixins import TeamsMixin
 from steam import Steam
+from store.models import Item, UserItem
 
 
 class MatchesSchemasTestCase(TeamsMixin, TestCase):
@@ -238,6 +239,24 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
                 match_player.user.steam_user.avatarhash,
                 'medium',
             ),
+            'assets': {'persona': None, 'spray': None, 'wear': None},
+        }
+
+        self.assertEqual(payload, expected_payload)
+
+        item = baker.make(Item, item_type='spray', name='spray_1')
+        UserItem.objects.create(item=item, user=self.user_1, in_use=True)
+        payload = schemas.MatchTeamPlayerFiveMSchema.from_orm(match_player.user).dict()
+        expected_payload = {
+            'id': match_player.user.id,
+            'username': match_player.user.account.username,
+            'steamid': steamid64_to_hex(match_player.user.account.steamid),
+            'level': match_player.user.account.level,
+            'avatar': Steam.build_avatar_url(
+                match_player.user.steam_user.avatarhash,
+                'medium',
+            ),
+            'assets': {'persona': None, 'spray': item.handle, 'wear': None},
         }
 
         self.assertEqual(payload, expected_payload)
