@@ -62,8 +62,8 @@ def create_ticket(
     )
 
     for file in files:
-        if file.size > 3000000:
-            raise HttpError(400, _('Attachment is too large (max 3MB).'))
+        if file.size > 10000000:
+            raise HttpError(400, _('Attachment is too large (max 10MB).'))
 
         with default_storage.open(f'uploads/{file.name}', 'wb+') as destination:
             for chunk in file.chunks():

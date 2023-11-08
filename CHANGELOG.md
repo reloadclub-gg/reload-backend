@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Ativa opção de adicionar ou editar itens ou caixas de usuário pelo admin [#835](https://github.com/3C-gg/reload-backend/issues/835).
+- Altera tamanho limite para upload de arquivo anexo no envio de um ticket ao suporte (`3MB` para `10MB`) [#797](https://github.com/3C-gg/reload-backend/issues/797).
 
 ### Added
 
