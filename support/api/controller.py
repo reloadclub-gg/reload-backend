@@ -91,5 +91,5 @@ def create_ticket(
     return Ticket(
         subject=payload.subject,
         description=payload.description,
-        attachments_count=len(files),
+        attachments_count=len(files) if files else 0,
     )
