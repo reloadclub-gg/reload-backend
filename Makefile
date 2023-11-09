@@ -31,11 +31,11 @@ refresh:
 	docker-compose up -d
 
 pipinstall:
-	docker-compose run --rm django pipenv install $(params)
+	docker-compose run --rm api pipenv install $(params)
 	make reset
 
 pipremove:
-	docker-compose run --rm django pipenv uninstall $(params)
+	docker-compose run --rm api pipenv uninstall $(params)
 	make reset
 
 resetlocust:
