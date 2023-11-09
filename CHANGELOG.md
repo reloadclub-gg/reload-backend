@@ -16,10 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona proteção ao criar times, verificando se times existem de fato antes de criar a partida. Caso os times não existam, cancelamos a partida.
 - Adiciona proteção ao atualizar pontuação de times de uma partida para que evitar pontuação invertida [#833](https://github.com/3C-gg/reload-backend/issues/833).
 
 ### Fixed
 
+- Corrige propriedade `teams` do modelo `PreMatch` que não verificava se a própria chave ainda existia no Redis.
 - Corrige contagem de arquivos enviados na criação de ticket de suporte caso seja 0 (hotfix).
 - Corrige o tamanho máximo para anexos no email de suporte no ambiente local (`10MB -> 5MB`) [#797](https://github.com/3C-gg/reload-backend/issues/797).
 - Corrige envio de formulário de suporte sem arquivos [#838](https://github.com/3C-gg/reload-backend/issues/838).
