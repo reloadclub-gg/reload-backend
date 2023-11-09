@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Subquery
 from django.utils import timezone
-from ninja import ModelSchema, Schema
+from ninja import Field, ModelSchema, Schema
 
 from core.redis import redis_client_instance as cache
 from core.utils import get_full_file_path, str_to_timezone
@@ -229,3 +229,17 @@ class UserStoreSchema(ModelSchema):
 
 class UserItemUpdateSchema(Schema):
     in_use: bool
+
+
+class ProductSchema(Schema):
+    id: str
+    price: str = Field(alias='default_price')
+    amount: str
+
+    @staticmethod
+    def resolve_amount(obj):
+        return obj.get('metadata').get('amount')
+
+
+class PurchaseSchema(Schema):
+    product_id: str
