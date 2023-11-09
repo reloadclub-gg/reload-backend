@@ -87,9 +87,14 @@ class PreMatch(BaseModel):
 
     @property
     def teams(self) -> tuple[Team]:
-        team1 = Team.get_by_id(cache.get(self.cache_key).split(':')[0])
-        team2 = Team.get_by_id(cache.get(self.cache_key).split(':')[1])
-        return (team1, team2)
+        key = cache.get(self.cache_key)
+        if key:
+            return (
+                Team.get_by_id(key.split(':')[0]),
+                Team.get_by_id(key.split(':')[1]),
+            )
+
+        return (None, None)
 
     @property
     def team1_players(self) -> list[User]:
