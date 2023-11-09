@@ -46,7 +46,8 @@ class SupportControllerTestCase(AccountOneMixin, TestCase):
 
     def test_create_ticket_with_attachments_size_exceeded(self):
         uploaded_files = [
-            SimpleUploadedFile('upload_test_file.txt', b'a' * 3000001) for i in range(3)
+            SimpleUploadedFile('upload_test_file.txt', b'a' * 10000001)
+            for i in range(3)
         ]
 
         with self.assertRaises(HttpError):

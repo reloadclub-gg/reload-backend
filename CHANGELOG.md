@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Ativa opção de adicionar ou editar itens ou caixas de usuário pelo admin [#835](https://github.com/3C-gg/reload-backend/issues/835).
+- Altera tamanho limite para upload de arquivo anexo no envio de um ticket ao suporte (`3MB` para `10MB`) [#797](https://github.com/3C-gg/reload-backend/issues/797).
+
+### Added
+
+- Adiciona proteção ao atualizar pontuação de times de uma partida para que evitar pontuação invertida [#833](https://github.com/3C-gg/reload-backend/issues/833).
+
+### Fixed
+
+- Corrige o tamanho máximo para anexos no email de suporte no ambiente local (`10MB -> 5MB`) [#797](https://github.com/3C-gg/reload-backend/issues/797).
+- Corrige envio de formulário de suporte sem arquivos [#838](https://github.com/3C-gg/reload-backend/issues/838).
+
+## [670dccc - 7/11/2023]
+
 ### Added
 
 - Adiciona campo `assets` no `MatchTeamPlayerFiveMSchema` com um dicionário de itens que o usuário está equipado [#679](https://github.com/3C-gg/reload-backend/issues/679).

@@ -79,8 +79,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             status=models.Match.Status.RUNNING,
             start_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        team2 = match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=9)
+        team2 = match.matchteam_set.create(name=self.team2.name, score=10)
         player1 = baker.make(models.MatchPlayer, team=match.team_a, user=self.user_1)
         player2 = baker.make(models.MatchPlayer, team=match.team_b, user=self.user_2)
 

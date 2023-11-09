@@ -303,12 +303,17 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.match.status = models.Match.Status.RUNNING
         self.match.save()
 
+        self.match_t1.score = 12
+        self.match_t1.save()
+        self.match_t2.score = 6
+        self.match_t2.save()
+
         controller.update_match(
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
                     'teams': [
-                        {'name': self.match_t1.name, 'score': 16, 'players': []},
+                        {'name': self.match_t1.name, 'score': 13, 'players': []},
                         {'name': self.match_t2.name, 'score': 6, 'players': []},
                     ],
                     'end_reason': 0,
@@ -318,7 +323,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         )
         mock_handle_update_stats.assert_called_once()
         mock_match_update.assert_called_once()
-        self.assertEqual(self.match.team_a.score, 16)
+        self.assertEqual(self.match.team_a.score, 13)
         self.assertEqual(self.match.team_b.score, 6)
         self.match.refresh_from_db()
         self.assertEqual(self.match.status, models.Match.Status.FINISHED)
@@ -332,6 +337,11 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
     def test_update_match_ot(self, mock_handle_update_stats, mock_match_update):
         self.match.status = models.Match.Status.RUNNING
         self.match.save()
+
+        self.match_t1.score = 13
+        self.match_t1.save()
+        self.match_t2.score = 13
+        self.match_t2.save()
 
         controller.update_match(
             self.match.id,
@@ -374,6 +384,11 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
     ):
         self.match.status = models.Match.Status.RUNNING
         self.match.save()
+
+        self.match_t1.score = 13
+        self.match_t1.save()
+        self.match_t2.score = 14
+        self.match_t2.save()
 
         controller.update_match(
             self.match.id,
@@ -473,3 +488,126 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
 
         with self.assertRaises(Http404):
             controller.cancel_match(self.match.id)
+
+    def test_update_scores_inverted(self):
+        self.match.status = models.Match.Status.RUNNING
+        self.match.save()
+
+        self.match_t1.score = 0
+        self.match_t1.save()
+        self.match_t2.score = 1
+        self.match_t2.save()
+
+        # inversion
+        controller.update_scores(
+            self.match,
+            [
+                schemas.MatchUpdateTeam.from_orm(
+                    {
+                        'name': self.match_t1.name,
+                        'score': 2,
+                        'players': [],
+                    }
+                ),
+                schemas.MatchUpdateTeam.from_orm(
+                    {
+                        'name': self.match_t2.name,
+                        'score': 1,
+                        'players': [],
+                    }
+                ),
+            ],
+        )
+        self.assertEqual(self.match.team_a.score, 0)
+        self.assertEqual(self.match.team_b.score, 2)
+
+        controller.update_scores(
+            self.match,
+            [
+                schemas.MatchUpdateTeam.from_orm(
+                    {
+                        'name': self.match_t1.name,
+                        'score': 0,
+                        'players': [],
+                    }
+                ),
+                schemas.MatchUpdateTeam.from_orm(
+                    {
+                        'name': self.match_t2.name,
+                        'score': 3,
+                        'players': [],
+                    }
+                ),
+            ],
+        )
+        self.assertEqual(self.match.team_a.score, 0)
+        self.assertEqual(self.match.team_b.score, 3)
+
+        controller.update_scores(
+            self.match,
+            [
+                schemas.MatchUpdateTeam.from_orm(
+                    {
+                        'name': self.match_t1.name,
+                        'score': 1,
+                        'players': [],
+                    }
+                ),
+                schemas.MatchUpdateTeam.from_orm(
+                    {
+                        'name': self.match_t2.name,
+                        'score': 3,
+                        'players': [],
+                    }
+                ),
+            ],
+        )
+        self.assertEqual(self.match.team_a.score, 1)
+        self.assertEqual(self.match.team_b.score, 3)
+
+        # inversion
+        controller.update_scores(
+            self.match,
+            [
+                schemas.MatchUpdateTeam.from_orm(
+                    {
+                        'name': self.match_t1.name,
+                        'score': 4,
+                        'players': [],
+                    }
+                ),
+                schemas.MatchUpdateTeam.from_orm(
+                    {
+                        'name': self.match_t2.name,
+                        'score': 1,
+                        'players': [],
+                    }
+                ),
+            ],
+        )
+        self.assertEqual(self.match.team_a.score, 1)
+        self.assertEqual(self.match.team_b.score, 4)
+
+        self.match_t1.score = 8
+        self.match_t1.save()
+        self.match_t2.score = 12
+        self.match_t2.save()
+
+        # inversion
+        controller.update_match(
+            self.match.id,
+            schemas.MatchUpdateSchema.from_orm(
+                {
+                    'teams': [
+                        {'name': self.match_t1.name, 'score': 13, 'players': []},
+                        {'name': self.match_t2.name, 'score': 8, 'players': []},
+                    ],
+                    'end_reason': 0,
+                    'is_overtime': False,
+                }
+            ),
+        )
+        self.match.refresh_from_db()
+        self.assertEqual(self.match.team_a.score, 8)
+        self.assertEqual(self.match.team_b.score, 13)
+        self.assertEqual(self.match.status, models.Match.Status.FINISHED)
