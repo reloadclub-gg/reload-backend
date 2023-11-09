@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5d431fa - 9/11/2023]
+
 ### Changed
 
 - Ativa opção de adicionar ou editar itens ou caixas de usuário pelo admin [#835](https://github.com/3C-gg/reload-backend/issues/835).
