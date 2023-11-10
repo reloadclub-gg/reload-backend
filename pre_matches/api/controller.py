@@ -59,6 +59,9 @@ def handle_create_fivem_match(match: Match) -> Match:
 
 def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match:
     pre_team1, pre_team2 = pre_match.teams
+    if not pre_team1 or not pre_match:
+        return
+
     team_a = match.matchteam_set.create(name=pre_team1.name)
     team_b = match.matchteam_set.create(name=pre_team2.name)
 
@@ -72,6 +75,8 @@ def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match
     models.PreMatch.delete(pre_match.id)
     pre_team1.delete()
     pre_team2.delete()
+
+    return (team_a, team_b)
 
 
 def handle_create_match(pre_match: models.PreMatch) -> Match:
@@ -98,7 +103,9 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     if server.is_almost_full:
         tasks.send_server_almost_full_mail.delay(server.name)
 
-    handle_create_match_teams(match, pre_match)
+    if not handle_create_match_teams(match, pre_match):
+        cancel_match(match.id)
+        return
 
     ws_match_create(match)
     for match_player in match.players:
