@@ -49,21 +49,26 @@ def log_teaming_info():
 
 
 def handle_match_found(team: Team, opponent: Team):
-    if len(team.lobbies) < 1 or len(opponent.lobbies) < 1:
+    lobbies = team.lobbies + opponent.lobbies
+
+    if len(lobbies) < 2:
         logging.warning(
             f'[handle_match_found] lobbies missing ({len(team.lobbies)}, {len(opponent.lobbies)})'
         )
+        team.delete()
+        opponent.delete()
         return
 
-    if team.lobbies[0].max_players != opponent.lobbies[0].max_players:
-        logging_msg = (
-            f'({team.lobbies[0].max_players}, {opponent.lobbies[0].max_players})'
+    if not all(lobby.max_players == lobbies[0].max_players for lobby in lobbies):
+        logging.warning(
+            '[handle_match_found] max_players diff '
+            f'({",".join([lobby.max_players for lobby in lobbies])})'
         )
-        logging.warning('[handle_match_found] max_players diff ' + logging_msg)
+        team.delete()
+        opponent.delete()
         return
 
     max_players = team.lobbies[0].max_players
-    lobbies = team.lobbies + opponent.lobbies
     total_players = team.players_count + opponent.players_count
 
     if (
