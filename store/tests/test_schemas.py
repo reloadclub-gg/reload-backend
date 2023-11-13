@@ -123,6 +123,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             ],
         }
         self.assertEqual(payload, expected_payload)
+        self.assertTrue('http' in payload.get('media')[0].get('file'))
 
     def test_item_box_schema(self):
         payload = schemas.ItemSchema.from_orm(self.box_item).dict()
