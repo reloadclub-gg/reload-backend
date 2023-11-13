@@ -16,10 +16,17 @@ from .. import models
 User = get_user_model()
 
 
+class ItemMediaSchema(ModelSchema):
+    class Config:
+        model = models.ItemMedia
+        model_exclude = ['item']
+
+
 class BoxSchema(ModelSchema):
     background_image: str
     foreground_image: str
     can_open: bool = None
+    object: str = 'box'
 
     class Config:
         model = models.Box
@@ -37,6 +44,7 @@ class BoxSchema(ModelSchema):
 class CollectionSchema(ModelSchema):
     background_image: str
     foreground_image: str
+    object: str = 'collection'
 
     class Config:
         model = models.Collection
@@ -58,6 +66,8 @@ class ItemSchema(ModelSchema):
     collection: CollectionSchema = None
     in_use: bool = None
     can_use: bool = None
+    object: str = 'item'
+    media: List[ItemMediaSchema] = []
 
     class Config:
         model = models.Item
@@ -70,6 +80,15 @@ class ItemSchema(ModelSchema):
     @staticmethod
     def resolve_foreground_image(obj):
         return get_full_file_path(obj.foreground_image)
+
+    @staticmethod
+    def resolve_media(obj):
+        # We have to check the type of obj because the products field of UserStoreSchema
+        # lists a Union of Items and Boxes, so the system doesn't know how to identify
+        # each type of obj and tries to seralize them on both Schemas (ItemSchema and BoxSchema).
+        # So boxes also are treated as items and Ninja tries to serialize them using ItemSchema.
+        if isinstance(obj, models.Item):
+            return obj.itemmedia_set.all()
 
 
 class UserInventorySchema(ModelSchema):
@@ -129,6 +148,7 @@ class UserStoreSchema(ModelSchema):
     user_id: int
     featured: List[Union[ItemSchema, CollectionSchema, BoxSchema]] = []
     products: List[Union[ItemSchema, BoxSchema]] = []
+    next_rotation: str
 
     class Config:
         model = User
@@ -182,6 +202,21 @@ class UserStoreSchema(ModelSchema):
     def update_cache(key, values):
         if values:
             cache.sadd(key, *[item.id for item in values])
+
+    @staticmethod
+    def resolve_next_rotation(obj):
+        rotation_key = f'__store:user:{obj.id}:last_updated'
+        rotation = cache.get(rotation_key)
+        now = timezone.now()
+        duration = settings.STORE_ROTATION_DAYS
+
+        if rotation:
+            start_time = str_to_timezone(rotation)
+            end_time = start_time + timedelta(days=duration)
+        else:
+            end_time = now + timedelta(days=duration)
+
+        return end_time.isoformat()
 
     @staticmethod
     def resolve_products(obj):

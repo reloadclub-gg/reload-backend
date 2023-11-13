@@ -1,5 +1,4 @@
 from django.conf import settings
-from model_bakery import baker
 
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
