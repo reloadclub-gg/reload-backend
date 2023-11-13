@@ -21,6 +21,10 @@ class ItemMediaSchema(ModelSchema):
         model = models.ItemMedia
         model_exclude = ['item']
 
+    @staticmethod
+    def resolve_file(obj):
+        return get_full_file_path(obj.file)
+
 
 class BoxSchema(ModelSchema):
     background_image: str
