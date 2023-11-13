@@ -80,9 +80,11 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'discount': self.item.discount,
             'background_image': get_full_file_path(self.item.background_image),
             'foreground_image': get_full_file_path(self.item.foreground_image),
-            'box': schemas.BoxSchema.from_orm(self.item.box) if self.item.box else None,
+            'box_id': schemas.BoxSchema.from_orm(self.item.box)
+            if self.item.box
+            else None,
             'box_draw_chance': self.item.box_draw_chance,
-            'collection': schemas.CollectionSchema.from_orm(self.collection)
+            'collection_id': schemas.CollectionSchema.from_orm(self.collection)
             if self.item.collection
             else None,
             'featured': self.item.featured,
@@ -108,11 +110,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'discount': self.item.discount,
             'background_image': get_full_file_path(self.item.background_image),
             'foreground_image': get_full_file_path(self.item.foreground_image),
-            'box': schemas.BoxSchema.from_orm(self.item.box) if self.item.box else None,
+            'box_id': self.item.box.id if self.item.box else None,
             'box_draw_chance': self.item.box_draw_chance,
-            'collection': schemas.CollectionSchema.from_orm(self.collection)
-            if self.item.collection
-            else None,
+            'collection_id': self.collection.id if self.item.collection else None,
             'featured': self.item.featured,
             'in_use': None,
             'can_use': None,
@@ -139,11 +139,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'discount': self.box_item.discount,
             'background_image': get_full_file_path(self.box_item.background_image),
             'foreground_image': get_full_file_path(self.box_item.foreground_image),
-            'box': schemas.BoxSchema.from_orm(self.box).dict(),
+            'box_id': self.box.id,
             'box_draw_chance': self.box_item.box_draw_chance,
-            'collection': schemas.CollectionSchema.from_orm(self.collection).dict()
-            if self.box_item.collection
-            else None,
+            'collection_id': self.collection.id if self.box_item.collection else None,
             'featured': self.box_item.featured,
             'in_use': None,
             'can_use': None,
@@ -170,11 +168,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'foreground_image': get_full_file_path(
                 self.collection_item.foreground_image
             ),
-            'box': schemas.BoxSchema.from_orm(self.collection_item.box).dict()
-            if self.collection_item.box
-            else None,
+            'box_id': self.item.box.id if self.item.box else None,
             'box_draw_chance': self.collection_item.box_draw_chance,
-            'collection': schemas.CollectionSchema.from_orm(self.collection).dict(),
+            'collection_id': self.collection.id,
             'featured': self.collection_item.featured,
             'in_use': None,
             'can_use': None,
@@ -198,6 +194,10 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'featured': self.box.featured,
             'can_open': None,
             'object': 'box',
+            'items': [
+                schemas.ItemSchema.from_orm(item)
+                for item in self.box.item_set.filter(is_available=True)
+            ],
         }
         self.assertEqual(payload, expected_payload)
 
@@ -215,6 +215,10 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'foreground_image': get_full_file_path(self.collection.foreground_image),
             'featured': self.collection.featured,
             'object': 'collection',
+            'items': [
+                schemas.ItemSchema.from_orm(item)
+                for item in self.collection.item_set.filter(is_available=True)
+            ],
         }
         self.assertEqual(payload, expected_payload)
 
@@ -229,44 +233,28 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
 
         self.assertEqual(payload, expected_payload)
 
-        user_owned_item = baker.make(models.UserItem, item=self.item, user=self.user)
         payload = schemas.UserInventorySchema.from_orm(self.user).dict()
         expected_payload = {
             'id': f'{self.user.email}{self.user.id}inventory',
             'user_id': self.user.id,
             'items': [
-                dict(
-                    schemas.ItemSchema.from_orm(user_item.item).dict(),
-                    in_use=user_owned_item.in_use,
-                    can_use=user_owned_item.can_use,
-                    id=user_owned_item.id,
-                )
+                schemas.UserItemSchema.from_orm(user_item)
                 for user_item in models.UserItem.objects.filter(user=self.user)
             ],
             'boxes': [],
         }
         self.assertEqual(payload, expected_payload)
 
-        user_owned_box = baker.make(models.UserBox, box=self.box, user=self.user)
         payload = schemas.UserInventorySchema.from_orm(self.user).dict()
         expected_payload = {
             'id': f'{self.user.email}{self.user.id}inventory',
             'user_id': self.user.id,
             'items': [
-                dict(
-                    schemas.ItemSchema.from_orm(user_item.item).dict(),
-                    in_use=user_owned_item.in_use,
-                    can_use=user_owned_item.can_use,
-                    id=user_owned_item.id,
-                )
+                schemas.UserItemSchema.from_orm(user_item)
                 for user_item in models.UserItem.objects.filter(user=self.user)
             ],
             'boxes': [
-                dict(
-                    schemas.BoxSchema.from_orm(user_box.box).dict(),
-                    can_open=user_owned_box.can_open,
-                    id=user_owned_box.id,
-                )
+                schemas.UserBoxSchema.from_orm(user_box)
                 for user_box in models.UserBox.objects.filter(user=self.user)
             ],
         }
