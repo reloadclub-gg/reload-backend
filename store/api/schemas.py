@@ -40,6 +40,16 @@ class BoxSchema(ModelSchema):
     def resolve_foreground_image(obj):
         return get_full_file_path(obj.foreground_image)
 
+    @staticmethod
+    def resolve_object(obj):
+        # Same as media field - need to check type because Union isn't good enough
+        if isinstance(obj, models.Item):
+            return 'item'
+        elif isinstance(obj, models.Box):
+            return 'box'
+        elif isinstance(obj, models.Collection):
+            return 'collection'
+
 
 class CollectionSchema(ModelSchema):
     background_image: str
@@ -57,6 +67,16 @@ class CollectionSchema(ModelSchema):
     @staticmethod
     def resolve_foreground_image(obj):
         return get_full_file_path(obj.foreground_image)
+
+    @staticmethod
+    def resolve_object(obj):
+        # Same as media field - need to check type because Union isn't good enough
+        if isinstance(obj, models.Item):
+            return 'item'
+        elif isinstance(obj, models.Box):
+            return 'box'
+        elif isinstance(obj, models.Collection):
+            return 'collection'
 
 
 class ItemSchema(ModelSchema):
@@ -89,6 +109,16 @@ class ItemSchema(ModelSchema):
         # So boxes also are treated as items and Ninja tries to serialize them using ItemSchema.
         if isinstance(obj, models.Item):
             return obj.itemmedia_set.all()
+
+    @staticmethod
+    def resolve_object(obj):
+        # Same as media field - need to check type because Union isn't good enough
+        if isinstance(obj, models.Item):
+            return 'item'
+        elif isinstance(obj, models.Box):
+            return 'box'
+        elif isinstance(obj, models.Collection):
+            return 'collection'
 
 
 class UserInventorySchema(ModelSchema):

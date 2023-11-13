@@ -302,6 +302,30 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
         self.assertEqual(len(payload.get('products')), 4)
         self.assertEqual(len(payload.get('featured')), 1)
 
+        baker.make(
+            models.Box,
+            name='Feat Box',
+            foreground_image=self.tmp_image,
+            background_image=self.tmp_image,
+            price=9,
+            is_available=True,
+            featured=True,
+        )
+
+        baker.make(
+            models.Collection,
+            name='Feat Collection',
+            foreground_image=self.tmp_image,
+            background_image=self.tmp_image,
+            price=9,
+            is_available=True,
+            featured=True,
+        )
+
+        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        self.assertEqual(len(payload.get('products')), 4)
+        self.assertEqual(len(payload.get('featured')), 3)
+
     @override_settings(STORE_LENGTH=2)
     def test_user_store_schema_length(self):
         payload = schemas.UserStoreSchema.from_orm(self.user).dict()
