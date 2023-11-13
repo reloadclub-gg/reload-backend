@@ -1,6 +1,6 @@
 import random
 from datetime import timedelta
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -26,11 +26,49 @@ class ItemMediaSchema(ModelSchema):
         return get_full_file_path(obj.file)
 
 
+class ItemSchema(ModelSchema):
+    background_image: str
+    foreground_image: str
+    box_id: int = None
+    collection_id: int = None
+    in_use: bool = None
+    can_use: bool = None
+    object: str = 'item'
+    media: List[ItemMediaSchema] = []
+
+    class Config:
+        model = models.Item
+        model_exclude = ['create_date', 'is_available', 'owners', 'box', 'collection']
+
+    @staticmethod
+    def resolve_background_image(obj):
+        return get_full_file_path(obj.background_image)
+
+    @staticmethod
+    def resolve_foreground_image(obj):
+        return get_full_file_path(obj.foreground_image)
+
+    @staticmethod
+    def resolve_media(obj):
+        return obj.itemmedia_set.all()
+
+    @staticmethod
+    def resolve_box_id(obj):
+        if obj.box:
+            return obj.box.id
+
+    @staticmethod
+    def resolve_collection_id(obj):
+        if obj.collection:
+            return obj.collection.id
+
+
 class BoxSchema(ModelSchema):
     background_image: str
     foreground_image: str
     can_open: bool = None
     object: str = 'box'
+    items: List[ItemSchema] = []
 
     class Config:
         model = models.Box
@@ -45,20 +83,15 @@ class BoxSchema(ModelSchema):
         return get_full_file_path(obj.foreground_image)
 
     @staticmethod
-    def resolve_object(obj):
-        # Same as media field - need to check type because Union isn't good enough
-        if isinstance(obj, models.Item):
-            return 'item'
-        elif isinstance(obj, models.Box):
-            return 'box'
-        elif isinstance(obj, models.Collection):
-            return 'collection'
+    def resolve_items(obj):
+        return obj.item_set.filter(is_available=True)
 
 
 class CollectionSchema(ModelSchema):
     background_image: str
     foreground_image: str
     object: str = 'collection'
+    items: List[ItemSchema] = []
 
     class Config:
         model = models.Collection
@@ -73,63 +106,94 @@ class CollectionSchema(ModelSchema):
         return get_full_file_path(obj.foreground_image)
 
     @staticmethod
-    def resolve_object(obj):
-        # Same as media field - need to check type because Union isn't good enough
-        if isinstance(obj, models.Item):
-            return 'item'
-        elif isinstance(obj, models.Box):
-            return 'box'
-        elif isinstance(obj, models.Collection):
-            return 'collection'
+    def resolve_items(obj):
+        return obj.item_set.filter(is_available=True)
 
 
-class ItemSchema(ModelSchema):
+class UserItemSchema(ModelSchema):
+    id: int
+    name: str
     background_image: str
     foreground_image: str
-    box: BoxSchema = None
-    collection: CollectionSchema = None
-    in_use: bool = None
-    can_use: bool = None
-    object: str = 'item'
-    media: List[ItemMediaSchema] = []
+    subtype: str = None
+    description: str
+    release_date: str = None
 
     class Config:
-        model = models.Item
-        model_exclude = ['create_date', 'is_available', 'owners']
+        model = models.UserItem
+        model_exclude = ['user', 'item']
+
+    @staticmethod
+    def resolve_id(obj):
+        return obj.item.id
+
+    @staticmethod
+    def resolve_name(obj):
+        return obj.item.name
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.background_image)
+        return obj.item.background_image
 
     @staticmethod
     def resolve_foreground_image(obj):
-        return get_full_file_path(obj.foreground_image)
+        return obj.item.foreground_image
 
     @staticmethod
-    def resolve_media(obj):
-        # We have to check the type of obj because the products field of UserStoreSchema
-        # lists a Union of Items and Boxes, so the system doesn't know how to identify
-        # each type of obj and tries to seralize them on both Schemas (ItemSchema and BoxSchema).
-        # So boxes also are treated as items and Ninja tries to serialize them using ItemSchema.
-        if isinstance(obj, models.Item):
-            return obj.itemmedia_set.all()
+    def resolve_subtype(obj):
+        return obj.item.subtype
 
     @staticmethod
-    def resolve_object(obj):
-        # Same as media field - need to check type because Union isn't good enough
-        if isinstance(obj, models.Item):
-            return 'item'
-        elif isinstance(obj, models.Box):
-            return 'box'
-        elif isinstance(obj, models.Collection):
-            return 'collection'
+    def resolve_description(obj):
+        return obj.item.description
+
+    @staticmethod
+    def resolve_release_date(obj):
+        return obj.item.release_date
+
+
+class UserBoxSchema(ModelSchema):
+    id: int
+    name: str
+    background_image: str
+    foreground_image: str
+    description: str
+    release_date: str = None
+
+    class Config:
+        model = models.UserBox
+        model_exclude = ['user', 'box']
+
+    @staticmethod
+    def resolve_id(obj):
+        return obj.box.id
+
+    @staticmethod
+    def resolve_name(obj):
+        return obj.box.name
+
+    @staticmethod
+    def resolve_background_image(obj):
+        return obj.box.background_image
+
+    @staticmethod
+    def resolve_foreground_image(obj):
+        return obj.box.foreground_image
+
+    @staticmethod
+    def resolve_description(obj):
+        return obj.box.description
+
+    @staticmethod
+    def resolve_release_date(obj):
+        return obj.box.release_date
 
 
 class UserInventorySchema(ModelSchema):
     id: str
     user_id: int
-    items: Optional[List[ItemSchema]] = []
-    boxes: Optional[List[BoxSchema]] = []
+    items: Optional[List[UserItemSchema]] = []
+    boxes: Optional[List[UserBoxSchema]] = []
 
     class Config:
         model = User
@@ -137,36 +201,11 @@ class UserInventorySchema(ModelSchema):
 
     @staticmethod
     def resolve_items(obj):
-        user_items = models.UserItem.objects.filter(
-            user=obj,
-            can_use=True,
-        ).select_related('item')
-
-        items = []
-        for user_item in user_items:
-            item = user_item.item
-            item.in_use = user_item.in_use
-            item.can_use = user_item.can_use
-            item.id = user_item.id
-            items.append(item)
-
-        return items
+        return models.UserItem.objects.filter(user=obj, can_use=True)
 
     @staticmethod
     def resolve_boxes(obj):
-        user_boxes = models.UserBox.objects.filter(
-            user=obj,
-            can_open=True,
-        ).select_related('box')
-
-        boxes = []
-        for user_box in user_boxes:
-            box = user_box.box
-            box.can_open = user_box.can_open
-            box.id = user_box.id
-            boxes.append(box)
-
-        return boxes
+        return models.UserBox.objects.filter(user=obj, can_open=True)
 
     @staticmethod
     def resolve_id(obj):
@@ -180,8 +219,8 @@ class UserInventorySchema(ModelSchema):
 class UserStoreSchema(ModelSchema):
     id: str
     user_id: int
-    featured: List[Union[ItemSchema, CollectionSchema, BoxSchema]] = []
-    products: List[Union[ItemSchema, BoxSchema]] = []
+    featured: list = []
+    products: list = []
     next_rotation: str
 
     class Config:
@@ -222,15 +261,19 @@ class UserStoreSchema(ModelSchema):
 
     @staticmethod
     def resolve_featured(obj):
-        return [
-            item
-            for sublist in [
-                UserStoreSchema.get_featured_objects(models.Collection),
-                UserStoreSchema.get_featured_objects(models.Item),
-                UserStoreSchema.get_featured_objects(models.Box),
-            ]
-            for item in sublist
-        ][: settings.STORE_FEATURED_MAX_LENGTH]
+        model_to_schema = {
+            models.Collection: CollectionSchema,
+            models.Box: BoxSchema,
+            models.Item: ItemSchema,
+        }
+
+        items = (
+            UserStoreSchema.get_featured_objects(models.Collection)
+            + UserStoreSchema.get_featured_objects(models.Box)
+            + UserStoreSchema.get_featured_objects(models.Item)
+        )[: settings.STORE_FEATURED_MAX_LENGTH]
+
+        return [model_to_schema[type(item)].from_orm(item) for item in items]
 
     @staticmethod
     def update_cache(key, values):
@@ -267,16 +310,24 @@ class UserStoreSchema(ModelSchema):
         random.shuffle(products)
         reduced_products = products[: settings.STORE_LENGTH]
 
-        reduced_items = [
-            item for item in reduced_products if isinstance(item, models.Item)
-        ]
-        reduced_boxes = [box for box in reduced_products if isinstance(box, models.Box)]
+        UserStoreSchema.update_cache(
+            f'__store:user:{obj.id}:items',
+            [item for item in reduced_products if isinstance(item, models.Item)],
+        )
+        UserStoreSchema.update_cache(
+            f'__store:user:{obj.id}:boxes',
+            [box for box in reduced_products if isinstance(box, models.Box)],
+        )
 
-        UserStoreSchema.update_cache(f'__store:user:{obj.id}:items', reduced_items)
-        UserStoreSchema.update_cache(f'__store:user:{obj.id}:boxes', reduced_boxes)
+        schemas = [
+            ItemSchema.from_orm(item)
+            if isinstance(item, models.Item)
+            else BoxSchema.from_orm(item)
+            for item in reduced_products
+        ]
 
         cache.set(rotation_key, timezone.now().isoformat())
-        return reduced_products if reduced_products else []
+        return schemas if schemas else []
 
     @staticmethod
     def get_cached_products(obj):
@@ -285,7 +336,13 @@ class UserStoreSchema(ModelSchema):
         items = models.Item.objects.filter(is_available=True, id__in=items_ids)
         boxes = models.Box.objects.filter(is_available=True, id__in=boxes_ids)
         products = list(items) + list(boxes)
-        return products[: settings.STORE_LENGTH]
+        reduced_products = products[: settings.STORE_LENGTH]
+        return [
+            ItemSchema.from_orm(item)
+            if isinstance(item, models.Item)
+            else BoxSchema.from_orm(item)
+            for item in reduced_products
+        ]
 
     @staticmethod
     def resolve_id(obj):

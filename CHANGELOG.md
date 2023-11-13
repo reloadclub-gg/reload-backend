@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera esquemas do app `Store` para facilitar a leitura e mantenabilidade do código.
 - Altera esquemas `ItemSchema`, `BoxSchema` e `CollectionSchema` para identificarem seus tipos de objeto no campo `object` a partir do tipo de instância do modelo, para que o esquema `UserStoreSchema` não calcule de maneira automática, podendo causar erros, o tipo de cada objeto.
 - Altera esquemas `UserStoreSchema`, `ItemSchema` e `BoxSchema` para incluir campos `next_rotation`, `object` e `media` [#845](https://github.com/3C-gg/reload-backend/issues/845).
 - Exclui campo `coins` dos esquemas `FriendSchema` e `ProfileSchema`.
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona campo `items` nos esquemas `Box` e `Collection` [#846](https://github.com/3C-gg/reload-backend/issues/846).
 - Adiciona dois modelos novos: `Product` e `ProductTransaction` representando, respectivamente, os produtos vendidos na loja através de um gateway, com dinheiro real, e a transação/compra de um produto realizada por um usuário.
 - Adiciona campo `coins` para representar os créditos (ReloadCoins) do usuário na plataforma.
 
