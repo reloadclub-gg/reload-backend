@@ -197,13 +197,13 @@ class ProductTransaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     create_date = models.DateTimeField(auto_now_add=True)
     product_id = models.CharField(max_length=256, unique=True)
-    gateway_id = models.CharField(max_length=256, unique=True)
+    transaction_id = models.CharField(max_length=256, unique=True)
     amount = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         verbose_name_plural = 'transactions'
         indexes = [
-            models.Index(fields=['gateway_id']),
+            models.Index(fields=['transaction_id']),
             models.Index(fields=['product_id']),
         ]
