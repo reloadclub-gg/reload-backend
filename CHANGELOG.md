@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera esquemas `UserStoreSchema`, `ItemSchema` e `BoxSchema` para incluir campos `next_rotation`, `object` e `media` [#845](https://github.com/3C-gg/reload-backend/issues/845).
+- Exclui campo `coins` dos esquemas `FriendSchema` e `ProfileSchema`.
+- Ajusta modelo `ProductTransaction`, renomeando e adicionando campos para melhor interpretação.
+- Move `envvars` do Stripe do `settings.py` para `.template.env`.
 - Altera campo `price` nos modelos `Box`, `Collection` e `Item` para serem inteiros e não decimais.
 
 ### Added
