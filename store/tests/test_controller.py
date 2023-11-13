@@ -3,7 +3,7 @@ from django.conf import settings
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
 
-from ..api import controller
+from ..api import controller, schemas
 
 
 class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
@@ -19,5 +19,8 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
                 return settings.FRONT_END_URL + endpoint
 
         request = Request()
-        session_id = controller.start_purchase(request, products[0].id)
+        session_id = controller.start_purchase(
+            request,
+            schemas.PurchaseSchema.from_orm({'product_id': products[0].id}),
+        )
         self.assertIsNotNone(session_id)
