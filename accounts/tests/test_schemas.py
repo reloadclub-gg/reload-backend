@@ -19,6 +19,7 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             'is_verified': self.user.account.is_verified,
             'username': self.user.steam_user.username,
             'avatar': self.user.account.avatar_dict,
+            'coins': self.user.account.coins,
         }
 
         self.assertDictEqual(payload, expected_payload)
