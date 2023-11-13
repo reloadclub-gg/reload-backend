@@ -61,6 +61,7 @@ class ProfileSchema(ModelSchema):
             'verification_token',
             'is_verified',
             'steamid',
+            'coins',
         ]
 
     @staticmethod
