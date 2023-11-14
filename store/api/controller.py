@@ -33,9 +33,24 @@ def item_update(user: User, item_id: int, payload: schemas.UserItemUpdateSchema)
     return user
 
 
+def fetch_price(price_id: str):
+    price = stripe.Price.retrieve(price_id).get('unit_amount_decimal')[:-2]
+    decimals = stripe.Price.retrieve(price_id).get('unit_amount_decimal')[-2:]
+    return f'R$ {price},{decimals}'
+
+
 def fetch_products():
     products = stripe.Product.list().get('data')
-    return [schemas.ProductSchema.from_orm(product) for product in products]
+    reduced_products = [
+        {
+            'id': product.get('id'),
+            'name': product.get('name'),
+            'price': fetch_price(product.get('default_price')),
+            'amount': product.get('metadata').get('amount'),
+        }
+        for product in products
+    ]
+    return [schemas.ProductSchema.from_orm(product) for product in reduced_products]
 
 
 def buy_product(request, payload: schemas.PurchaseSchema):
