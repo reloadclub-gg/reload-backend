@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Adiciona traduções.
 - Altera esquemas do app `Store` para facilitar a leitura e mantenabilidade do código.
 - Altera esquemas `ItemSchema`, `BoxSchema` e `CollectionSchema` para identificarem seus tipos de objeto no campo `object` a partir do tipo de instância do modelo, para que o esquema `UserStoreSchema` não calcule de maneira automática, podendo causar erros, o tipo de cada objeto.
 - Altera esquemas `UserStoreSchema`, `ItemSchema` e `BoxSchema` para incluir campos `next_rotation`, `object` e `media` [#845](https://github.com/3C-gg/reload-backend/issues/845).
