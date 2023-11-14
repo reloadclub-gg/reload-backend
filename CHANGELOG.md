@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige esquema de produtos do gateway de pagamento que estava faltando o preço e o nome [#852](https://github.com/3C-gg/reload-backend/issues/852).
 - Ajusta nome de controller que cria sessão de pagamento (`buy_product`).
 
 ## [5d431fa - 9/11/2023]
