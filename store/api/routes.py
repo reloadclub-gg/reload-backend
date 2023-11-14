@@ -35,6 +35,33 @@ def list(request):
     return request.user
 
 
+@router.post(
+    '/items/{item_id}/',
+    auth=VerifiedRequiredAuth(),
+    response={201: schemas.UserItemSchema},
+)
+def purchase(request, item_id: int):
+    return controller.purchase_item(request.user, item_id)
+
+
+@router.post(
+    '/boxes/{box_id}/',
+    auth=VerifiedRequiredAuth(),
+    response={201: schemas.UserBoxSchema},
+)
+def purchase(request, box_id: int):
+    return controller.purchase_box(request.user, box_id)
+
+
+@router.post(
+    '/collections/{collection_id}/',
+    auth=VerifiedRequiredAuth(),
+    response={201: List[schemas.ItemSchema]},
+)
+def purchase(request, collection_id: int):
+    return controller.purchase_collection(request.user, collection_id)
+
+
 @router.get(
     '/products/',
     auth=VerifiedRequiredAuth(),
