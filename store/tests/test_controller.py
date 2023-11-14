@@ -177,7 +177,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
             is_available=True,
             name='c1',
         )
-        item = baker.make(
+        baker.make(
             models.Item,
             price=500,
             is_available=True,
@@ -205,7 +205,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
         controller.purchase_collection(self.user_1, collection.id)
         self.assertEqual(self.user_1.account.coins, new_coins)
         with self.assertRaisesMessage(HttpError, 'Cannot process purchase.'):
-            controller.purchase_collection(self.user_1, item.id)
+            controller.purchase_collection(self.user_1, collection.id)
         self.user_1.account.refresh_from_db()
         self.assertEqual(self.user_1.account.coins, new_coins)
 
