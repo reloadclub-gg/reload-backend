@@ -33,7 +33,7 @@ def fetch_products():
     return [schemas.ProductSchema.from_orm(product) for product in products]
 
 
-def start_purchase(request, payload: schemas.PurchaseSchema):
+def buy_product(request, payload: schemas.PurchaseSchema):
     product = stripe.Product.retrieve(payload.product_id)
     if not product:
         raise Http404()
