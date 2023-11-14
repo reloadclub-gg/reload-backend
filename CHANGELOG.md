@@ -19,9 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoints de compra de itens, caixas e coleções: `/store/items/{item_id}/`, `/store/boxes/{box_id}/` e `/store/collections/{collection_id}/` [#851](https://github.com/3C-gg/reload-backend/issues/851).
 - Adiciona campo `items` nos esquemas `Box` e `Collection` [#846](https://github.com/3C-gg/reload-backend/issues/846).
 - Adiciona dois modelos novos: `Product` e `ProductTransaction` representando, respectivamente, os produtos vendidos na loja através de um gateway, com dinheiro real, e a transação/compra de um produto realizada por um usuário.
 - Adiciona campo `coins` para representar os créditos (ReloadCoins) do usuário na plataforma.
+
+### Fixed
+
+- Ajusta nome de controller que cria sessão de pagamento (`buy_product`).
 
 ## [5d431fa - 9/11/2023]
 
