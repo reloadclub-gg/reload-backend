@@ -1,7 +1,6 @@
 from django.conf import settings
-from django.db.utils import IntegrityError
 from model_bakery import baker
-from ninja.errors import Http404, HttpError
+from ninja.errors import HttpError
 from stripe.error import AuthenticationError
 
 from accounts.tests.mixins import VerifiedAccountsMixin

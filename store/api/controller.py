@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List
 
 import stripe
 from django.conf import settings
