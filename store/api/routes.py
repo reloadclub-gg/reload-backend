@@ -40,7 +40,7 @@ def list(request):
     auth=VerifiedRequiredAuth(),
     response={201: schemas.UserItemSchema},
 )
-def purchase(request, item_id: int):
+def item_purchase(request, item_id: int):
     return controller.purchase_item(request.user, item_id)
 
 
@@ -49,7 +49,7 @@ def purchase(request, item_id: int):
     auth=VerifiedRequiredAuth(),
     response={201: schemas.UserBoxSchema},
 )
-def purchase(request, box_id: int):
+def box_purchase(request, box_id: int):
     return controller.purchase_box(request.user, box_id)
 
 
@@ -58,7 +58,7 @@ def purchase(request, box_id: int):
     auth=VerifiedRequiredAuth(),
     response={201: List[schemas.ItemSchema]},
 )
-def purchase(request, collection_id: int):
+def collection_purchase(request, collection_id: int):
     return controller.purchase_collection(request.user, collection_id)
 
 
