@@ -12,7 +12,6 @@ from matches.models import Map, Match, MatchPlayer, Server
 from matches.tests.mixins import FinishedMatchesMixin
 
 from .. import models, utils
-from ..models.auth import AuthConfig
 from . import mixins
 
 
@@ -644,4 +643,4 @@ class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):
         auth = models.Auth(user_id=self.user.id, force_token_create=True)
         auth.add_session()
         auth.expire_session()
-        self.assertEqual(auth.sessions_ttl, AuthConfig.CACHE_TTL_SESSIONS)
+        self.assertEqual(auth.sessions_ttl, models.Auth.Config.SESSION_GAP_TTL)
