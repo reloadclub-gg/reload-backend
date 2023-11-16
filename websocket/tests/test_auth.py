@@ -1,4 +1,4 @@
-from accounts.models.auth import AuthConfig
+from accounts.models.auth import Auth
 from accounts.tests.mixins import AccountOneMixin
 from core.tests import TestCase
 from websocket import auth
@@ -40,11 +40,13 @@ class WSAuthTestCase(AccountOneMixin, TestCase):
     def test_disconnect(self):
         self.user.add_session()
         auth.disconnect(self.user)
-        self.assertEqual(self.user.auth.sessions_ttl, AuthConfig.CACHE_TTL_SESSIONS)
+        self.assertEqual(self.user.auth.sessions_ttl, Auth.Config.SESSION_GAP_TTL)
 
         self.user.logout()
         self.user.add_session()
         self.user.add_session()
         auth.disconnect(self.user)
         self.assertEqual(self.user.auth.sessions, 1)
-        self.assertEqual(self.user.auth.sessions_ttl, -1)
+
+        auth.disconnect(self.user)
+        self.assertEqual(self.user.auth.sessions, 0)
