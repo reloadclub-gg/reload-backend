@@ -26,6 +26,7 @@ class FriendSchema(ModelSchema):
             'is_verified',
             'highest_level',
             'social_handles',
+            'coins',
         ]
 
     @staticmethod
