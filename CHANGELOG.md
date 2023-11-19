@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `pre_match` não era deletada quando o FiveM enviava um pedido de cancelar partida. Isso fazia com que os jogadores não conseguissem buscar partidas novamente. O problema era um typo na referência ao modelo `PreMatch` [#858](https://github.com/3C-gg/reload-backend/issues/858).
 - Corrige propriedade `teams` do modelo `PreMatch` que não verificava se a própria chave ainda existia no Redis.
 - Corrige contagem de arquivos enviados na criação de ticket de suporte caso seja 0 (hotfix).
 - Corrige o tamanho máximo para anexos no email de suporte no ambiente local (`10MB -> 5MB`) [#797](https://github.com/3C-gg/reload-backend/issues/797).
