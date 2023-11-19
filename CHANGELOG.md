@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `pre_match` não era deletada quando o FiveM enviava um pedido de cancelar partida. Isso fazia com que os jogadores não conseguissem buscar partidas novamente. O problema era um typo na referência ao modelo `PreMatch` [#858](https://github.com/3C-gg/reload-backend/issues/858).
+
 ## [5d431fa - 9/11/2023]
 
 ### Changed

@@ -266,7 +266,7 @@ def cancel_match(match_id: int):
             if team2:
                 team2.delete()
 
-            models.PreMatch.delete(pre_match.id)
+            PreMatch.delete(pre_match.id)
 
         ws_update_user(player.user)
         ws_friend_update_or_create(player.user)
