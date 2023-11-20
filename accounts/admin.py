@@ -193,13 +193,7 @@ class CustomUserStatusFilter(admin.SimpleListFilter):
             return queryset
 
         if self.value() == models.User.Status.ONLINE:
-            online_statuses = [
-                models.User.Status.ONLINE,
-                models.User.Status.IN_GAME,
-                models.User.Status.QUEUED,
-                models.User.Status.TEAMING,
-            ]
-            return queryset.filter(status__in=online_statuses)
+            return queryset.filter(status__in=models.User.online_statuses)
         elif self.value() == 'available':
             return queryset.filter(status=models.User.Status.ONLINE)
         else:
