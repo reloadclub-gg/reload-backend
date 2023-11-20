@@ -30,6 +30,10 @@ app.conf.beat_schedule = {
         'task': 'websocket.tasks.keep_alive',
         'schedule': 7.0,
     },
+    'logout_inactive_users': {
+        'task': 'accounts.tasks.logout_inactive_users',
+        'schedule': crontab(minute=0, hour=0),
+    },
 }
 
 

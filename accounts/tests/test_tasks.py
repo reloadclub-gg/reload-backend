@@ -1,3 +1,4 @@
+import datetime
 from unittest import mock
 
 from django.contrib.auth import get_user_model
@@ -166,3 +167,19 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         mock_friend_update.assert_called_once()
         mock_expire_invites.assert_called_once()
         mock_lobby_move.assert_called_once()
+
+    def test_logout_inactive_users(self):
+        self.user.add_session()
+        self.user.status = User.Status.ONLINE
+        self.user.save()
+        yesterday = timezone.now() - datetime.timedelta(days=1, hours=1)
+        login = UserLogin.objects.create(user=self.user, ip_address='1.1.1.1')
+        login.timestamp = yesterday
+        login.save()
+        login.refresh_from_db()
+
+        tasks.logout_inactive_users()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.status, User.Status.OFFLINE)
+        self.assertFalse(self.user.is_online)
+        self.assertFalse(self.user.has_sessions)
