@@ -85,11 +85,11 @@ class Auth(BaseModel):
             if int(value) == self.user_id:
                 return key.split(':')[-1:][0]
 
-    def refresh_token(self):
+    def refresh_token(self, seconds: int = Config.SESSION_TTL):
         """
         Set a expiration time for the token on Redis.
         """
-        cache.expire(self.token_cache_key, Auth.Config.SESSION_TTL)
+        cache.expire(self.token_cache_key, seconds)
 
     def add_session(self):
         """
