@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Método `refresh_token` do modelo `Auth` agora recebe um parâmtro opcional `seconds`.
 - Adiciona traduções.
 - Altera esquemas do app `Store` para facilitar a leitura e mantenabilidade do código.
 - Altera esquemas `ItemSchema`, `BoxSchema` e `CollectionSchema` para identificarem seus tipos de objeto no campo `object` a partir do tipo de instância do modelo, para que o esquema `UserStoreSchema` não calcule de maneira automática, podendo causar erros, o tipo de cada objeto.
@@ -20,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Propriedade `online_statuses` no modelo `User`.
+- Tarefa `logout_inactive_users` que roda uma vez por dia para limpar usuários que estão logados a mais de 24h sem nenhuma interação com a API [#856](https://github.com/3C-gg/reload-backend/issues/856).
 - Endpoints de compra de itens, caixas e coleções: `/store/items/{item_id}/`, `/store/boxes/{box_id}/` e `/store/collections/{collection_id}/` [#851](https://github.com/3C-gg/reload-backend/issues/851).
 - Adiciona campo `items` nos esquemas `Box` e `Collection` [#846](https://github.com/3C-gg/reload-backend/issues/846).
 - Adiciona dois modelos novos: `Product` e `ProductTransaction` representando, respectivamente, os produtos vendidos na loja através de um gateway, com dinheiro real, e a transação/compra de um produto realizada por um usuário.
