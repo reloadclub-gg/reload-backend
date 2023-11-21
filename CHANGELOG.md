@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- APi health check agora retorna `is_alpha`.
 - Altera a representação verbal de alguns modelos no app `store`.
 - Modelo `ProductTransaction` foi refatorado para aceitar tipos e campos necessários para os retornos de uma transação no Stripe.
 - Rota e controlador que inicia sessão de compra de produto foram alterados para refletir alterações nas decisões de negócio. Antes, usávamos um modelo `embedded`, que fazia com que o formulário de checkout do Stripe ficasse no nosso domínio. Agora, mudamos para um modelo `host`, onde o usuário sai do nosso site para o site do Stripe para fazer o checkout.
@@ -30,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adicionamos usuários Alpha, que tem prioridade sobre os Beta [#867](https://github.com/3C-gg/reload-backend/issues/867).
+- `AppConfig` para deixar o site aberto somente para usuários Alpha.
 - Criamos um email de sucesso de compra.
 - Propriedade `online_statuses` no modelo `User`.
 - Tarefa `logout_inactive_users` que roda uma vez por dia para limpar usuários que estão logados a mais de 24h sem nenhuma interação com a API [#856](https://github.com/3C-gg/reload-backend/issues/856).
