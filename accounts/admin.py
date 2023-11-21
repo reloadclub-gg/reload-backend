@@ -206,6 +206,8 @@ class UserAdmin(
             _('STATUSES'),
             {
                 'fields': (
+                    'is_alpha',
+                    'is_beta',
                     'is_active',
                     'is_staff',
                     'is_superuser',
@@ -237,6 +239,8 @@ class UserAdmin(
         'steamid',
         'date_joined',
         'last_login',
+        'is_alpha',
+        'is_beta',
         'is_verified',
         'is_active',
         'status',
@@ -266,6 +270,8 @@ class UserAdmin(
     ordering = ('-last_login', '-date_joined', 'email', 'account__level')
     list_filter = (
         CustomUserStatusFilter,
+        'is_alpha',
+        'is_beta',
         'is_active',
         'is_staff',
         'account__is_verified',

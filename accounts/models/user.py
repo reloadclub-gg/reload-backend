@@ -94,6 +94,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=Status.choices,
         default='offline',
     )
+    is_alpha = models.BooleanField(default=False)
+    is_beta = models.BooleanField(default=False)
 
     objects = UserManager()
 

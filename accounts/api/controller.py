@@ -6,8 +6,11 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
-from appsettings.models import AppSettings
-from appsettings.services import check_invite_required
+from appsettings.services import (
+    check_alpha_required,
+    check_beta_required,
+    check_invite_required,
+)
 from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string, get_ip_address
 from friends.tasks import (
@@ -43,9 +46,15 @@ def auth(user: User, from_fake_signup=False) -> User:
     if not is_verified(user):
         return user
 
-    if AppSettings.get('Beta Required', False):
+    beta_required = check_beta_required()
+    alpha_required = check_alpha_required()
+
+    if alpha_required and not user.is_alpha:
+        raise HttpError(401, _('User must be invited.'))
+
+    if beta_required:
         is_beta = BetaUser.objects.filter(email=user.email).exists()
-        if not is_beta:
+        if not user.is_alpha and not is_beta:
             raise HttpError(401, _('User must be invited.'))
 
     from_offline_status = user.auth.sessions is None
@@ -152,15 +161,22 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     except Account.DoesNotExist:
         pass
 
-    if AppSettings.get('Beta Required', False):
+    beta_required = check_beta_required()
+    alpha_required = check_alpha_required()
+    invite_required = check_invite_required()
+
+    if beta_required:
         is_beta = BetaUser.objects.filter(email=email).exists()
-        if not is_beta:
-            raise HttpError(401, _('User must be invited.'))
-    else:
-        invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
-        if not is_fake and check_invite_required() and not invites.exists():
+        if not is_beta and not user.is_alpha:
             raise HttpError(401, _('User must be invited.'))
 
+    if alpha_required and not user.is_alpha:
+        raise HttpError(401, _('User must be invited.'))
+
+    if invite_required:
+        invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
+        if not is_fake and not invites.exists():
+            raise HttpError(401, _('User must be invited.'))
         invites.update(datetime_accepted=timezone.now())
 
     with transaction.atomic():

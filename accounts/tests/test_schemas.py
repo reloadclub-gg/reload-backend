@@ -2,6 +2,7 @@ from accounts import models
 from accounts.api import schemas
 from core.tests import TestCase
 from lobbies.models import Lobby
+from matches.models import BetaUser
 
 from . import mixins
 
@@ -45,6 +46,8 @@ class AccountsSchemasTestCase(mixins.UserWithFriendsMixin, TestCase):
             else None,
             'invites': [],
             'invites_available_count': models.Invite.MAX_INVITES_PER_ACCOUNT,
+            'is_beta': BetaUser.objects.filter(email=self.user.email).exists(),
+            'is_alpha': self.user.is_alpha,
         }
 
         self.assertDictEqual(payload, expected_payload)
