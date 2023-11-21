@@ -5,7 +5,6 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect
-from django.http.request import HttpRequest
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
@@ -378,12 +377,6 @@ class InviteAdmin(admin.ModelAdmin):
     list_filter = ('datetime_accepted',)
     readonly_fields = ['datetime_created', 'datetime_accepted']
     search_fields = ['email', 'owned_by__email']
-
-
-@admin.register(models.Account)
-class AccountAdmin(admin_mixins.SuperUserOnlyAdminMixin, admin.ModelAdmin):
-    search_fields = ['username', 'user__email', 'steamid']
-    readonly_fields = ['username']
 
 
 @admin.register(models.AccountReport)
