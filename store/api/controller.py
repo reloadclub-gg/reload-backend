@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 import stripe
@@ -5,11 +6,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.utils import IntegrityError
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
 
-from .. import models
+from .. import models, tasks
 from . import schemas
 
 User = get_user_model()
@@ -59,16 +61,53 @@ def buy_product(request, payload: schemas.PurchaseSchema):
         raise Http404()
 
     try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card', 'boleto'],
-            line_items=[{'price': product.get('default_price'), 'quantity': 1}],
-            mode='payment',
-            success_url=request.build_absolute_uri('/success/'),
-            cancel_url=request.build_absolute_uri('/cancel/'),
-        )
-        return {'client_secret': checkout_session.client_secret}
-    except Exception as e:
-        raise HttpError(400, str(e))
+        with transaction.atomic():
+            checkout_transaction = models.ProductTransaction.objects.create(
+                user=request.user,
+                product_id=product.get('id'),
+                amount=product.get('metadata').get('amount'),
+                price=fetch_price(product.get('default_price')),
+            )
+            success_url = f'/api/store/products/transactions/{checkout_transaction.id}/'
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card', 'boleto'],
+                line_items=[{'price': product.get('default_price'), 'quantity': 1}],
+                mode='payment',
+                success_url=request.build_absolute_uri(success_url),
+                cancel_url=f'{settings.FRONT_END_URL}/jogar',
+            )
+
+            checkout_transaction.session_id = checkout_session.get('id')
+            checkout_transaction.save()
+            return checkout_session
+    except (IntegrityError, Exception) as e:
+        logging.warning(e)
+        raise HttpError(400, _('Cannot process purchase.'))
+
+
+def resume_transaction(transaction_id: int):
+    transaction = get_object_or_404(
+        models.ProductTransaction,
+        id=transaction_id,
+        complete_date=None,
+        status=models.ProductTransaction.Status.OPEN,
+    )
+    user = transaction.user
+    checkout_session = stripe.checkout.Session.retrieve(transaction.session_id)
+
+    if (
+        not hasattr(user, 'account')
+        or checkout_session.get('status') != models.ProductTransaction.Status.COMPLETE
+    ):
+        return redirect(f'{settings.FRONT_END_URL}/checkout/error')
+
+    user.account.coins += transaction.amount
+    user.account.save()
+    transaction.complete_date = timezone.now()
+    transaction.status = models.ProductTransaction.Status.COMPLETE
+    transaction.save()
+    tasks.send_purchase_mail_task.delay()
+    return redirect(f'{settings.FRONT_END_URL}/checkout/success')
 
 
 def purchase_item(user: User, item_id: int) -> models.UserItem:
