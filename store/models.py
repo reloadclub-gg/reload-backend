@@ -43,7 +43,7 @@ class Box(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.name} (R$ {self.price})'
+        return f'{self.name} (RC {self.price})'
 
 
 class Collection(models.Model):
@@ -62,6 +62,9 @@ class Collection(models.Model):
     def save(self, *args, **kwargs):
         self.handle = slugify(self.name)
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.name} (RC {self.price})'
 
 
 class Item(models.Model):
@@ -139,7 +142,7 @@ class Item(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} (RC {self.price})'
 
 
 class ItemMedia(models.Model):
@@ -174,7 +177,7 @@ class UserItem(models.Model):
         super(UserItem, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.item.name
+        return f'{self.item.name} (RC {self.item.price})'
 
 
 class UserBox(models.Model):
@@ -190,7 +193,7 @@ class UserBox(models.Model):
         indexes = [models.Index(fields=['can_open'])]
 
     def __str__(self):
-        return self.box.name
+        return f'{self.box.name} (RC {self.box.price})'
 
 
 class ProductTransaction(models.Model):
@@ -204,6 +207,6 @@ class ProductTransaction(models.Model):
     class Meta:
         verbose_name_plural = 'transactions'
         indexes = [
-            models.Index(fields=['transaction_id']),
+            models.Index(fields=['session_id']),
             models.Index(fields=['product_id']),
         ]
