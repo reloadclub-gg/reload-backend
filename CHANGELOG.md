@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `seed.json` agora cria usuário `staff` no grupo `Staff`.
+- Admin de usuário e conta agora são um só. As informações ficaram concentradas no admin de usuário.
 - Método `refresh_token` do modelo `Auth` agora recebe um parâmtro opcional `seconds`.
 - Adiciona traduções.
 - Altera esquemas do app `Store` para facilitar a leitura e mantenabilidade do código.
@@ -30,8 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ordenação das partidas no admin de partidas.
+- Corrige chats de partida no `seed.json`, que estava criando mensagens com o steamid64 ao invés de HEX.
 - Corrige esquema de produtos do gateway de pagamento que estava faltando o preço e o nome [#852](https://github.com/3C-gg/reload-backend/issues/852).
 - Ajusta nome de controller que cria sessão de pagamento (`buy_product`).
+
+### Removed
+
+- Admin de `Account` foi mesclado com admin de `User`.
 
 ## [5d431fa - 9/11/2023]
 
