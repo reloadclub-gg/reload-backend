@@ -78,3 +78,8 @@ def rc_list(request):
 )
 def rc_buy(request, payload: schemas.PurchaseSchema):
     return controller.buy_product(request, payload)
+
+
+@router.get('/products/transactions/{transaction_id}/')
+def transaction(request, transaction_id: int):
+    return controller.resume_transaction(transaction_id)
