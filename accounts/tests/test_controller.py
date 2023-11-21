@@ -65,6 +65,9 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
 
     @mock.patch('accounts.utils.send_verify_account_mail')
     def test_signup(self, mocker):
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
         invite = baker.make(Invite, owned_by=self.account, email='invited@email.com')
         user = baker.make(User, email=invite.email)
         utils.create_social_auth(user)
@@ -114,6 +117,34 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         baker.make(BetaUser, email=user.email)
         controller.signup(user, email=user.email)
 
+    def test_signup_on_alpha(self):
+        alpha_required = AppSettings.objects.get(name='Alpha Required')
+        alpha_required.value = '1'
+        alpha_required.save()
+
+        user = baker.make(User)
+        utils.create_social_auth(user)
+
+        with self.assertRaises(HttpError):
+            controller.signup(user, email=user.email)
+
+        invite_required = AppSettings.objects.get(name='Invite Required')
+        invite_required.value = '1'
+        invite_required.save()
+
+        signed_user = baker.make(User)
+        utils.create_social_auth(signed_user)
+        signed_account = baker.make(Account, user=signed_user, is_verified=True)
+        Invite.objects.create(owned_by=signed_account, email=user.email)
+
+        with self.assertRaises(HttpError):
+            controller.signup(user, email=user.email)
+
+        user.is_alpha = True
+        user.save()
+        user.refresh_from_db()
+        controller.signup(user, email=user.email)
+
     def test_auth_on_beta(self):
         user = baker.make(User)
         utils.create_social_auth(user)
@@ -128,6 +159,24 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
             controller.auth(user)
 
         baker.make(BetaUser, email=user.email)
+        controller.auth(user)
+
+    def test_auth_on_alpha(self):
+        user = baker.make(User)
+        utils.create_social_auth(user)
+        baker.make(Account, user=user, is_verified=True)
+        controller.auth(user)
+
+        alpha_required = AppSettings.objects.get(name='Alpha Required')
+        alpha_required.value = '1'
+        alpha_required.save()
+
+        with self.assertRaises(HttpError):
+            controller.auth(user)
+
+        user.is_alpha = True
+        user.save()
+        user.refresh_from_db()
         controller.auth(user)
 
     @mock.patch('accounts.api.controller.tasks.send_welcome_email.delay')
