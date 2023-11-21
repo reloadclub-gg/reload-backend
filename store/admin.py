@@ -22,6 +22,8 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'price',
         'is_available',
         'discount',
+        'box',
+        'collection',
     )
     readonly_fields = ('release_date', 'is_available', 'handle')
     search_fields = (
@@ -29,6 +31,8 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'item_type',
         'subtype',
         'handle',
+        'box__name',
+        'collection__name',
     )
 
     ordering = ('name', 'price', 'discount')
@@ -57,7 +61,8 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         actions = list(actions)
 
         if not request.user.is_superuser:
-            actions.remove('publish', 'unpublish')
+            actions.remove('publish')
+            actions.remove('unpublish')
 
         return actions
 
@@ -106,7 +111,8 @@ class BoxAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         actions = list(actions)
 
         if not request.user.is_superuser:
-            actions.remove('publish', 'unpublish')
+            actions.remove('publish')
+            actions.remove('unpublish')
 
         return actions
 
@@ -155,7 +161,8 @@ class CollectionAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         actions = list(actions)
 
         if not request.user.is_superuser:
-            actions.remove('publish', 'unpublish')
+            actions.remove('publish')
+            actions.remove('unpublish')
 
         return actions
 
