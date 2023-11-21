@@ -31,6 +31,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
                     return settings.FRONT_END_URL + endpoint
 
             request = Request()
+            request.user = self.user_1
             session_id = controller.buy_product(
                 request,
                 schemas.PurchaseSchema.from_orm({'product_id': products[0].id}),

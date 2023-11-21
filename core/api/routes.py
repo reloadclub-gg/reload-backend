@@ -8,6 +8,7 @@ from ninja.pagination import paginate
 
 from accounts.api.routes import router as accounts_router
 from appsettings.services import (
+    check_alpha_required,
     check_beta_required,
     check_invite_required,
     maintenance_window,
@@ -52,6 +53,7 @@ def healty_check(request):
         'maintenance': maintenance_window(),
         'invite_required': check_invite_required(),
         'beta_required': check_beta_required(),
+        'alpha_required': check_alpha_required(),
     }
 
 

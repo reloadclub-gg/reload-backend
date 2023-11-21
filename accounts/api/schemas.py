@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
+from matches.models import BetaUser
+
 from ..models import Account, Invite
 
 User = get_user_model()
@@ -51,6 +53,7 @@ class UserSchema(ModelSchema):
     pre_match_id: str = None
     invites: List[InviteSchema] = []
     invites_available_count: int = 0
+    is_beta: bool = False
 
     class Config:
         model = User
@@ -64,6 +67,7 @@ class UserSchema(ModelSchema):
             'date_joined',
             'date_inactivation',
             'date_email_update',
+            'is_beta',
         ]
 
     @staticmethod
@@ -110,6 +114,10 @@ class UserSchema(ModelSchema):
             return Invite.MAX_INVITES_PER_ACCOUNT - obj.account.invite_set.all().count()
 
         return 0
+
+    @staticmethod
+    def resolve_is_beta(obj):
+        return BetaUser.objects.filter(email=obj.email).exists()
 
 
 class FakeUserSchema(UserSchema):
