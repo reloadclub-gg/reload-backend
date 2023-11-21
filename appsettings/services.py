@@ -42,3 +42,7 @@ def maintenance_window() -> bool:
 
 def check_beta_required() -> bool:
     return AppSettings.get('Beta Required', False)
+
+
+def check_alpha_required() -> bool:
+    return AppSettings.get('Alpha Required', False)
