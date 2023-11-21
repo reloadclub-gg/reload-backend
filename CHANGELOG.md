@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera a representação verbal de alguns modelos no app `store`.
+- Modelo `ProductTransaction` foi refatorado para aceitar tipos e campos necessários para os retornos de uma transação no Stripe.
+- Rota e controlador que inicia sessão de compra de produto foram alterados para refletir alterações nas decisões de negócio. Antes, usávamos um modelo `embedded`, que fazia com que o formulário de checkout do Stripe ficasse no nosso domínio. Agora, mudamos para um modelo `host`, onde o usuário sai do nosso site para o site do Stripe para fazer o checkout.
 - `seed.json` agora cria usuário `staff` no grupo `Staff`.
 - Admin de usuário e conta agora são um só. As informações ficaram concentradas no admin de usuário.
 - Método `refresh_token` do modelo `Auth` agora recebe um parâmtro opcional `seconds`.
@@ -23,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Criamos um email de sucesso de compra.
 - Propriedade `online_statuses` no modelo `User`.
 - Tarefa `logout_inactive_users` que roda uma vez por dia para limpar usuários que estão logados a mais de 24h sem nenhuma interação com a API [#856](https://github.com/3C-gg/reload-backend/issues/856).
 - Endpoints de compra de itens, caixas e coleções: `/store/items/{item_id}/`, `/store/boxes/{box_id}/` e `/store/collections/{collection_id}/` [#851](https://github.com/3C-gg/reload-backend/issues/851).
@@ -32,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Alguns esquemas de `store` estavam retornando campos com valores ruins ou malformados para o FE. Corrigimos esses esquemas.
 - Ordenação das partidas no admin de partidas.
 - Corrige chats de partida no `seed.json`, que estava criando mensagens com o steamid64 ao invés de HEX.
 - Corrige esquema de produtos do gateway de pagamento que estava faltando o preço e o nome [#852](https://github.com/3C-gg/reload-backend/issues/852).
@@ -39,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `signal` que acrescentava moedas a conta do usuário depois de criar uma transação. Pelas novas regras de negócio, nós criamos uma transação antes de saber seu status, e quando recebemos uma requisição do Stripe em determinada URL, checamos se aquela transação foi concluída e redirecionamos o usuário para a URL adequada, fazendo os tratamentos de alocação de recursos (RC) quando necessário.
 - Admin de `Account` foi mesclado com admin de `User`.
 
 ## [5d431fa - 9/11/2023]
