@@ -5,19 +5,6 @@ from pydantic import BaseModel
 from core.redis import redis_client_instance as cache
 
 
-class AuthConfig:
-    """
-    Config class for the Auth model. Rather this configs to be here instead of
-    in Django settings because those settings are specific to the Auth model.
-    """
-
-    TOKEN_SIZE: int = 6
-    CACHE_TTL_TOKEN: int = 3600 * 24 * 3
-    CACHE_TTL_SESSIONS: int = 10
-    CACHE_PREFIX_TOKEN: str = '__auth:token:'
-    CACHE_PREFIX_SESSIONS: str = '__auth:sessions:'
-
-
 class Auth(BaseModel):
     """
     This class is meant to be the core authentication middleware to the Redis cache db.
@@ -40,6 +27,13 @@ class Auth(BaseModel):
     sessions_cache_key: str = None
     force_token_create: bool = False
 
+    class Config:
+        SESSION_TTL: int = 3600 * 24
+        SESSION_GAP_TTL: int = 10
+        SESSION_PREFIX: str = '__auth:sessions:'
+        TOKEN_PREFIX: str = '__auth:token:'
+        TOKEN_SIZE: int = 6
+
     def __init__(self, **data):
         """
         Tries to fetch an existent token given a user_id. If it fails on that,
@@ -53,7 +47,7 @@ class Auth(BaseModel):
         if not self.token:
             self.__init_token()
 
-        self.token_cache_key = f'{AuthConfig.CACHE_PREFIX_TOKEN}{self.token}'
+        self.token_cache_key = f'{Auth.Config.TOKEN_PREFIX}{self.token}'
 
         if self.force_token_create:
             self.create_token()
@@ -65,37 +59,37 @@ class Auth(BaseModel):
         """
         self.token = self.get_token()
         if not self.token:
-            token_suffix = secrets.token_urlsafe(AuthConfig.TOKEN_SIZE)
+            token_suffix = secrets.token_urlsafe(Auth.Config.TOKEN_SIZE)
             self.token = f'{self.user_id}__{token_suffix}'
 
     def __init_sessions(self):
         """
         Save the sessions counter key on Redis.
         """
-        self.sessions_cache_key = f'{AuthConfig.CACHE_PREFIX_SESSIONS}{self.user_id}'
+        self.sessions_cache_key = f'{Auth.Config.SESSION_PREFIX}{self.user_id}'
 
     def create_token(self):
         """
         Save the token key on Redis.
         """
-        cache.set(self.token_cache_key, self.user_id, AuthConfig.CACHE_TTL_TOKEN)
+        cache.set(self.token_cache_key, self.user_id, Auth.Config.SESSION_TTL)
 
     def get_token(self) -> str:
         """
         Searchs for `user_id` value in all token keys on Redis.
         """
-        keys = list(cache.scan_keys(f'{AuthConfig.CACHE_PREFIX_TOKEN}*'))
+        keys = list(cache.scan_keys(f'{Auth.Config.TOKEN_PREFIX}*'))
         values = cache.mget(keys)
 
         for key, value in zip(keys, values):
             if int(value) == self.user_id:
                 return key.split(':')[-1:][0]
 
-    def refresh_token(self):
+    def refresh_token(self, seconds: int = Config.SESSION_TTL):
         """
         Set a expiration time for the token on Redis.
         """
-        cache.expire(self.token_cache_key, AuthConfig.CACHE_TTL_TOKEN)
+        cache.expire(self.token_cache_key, seconds)
 
     def add_session(self):
         """
@@ -109,7 +103,7 @@ class Auth(BaseModel):
         """
         return cache.decr(self.sessions_cache_key)
 
-    def expire_session(self, seconds: int = AuthConfig.CACHE_TTL_SESSIONS):
+    def expire_session(self, seconds: int = Config.SESSION_GAP_TTL):
         """
         Set a expiration time for the sessions counter on Redis.
         """
@@ -147,7 +141,7 @@ class Auth(BaseModel):
         :return: Auth model.
         """
         # TODO change to getex() when a new release (4.0) of redis-py comes out
-        user_id = cache.get(f'{AuthConfig.CACHE_PREFIX_TOKEN}{token}')
+        user_id = cache.get(f'{Auth.Config.TOKEN_PREFIX}{token}')
         if user_id:
             auth = Auth(user_id=user_id, token=token)
             auth.refresh_token()

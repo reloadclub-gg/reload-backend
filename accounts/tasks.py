@@ -1,3 +1,5 @@
+import datetime
+
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -113,3 +115,21 @@ def send_inactivation_mail(email_to: str):
 @shared_task
 def send_invite_mail(email_to: str, from_username: str):
     utils.send_invite_mail(email_to, from_username)
+
+
+@shared_task
+def logout_inactive_users():
+    date_from = timezone.now() - datetime.timedelta(days=1)
+    logins = (
+        UserLogin.objects.filter(
+            timestamp__lte=date_from,
+            user__status__in=User.online_statuses,
+            user__is_staff=False,
+        )
+        .select_related('user')
+        .distinct()
+    )
+    for login in logins:
+        login.user.auth.expire_session(0)
+        login.user.auth.refresh_token(0)
+        watch_user_status_change(login.user.id)

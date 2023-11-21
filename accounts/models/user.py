@@ -72,6 +72,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         QUEUED = 'queued'
         IN_GAME = 'in_game'
 
+    online_statuses = [
+        Status.ONLINE,
+        Status.TEAMING,
+        Status.QUEUED,
+        Status.IN_GAME,
+    ]
+
     email = models.EmailField(unique=True)
     is_staff = models.BooleanField('staff status', default=False)
     is_active = models.BooleanField('active', default=True)
