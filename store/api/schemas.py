@@ -1,5 +1,5 @@
 import random
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from django.conf import settings
@@ -117,15 +117,12 @@ class UserItemSchema(ModelSchema):
     foreground_image: str
     subtype: str = None
     description: str
-    release_date: str = None
+    release_date: datetime = None
+    item_type: str
 
     class Config:
         model = models.UserItem
         model_exclude = ['user', 'item']
-
-    @staticmethod
-    def resolve_id(obj):
-        return obj.item.id
 
     @staticmethod
     def resolve_name(obj):
@@ -133,11 +130,11 @@ class UserItemSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return obj.item.background_image
+        return get_full_file_path(obj.item.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
-        return obj.item.foreground_image
+        return get_full_file_path(obj.item.foreground_image)
 
     @staticmethod
     def resolve_subtype(obj):
@@ -151,6 +148,10 @@ class UserItemSchema(ModelSchema):
     def resolve_release_date(obj):
         return obj.item.release_date
 
+    @staticmethod
+    def resolve_item_type(obj):
+        return obj.item.item_type
+
 
 class UserBoxSchema(ModelSchema):
     id: int
@@ -158,7 +159,7 @@ class UserBoxSchema(ModelSchema):
     background_image: str
     foreground_image: str
     description: str
-    release_date: str = None
+    release_date: datetime = None
 
     class Config:
         model = models.UserBox
