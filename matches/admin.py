@@ -3,7 +3,6 @@ import json
 import requests
 from django.conf import settings
 from django.contrib import admin
-from django.db.models import F
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -92,7 +91,7 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
         'game_mode',
         'score',
     )
-    ordering = ('create_date', 'start_date', 'end_date')
+    ordering = ('-end_date', '-start_date', '-create_date')
     list_filter = (
         'status',
         'game_type',
@@ -132,13 +131,6 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
             form_url,
             extra_context=extra_context,
         )
-
-    def get_ordering(self, request):
-        return [
-            F('end_date').desc(nulls_last=True),
-            F('start_date').desc(nulls_last=True),
-            F('create_date').desc(nulls_last=True),
-        ]
 
 
 @admin.register(models.MatchTeam)

@@ -15,7 +15,7 @@ from core import admin_mixins
 from matches.models import MatchPlayer
 from store.models import UserBox, UserItem
 
-from . import models
+from . import forms, models
 
 admin.site.unregister(Group)
 if settings.ENVIRONMENT == 'production':
@@ -53,11 +53,13 @@ class UserLoginAdminInline(admin.TabularInline):
 
 class UserMatchesAdminInline(admin.TabularInline):
     model = MatchPlayer
+    verbose_name = 'Match'
+    verbose_name_plural = 'Matches'
     readonly_fields = [
         'match',
         'map',
         'team_name',
-        'team_score',
+        'score',
         'server',
         'start_date',
         'end_date',
@@ -83,8 +85,8 @@ class UserMatchesAdminInline(admin.TabularInline):
     def team_name(self, obj):
         return obj.team.name
 
-    def team_score(self, obj):
-        return obj.team.score
+    def score(self, obj):
+        return f'{obj.team.match.team_a.score} x {obj.team.match.team_b.score}'
 
     def map(self, obj):
         return obj.team.match.map.name
@@ -111,36 +113,19 @@ class UserMatchesAdminInline(admin.TabularInline):
 class UserReportsAdminInline(admin.TabularInline):
     model = models.AccountReport
     extra = 0
-    readonly_fields = [
-        'subject_link',
-        'reporter',
-        'target',
-        'report_points',
-        'datetime_created',
-    ]
-    exclude = ['comments', 'subject']
+    readonly_fields = ['datetime_created']
     fk_name = 'target'
 
-    def subject_link(self, obj):
-        url = reverse(
-            "admin:accounts_accountreport_change",
-            args=[obj.id],
-        )
-        return format_html('<a href="{}">{}</a>', url, obj.get_subject_display())
-
-    subject_link.short_description = 'Subject'
-
-    def has_add_permission(self, request, obj=None) -> bool:
+    def has_change_permission(self, request, obj=None) -> bool:
         return False
 
     def has_delete_permission(self, request, obj=None) -> bool:
-        return False
+        return True
 
 
 class UserItemAdminInline(admin.TabularInline):
     model = UserItem
     readonly_fields = [
-        'item_name',
         'item_type',
         'item_subtype',
         'item_is_available',
@@ -150,11 +135,8 @@ class UserItemAdminInline(admin.TabularInline):
     ]
     extra = 0
 
-    def item_name(self, obj):
-        return obj.item.name
-
     def item_type(self, obj):
-        return obj.item.type
+        return obj.item.item_type
 
     def item_subtype(self, obj):
         return obj.item.subtype
@@ -166,16 +148,12 @@ class UserItemAdminInline(admin.TabularInline):
 class UserBoxAdminInline(admin.TabularInline):
     model = UserBox
     readonly_fields = [
-        'box_name',
         'box_is_available',
         'can_open',
         'purchase_date',
         'open_date',
     ]
     extra = 0
-
-    def box_name(self, obj):
-        return obj.box.name
 
     def box_is_available(self, obj):
         return obj.box.is_available
@@ -207,6 +185,7 @@ class UserAdmin(
     admin_mixins.CannotCreateModelAdminMixin,
     DjangoUserAdmin,
 ):
+    form = forms.UserUpdateForm
     fieldsets = (
         (
             _('ACCOUNT'),
@@ -216,6 +195,8 @@ class UserAdmin(
                     'username',
                     'level',
                     'level_points',
+                    'highest_level',
+                    'coins',
                 )
             },
         ),
@@ -261,6 +242,8 @@ class UserAdmin(
         'status',
         'level',
         'level_points',
+        'coins',
+        'report_points',
     )
     readonly_fields = [
         'steamid',
@@ -269,10 +252,9 @@ class UserAdmin(
         'date_joined',
         'status',
         'is_verified',
-        'level',
-        'level_points',
         'verification_token',
         'social_handles',
+        'highest_level',
     ]
     search_fields = (
         'email',
@@ -281,7 +263,7 @@ class UserAdmin(
         'id',
         'account__username',
     )
-    ordering = ('-date_joined', '-last_login', 'email', 'account__level')
+    ordering = ('-last_login', '-date_joined', 'email', 'account__level')
     list_filter = (
         CustomUserStatusFilter,
         'is_active',
@@ -315,12 +297,28 @@ class UserAdmin(
         return obj.account.verification_token if obj.account else None
 
     def social_handles(self, obj):
-        if not obj.account:
-            return None
+        if not obj.account or not obj.account.social_handles:
+            return '-'
 
         return ', '.join(
-            f'{k}: {v}' for k, v in obj.account.social_handles.items() if v
+            f'{k.capitalize()}: {v}' for k, v in obj.account.social_handles.items() if v
         )
+
+    def coins(self, obj):
+        return obj.account.coins if obj.account else 0
+
+    def report_points(self, obj):
+        return sum(obj.reports_received.all().values_list('report_points', flat=True))
+
+    def highest_level(self, obj):
+        return obj.account.highest_level if obj.account else 0
+
+    is_verified.boolean = True
+    coins.short_description = 'RC Wallet'
+    coins.admin_order_field = 'account__coins'
+    level.admin_order_field = 'account__level'
+    level_points.admin_order_field = 'account__level_points'
+    report_points.admin_order_field = 'reports_received__report_points'
 
     @action(
         label=_('Assume Identity'),
@@ -337,8 +335,6 @@ class UserAdmin(
 
         models.IdentityManager.objects.create(user=obj, agent=request.user)
         return HttpResponseRedirect(settings.FRONT_END_AUTH_URL.format(token))
-
-    is_verified.boolean = True
 
     def get_change_actions(self, request, object_id, form_url):
         actions = super().get_change_actions(request, object_id, form_url)
@@ -364,6 +360,11 @@ class UserAdmin(
                         )
         return fieldsets
 
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        if hasattr(form.instance, '_save_account'):
+            form.instance._save_account.save()
+
 
 @admin.register(models.Invite)
 class InviteAdmin(admin.ModelAdmin):
@@ -378,14 +379,8 @@ class InviteAdmin(admin.ModelAdmin):
     search_fields = ['email', 'owned_by__email']
 
 
-@admin.register(models.Account)
-class AccountAdmin(admin_mixins.SuperUserOnlyAdminMixin, admin.ModelAdmin):
-    search_fields = ['username', 'user__email', 'steamid']
-    readonly_fields = ['username']
-
-
 @admin.register(models.AccountReport)
-class AccountReportAdmin(admin.ModelAdmin):
+class AccountReportAdmin(admin_mixins.SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         'reporter',
         'target_link',
