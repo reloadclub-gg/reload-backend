@@ -6,8 +6,10 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Q
+from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
-from ninja.errors import Http404
+from django.utils.translation import gettext as _
+from ninja.errors import Http404, HttpError
 
 from accounts.utils import hex_to_steamid64
 from accounts.websocket import ws_update_user
@@ -226,17 +228,21 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
         websocket.ws_match_update(match)
         return
 
-    with transaction.atomic():
-        scores = update_scores(match, payload.teams)
-        stats_payload = payload.teams[0].players + payload.teams[1].players
-        handle_update_players_stats(stats_payload, match)
+    try:
+        with transaction.atomic():
+            scores = update_scores(match, payload.teams)
+            stats_payload = payload.teams[0].players + payload.teams[1].players
+            handle_update_players_stats(stats_payload, match)
 
-        if should_finish_match(payload.is_overtime, scores):
-            match.finish()
+            if should_finish_match(payload.is_overtime, scores):
+                match.finish()
 
-        if payload.chat:
-            match.chat = payload.chat
-            match.save()
+            if payload.chat:
+                match.chat = payload.chat
+                match.save()
+    except (IntegrityError, Exception) as e:
+        logging.error(e)
+        raise HttpError(400, _('Unable to update match.'))
 
     match.refresh_from_db()
     websocket.ws_match_update(match)
