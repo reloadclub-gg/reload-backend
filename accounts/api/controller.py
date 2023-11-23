@@ -1,5 +1,8 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import get_language
@@ -179,10 +182,14 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
             raise HttpError(401, _('User must be invited.'))
         invites.update(datetime_accepted=timezone.now())
 
-    with transaction.atomic():
-        user.email = email
-        user.save()
-        Account.objects.create(user=user)
+    try:
+        with transaction.atomic():
+            user.email = email
+            user.save()
+            Account.objects.create(user=user)
+    except IntegrityError as e:
+        logging.error(e)
+        raise HttpError(400, _('Unable to create account.'))
 
     if not is_fake:
         tasks.send_verify_email.delay(
@@ -240,15 +247,19 @@ def update_email(user: User, email: str) -> User:
     """
     Change user email and set user as unverified.
     """
-    with transaction.atomic():
-        user.email = email
-        user.date_email_update = timezone.now()
-        user.save()
-        user.account.verification_token = generate_random_string(
-            length=Account.VERIFICATION_TOKEN_LENGTH
-        )
-        user.account.is_verified = False
-        user.account.save()
+    try:
+        with transaction.atomic():
+            user.email = email
+            user.date_email_update = timezone.now()
+            user.save()
+            user.account.verification_token = generate_random_string(
+                length=Account.VERIFICATION_TOKEN_LENGTH
+            )
+            user.account.is_verified = False
+            user.account.save()
+    except IntegrityError as e:
+        logging.error(e)
+        raise HttpError(400, _('Unable to update e-mail.'))
 
     tasks.send_verify_email.delay(
         user.email,

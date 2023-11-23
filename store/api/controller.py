@@ -81,7 +81,7 @@ def buy_product(request, payload: schemas.PurchaseSchema):
             checkout_transaction.save()
             return checkout_session
     except (IntegrityError, Exception) as e:
-        logging.warning(e)
+        logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
 
@@ -124,7 +124,8 @@ def purchase_item(user: User, item_id: int) -> models.UserItem:
             user.account.coins -= item.price
             user.account.save()
             user_item = user.useritem_set.create(item=item)
-    except IntegrityError:
+    except IntegrityError as e:
+        logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
     return user_item
@@ -144,7 +145,8 @@ def purchase_box(user: User, box_id: int) -> models.UserBox:
             user.account.coins -= box.price
             user.account.save()
             user_box = user.userbox_set.create(box=box)
-    except IntegrityError:
+    except IntegrityError as e:
+        logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
     return user_box
@@ -167,7 +169,8 @@ def purchase_collection(user: User, collection_id: int) -> List[models.UserItem]
             for item in collection.item_set.filter(is_available=True):
                 user_item = user.useritem_set.create(item=item)
                 user_items.append(user_item)
-    except IntegrityError:
+    except IntegrityError as e:
+        logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
     return user_items
