@@ -87,6 +87,7 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
         'start_date',
         'end_date',
         'status',
+        'map',
         'game_type',
         'game_mode',
         'score',
