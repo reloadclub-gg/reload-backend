@@ -100,11 +100,14 @@ def fetch_products():
             'id': product.get('id'),
             'name': product.get('name'),
             'price': fetch_price(product.get('default_price')),
-            'amount': product.get('metadata').get('amount'),
+            'amount': int(product.get('metadata').get('amount')),
         }
         for product in products
     ]
-    return [schemas.ProductSchema.from_orm(product) for product in reduced_products]
+    return sorted(
+        [schemas.ProductSchema.from_orm(product) for product in reduced_products],
+        key=lambda x: x.amount,
+    )
 
 
 def buy_product(request, payload: schemas.PurchaseSchema):
@@ -158,7 +161,11 @@ def resume_transaction(transaction_id: int):
     transaction.complete_date = timezone.now()
     transaction.status = models.ProductTransaction.Status.COMPLETE
     transaction.save()
-    tasks.send_purchase_mail_task.delay()
+    tasks.send_purchase_mail_task.delay(
+        user.email,
+        transaction.id,
+        transaction.complete_date,
+    )
     return redirect(f'{settings.FRONT_END_URL}/checkout/success')
 
 
