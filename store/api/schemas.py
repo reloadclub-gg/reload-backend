@@ -391,7 +391,7 @@ class ProductSchema(Schema):
     id: str
     name: str
     price: str
-    amount: str
+    amount: int
 
 
 class PurchaseSchema(Schema):
