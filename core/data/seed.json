@@ -1531,11 +1531,45 @@
         }
     },
     {
+        "model": "store.box",
+        "pk": 1,
+        "fields": {
+            "name": "Box 1",
+            "handle": "box-1",
+            "price": "3700",
+            "create_date": "2023-09-26T06:58:21.185Z",
+            "release_date": "2023-09-26T06:58:21.185Z",
+            "is_available": true,
+            "description": "af adf adf adf asd",
+            "discount": 0,
+            "background_image": "store/box-fluxo/media/box-fluxo.png",
+            "foreground_image": "store/box-fluxo/media/box-fluxo.jpg",
+            "featured": true
+        }
+    },
+    {
+        "model": "store.box",
+        "pk": 2,
+        "fields": {
+            "name": "Box 2",
+            "handle": "box-2",
+            "price": "3700",
+            "create_date": "2023-09-26T06:58:21.185Z",
+            "release_date": "2023-09-26T06:58:21.185Z",
+            "is_available": true,
+            "description": "af adf adf adf asd",
+            "discount": 0,
+            "background_image": "store/box-fluxo/media/box-fluxo.png",
+            "foreground_image": "store/box-fluxo/media/box-fluxo.jpg",
+            "featured": true
+        }
+    },
+    {
         "model": "store.collection",
         "pk": 1,
         "fields": {
-            "name": "Coleção Dragão",
-            "handle": "colecao-dragao",
+            "name": "Coleção 1",
+            "handle": "colecao-1",
             "price": "2900",
             "create_date": "2023-09-26T06:58:53.031Z",
             "release_date": "2023-09-26T06:58:53.031Z",
@@ -1548,13 +1582,30 @@
         }
     },
     {
+        "model": "store.collection",
+        "pk": 2,
+        "fields": {
+            "name": "Coleção 2",
+            "handle": "colecao-2",
+            "price": "2900",
+            "create_date": "2023-09-26T06:58:53.031Z",
+            "release_date": "2023-09-26T06:58:53.031Z",
+            "is_available": false,
+            "description": "asd asd asd asd asd as d",
+            "discount": 0,
+            "background_image": "store/colecao-dragao/media/colecao-dragao.png",
+            "foreground_image": "store/colecao-dragao/media/colecao-dragao.jpg",
+            "featured": false
+        }
+    },
+    {
         "model": "store.item",
         "pk": 1,
         "fields": {
-            "name": "Spray Complexo",
+            "name": "Item 1",
             "item_type": "spray",
             "subtype": null,
-            "handle": "spray-spray-complexo",
+            "handle": "spray-item-1",
             "price": "600",
             "create_date": "2023-09-26T06:56:43.742Z",
             "release_date": "2023-09-26T06:56:43.742Z",
@@ -1573,10 +1624,120 @@
         "model": "store.item",
         "pk": 2,
         "fields": {
-            "name": "Jersey #segueofx",
+            "name": "Item 2",
+            "item_type": "spray",
+            "subtype": null,
+            "handle": "spray-item-2",
+            "price": "600",
+            "create_date": "2023-09-26T06:56:43.742Z",
+            "release_date": "2023-09-26T06:56:43.742Z",
+            "is_available": true,
+            "description": "djwf ijafj piajfiaj",
+            "discount": 0,
+            "background_image": "store/spray-spray-complexo/media/spray-spray-complexo_OIR8KY7.png",
+            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": true
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 3,
+        "fields": {
+            "name": "Item 3",
+            "item_type": "spray",
+            "subtype": null,
+            "handle": "spray-item-3",
+            "price": "600",
+            "create_date": "2023-09-26T06:56:43.742Z",
+            "release_date": "2023-09-26T06:56:43.742Z",
+            "is_available": true,
+            "description": "djwf ijafj piajfiaj",
+            "discount": 0,
+            "background_image": "store/spray-spray-complexo/media/spray-spray-complexo_OIR8KY7.png",
+            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": true
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 4,
+        "fields": {
+            "name": "Item 4",
+            "item_type": "spray",
+            "subtype": null,
+            "handle": "spray-item-4",
+            "price": "600",
+            "create_date": "2023-09-26T06:56:43.742Z",
+            "release_date": "2023-09-26T06:56:43.742Z",
+            "is_available": true,
+            "description": "djwf ijafj piajfiaj",
+            "discount": 0,
+            "background_image": "store/spray-spray-complexo/media/spray-spray-complexo_OIR8KY7.png",
+            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": true
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 5,
+        "fields": {
+            "name": "Item 5",
+            "item_type": "spray",
+            "subtype": null,
+            "handle": "spray-item-5",
+            "price": "600",
+            "create_date": "2023-09-26T06:56:43.742Z",
+            "release_date": "2023-09-26T06:56:43.742Z",
+            "is_available": true,
+            "description": "djwf ijafj piajfiaj",
+            "discount": 0,
+            "background_image": "store/spray-spray-complexo/media/spray-spray-complexo_OIR8KY7.png",
+            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": true
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 6,
+        "fields": {
+            "name": "Item 6",
+            "item_type": "spray",
+            "subtype": null,
+            "handle": "spray-item-6",
+            "price": "600",
+            "create_date": "2023-09-26T06:56:43.742Z",
+            "release_date": "2023-09-26T06:56:43.742Z",
+            "is_available": true,
+            "description": "djwf ijafj piajfiaj",
+            "discount": 0,
+            "background_image": "store/spray-spray-complexo/media/spray-spray-complexo_OIR8KY7.png",
+            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": true
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 7,
+        "fields": {
+            "name": "Item 7",
             "item_type": "wear",
             "subtype": "def",
-            "handle": "wear-def-jersey-segueofx",
+            "handle": "wear-def-item-7",
             "price": "850",
             "create_date": "2023-09-26T06:59:42.592Z",
             "release_date": "2023-09-26T06:59:42.592Z",
@@ -1586,8 +1747,184 @@
             "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
             "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
             "box": 1,
-            "box_draw_chance": "15.00",
+            "box_draw_chance": "10.00",
             "collection": null,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 8,
+        "fields": {
+            "name": "Item 8",
+            "item_type": "wear",
+            "subtype": "def",
+            "handle": "wear-def-item-8",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 15,
+            "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
+            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "box": 1,
+            "box_draw_chance": "10.00",
+            "collection": null,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 9,
+        "fields": {
+            "name": "Item 9",
+            "item_type": "wear",
+            "subtype": "def",
+            "handle": "wear-def-item-9",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 15,
+            "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
+            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "box": 1,
+            "box_draw_chance": "10.00",
+            "collection": null,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 10,
+        "fields": {
+            "name": "Item 10",
+            "item_type": "spray",
+            "subtype": null,
+            "handle": "spray-item-10",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 15,
+            "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
+            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "box": 1,
+            "box_draw_chance": "50.00",
+            "collection": null,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 11,
+        "fields": {
+            "name": "Item 11",
+            "item_type": "persona",
+            "subtype": null,
+            "handle": "persona-item-11",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 15,
+            "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
+            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "box": 1,
+            "box_draw_chance": "20.00",
+            "collection": null,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 12,
+        "fields": {
+            "name": "Item 12",
+            "item_type": "persona",
+            "subtype": null,
+            "handle": "persona-item-12",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 15,
+            "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
+            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 1,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 13,
+        "fields": {
+            "name": "Item 13",
+            "item_type": "spray",
+            "subtype": null,
+            "handle": "spray-item-13",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 15,
+            "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
+            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 1,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 14,
+        "fields": {
+            "name": "Item 14",
+            "item_type": "spray",
+            "subtype": null,
+            "handle": "spray-item-14",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 0,
+            "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
+            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 2,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 15,
+        "fields": {
+            "name": "Item 15",
+            "item_type": "wear",
+            "subtype": "ata",
+            "handle": "wear-ata-item-15",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 0,
+            "background_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx.png",
+            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 2,
             "featured": false
         }
     }
