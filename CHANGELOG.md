@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo "mapa" no admin de partidas.
 - Adicionamos usuários Alpha, que tem prioridade sobre os Beta [#867](https://github.com/3C-gg/reload-backend/issues/867).
 - `AppConfig` para deixar o site aberto somente para usuários Alpha.
 - Criamos um email de sucesso de compra.
@@ -39,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige seleção aleatória de mapas, que estava escolhendo mapas inativos ao criar uma partida [#817](https://github.com/3C-gg/reload-backend/issues/817).
 - Adiciona `try/catch` nas transações de atualização de partida ao receber esse tipo de chamada do FiveM. Adiciona também logs com os erros retornados caso a transação não se complete [#873](https://github.com/3C-gg/reload-backend/issues/873).
 - Alguns esquemas de `store` estavam retornando campos com valores ruins ou malformados para o FE. Corrigimos esses esquemas.
 - Ordenação das partidas no admin de partidas.
