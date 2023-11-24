@@ -229,8 +229,37 @@ class UserStoreSchema(ModelSchema):
         model_fields = ['id']
 
     @staticmethod
-    def get_featured_objects(model, **filters):
-        return list(model.objects.filter(featured=True, is_available=True, **filters))
+    def get_featured_items(user):
+        user_items = models.UserItem.objects.filter(user=user).values('item__id')
+        return list(
+            models.Item.objects.filter(featured=True, is_available=True).exclude(
+                id__in=user_items
+            )
+        )
+
+    @staticmethod
+    def get_featured_boxes(user):
+        user_boxes = models.UserBox.objects.filter(user=user).values('box__id')
+        return list(
+            models.Box.objects.filter(featured=True, is_available=True).exclude(
+                id__in=user_boxes
+            )
+        )
+
+    @staticmethod
+    def get_featured_collections(user):
+        user_item_ids = set(
+            models.UserItem.objects.filter(user=user).values_list('item__id', flat=True)
+        )
+        collections = models.Collection.objects.filter(featured=True, is_available=True)
+
+        result = []
+        for collection in collections:
+            collection_item_ids = set(collection.item_set.values_list('id', flat=True))
+            if not collection_item_ids.intersection(user_item_ids):
+                result.append(collection)
+
+        return result
 
     @staticmethod
     def get_random_products(user: User):
@@ -238,9 +267,7 @@ class UserStoreSchema(ModelSchema):
             models.Item.objects.filter(is_available=True)
             .exclude(
                 id__in=Subquery(
-                    getattr(models, 'UserItem')
-                    .objects.filter(user=user)
-                    .values('item__id')
+                    models.UserItem.objects.filter(user=user).values('item__id')
                 )
             )
             .order_by('?')
@@ -250,9 +277,7 @@ class UserStoreSchema(ModelSchema):
             models.Box.objects.filter(is_available=True)
             .exclude(
                 id__in=Subquery(
-                    getattr(models, 'UserBox')
-                    .objects.filter(user=user)
-                    .values('box__id')
+                    models.UserBox.objects.filter(user=user).values('box__id')
                 )
             )
             .order_by('?')
@@ -269,9 +294,9 @@ class UserStoreSchema(ModelSchema):
         }
 
         items = (
-            UserStoreSchema.get_featured_objects(models.Collection)
-            + UserStoreSchema.get_featured_objects(models.Box)
-            + UserStoreSchema.get_featured_objects(models.Item)
+            UserStoreSchema.get_featured_collections(obj)
+            + UserStoreSchema.get_featured_boxes(obj)
+            + UserStoreSchema.get_featured_items(obj)
         )[: settings.STORE_FEATURED_MAX_LENGTH]
 
         return [model_to_schema[type(item)].from_orm(item) for item in items]
@@ -334,8 +359,12 @@ class UserStoreSchema(ModelSchema):
     def get_cached_products(obj):
         items_ids = cache.smembers(f'__store:user:{obj.id}:items')
         boxes_ids = cache.smembers(f'__store:user:{obj.id}:boxes')
-        items = models.Item.objects.filter(is_available=True, id__in=items_ids)
-        boxes = models.Box.objects.filter(is_available=True, id__in=boxes_ids)
+        items = models.Item.objects.filter(is_available=True, id__in=items_ids).exclude(
+            id__in=Subquery(models.UserItem.objects.filter(user=obj).values('item__id'))
+        )
+        boxes = models.Box.objects.filter(is_available=True, id__in=boxes_ids).exclude(
+            id__in=Subquery(models.UserBox.objects.filter(user=obj).values('box__id'))
+        )
         products = list(items) + list(boxes)
         reduced_products = products[: settings.STORE_LENGTH]
         return [
@@ -362,7 +391,7 @@ class ProductSchema(Schema):
     id: str
     name: str
     price: str
-    amount: str
+    amount: int
 
 
 class PurchaseSchema(Schema):

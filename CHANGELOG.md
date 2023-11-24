@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- APi health check agora retorna `is_alpha`.
+- Loja agora não retorna mais itens já adquiridos pelo usuário.
+- API health check agora retorna `is_alpha`.
 - Altera a representação verbal de alguns modelos no app `store`.
 - Modelo `ProductTransaction` foi refatorado para aceitar tipos e campos necessários para os retornos de uma transação no Stripe.
 - Rota e controlador que inicia sessão de compra de produto foram alterados para refletir alterações nas decisões de negócio. Antes, usávamos um modelo `embedded`, que fazia com que o formulário de checkout do Stripe ficasse no nosso domínio. Agora, mudamos para um modelo `host`, onde o usuário sai do nosso site para o site do Stripe para fazer o checkout.
@@ -27,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona mais itens, caixas e coleções na carga inicial da aplicação para o ambiente de desenvolvimento.
+- Campo "mapa" no admin de partidas.
 - Adicionamos usuários Alpha, que tem prioridade sobre os Beta [#867](https://github.com/3C-gg/reload-backend/issues/867).
 - `AppConfig` para deixar o site aberto somente para usuários Alpha.
 - Criamos um email de sucesso de compra.
@@ -39,6 +42,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige erro que fazia com que compensação de win (que compensa inversão de score) fosse ativada no surrender.
+- Corrige ordenação de produtos trazidos da Stripe.
+- Corrige chamada de envio de email de compra finalizada.
+- Corrige erro no admin quando usuário, por algum motivo, não tem `steam_user`.
+- Corrige seleção aleatória de mapas, que estava escolhendo mapas inativos ao criar uma partida [#817](https://github.com/3C-gg/reload-backend/issues/817).
+- Adiciona `try/catch` nas transações de atualização de partida ao receber esse tipo de chamada do FiveM. Adiciona também logs com os erros retornados caso a transação não se complete [#873](https://github.com/3C-gg/reload-backend/issues/873).
 - Alguns esquemas de `store` estavam retornando campos com valores ruins ou malformados para o FE. Corrigimos esses esquemas.
 - Ordenação das partidas no admin de partidas.
 - Corrige chats de partida no `seed.json`, que estava criando mensagens com o steamid64 ao invés de HEX.

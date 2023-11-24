@@ -285,10 +285,12 @@ class UserAdmin(
     ]
 
     def steamid(self, obj):
-        return obj.steam_user.steamid
+        if obj.steam_user:
+            return obj.steam_user.steamid
 
     def username(self, obj):
-        return obj.steam_user.username
+        if obj.steam_user:
+            return obj.steam_user.username
 
     def is_verified(self, obj):
         return obj.account.is_verified if obj.account else False

@@ -1,21 +1,73 @@
 import logging
+import random
 from typing import List
 
 import stripe
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Count
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
 
+from core.redis import redis_client_instance as cache
+
 from .. import models, tasks
 from . import schemas
 
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+def get_random_product(user_id: int):
+    item, box = None, None
+    items_on_store = cache.smembers(f'__store:user:{user_id}:items')
+    items_on_store_ids = [int(item_id) for item_id in items_on_store]
+    user_item_ids = models.UserItem.objects.filter(user__id=user_id).values_list(
+        'item__id',
+        flat=True,
+    )
+
+    available_items = (
+        models.Item.objects.filter(is_available=True)
+        .exclude(id__in=user_item_ids)
+        .exclude(id__in=items_on_store_ids)
+    )
+    items_count = available_items.aggregate(count=Count('id'))['count']
+    if items_count > 0:
+        random_index = random.randint(0, items_count - 1)
+        item = available_items[random_index]
+
+    boxes_on_store = cache.smembers(f'__store:user:{user_id}:boxes')
+    boxes_on_store_ids = [int(item_id) for item_id in boxes_on_store]
+    user_box_ids = models.UserBox.objects.filter(user__id=user_id).values_list(
+        'box__id',
+        flat=True,
+    )
+
+    available_boxes = (
+        models.Box.objects.filter(is_available=True)
+        .exclude(id__in=user_box_ids)
+        .exclude(id__in=boxes_on_store_ids)
+    )
+    boxes_count = available_boxes.aggregate(count=Count('id'))['count']
+    if boxes_count > 0:
+        random_index = random.randint(0, boxes_count - 1)
+        box = available_boxes[random_index]
+
+    choices = [obj for obj in [box, item] if obj is not None]
+    return random.choice(choices) if choices else None
+
+
+def replace_purchased_item(user_id: int):
+    new_product = get_random_product(user_id)
+    if new_product:
+        item_key_name = 'items' if isinstance(new_product, models.Item) else 'boxes'
+        cache.sadd(f'__store:user:{user_id}:{item_key_name}', new_product.id)
+    return new_product
 
 
 def item_update(user: User, item_id: int, payload: schemas.UserItemUpdateSchema):
@@ -48,11 +100,14 @@ def fetch_products():
             'id': product.get('id'),
             'name': product.get('name'),
             'price': fetch_price(product.get('default_price')),
-            'amount': product.get('metadata').get('amount'),
+            'amount': int(product.get('metadata').get('amount')),
         }
         for product in products
     ]
-    return [schemas.ProductSchema.from_orm(product) for product in reduced_products]
+    return sorted(
+        [schemas.ProductSchema.from_orm(product) for product in reduced_products],
+        key=lambda x: x.amount,
+    )
 
 
 def buy_product(request, payload: schemas.PurchaseSchema):
@@ -81,7 +136,7 @@ def buy_product(request, payload: schemas.PurchaseSchema):
             checkout_transaction.save()
             return checkout_session
     except (IntegrityError, Exception) as e:
-        logging.warning(e)
+        logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
 
@@ -106,7 +161,11 @@ def resume_transaction(transaction_id: int):
     transaction.complete_date = timezone.now()
     transaction.status = models.ProductTransaction.Status.COMPLETE
     transaction.save()
-    tasks.send_purchase_mail_task.delay()
+    tasks.send_purchase_mail_task.delay(
+        user.email,
+        transaction.id,
+        transaction.complete_date,
+    )
     return redirect(f'{settings.FRONT_END_URL}/checkout/success')
 
 
@@ -124,9 +183,12 @@ def purchase_item(user: User, item_id: int) -> models.UserItem:
             user.account.coins -= item.price
             user.account.save()
             user_item = user.useritem_set.create(item=item)
-    except IntegrityError:
+    except IntegrityError as e:
+        logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
+    cache.srem(f'__store:user:{user.id}:items', item.id)
+    replace_purchased_item(user_id=user.id)
     return user_item
 
 
@@ -144,9 +206,12 @@ def purchase_box(user: User, box_id: int) -> models.UserBox:
             user.account.coins -= box.price
             user.account.save()
             user_box = user.userbox_set.create(box=box)
-    except IntegrityError:
+    except IntegrityError as e:
+        logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
+    cache.srem(f'__store:user:{user.id}:boxes', box.id)
+    replace_purchased_item(user_id=user.id)
     return user_box
 
 
@@ -167,7 +232,12 @@ def purchase_collection(user: User, collection_id: int) -> List[models.UserItem]
             for item in collection.item_set.filter(is_available=True):
                 user_item = user.useritem_set.create(item=item)
                 user_items.append(user_item)
-    except IntegrityError:
+                cached_items = cache.smembers(f'__store:user:{user.id}:items')
+                if str(item.id) in cached_items:
+                    cache.srem(f'__store:user:{user.id}:items', item.id)
+                    replace_purchased_item(user_id=user.id)
+    except IntegrityError as e:
+        logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
     return user_items

@@ -517,6 +517,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                     }
                 ),
             ],
+            1,  # end_reason -> ENEMY_DEAD
         )
         self.assertEqual(self.match.team_a.score, 0)
         self.assertEqual(self.match.team_b.score, 2)
@@ -539,6 +540,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                     }
                 ),
             ],
+            1,  # end_reason -> ENEMY_DEAD
         )
         self.assertEqual(self.match.team_a.score, 0)
         self.assertEqual(self.match.team_b.score, 3)
@@ -561,6 +563,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                     }
                 ),
             ],
+            1,  # end_reason -> ENEMY_DEAD
         )
         self.assertEqual(self.match.team_a.score, 1)
         self.assertEqual(self.match.team_b.score, 3)
@@ -584,6 +587,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                     }
                 ),
             ],
+            1,  # end_reason -> ENEMY_DEAD
         )
         self.assertEqual(self.match.team_a.score, 1)
         self.assertEqual(self.match.team_b.score, 4)

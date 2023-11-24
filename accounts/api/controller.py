@@ -1,5 +1,8 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import get_language
@@ -31,6 +34,31 @@ from .authorization import is_verified
 User = get_user_model()
 
 
+def check_beta(user, email: str = None):
+    email = user.email or email
+    beta_required = check_beta_required()
+    if beta_required:
+        is_beta = BetaUser.objects.filter(email=email).exists()
+        if not is_beta and not user.is_alpha:
+            raise HttpError(401, _('User must be invited.'))
+
+
+def check_alpha(user):
+    alpha_required = check_alpha_required()
+    if alpha_required and not user.is_alpha:
+        raise HttpError(401, _('User must be invited.'))
+
+
+def check_invite(user, email: str = None, is_fake: bool = False):
+    email = user.email or email
+    invite_required = check_invite_required()
+    if invite_required:
+        invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
+        if not is_fake and not invites.exists():
+            raise HttpError(401, _('User must be invited.'))
+        invites.update(datetime_accepted=timezone.now())
+
+
 def handle_verify_tasks(user: User):
     lang = get_language()
     notify_friends_about_signup.delay(user.id, lang)
@@ -46,16 +74,8 @@ def auth(user: User, from_fake_signup=False) -> User:
     if not is_verified(user):
         return user
 
-    beta_required = check_beta_required()
-    alpha_required = check_alpha_required()
-
-    if alpha_required and not user.is_alpha:
-        raise HttpError(401, _('User must be invited.'))
-
-    if beta_required:
-        is_beta = BetaUser.objects.filter(email=user.email).exists()
-        if not user.is_alpha and not is_beta:
-            raise HttpError(401, _('User must be invited.'))
+    check_beta(user, user.email)
+    check_alpha(user)
 
     from_offline_status = user.auth.sessions is None
 
@@ -161,28 +181,18 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     except Account.DoesNotExist:
         pass
 
-    beta_required = check_beta_required()
-    alpha_required = check_alpha_required()
-    invite_required = check_invite_required()
+    check_beta(user, email)
+    check_alpha(user)
+    check_invite(user, email, is_fake)
 
-    if beta_required:
-        is_beta = BetaUser.objects.filter(email=email).exists()
-        if not is_beta and not user.is_alpha:
-            raise HttpError(401, _('User must be invited.'))
-
-    if alpha_required and not user.is_alpha:
-        raise HttpError(401, _('User must be invited.'))
-
-    if invite_required:
-        invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
-        if not is_fake and not invites.exists():
-            raise HttpError(401, _('User must be invited.'))
-        invites.update(datetime_accepted=timezone.now())
-
-    with transaction.atomic():
-        user.email = email
-        user.save()
-        Account.objects.create(user=user)
+    try:
+        with transaction.atomic():
+            user.email = email
+            user.save()
+            Account.objects.create(user=user)
+    except IntegrityError as e:
+        logging.error(e)
+        raise HttpError(400, _('Unable to create account.'))
 
     if not is_fake:
         tasks.send_verify_email.delay(
@@ -240,15 +250,19 @@ def update_email(user: User, email: str) -> User:
     """
     Change user email and set user as unverified.
     """
-    with transaction.atomic():
-        user.email = email
-        user.date_email_update = timezone.now()
-        user.save()
-        user.account.verification_token = generate_random_string(
-            length=Account.VERIFICATION_TOKEN_LENGTH
-        )
-        user.account.is_verified = False
-        user.account.save()
+    try:
+        with transaction.atomic():
+            user.email = email
+            user.date_email_update = timezone.now()
+            user.save()
+            user.account.verification_token = generate_random_string(
+                length=Account.VERIFICATION_TOKEN_LENGTH
+            )
+            user.account.is_verified = False
+            user.account.save()
+    except IntegrityError as e:
+        logging.error(e)
+        raise HttpError(400, _('Unable to update e-mail.'))
 
     tasks.send_verify_email.delay(
         user.email,

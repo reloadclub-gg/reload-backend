@@ -269,11 +269,18 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
 
         baker.make(models.UserItem, item=self.item, user=self.user)
         payload = schemas.UserStoreSchema.from_orm(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 4)
+        self.assertEqual(len(payload.get('products')), 3)
 
         self.assertEqual(len(payload.get('featured')), 0)
-        self.item.featured = True
-        self.item.save()
+        baker.make(
+            models.Item,
+            name='Test Item Featured',
+            foreground_image=self.tmp_image,
+            background_image=self.tmp_image,
+            price=9,
+            is_available=True,
+            featured=True,
+        )
         payload = schemas.UserStoreSchema.from_orm(self.user).dict()
         self.assertEqual(len(payload.get('featured')), 1)
 
@@ -288,7 +295,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
         )
 
         payload = schemas.UserStoreSchema.from_orm(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 4)
+        self.assertEqual(len(payload.get('products')), 3)
         self.assertEqual(len(payload.get('featured')), 1)
 
         baker.make(
@@ -312,7 +319,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
         )
 
         payload = schemas.UserStoreSchema.from_orm(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 4)
+        self.assertEqual(len(payload.get('products')), 3)
         self.assertEqual(len(payload.get('featured')), 3)
 
     @override_settings(STORE_LENGTH=2)
