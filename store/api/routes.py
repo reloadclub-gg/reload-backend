@@ -56,7 +56,7 @@ def box_purchase(request, box_id: int):
 @router.post(
     '/collections/{collection_id}/',
     auth=VerifiedRequiredAuth(),
-    response={201: List[schemas.ItemSchema]},
+    response={201: List[schemas.UserItemSchema]},
 )
 def collection_purchase(request, collection_id: int):
     return controller.purchase_collection(request.user, collection_id)
