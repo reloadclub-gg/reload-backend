@@ -174,17 +174,17 @@ def should_finish_match(is_overtime, scores):
         return any(score >= settings.MATCH_ROUNDS_TO_WIN for score in scores)
 
 
-def update_scores(match, teams_data):
+def update_scores(match, teams_data, end_reason):
     team_scores = {team.name: team.score for team in teams_data}
     teams = models.MatchTeam.objects.filter(
         match=match,
         name__in=list(team_scores.keys()),
     )
-    inverted = False
     for idx, team in enumerate(teams):
         if idx == 0:
             if (
-                team_scores[team.name] - team.score >= 2
+                end_reason != 6  # SURRENDER
+                and team_scores[team.name] - team.score >= 2
                 and team_scores[teams[1].name] <= teams[1].score
             ):
                 logging.warning(
@@ -196,7 +196,8 @@ def update_scores(match, teams_data):
                 return teams[0].score, teams[1].score
         else:
             if (
-                team_scores[team.name] - team.score >= 2
+                end_reason != 6  # SURRENDER
+                and team_scores[team.name] - team.score >= 2
                 and team_scores[teams[0].name] <= teams[0].score
             ):
                 logging.warning(
@@ -207,9 +208,8 @@ def update_scores(match, teams_data):
                 teams[0].save(update_fields=['score'])
                 return teams[0].score, teams[1].score
 
-        if not inverted:
-            team.score = team_scores[team.name]
-            team.save(update_fields=['score'])
+        team.score = team_scores[team.name]
+        team.save(update_fields=['score'])
 
     return teams[0].score, teams[1].score
 
@@ -230,7 +230,7 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
 
     try:
         with transaction.atomic():
-            scores = update_scores(match, payload.teams)
+            scores = update_scores(match, payload.teams, payload.end_reason)
             stats_payload = payload.teams[0].players + payload.teams[1].players
             handle_update_players_stats(stats_payload, match)
 

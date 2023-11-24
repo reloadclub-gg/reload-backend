@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige erro que fazia com que compensação de win (que compensa inversão de score) fosse ativada no surrender.
 - Corrige erro no admin quando usuário, por algum motivo, não tem `steam_user`.
 - Corrige seleção aleatória de mapas, que estava escolhendo mapas inativos ao criar uma partida [#817](https://github.com/3C-gg/reload-backend/issues/817).
 - Adiciona `try/catch` nas transações de atualização de partida ao receber esse tipo de chamada do FiveM. Adiciona também logs com os erros retornados caso a transação não se complete [#873](https://github.com/3C-gg/reload-backend/issues/873).
