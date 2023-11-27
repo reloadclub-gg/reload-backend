@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrige erro que fazia com que usuários beta não conseguissem se cadastrar.
+
+## [c17001a - 24/11/2023]
+
 ### Changed
 
 - Loja agora não retorna mais itens já adquiridos pelo usuário.
