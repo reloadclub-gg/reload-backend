@@ -34,7 +34,7 @@ def authenticate(scope: dict) -> User:
 
     user_qs = User.objects.filter(id=auth.user_id, is_active=True)
     user = check_and_fetch_user(user_qs)
-    if user.auth.sessions_ttl > -1:
+    if user and user.auth.sessions_ttl > -1:
         user.add_session()
         user.auth.persist_session()
 
