@@ -35,7 +35,7 @@ User = get_user_model()
 
 
 def check_beta(user, email: str = None):
-    email = user.email or email
+    email = email or user.email
     beta_required = check_beta_required()
     if beta_required:
         is_beta = BetaUser.objects.filter(email=email).exists()
@@ -50,7 +50,7 @@ def check_alpha(user):
 
 
 def check_invite(user, email: str = None, is_fake: bool = False):
-    email = user.email or email
+    email = email or user.email
     invite_required = check_invite_required()
     if invite_required:
         invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
