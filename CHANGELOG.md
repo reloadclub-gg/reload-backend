@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Faz com que o usuário tenha sua sessão renovada caso se conecte via websocket [#883](https://github.com/3C-gg/reload-backend/issues/883).
+
 ### Fixed
 
 - Corrige erro que fazia com que usuários beta não conseguissem se cadastrar.
