@@ -7,13 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Modelos `PlayerDodges` e `PlayerRestriction` para fazer a manutenção dos dodges e restrições dos jogadores. Esses modelos e suas lógicas substituem o antigo modelo de cache `Player`, que foi removido [https://github.com/3C-gg/reload-backend/issues/740](#704).
+
 ### Changed
 
+- Atualiza método `pre_matches.tasks.handle_dodges` para usar novos modelos de dodges e restrição de jogadores (`PlayerDodges` e `PlayerRestriction`).
+- Atualiza admin de usuários, melhorando algumas labels e adicionando o campo de restrição, bem como um filtro para usuários restritos de iniciar fila.
 - Faz com que o usuário tenha sua sessão renovada caso se conecte via websocket [#883](https://github.com/3C-gg/reload-backend/issues/883).
 
 ### Fixed
 
+- Com os novos modelos de dodges e restrição (`PlayerDodges` e `PlayerRestriction`) corrigimos um problema que fazia com que as restrições não contassem corretamente o tempo para acabar [#763](https://github.com/3C-gg/reload-backend/issues/763).
 - Corrige erro que fazia com que usuários beta não conseguissem se cadastrar.
+
+### Removed
+
+- Modelo de cache `Player`, em favor dos novos modelos de dodges e restrição (`PlayerDodges` e `PlayerRestriction`).
 
 ## [c17001a - 24/11/2023]
 
