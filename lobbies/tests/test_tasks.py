@@ -5,7 +5,6 @@ from django.utils import timezone
 from ninja.errors import Http404
 
 from accounts.tasks import watch_user_status_change
-from core.redis import redis_client_instance as cache
 from core.tests import TestCase
 from lobbies.models import Lobby
 from pre_matches.api.controller import set_player_lock_in, set_player_ready
@@ -17,26 +16,28 @@ from . import mixins
 
 
 class LobbyTasksTestCase(TeamsMixin, TestCase):
+    @override_settings(PLAYER_DODGES_EXPIRE_TIME=60 * 60 * 24 * 7)  # 1 semana (7 dias)
     def test_clear_dodges(self):
-        player = models.Player.create(self.user_1.id)
-        tasks.clear_dodges()
-        self.assertEqual(player.dodges, 0)
-        today = timezone.now().isoformat()
-        two_weeks_ago = (timezone.now() - timezone.timedelta(weeks=2)).isoformat()
+        old_week = timezone.now() - timezone.timedelta(weeks=2)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
 
-        cache.zadd(
-            f'{player.cache_key}:dodges',
-            {two_weeks_ago: 1680800659.26437},
+        models.PlayerDodges(user=self.user_1, count=4).save()
+        models.PlayerDodges.objects.filter(user=self.user_1).update(
+            last_dodge_date=old_week
         )
+        self.assertEqual(self.user_1.playerdodges.count, 4)
         tasks.clear_dodges()
-        self.assertEqual(player.dodges, 0)
+        self.user_1.playerdodges.refresh_from_db()
+        self.assertEqual(self.user_1.playerdodges.count, 0)
 
-        cache.zadd(
-            f'{player.cache_key}:dodges',
-            {today: 1680800759.26437},
+        models.PlayerDodges(user=self.user_2, count=3).save()
+        models.PlayerDodges.objects.filter(user=self.user_2).update(
+            last_dodge_date=yesterday
         )
+        self.assertEqual(self.user_2.playerdodges.count, 3)
         tasks.clear_dodges()
-        self.assertEqual(player.dodges, 1)
+        self.user_2.playerdodges.refresh_from_db()
+        self.assertEqual(self.user_2.playerdodges.count, 3)
 
 
 class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):

@@ -11,8 +11,7 @@ from accounts.websocket import ws_update_user
 from core.utils import send_mail
 from core.websocket import ws_create_toast
 from friends.websocket import ws_friend_update_or_create
-from lobbies.models import Lobby, Player
-from lobbies.tasks import end_player_restriction
+from lobbies.models import Lobby, PlayerDodges
 from lobbies.websocket import ws_queue_start, ws_update_lobby
 from matches.models import Match, Server
 
@@ -43,22 +42,19 @@ def handle_delete_from_cache(team1: models.Team, team2: models.Team, pre_match_i
 
 
 def handle_dodges(lobby: Lobby, ready_players_ids: List[int]):
+    msg = _(
+        'Some players in your lobby were not ready before the'
+        'timer ran out and the match was cancelled. The recurrence'
+        'of this conduct may result in restrictions.'
+    )
+
     for player_id in lobby.players_ids:
-        msg = _(
-            'Some players in your lobby were not ready before the'
-            'timer ran out and the match was cancelled. The recurrence'
-            'of this conduct may result in restrictions.'
-        )
         ws_create_toast(msg, 'warning', user_id=player_id)
         if player_id not in ready_players_ids:
-            player = Player.get_by_user_id(player_id)
-            restriction_end_date = player.dodge_add()
-            if restriction_end_date:
-                end_player_restriction.apply_async(
-                    (player_id,),
-                    eta=restriction_end_date,
-                    serializer='json',
-                )
+            dodge, created = PlayerDodges.objects.get_or_create(user_id=player_id)
+            if not created:
+                dodge.count += 1
+                dodge.save()
 
 
 @shared_task
