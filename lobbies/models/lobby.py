@@ -13,7 +13,7 @@ from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
 
 from .invite import LobbyInvite
-from .player import Player
+from .player import PlayerRestriction
 
 User = get_user_model()
 
@@ -180,13 +180,16 @@ class Lobby(BaseModel):
         """
         Return the greatest player restriction countdown in seconds.
         """
-        lock_countdowns = [
-            Player(user_id=player_id).lock_countdown
-            for player_id in self.players_ids
-            if Player(user_id=player_id).lock_countdown
+        restriction_end_dates = PlayerRestriction.objects.filter(
+            user_id__in=self.players_ids,
+            end_date__gte=timezone.now(),
+        ).values_list('end_date', flat=True)
+        restriction_countdowns = [
+            (date - timezone.now()).seconds for date in restriction_end_dates
         ]
-        if lock_countdowns:
-            return max(lock_countdowns)
+
+        if restriction_countdowns:
+            return max(restriction_countdowns)
 
     @staticmethod
     def is_owner(lobby_id: int, player_id: int) -> bool:
@@ -263,8 +266,6 @@ class Lobby(BaseModel):
         cache.set(f'{lobby.cache_key}:type', lobby_type)
         cache.set(f'{lobby.cache_key}:mode', mode)
         cache.sadd(f'{lobby.cache_key}:players', owner_id)
-
-        Player.create(user_id=owner_id)
 
         return lobby
 
@@ -403,8 +404,6 @@ class Lobby(BaseModel):
                 logging.info(f'[lobby_move] invites {invites_to_player}')
                 for invite in invites_to_player:
                     pipe.zrem(f'__mm:lobby:{invite.lobby_id}:invites', invite.id)
-
-                Player.delete(player_id)
 
             logging.info('')
             logging.info('-- lobby_move end --')
@@ -563,9 +562,8 @@ class Lobby(BaseModel):
         if self.queue:
             raise LobbyException(_('Lobby is queued.'))
 
-        for user_id in self.players_ids:
-            if Player.get_by_user_id(user_id=user_id).lock_date:
-                raise LobbyException(_('Can\'t start queue due to player restriction.'))
+        if self.restriction_countdown:
+            raise LobbyException(_('Can\'t start queue due to player restriction.'))
 
         def transaction_operations(pipe, pre_result):
             pipe.set(f'{self.cache_key}:queue', timezone.now().isoformat())

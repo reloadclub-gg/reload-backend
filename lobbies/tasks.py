@@ -147,11 +147,11 @@ def handle_teaming():
 
 @shared_task
 def clear_dodges():
-    players = models.Player.get_all()
-    last_week = timezone.now() - timezone.timedelta(weeks=1)
-    for player in players:
-        if player.latest_dodge and player.latest_dodge <= last_week:
-            player.dodge_clear()
+    last_week = timezone.now() - timezone.timedelta(
+        seconds=settings.PLAYER_DODGES_EXPIRE_TIME
+    )
+    dodges = models.PlayerDodges.objects.filter(last_dodge_date__lte=last_week)
+    dodges.update(count=0)
 
 
 @shared_task
