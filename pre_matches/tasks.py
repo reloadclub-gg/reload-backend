@@ -64,15 +64,12 @@ def cancel_match_after_countdown(
     run_once: bool = False,
 ):
     pre_match = get_match(pre_match_id)
-    if not pre_match or pre_match.status == models.PreMatch.Status.READY:
+    if not pre_match or pre_match.ready:
         return
 
     lang and activate(lang)
 
-    if (
-        pre_match.countdown
-        and pre_match.countdown < models.PreMatch.Config.READY_COUNTDOWN_GAP
-    ):
+    if pre_match.countdown and pre_match.countdown < settings.MATCH_READY_COUNTDOWN_GAP:
         team1 = pre_match.teams[0]
         team2 = pre_match.teams[1]
         lobbies = team1.lobbies + team2.lobbies

@@ -27,8 +27,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
 
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
@@ -59,8 +57,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
 
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
@@ -89,8 +85,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
 
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
@@ -157,50 +151,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = controller.get_pre_match(self.user_1)
         self.assertIsNone(pre_match)
 
-    def test_set_player_lock_in(self):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
-        self.assertEqual(len(pre_match.players_in), 0)
-        controller.set_player_lock_in(self.user_1)
-        self.assertEqual(len(pre_match.players_in), 1)
-
-        controller.set_player_lock_in(self.user_2)
-        self.assertEqual(len(pre_match.players_in), 2)
-
-        with self.assertRaises(HttpError):
-            controller.set_player_lock_in(self.user_2)
-
-        self.assertEqual(len(pre_match.players_in), 2)
-
-    @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_update')
-    @mock.patch(
-        'pre_matches.api.controller.tasks.cancel_match_after_countdown.apply_async'
-    )
-    def test_set_player_lock_in_ready(
-        self,
-        mock_cancel_match_task,
-        mock_pre_match_update,
-    ):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
-        for player in pre_match.players[:-1]:
-            pre_match.set_player_lock_in(player.id)
-
-        self.assertIsNone(pre_match.countdown)
-
-        controller.set_player_lock_in(pre_match.players[-1:][0])
-        self.assertIsNotNone(pre_match.countdown)
-        mock_pre_match_update.assert_called_once()
-        mock_cancel_match_task.assert_called_once()
-
     @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
     @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_update')
     def test_set_player_ready(self, mock_pre_match_update, mock_fivem):
@@ -210,8 +160,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
 
         controller.set_player_ready(self.user_1)
         self.assertTrue(self.user_1 in pre_match.players_ready)
@@ -234,9 +182,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         )
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         mock_fivem.return_value.status_code = 201
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
-
         for player in pre_match.players[:-1]:
             pre_match.set_player_ready(player.id)
 
@@ -266,9 +211,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         )
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         mock_fivem.return_value.status_code = 201
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
-
         for player in pre_match.players[:-1]:
             pre_match.set_player_ready(player.id)
 

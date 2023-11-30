@@ -12,15 +12,6 @@ router = Router(tags=['pre-matches'])
 
 
 @router.post(
-    '/lock-in/',
-    auth=VerifiedRequiredAuth(),
-    response={200: schemas.PreMatchSchema},
-)
-def lock_in(request):
-    return controller.set_player_lock_in(request.user)
-
-
-@router.post(
     '/ready/',
     auth=VerifiedRequiredAuth(),
     response={200: Union[schemas.PreMatchSchema, None], 201: MatchSchema},

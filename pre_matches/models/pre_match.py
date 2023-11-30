@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import TextChoices
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
@@ -35,8 +34,6 @@ class PreMatch(BaseModel):
     [key] __mm:pre_match:[id] [team1_id:team2_id]
     [key] __mm:pre_match:[id]:ready_time str
     [set] __mm:pre_match:[id]:ready_players_ids <(player_id,...)>
-    [set] __mm:pre_match:[id]:in_players_ids <(player_id,...)>
-    [key] __mm:pre_match:[id]:status str
     [key] __mm:pre_match:[id]:type str
     [key] __mm:pre_match:[id]:mode str
     """
@@ -45,21 +42,10 @@ class PreMatch(BaseModel):
 
     class Config:
         CACHE_PREFIX: str = '__mm:pre_match:'
-        READY_COUNTDOWN: int = settings.MATCH_READY_COUNTDOWN
-        READY_COUNTDOWN_GAP: int = settings.MATCH_READY_COUNTDOWN_GAP
-
-    class Status(TextChoices):
-        LOCK_IN = 'lock_in'
-        READY_IN = 'ready_in'
-        READY = 'ready'
 
     @property
     def cache_key(self) -> str:
         return f'{PreMatch.Config.CACHE_PREFIX}{self.id}'
-
-    @property
-    def status(self) -> str:
-        return cache.get(f'{self.cache_key}:status')
 
     @property
     def countdown(self) -> int:
@@ -67,19 +53,11 @@ class PreMatch(BaseModel):
         if ready_start_time:
             ready_start_time = str_to_timezone(ready_start_time)
             elapsed_time = (timezone.now() - ready_start_time).seconds
-            return PreMatch.Config.READY_COUNTDOWN - elapsed_time
+            return settings.MATCH_READY_COUNTDOWN - elapsed_time
 
     @property
     def players_ready(self) -> list[User]:
         players_ids = cache.smembers(f'{self.cache_key}:ready_players_ids')
-        if players_ids:
-            return User.objects.filter(pk__in=players_ids)
-
-        return []
-
-    @property
-    def players_in(self) -> int:
-        players_ids = cache.smembers(f'{self.cache_key}:in_players_ids')
         if players_ids:
             return User.objects.filter(pk__in=players_ids)
 
@@ -128,6 +106,13 @@ class PreMatch(BaseModel):
         if mode:
             return int(mode)
 
+    @property
+    def ready(self) -> bool:
+        return set(self.players).issubset(self.players_ready)
+
+    def set_player_ready(self, user_id: int):
+        cache.sadd(f'{self.cache_key}:ready_players_ids', user_id)
+
     @staticmethod
     def incr_auto_id() -> int:
         return int(cache.incr('__mm:pre_match__auto_id'))
@@ -150,17 +135,18 @@ class PreMatch(BaseModel):
         def transaction_operations(pipe, pre_result):
             auto_id = PreMatch.incr_auto_id()
             pipe.set(
-                f'{PreMatch.Config.CACHE_PREFIX}{auto_id}', f'{team1_id}:{team2_id}'
-            )
-            pipe.set(
-                f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:status',
-                PreMatch.Status.LOCK_IN,
+                f'{PreMatch.Config.CACHE_PREFIX}{auto_id}',
+                f'{team1_id}:{team2_id}',
             )
             pipe.set(f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:type', match_type)
             pipe.set(f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:mode', mode)
-
             pipe.set(f'{team1.cache_key}:pre_match', auto_id)
             pipe.set(f'{team2.cache_key}:pre_match', auto_id)
+            pipe.set(
+                f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:ready_time',
+                timezone.now().isoformat(),
+            )
+
             return auto_id
 
         auto_id = cache.protected_handler(
@@ -226,37 +212,6 @@ class PreMatch(BaseModel):
                 return pre_match
 
         return None
-
-    def start_players_ready_countdown(self):
-        self.set_status_ready_in()
-        cache.set(f'{self.cache_key}:ready_time', timezone.now().isoformat())
-
-    def set_status_ready_in(self):
-        if self.status != PreMatch.Status.LOCK_IN:
-            raise PreMatchException(_('PreMatch is not ready to lock in players.'))
-
-        cache.set(f'{self.cache_key}:status', PreMatch.Status.READY_IN)
-
-    def set_status_ready(self):
-        cache.set(f'{self.cache_key}:status', PreMatch.Status.READY)
-
-    def set_player_ready(self, user_id: int):
-        if self.status != PreMatch.Status.READY_IN:
-            raise PreMatchException(_('PreMatch is not ready for ready players.'))
-
-        cache.sadd(f'{self.cache_key}:ready_players_ids', user_id)
-
-        if len(self.players_ready) >= len(self.players):
-            self.set_status_ready()
-
-    def set_player_lock_in(self, user_id: int):
-        if self.status != PreMatch.Status.LOCK_IN:
-            raise PreMatchException(_('PreMatch is not ready to lock in players.'))
-
-        cache.sadd(f'{self.cache_key}:in_players_ids', user_id)
-
-        if len(self.players_in) >= len(self.players):
-            self.start_players_ready_countdown()
 
     @staticmethod
     def delete_cache_keys(keys, pipe=None):

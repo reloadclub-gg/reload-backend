@@ -17,7 +17,7 @@ class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
 
         expected_payload = {
             'id': pre_match.id,
-            'status': pre_match.status,
+            'ready': pre_match.ready,
             'countdown': pre_match.countdown,
             'players_ready_count': len(pre_match.players_ready),
             'players_total': len(pre_match.players),

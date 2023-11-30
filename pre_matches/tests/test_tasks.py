@@ -13,6 +13,7 @@ from . import mixins
 
 
 class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
+    @override_settings(MATCH_READY_COUNTDOWN=30)
     @mock.patch('pre_matches.tasks.ws_update_user')
     @mock.patch('pre_matches.tasks.ws_create_toast')
     @mock.patch('pre_matches.tasks.ws_friend_update_or_create')
@@ -30,9 +31,6 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
 
         player_ready = pre_match.players[0]
         player_dodged = pre_match.players[1]
@@ -70,17 +68,12 @@ class PreMatchTasksTestCase(mixins.TeamsMixin, TestCase):
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        for player in pre_match_1.players:
-            pre_match_1.set_player_lock_in(player.id)
-
         pre_match_2 = models.PreMatch.create(
             self.team3.id,
             self.team4.id,
             self.team3.type_mode[0],
             self.team3.type_mode[1],
         )
-        for player in pre_match_2.players:
-            pre_match_2.set_player_lock_in(player.id)
 
         past_time = (timezone.now() - timezone.timedelta(seconds=15)).isoformat()
         cache.set(f'{pre_match_1.cache_key}:ready_time', past_time)
