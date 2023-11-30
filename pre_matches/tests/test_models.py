@@ -615,7 +615,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         all_pre_matches = PreMatch.get_all()
         self.assertEqual(len(all_pre_matches), 0)
 
-        pre_match = PreMatch.create(
+        PreMatch.create(
             self.team1.id,
             self.team2.id,
             self.team1.type_mode[0],

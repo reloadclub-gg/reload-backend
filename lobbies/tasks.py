@@ -4,9 +4,11 @@ from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.utils.translation import get_language
 
 from accounts.websocket import ws_update_user
 from pre_matches.models import PreMatch, Team
+from pre_matches.tasks import cancel_match_after_countdown
 from pre_matches.websocket import ws_pre_match_create
 
 from . import models
@@ -96,6 +98,13 @@ def handle_match_found(team: Team, opponent: Team):
         opponent.id,
         lobbies[0].lobby_type,
         lobbies[0].mode,
+    )
+    lang = get_language()
+    cancel_match_after_countdown.apply_async(
+        (pre_match.id, lang),
+        countdown=settings.MATCH_READY_COUNTDOWN
+        + (-settings.MATCH_READY_COUNTDOWN_GAP),
+        serializer='json',
     )
     ws_pre_match_create(pre_match)
 

@@ -7,7 +7,7 @@ from ninja.errors import Http404
 from accounts.tasks import watch_user_status_change
 from core.tests import TestCase
 from lobbies.models import Lobby
-from pre_matches.api.controller import set_player_lock_in, set_player_ready
+from pre_matches.api.controller import set_player_ready
 from pre_matches.models import PreMatch, Team, TeamException
 from pre_matches.tests.mixins import TeamsMixin
 
@@ -258,10 +258,6 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
 
         pm = PreMatch.get_by_player_id(self.user_2.id)
         self.assertIsNotNone(pm)
-
-        for player in pm.players:
-            set_player_lock_in(player)
-
         left_out = pm.players[-1:][0]
 
         for player in pm.players[:-1]:

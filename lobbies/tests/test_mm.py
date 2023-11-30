@@ -154,19 +154,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
             )
             self.assertEqual(r.status_code, 200)
             self.assertEqual(r.json().get('id'), pre_match.id)
-            self.assertEqual(r.json().get('status'), PreMatch.Status.LOCK_IN)
-            queue()
-
-        # test lockin
-        for user in users[:-1]:
-            r = self.pre_match_api.call(
-                'post',
-                '/lock-in',
-                token=user.auth.token,
-            )
-            self.assertEqual(r.status_code, 200)
-            self.assertEqual(r.json().get('id'), pre_match.id)
-            self.assertEqual(r.json().get('status'), PreMatch.Status.LOCK_IN)
+            self.assertFalse(r.json().get('ready'))
             queue()
 
         cancel_match_after_countdown(pre_match.id, run_once=True)
@@ -184,16 +172,6 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         ids2 = [obj.id for obj in (t1, t2)]
         self.assertEqual(sorted(ids1), sorted(ids2))
 
-        r = self.pre_match_api.call(
-            'post',
-            '/lock-in',
-            token=self.user_4.auth.token,
-        )
-        self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json().get('id'), pre_match.id)
-        self.assertEqual(r.json().get('status'), PreMatch.Status.READY_IN)
-        self.assertEqual(r.json().get('countdown'), settings.MATCH_READY_COUNTDOWN)
-
         queue()
         cancel_match_after_countdown(pre_match.id, run_once=True)
         self.assertIsNotNone(PreMatch.get_by_id(pre_match.id))
@@ -209,7 +187,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
             )
             self.assertEqual(r.status_code, 200)
             self.assertEqual(r.json().get('id'), pre_match.id)
-            self.assertEqual(r.json().get('status'), PreMatch.Status.READY_IN)
+            self.assertFalse(r.json().get('ready'))
 
             queue()
             cancel_match_after_countdown(pre_match.id, run_once=True)
