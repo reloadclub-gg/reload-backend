@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
 from ninja.errors import Http404
@@ -228,11 +229,8 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
         self.assertNotIn(t2, PreMatch.get_all()[0].teams)
 
     @override_settings(TEAM_READY_PLAYERS_MIN=5, FIVEM_MATCH_MOCK_DELAY_CONFIGURE=0)
-    @mock.patch(
-        'pre_matches.api.controller.tasks.cancel_match_after_countdown.apply_async'
-    )
     @mock.patch('lobbies.tasks.ws_queue_tick')
-    def test_handle_queue_someone_quit(self, mock_tick, mock_cancel_match):
+    def test_handle_queue_someone_quit(self, mock_tick):
         self.lobby1.set_public()
         self.lobby4.set_public()
         self.lobby6.set_public()
@@ -314,5 +312,50 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
         self.lobby5.start_queue()
         tasks.handle_teaming()
 
-        # self.assertEqual(len(Team.get_all_ready()), 1)
-        # self.assertEqual(len(Team.get_all_not_ready()), 1)
+    @override_settings(
+        PLAYER_DODGES_MIN_TO_RESTRICT=3,
+        PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
+    )
+    def test_handle_dodges(self):
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 0)
+        tasks.handle_dodges(self.user_1.account.lobby, [])
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 1)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_1)
+        self.assertEqual(player_dodges.count, 1)
+
+        tasks.handle_dodges(self.user_1.account.lobby, [])
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 1)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_1)
+        self.assertEqual(player_dodges.count, 2)
+
+        self.user_1.account.lobby.set_public()
+        Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
+        self.assertEqual(models.PlayerRestriction.objects.all().count(), 0)
+        tasks.handle_dodges(self.user_1.account.lobby, [self.user_2.id])
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 1)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_1)
+        self.assertEqual(player_dodges.count, 3)
+
+        self.assertEqual(models.PlayerRestriction.objects.all().count(), 1)
+
+        dodges_to_restrict = settings.PLAYER_DODGES_MIN_TO_RESTRICT
+        dodges_multipliers = settings.PLAYER_DODGES_MULTIPLIER
+        factor_idx = player_dodges.count - dodges_to_restrict
+        if factor_idx > len(dodges_multipliers):
+            factor_idx = len(dodges_multipliers) - 1
+        factor = dodges_multipliers[factor_idx]
+        lock_minutes = player_dodges.count * factor
+        player_restriction = models.PlayerRestriction.objects.get(user=self.user_1)
+        self.assertEqual(
+            player_restriction.end_date.minute,
+            (
+                player_restriction.start_date + timezone.timedelta(minutes=lock_minutes)
+            ).minute,
+        )
+
+        tasks.handle_dodges(self.user_1.account.lobby, [self.user_1.id])
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 2)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_1)
+        self.assertEqual(player_dodges.count, 3)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_2)
+        self.assertEqual(player_dodges.count, 1)

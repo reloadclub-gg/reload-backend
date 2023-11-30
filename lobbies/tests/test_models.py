@@ -6,7 +6,6 @@ from django.utils import timezone
 
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase, cache
-from pre_matches.tasks import handle_dodges
 
 from ..models import (
     Lobby,
@@ -15,6 +14,7 @@ from ..models import (
     LobbyInviteException,
     PlayerRestriction,
 )
+from ..tasks import handle_dodges
 
 
 class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):

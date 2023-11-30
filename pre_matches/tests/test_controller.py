@@ -42,7 +42,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_match_create.assert_called_once_with(match)
         self.assertEqual(mock_update_user.call_count, 10)
 
-    @mock.patch('pre_matches.api.controller.tasks.send_servers_full_mail.delay')
+    @mock.patch('matches.tasks.send_servers_full_mail.delay')
     @mock.patch('pre_matches.api.controller.ws_update_user')
     @mock.patch('pre_matches.api.controller.ws_match_create')
     def test_handle_create_match_no_server_available(

@@ -1,15 +1,13 @@
 import time
-from unittest import mock
 
 from django.conf import settings
 from django.test import override_settings
 from model_bakery import baker
 
 from core.tests import APIClient, TestCase
-from lobbies.tasks import queue
+from lobbies.tasks import handle_pre_matches, queue
 from matches.models import Map, Match, Server
 from pre_matches.models import PreMatch, PreMatchException, Team
-from pre_matches.tasks import cancel_match_after_countdown
 
 from .mixins import LobbiesMixin
 
@@ -21,10 +19,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         self.pre_match_api = APIClient('/api/pre-matches')
 
     @override_settings(TEAM_READY_PLAYERS_MIN=2)
-    @mock.patch(
-        'pre_matches.api.controller.tasks.cancel_match_after_countdown.apply_async'
-    )
-    def test_teamed_mm_routes(self, mock_cancel_match_task):
+    def test_teamed_mm_routes(self):
         queue()
         baker.make(Map)
 
@@ -157,7 +152,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
             self.assertFalse(r.json().get('ready'))
             queue()
 
-        cancel_match_after_countdown(pre_match.id, run_once=True)
+        handle_pre_matches()
         self.assertIsNotNone(PreMatch.get_by_id(pre_match.id))
 
         t1 = Team.get_by_lobby_id(self.lobby1.id)
@@ -173,7 +168,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         self.assertEqual(sorted(ids1), sorted(ids2))
 
         queue()
-        cancel_match_after_countdown(pre_match.id, run_once=True)
+        handle_pre_matches()
         self.assertIsNotNone(PreMatch.get_by_id(pre_match.id))
 
         time.sleep(1)
@@ -190,7 +185,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
             self.assertFalse(r.json().get('ready'))
 
             queue()
-            cancel_match_after_countdown(pre_match.id, run_once=True)
+            handle_pre_matches()
             self.assertIsNotNone(PreMatch.get_by_id(pre_match.id))
 
         self.assertEqual(Match.objects.all().count(), 0)
@@ -203,7 +198,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         )
         self.assertEqual(r.status_code, 201)
         queue()
-        cancel_match_after_countdown(pre_match.id, run_once=True)
+        handle_pre_matches()
         match = Match.objects.first()
         self.assertEqual(r.json().get('id'), match.id)
         with self.assertRaises(PreMatchException):
