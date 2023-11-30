@@ -3,7 +3,7 @@ from ninja import Schema
 
 class PreMatchSchema(Schema):
     id: int
-    status: str
+    ready: bool
     countdown: int = None
     players_ready_count: int
     players_total: int

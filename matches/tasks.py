@@ -5,6 +5,8 @@ from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 
+from core.utils import send_mail
+
 from . import models
 
 
@@ -38,3 +40,38 @@ def delete_old_cancelled_matches():
         status=models.Match.Status.CANCELLED,
         end_date__lt=day_ago,
     ).delete()
+
+
+@shared_task
+def send_server_almost_full_mail(name: str):
+    server = models.Server.objects.get(name=name)
+    running_matches = server.match_set.filter(
+        status__in=[
+            models.Match.Status.RUNNING,
+            models.Match.Status.LOADING,
+            models.Match.Status.WARMUP,
+        ]
+    ).count()
+
+    send_mail(
+        settings.ADMINS,
+        'Servidor quase cheio',
+        f'O servidor {server.name} ({server.ip}) está quase cheio: {running_matches}',
+    )
+
+
+@shared_task
+def send_servers_full_mail():
+    running_matches = models.Match.objects.filter(
+        status__in=[
+            models.Match.Status.RUNNING,
+            models.Match.Status.LOADING,
+            models.Match.Status.WARMUP,
+        ]
+    ).count()
+
+    send_mail(
+        settings.ADMINS,
+        'Servidores cheios',
+        f'Todos os servidores estão cheios. Total de partidas: {running_matches}',
+    )

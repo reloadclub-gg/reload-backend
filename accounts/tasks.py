@@ -3,7 +3,6 @@ import datetime
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.utils.translation import gettext as _
 
 from core.redis import redis_client_instance as cache
 from friends.websocket import ws_friend_update_or_create
@@ -37,10 +36,7 @@ def watch_user_status_change(user_id: int):
 
                 pre_match = PreMatch.get_by_player_id(user.id)
                 if pre_match:
-                    cancel_pre_match(
-                        pre_match,
-                        _('Match cancelled due to user not locked in.'),
-                    )
+                    cancel_pre_match(pre_match, 'lock_in')
 
                 team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
                 if team:
