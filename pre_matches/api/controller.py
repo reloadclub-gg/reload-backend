@@ -4,7 +4,6 @@ from typing import Union
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
 
@@ -14,18 +13,45 @@ from friends.websocket import ws_friend_update_or_create
 from matches.api.controller import cancel_match
 from matches.api.schemas import FiveMMatchResponseMock, MatchFiveMSchema
 from matches.models import Match, MatchPlayer, Server
-from matches.tasks import mock_fivem_match_cancel, mock_fivem_match_start
+from matches.tasks import (
+    mock_fivem_match_cancel,
+    mock_fivem_match_start,
+    send_server_almost_full_mail,
+    send_servers_full_mail,
+)
 from matches.websocket import ws_match_create, ws_match_update
 
-from .. import models, tasks, websocket
+from .. import models, websocket
 
 User = get_user_model()
 
 
-def cancel_pre_match(pre_match: models.PreMatch, toast_msg: str = None):
-    if toast_msg:
-        for player in pre_match.players:
-            ws_create_toast(toast_msg, 'warning', user_id=player.id)
+def get_pre_match_cancel_translated_message(msg_type):
+    messages = {
+        'lock_in': _('Match cancelled due to user not locked in.'),
+        'servers_full': _(
+            'All our servers are unavailable at this moment. Please, try again later.'
+        ),
+        'dodge': _(
+            'Some players in your lobby were not ready before the'
+            'timer ran out and the match was cancelled. The recurrence'
+            'of this conduct may result in restrictions.'
+        ),
+    }
+
+    return messages.get(msg_type, msg_type)
+
+
+def cancel_pre_match(
+    pre_match: models.PreMatch,
+    toast_msg_type: str = None,
+    toast_players_id: list = [],
+):
+    if toast_msg_type:
+        translated_msg = get_pre_match_cancel_translated_message(toast_msg_type)
+        toast_ids = toast_players_id or [player.id for player in pre_match.players]
+        for player_id in toast_ids:
+            ws_create_toast(translated_msg, 'warning', user_id=player_id)
 
     # send ws call to lobbies to cancel that match
     websocket.ws_pre_match_delete(pre_match)
@@ -82,7 +108,7 @@ def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match
 def handle_create_match(pre_match: models.PreMatch) -> Match:
     server = Server.get_idle()
     if not server:
-        tasks.send_servers_full_mail.delay()
+        send_servers_full_mail.delay()
         return
 
     if (
@@ -101,7 +127,7 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     )
 
     if server.is_almost_full:
-        tasks.send_server_almost_full_mail.delay(server.name)
+        send_server_almost_full_mail.delay(server.name)
 
     if not handle_create_match_teams(match, pre_match):
         cancel_match(match.id)
@@ -129,33 +155,6 @@ def get_pre_match(user: User) -> models.PreMatch:
     return user.account.pre_match
 
 
-def set_player_lock_in(user: User) -> models.PreMatch:
-    handle_pre_match_checks(user, _('Can\'t lock in for a new match while in a match.'))
-    pre_match = user.account.pre_match
-
-    if user.id in [player.id for player in pre_match.players_in]:
-        raise HttpError(400, _('Player already locked in.'))
-
-    try:
-        pre_match.set_player_lock_in(user.id)
-    except models.PreMatchException as e:
-        raise HttpError(403, e)
-
-    if len(pre_match.players_in) >= len(pre_match.players):
-        websocket.ws_pre_match_update(pre_match)
-        # delay task to check if countdown is over to READY_COUNTDOWN seconds
-        # plus READY_COUNTDOWN_GAP (that should be turned into a positive number)
-        lang = get_language()
-        tasks.cancel_match_after_countdown.apply_async(
-            (pre_match.id, lang),
-            countdown=models.PreMatch.Config.READY_COUNTDOWN
-            + (-models.PreMatch.Config.READY_COUNTDOWN_GAP),
-            serializer='json',
-        )
-
-    return pre_match
-
-
 def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
     handle_pre_match_checks(
         user,
@@ -166,11 +165,7 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
     if user in pre_match.players_ready:
         raise HttpError(400, _('Player already set as ready.'))
 
-    try:
-        pre_match.set_player_ready(user.id)
-    except models.PreMatchException as e:
-        raise HttpError(403, e)
-
+    pre_match.set_player_ready(user.id)
     websocket.ws_pre_match_update(pre_match)
     if len(pre_match.players_ready) >= len(pre_match.players):
         match = handle_create_match(pre_match)
@@ -178,9 +173,7 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
             # cancel match due to lack of available servers
             return cancel_pre_match(
                 pre_match,
-                _(
-                    'All our servers are unavailable at this moment. Please, try again later.'
-                ),
+                'servers_full',
             )
         else:
             fivem_response = handle_create_fivem_match(match)

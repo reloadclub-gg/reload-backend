@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Ativação de tradução nas threads do celery, no sinal `celeryd_after_setup`, que roda depois que o celery foi iniciado.
+- Modelos `PlayerDodges` e `PlayerRestriction` para fazer a manutenção dos dodges e restrições dos jogadores. Esses modelos e suas lógicas substituem o antigo modelo de cache `Player`, que foi removido.
+
+### Changed
+
+- Move tarefas de envio de email sobre servidores cheios e quase cheios para aplicação `matches`.
+- Atualiza as traduções.
+- Tarefa `queue` agora verifica por pré-partidas que expiraram sem que todos os jogadores ficassem prontos e exclui elas.
+- Pré match agora não precisa mais (e não aceita mais) que os usuários se marquem como `locked in` [#885](https://github.com/3C-gg/reload-backend/issues/885).
+- Atualiza método `pre_matches.tasks.handle_dodges` para usar novos modelos de dodges e restrição de jogadores (`PlayerDodges` e `PlayerRestriction`).
+- Atualiza admin de usuários, melhorando algumas labels e adicionando o campo de restrição, bem como um filtro para usuários restritos de iniciar fila.
+- Faz com que o usuário tenha sua sessão renovada caso se conecte via websocket [#883](https://github.com/3C-gg/reload-backend/issues/883).
+
+### Fixed
+
+- Campo `pre_match_id` no esquema de usuário estava sendo enviado como `str`. Corrigimos para que seja enviado como `int`.
+- Com os novos modelos de dodges e restrição (`PlayerDodges` e `PlayerRestriction`) corrigimos um problema que fazia com que as restrições não contassem corretamente o tempo para acabar [#763](https://github.com/3C-gg/reload-backend/issues/763).
+- Corrige erro que fazia com que usuários beta não conseguissem se cadastrar.
+
+### Removed
+
+- Tarefa programada que cancelava pré-partida depois que countdown acabava `cancel_match_after_countdown`. Em seu lugar, criamos uma função que verifica as partidas expiradas que roda juntamente com a tarefa `queue` (de 1 em 1 segundo).
+- Endpoints de marcar usuário `lock_in` em pré-partida.
+- Campos `status` e `players_in` do modelo `PreMatch`.
+- Método `set_player_in` do modelo `PreMatch`.
+- Modelo de cache `Player`, em favor dos novos modelos de dodges e restrição (`PlayerDodges` e `PlayerRestriction`).
+
+## [c17001a - 24/11/2023]
+
 ### Changed
 
 - Loja agora não retorna mais itens já adquiridos pelo usuário.

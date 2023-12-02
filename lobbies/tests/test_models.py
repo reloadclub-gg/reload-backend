@@ -1,21 +1,20 @@
 from time import sleep
 from unittest import mock
 
-from django.conf import settings
+from django.test import override_settings
 from django.utils import timezone
 
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase, cache
-from core.utils import str_to_timezone
 
 from ..models import (
     Lobby,
     LobbyException,
     LobbyInvite,
     LobbyInviteException,
-    Player,
-    PlayerException,
+    PlayerRestriction,
 )
+from ..tasks import handle_dodges
 
 
 class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
@@ -255,21 +254,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         Lobby.move(self.user_2.id, lobby.id)
         Lobby.move(self.user_3.id, lobby.id)
 
-        self.assertEqual(len(cache.smembers('__mm:players')), 3)
-        self.assertEqual(
-            cache.smembers('__mm:players'),
-            {
-                str(self.user_1.id),
-                str(self.user_2.id),
-                str(self.user_3.id),
-            },
-        )
         Lobby.move(self.user_1.id, lobby.id, remove=True)
-        self.assertEqual(len(cache.smembers('__mm:players')), 2)
-        self.assertEqual(
-            cache.smembers('__mm:players'),
-            {str(self.user_2.id), str(self.user_3.id)},
-        )
 
     def test_cancel(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -682,6 +667,10 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
             len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 0
         )
 
+    @override_settings(
+        PLAYER_DODGES_MIN_TO_RESTRICT=1,
+        PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
+    )
     def test_start_queue(self):
         lobby = Lobby.create(self.user_1.id)
         lobby.set_public()
@@ -697,39 +686,12 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertIsNotNone(lobby.queue)
         lobby.cancel_queue()
 
-        player = Player.get_by_user_id(self.user_3.id)
+        handle_dodges(lobby, [])
+        handle_dodges(lobby, [])
+        handle_dodges(lobby, [])
 
-        for _ in range(1, settings.PLAYER_DODGES_MIN_TO_RESTRICT):
-            player.dodge_add()
-
-        lobby.start_queue()
-
-        player.dodge_add()
         with self.assertRaises(LobbyException):
             lobby.start_queue()
-
-    def test_restriction_countdown(self):
-        lobby = Lobby.create(self.user_1.id)
-        lobby.set_public()
-        Lobby.create(self.user_2.id)
-        Lobby.move(self.user_2.id, lobby.id)
-
-        self.assertIsNone(lobby.restriction_countdown)
-
-        player1 = Player.get_by_user_id(user_id=self.user_1.id)
-        delta = timezone.timedelta(minutes=15)
-        cache.set(
-            f'{player1.cache_key}:queue_lock',
-            (timezone.now() + delta).isoformat(),
-        )
-
-        player2 = Player.get_by_user_id(user_id=self.user_2.id)
-        delta = timezone.timedelta(minutes=5)
-        cache.set(
-            f'{player2.cache_key}:queue_lock',
-            (timezone.now() + delta).isoformat(),
-        )
-        self.assertEqual(lobby.restriction_countdown, player1.lock_countdown)
 
     def test_cancel_all_queues(self):
         lobby1 = Lobby.create(self.user_1.id)
@@ -891,99 +853,38 @@ class LobbyInviteModelTestCase(VerifiedAccountsMixin, TestCase):
 
 
 class PlayerModelTestCase(VerifiedAccountsMixin, TestCase):
-    def test_create(self):
-        player = Player.create(self.user_1.id)
-        self.assertIsNotNone(player)
-        self.assertEqual(player.user_id, self.user_1.id)
-        self.assertTrue(cache.sismember('__mm:players', self.user_1.id))
+    def setUp(self) -> None:
+        super().setUp()
+        self.user_1.add_session()
+        self.user_2.add_session()
 
-    def test_get_all(self):
-        Player.create(self.user_1.id)
-        Player.create(self.user_2.id)
-        Player.create(self.user_3.id)
+    @override_settings(
+        PLAYER_DODGES_MIN_TO_RESTRICT=3,
+        PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
+    )
+    def test_restriction_countdown(self):
+        lobby = Lobby.create(self.user_1.id)
+        lobby.set_public()
+        Lobby.create(self.user_2.id)
+        Lobby.move(self.user_2.id, lobby.id)
 
-        self.assertEqual(len(Player.get_all()), 3)
-
-    def test_get_by_user_id(self):
-        Player.create(self.user_2.id)
-
-        with self.assertRaises(PlayerException):
-            Player.get_by_user_id(self.user_1.id)
-
-        player = Player.get_by_user_id(self.user_2.id)
-        self.assertEqual(self.user_2.id, player.user_id)
-
-    def test_dodge_add(self):
-        Player.Config.DODGES_MIN_TO_RESTRICT = 3
-
-        player = Player.create(self.user_1.id)
-        self.assertEqual(player.dodges, 0)
-        player.dodge_add()
-        self.assertEqual(player.dodges, 1)
-        player.dodge_add()
-        self.assertEqual(player.dodges, 2)
-
-        player.dodge_add()
-        self.assertEqual(player.dodges, 3)
-
-        ttl = cache.ttl(f'{player.cache_key}:dodges')
-        self.assertEqual(ttl, Player.Config.DODGES_EXPIRE_TIME)
-
-        self.assertIsNotNone(player.lock_date)
-
-        with self.assertRaises(PlayerException):
-            player.dodge_add()
-
-        cache.delete(f'{player.cache_key}:queue_lock')
-
-        player.dodge_add()
-        self.assertEqual(player.dodges, 4)
-
-    def test_dodge_clear(self):
-        Player.Config.DODGES_MIN_TO_RESTRICT = 3
-        player = Player.create(self.user_1.id)
-        player.dodge_add()
-        player.dodge_add()
-        self.assertEqual(player.dodges, 2)
-        player.dodge_clear()
-        self.assertEqual(player.dodges, 0)
-
-    def test_latest_dodge(self):
-        player = Player.create(self.user_1.id)
-        cache.zadd(
-            f'{player.cache_key}:dodges',
-            {'2023-04-06T16:40:31.610866+00:00': 1680800659.26437},
-        )
+        self.assertIsNone(lobby.restriction_countdown)
+        handle_dodges(lobby, [self.user_1.id])
+        self.assertIsNone(lobby.restriction_countdown)
+        handle_dodges(lobby, [self.user_1.id])
+        self.assertIsNone(lobby.restriction_countdown)
+        handle_dodges(lobby, [self.user_1.id])
+        restriction = PlayerRestriction.objects.get(user=self.user_2)
         self.assertEqual(
-            player.latest_dodge, str_to_timezone('2023-04-06T16:40:31.610866+00:00')
+            lobby.restriction_countdown,
+            (restriction.end_date - timezone.now()).seconds,
         )
-
-        cache.zadd(
-            f'{player.cache_key}:dodges',
-            {'2023-05-06T16:40:31.610866+00:00': 1780800659.26437},
-        )
-        cache.zadd(
-            f'{player.cache_key}:dodges',
-            {'2023-06-06T16:40:31.610866+00:00': 1880800659.26437},
-        )
-        cache.zadd(
-            f'{player.cache_key}:dodges',
-            {'2023-03-06T16:40:31.610866+00:00': 1980800659.26437},
-        )
+        handle_dodges(lobby, [self.user_2.id])
+        handle_dodges(lobby, [self.user_2.id])
+        handle_dodges(lobby, [self.user_2.id])
+        handle_dodges(lobby, [self.user_2.id])
+        restriction = PlayerRestriction.objects.get(user=self.user_1)
         self.assertEqual(
-            player.latest_dodge, str_to_timezone('2023-03-06T16:40:31.610866+00:00')
+            lobby.restriction_countdown,
+            (restriction.end_date - timezone.now()).seconds,
         )
-
-    def test_delete(self):
-        Player.create(user_id=self.user_1.id)
-        Player.delete(self.user_1.id)
-        self.assertFalse(cache.sismember('__mm:players', self.user_1.id))
-
-    def test_lock_countdown(self):
-        player = Player.create(user_id=self.user_1.id)
-        delta = timezone.timedelta(minutes=15)
-        cache.set(
-            f'{player.cache_key}:queue_lock',
-            (timezone.now() + delta).isoformat(),
-        )
-        self.assertEqual(player.lock_countdown, 60 * 15 - 1)

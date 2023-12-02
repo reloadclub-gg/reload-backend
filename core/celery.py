@@ -3,6 +3,7 @@ import os
 import celery
 from celery.schedules import crontab
 from django.conf import settings
+from django.utils import translation
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
@@ -40,6 +41,11 @@ app.conf.beat_schedule = {
 @celery.signals.after_setup_logger.connect
 def on_after_setup_logger(logger, **kwargs):
     logger.setLevel(settings.LOG_LEVEL)
+
+
+@celery.signals.celeryd_after_setup.connect
+def on_celeryd_after_setup(sender, instance, **kwargs):
+    translation.activate('pt_BR')
 
 
 app.autodiscover_tasks()

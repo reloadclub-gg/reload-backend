@@ -526,20 +526,6 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match_model = PreMatch.get_by_id(pre_match.id)
         self.assertEqual(pre_match, pre_match_model)
 
-    def test_start_players_ready_countdown(self):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
-        ready_time = cache.get(f'{pre_match.cache_key}:ready_time')
-        self.assertIsNone(ready_time)
-
-        pre_match.start_players_ready_countdown()
-        ready_time = cache.get(f'{pre_match.cache_key}:ready_time')
-        self.assertIsNotNone(ready_time)
-
     def test_set_player_ready(self):
         pre_match = PreMatch.create(
             self.team1.id,
@@ -547,65 +533,24 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
         self.assertEqual(len(pre_match.players_ready), 0)
-
         pre_match.set_player_ready(self.user_1.id)
         self.assertEqual(len(pre_match.players_ready), 1)
 
-    def test_set_player_ready_wrong_state(self):
+    def test_ready(self):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        with self.assertRaises(PreMatchException):
-            pre_match.set_player_ready(self.user_1.id)
 
-    def test_set_player_lock_in(self):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
-        self.assertEqual(len(pre_match.players_in), 0)
-
-        pre_match.set_player_lock_in(self.user_1.id)
-        self.assertEqual(len(pre_match.players_in), 1)
-
-    def test_set_player_lock_in_wrong_state(self):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
-        pre_match.set_status_ready_in()
-
-        with self.assertRaises(PreMatchException):
-            pre_match.set_player_lock_in(self.user_1.id)
-
-    def test_status(self):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
-        self.assertEqual(pre_match.status, PreMatch.Status.LOCK_IN)
-
-        for player in pre_match.players:
-            pre_match.set_player_lock_in(player.id)
-
-        self.assertEqual(pre_match.status, PreMatch.Status.READY_IN)
+        self.assertFalse(pre_match.ready)
 
         for player in pre_match.players:
             pre_match.set_player_ready(player.id)
 
-        self.assertEqual(pre_match.status, PreMatch.Status.READY)
+        self.assertTrue(pre_match.ready)
 
     def test_countdown(self):
         pre_match = PreMatch.create(
@@ -614,7 +559,6 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        pre_match.start_players_ready_countdown()
         self.assertEqual(pre_match.countdown, 30)
         time.sleep(2)
         self.assertEqual(pre_match.countdown, 28)
@@ -671,13 +615,12 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         all_pre_matches = PreMatch.get_all()
         self.assertEqual(len(all_pre_matches), 0)
 
-        pre_match = PreMatch.create(
+        PreMatch.create(
             self.team1.id,
             self.team2.id,
             self.team1.type_mode[0],
             self.team1.type_mode[1],
         )
-        pre_match.start_players_ready_countdown()
         all_pre_matches = PreMatch.get_all()
         self.assertEqual(len(all_pre_matches), 1)
 

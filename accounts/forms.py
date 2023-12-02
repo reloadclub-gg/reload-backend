@@ -34,6 +34,8 @@ class UserUpdateForm(UserChangeForm):
             self.fields['coins'].initial = self.instance.account.coins
             self.fields['level'].initial = self.instance.account.level
             self.fields['level_points'].initial = self.instance.account.level_points
+            self.fields['is_alpha'].label = 'Alpha'
+            self.fields['is_beta'].label = 'Beta'
 
     def save(self, commit=True):
         user = super().save(commit=commit)
