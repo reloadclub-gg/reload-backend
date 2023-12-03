@@ -3,21 +3,35 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
 from .models import Account
+from .tasks import send_verify_email
 from .utils import create_social_auth
 
 User = get_user_model()
 
 
 class UserAddForm(UserCreationForm):
+    steamid = forms.CharField(max_length=128, required=True)
+    username = forms.CharField(max_length=64, required=True)
+
     class Meta:
         model = User
-        fields = ['email', 'is_staff', 'is_superuser']
+        fields = '__all__'
 
     def save(self, commit=True):
         user = super().save(commit=commit)
         user.save()
-        create_social_auth(user, username=user.email)
-        Account.objects.create(user=user)
+        username = self.cleaned_data['username']
+        steamid = self.cleaned_data['steamid']
+        create_social_auth(user, username=username, steamid=steamid)
+        account = Account.objects.create(user=user, steamid=steamid, username=username)
+        send_verify_email.delay(user.email, username, account.verification_token)
+        return user
+
+    def clean_username(self):
+        return self.cleaned_data['username']
+
+    def clean_steamid(self):
+        return self.cleaned_data['steamid']
 
 
 class UserUpdateForm(UserChangeForm):
