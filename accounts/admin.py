@@ -4,8 +4,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
 from django_object_actions import DjangoObjectActions, action
@@ -178,14 +181,36 @@ class CustomUserStatusFilter(admin.SimpleListFilter):
             return queryset.filter(status=self.value())
 
 
+class CustomUserRestrictedFilter(admin.SimpleListFilter):
+    title = 'Is Restricted'
+    parameter_name = 'is_restricted'
+
+    def lookups(self, request, model_admin):
+        return [('yes', 'Yes'), ('no', 'No')]
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        if self.value() == 'yes':
+            return queryset.filter(playerrestriction__end_date__gte=timezone.now())
+        elif self.value() == 'no':
+            return queryset.filter(
+                Q(playerrestriction__isnull=True)
+                | Q(playerrestriction__end_date__lte=timezone.now())
+            )
+        else:
+            return queryset
+
+
 @admin.register(models.User)
 class UserAdmin(
     DjangoObjectActions,
     admin_mixins.CannotDeleteModelAdminMixin,
-    admin_mixins.CannotCreateModelAdminMixin,
     DjangoUserAdmin,
 ):
     form = forms.UserUpdateForm
+    add_form = forms.UserAddForm
     fieldsets = (
         (
             _('ACCOUNT'),
@@ -197,11 +222,12 @@ class UserAdmin(
                     'level_points',
                     'highest_level',
                     'coins',
+                    'date_joined',
+                    'last_login',
+                    'social_handles',
                 )
             },
         ),
-        (_('IMPORTANT DATES'), {'fields': ('date_joined', 'last_login')}),
-        (_('PROFILE'), {'fields': ('social_handles',)}),
         (
             _('STATUSES'),
             {
@@ -227,8 +253,12 @@ class UserAdmin(
                     'email',
                     'password1',
                     'password2',
+                    'steamid',
+                    'username',
                     'is_staff',
                     'is_superuser',
+                    'is_alpha',
+                    'is_beta',
                     'groups',
                 ),
             },
@@ -237,8 +267,8 @@ class UserAdmin(
     list_display = (
         'email',
         'steamid',
-        'date_joined',
-        'last_login',
+        'formatted_date_joined',
+        'formatted_last_login',
         'is_alpha',
         'is_beta',
         'is_verified',
@@ -248,10 +278,9 @@ class UserAdmin(
         'level_points',
         'coins',
         'report_points',
+        'restriction_countdown',
     )
     readonly_fields = [
-        'steamid',
-        'username',
         'last_login',
         'date_joined',
         'status',
@@ -275,6 +304,7 @@ class UserAdmin(
         'is_active',
         'is_staff',
         'account__is_verified',
+        CustomUserRestrictedFilter,
     )
     inlines = [
         UserLoginAdminInline,
@@ -321,12 +351,29 @@ class UserAdmin(
     def highest_level(self, obj):
         return obj.account.highest_level if obj.account else 0
 
+    def restriction_countdown(self, obj):
+        if (
+            hasattr(obj, 'playerrestriction')
+            and obj.playerrestriction.end_date > timezone.now()
+        ):
+            return date_format(obj.playerrestriction.end_date, 'd/m/Y H:i')
+
+    def formatted_date_joined(self, obj):
+        return date_format(obj.date_joined, 'd/m/Y H:i')
+
+    def formatted_last_login(self, obj):
+        if obj.last_login:
+            return date_format(obj.last_login, 'd/m/Y H:i')
+
     is_verified.boolean = True
     coins.short_description = 'RC Wallet'
     coins.admin_order_field = 'account__coins'
     level.admin_order_field = 'account__level'
     level_points.admin_order_field = 'account__level_points'
     report_points.admin_order_field = 'reports_received__report_points'
+    restriction_countdown.short_description = 'Restriction ETA'
+    formatted_date_joined.short_description = 'Date joined'
+    formatted_last_login.short_description = 'Last login'
 
     @action(
         label=_('Assume Identity'),
@@ -372,6 +419,16 @@ class UserAdmin(
         super().save_related(request, form, formsets, change)
         if hasattr(form.instance, '_save_account'):
             form.instance._save_account.save()
+
+    def get_formsets_with_inlines(self, request, obj=None):
+        if obj is None:
+            return []
+        return super().get_formsets_with_inlines(request, obj)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return self.readonly_fields + ['steamid', 'username']
+        return self.readonly_fields
 
 
 @admin.register(models.Invite)

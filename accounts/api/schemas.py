@@ -50,7 +50,7 @@ class UserSchema(ModelSchema):
     is_online: bool = None
     lobby_id: int = None
     match_id: int = None
-    pre_match_id: str = None
+    pre_match_id: int = None
     invites: List[InviteSchema] = []
     invites_available_count: int = 0
     is_beta: bool = False

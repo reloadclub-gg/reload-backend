@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from celery import shared_task
 from django.conf import settings
@@ -6,11 +7,12 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from accounts.websocket import ws_update_user
+from pre_matches.api.controller import cancel_pre_match
 from pre_matches.models import PreMatch, Team
 from pre_matches.websocket import ws_pre_match_create
 
 from . import models
-from .websocket import ws_queue_tick, ws_update_lobby
+from .websocket import ws_queue_start, ws_queue_tick, ws_update_lobby
 
 User = get_user_model()
 
@@ -145,13 +147,61 @@ def handle_teaming():
     log_teaming_info()
 
 
+def handle_dodges(lobby: models.Lobby, ready_players_ids: List[int]) -> List[int]:
+    dodged_players_ids = []
+    for player_id in lobby.players_ids:
+        if player_id not in ready_players_ids:
+            dodge, created = models.PlayerDodges.objects.get_or_create(
+                user_id=player_id
+            )
+            if not created:
+                dodge.count += 1
+                dodge.save()
+            dodged_players_ids.append(player_id)
+
+    return dodged_players_ids
+
+
+def handle_cancel_pre_match(pre_match: PreMatch):
+    # get ready_players_ids and lobbies before we delete pre_match keys from Redis
+    ready_players_ids = [player.id for player in pre_match.players_ready]
+    team1 = pre_match.teams[0]
+    team2 = pre_match.teams[1]
+    lobbies = team1.lobbies + team2.lobbies
+    dodged_players_ids = []
+
+    # restart queue for lobbies that were ready and handle dodges for the ones who aren't
+    for lobby in lobbies:
+        if all(elem in ready_players_ids for elem in lobby.players_ids):
+            ws_queue_start(lobby)
+        else:
+            dodged_players_ids = handle_dodges(lobby, ready_players_ids)
+
+        ws_update_lobby(lobby)
+
+    if len(dodged_players_ids) > 0:
+        msg_type = 'dodge'
+
+    cancel_pre_match(pre_match, msg_type, dodged_players_ids)
+
+
+def handle_pre_matches():
+    pre_matches = PreMatch.get_all()
+    for pre_match in pre_matches:
+        if (
+            pre_match.countdown
+            and pre_match.countdown < settings.MATCH_READY_COUNTDOWN_GAP
+        ):
+            handle_cancel_pre_match(pre_match)
+
+
 @shared_task
 def clear_dodges():
-    players = models.Player.get_all()
-    last_week = timezone.now() - timezone.timedelta(weeks=1)
-    for player in players:
-        if player.latest_dodge and player.latest_dodge <= last_week:
-            player.dodge_clear()
+    last_week = timezone.now() - timezone.timedelta(
+        seconds=settings.PLAYER_DODGES_EXPIRE_TIME
+    )
+    dodges = models.PlayerDodges.objects.filter(last_dodge_date__lte=last_week)
+    dodges.update(count=0)
 
 
 @shared_task
@@ -164,5 +214,6 @@ def end_player_restriction(user_id: int):
 
 @shared_task
 def queue():
+    handle_pre_matches()
     handle_teaming()
     handle_matchmaking()

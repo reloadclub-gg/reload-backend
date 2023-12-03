@@ -120,7 +120,6 @@ ASGI_APPLICATION = 'core.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -132,14 +131,12 @@ DATABASES = {
         'CONN_MAX_AGE': config('DATABASE_CONN_MAX_AGE', default=0, cast=int),
     }
 }
-
 if config('DATABASE_SSL', default=False, cast=bool):
     DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -158,15 +155,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
-
 TIME_ZONE = 'America/Sao_Paulo'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
-
 LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 
@@ -174,7 +166,6 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 AVAILABLE_LOG_LEVELS = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
 LOG_LEVEL = config('LOG_LEVEL', default='WARNING').upper()
 assert LOG_LEVEL in AVAILABLE_LOG_LEVELS
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': TEST_MODE,
@@ -192,16 +183,12 @@ LOGGING = {
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'core', 'static')]
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', None)
-
 if AWS_STORAGE_BUCKET_NAME:
     AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', 'sa-east-1')
     AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
@@ -217,6 +204,7 @@ if AWS_STORAGE_BUCKET_NAME:
     }
     STATICFILES_STORAGE = 'core.cdn.StaticRootS3BotoStorage'
     DEFAULT_FILE_STORAGE = 'core.cdn.MediaRootS3BotoStorage'
+
 
 # Email Settings
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
@@ -248,9 +236,8 @@ SOCIAL_AUTH_LOGIN_ERROR_URL = '/accounts/auth/finish/'
 SOCIAL_AUTH_URL_NAMESPACE = 'accounts:auth'
 SOCIAL_AUTH_ALLOW_INACTIVE_USERS_LOGIN = True
 FRONT_END_AUTH_URL = FRONT_END_URL + '/auth/?token={}'
-
-
 LOGIN_URL = reverse_lazy('admin:login')
+
 
 # Cache Settings
 REDIS_HOST = config('REDIS_HOST', default='redis')
@@ -295,6 +282,7 @@ CHANNEL_LAYERS = {
     },
 }
 
+
 # Celery Settings
 CELERY_TIMEZONE = 'America/Sao_Paulo'
 CELERY_REDIS_DB = config('CELERY_REDIS_DB', default=11, cast=int)
@@ -309,8 +297,10 @@ CELERY_BROKER_URL = '{}://{}:{}@{}:{}/{}'.format(
 CELERY_RESULT_BACKEND = None
 CELERY_IGNORE_RESULT = True
 
+
 # Websocket Application Settings
 GROUP_NAME_PREFIX = 'app'
+
 
 # Team & Match Settings
 TEAM_READY_PLAYERS_MIN = (
@@ -329,31 +319,29 @@ MATCHES_LIMIT_PER_SERVER_GAP = config(
 
 
 # Player Dodges & Restriction Settings
+MATCH_ROUNDS_TO_WIN = config('MATCH_ROUNDS_TO_WIN', default=13, cast=int)
 PLAYER_DODGES_EXPIRE_TIME = config(
     'PLAYER_DODGES_EXPIRE_TIME',
-    default=60 * 60 * 24 * 7,
+    default=60 * 60 * 24 * 7,  # 1 semana (7 dias)
     cast=int,
-)  # 1 semana (7 dias)
-
+)
 PLAYER_DODGES_MULTIPLIER = config(
     'PLAYER_DODGES_MULTIPLIER',
     default='1,2,5,10,20,40,60,90',
     cast=lambda v: [float(s.strip()) for s in v.split(',')],
 )
-
+PLAYER_MAX_DODGES = len(PLAYER_DODGES_MULTIPLIER)
 PLAYER_DODGES_MIN_TO_RESTRICT = config(
     'PLAYER_DODGES_MIN_TO_RESTRICT',
     default=3,
     cast=int,
 )
-
 PLAYER_MAX_LOSE_LEVEL_POINTS = config(
     'PLAYER_MAX_LOSE_LEVEL_POINTS',
     default=-99,
     cast=int,
 )
 
-MATCH_ROUNDS_TO_WIN = config('MATCH_ROUNDS_TO_WIN', default=13, cast=int)
 
 # Other App Settings
 APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)
@@ -376,24 +364,22 @@ FIVEM_MATCH_MOCK_CREATION_SUCCESS = config(
     default=True,
     cast=bool,
 )
-
 FIVEM_MATCH_MOCK_DELAY_START = config(
     'FIVEM_MATCH_MOCK_DELAY_START',
     default=10,
     cast=int,
 )
-
 FIVEM_MATCH_MOCK_DELAY_CONFIGURE = config(
     'FIVEM_MATCH_MOCK_DELAY_CONFIGURE',
     default=5,
     cast=int,
 )
-
 FIVEM_MATCH_MOCK_START_SUCCESS = config(
     'FIVEM_MATCH_MOCK_START_SUCCESS',
     default=True,
     cast=bool,
 )
+
 
 # Store Settings
 STORE_LENGTH = 8

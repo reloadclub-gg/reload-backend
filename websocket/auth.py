@@ -33,7 +33,12 @@ def authenticate(scope: dict) -> User:
         return None
 
     user_qs = User.objects.filter(id=auth.user_id, is_active=True)
-    return check_and_fetch_user(user_qs)
+    user = check_and_fetch_user(user_qs)
+    if user and user.auth.sessions_ttl > -1:
+        user.add_session()
+        user.auth.persist_session()
+
+    return user
 
 
 def disconnect(user):

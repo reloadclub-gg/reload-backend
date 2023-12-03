@@ -1,14 +1,14 @@
 from unittest import mock
 
+from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
 from ninja.errors import Http404
 
 from accounts.tasks import watch_user_status_change
-from core.redis import redis_client_instance as cache
 from core.tests import TestCase
 from lobbies.models import Lobby
-from pre_matches.api.controller import set_player_lock_in, set_player_ready
+from pre_matches.api.controller import set_player_ready
 from pre_matches.models import PreMatch, Team, TeamException
 from pre_matches.tests.mixins import TeamsMixin
 
@@ -17,26 +17,28 @@ from . import mixins
 
 
 class LobbyTasksTestCase(TeamsMixin, TestCase):
+    @override_settings(PLAYER_DODGES_EXPIRE_TIME=60 * 60 * 24 * 7)  # 1 semana (7 dias)
     def test_clear_dodges(self):
-        player = models.Player.create(self.user_1.id)
-        tasks.clear_dodges()
-        self.assertEqual(player.dodges, 0)
-        today = timezone.now().isoformat()
-        two_weeks_ago = (timezone.now() - timezone.timedelta(weeks=2)).isoformat()
+        old_week = timezone.now() - timezone.timedelta(weeks=2)
+        yesterday = timezone.now() - timezone.timedelta(days=1)
 
-        cache.zadd(
-            f'{player.cache_key}:dodges',
-            {two_weeks_ago: 1680800659.26437},
+        models.PlayerDodges(user=self.user_1, count=4).save()
+        models.PlayerDodges.objects.filter(user=self.user_1).update(
+            last_dodge_date=old_week
         )
+        self.assertEqual(self.user_1.playerdodges.count, 4)
         tasks.clear_dodges()
-        self.assertEqual(player.dodges, 0)
+        self.user_1.playerdodges.refresh_from_db()
+        self.assertEqual(self.user_1.playerdodges.count, 0)
 
-        cache.zadd(
-            f'{player.cache_key}:dodges',
-            {today: 1680800759.26437},
+        models.PlayerDodges(user=self.user_2, count=3).save()
+        models.PlayerDodges.objects.filter(user=self.user_2).update(
+            last_dodge_date=yesterday
         )
+        self.assertEqual(self.user_2.playerdodges.count, 3)
         tasks.clear_dodges()
-        self.assertEqual(player.dodges, 1)
+        self.user_2.playerdodges.refresh_from_db()
+        self.assertEqual(self.user_2.playerdodges.count, 3)
 
 
 class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
@@ -227,11 +229,8 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
         self.assertNotIn(t2, PreMatch.get_all()[0].teams)
 
     @override_settings(TEAM_READY_PLAYERS_MIN=5, FIVEM_MATCH_MOCK_DELAY_CONFIGURE=0)
-    @mock.patch(
-        'pre_matches.api.controller.tasks.cancel_match_after_countdown.apply_async'
-    )
     @mock.patch('lobbies.tasks.ws_queue_tick')
-    def test_handle_queue_someone_quit(self, mock_tick, mock_cancel_match):
+    def test_handle_queue_someone_quit(self, mock_tick):
         self.lobby1.set_public()
         self.lobby4.set_public()
         self.lobby6.set_public()
@@ -257,10 +256,6 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
 
         pm = PreMatch.get_by_player_id(self.user_2.id)
         self.assertIsNotNone(pm)
-
-        for player in pm.players:
-            set_player_lock_in(player)
-
         left_out = pm.players[-1:][0]
 
         for player in pm.players[:-1]:
@@ -317,5 +312,50 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
         self.lobby5.start_queue()
         tasks.handle_teaming()
 
-        # self.assertEqual(len(Team.get_all_ready()), 1)
-        # self.assertEqual(len(Team.get_all_not_ready()), 1)
+    @override_settings(
+        PLAYER_DODGES_MIN_TO_RESTRICT=3,
+        PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
+    )
+    def test_handle_dodges(self):
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 0)
+        tasks.handle_dodges(self.user_1.account.lobby, [])
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 1)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_1)
+        self.assertEqual(player_dodges.count, 1)
+
+        tasks.handle_dodges(self.user_1.account.lobby, [])
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 1)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_1)
+        self.assertEqual(player_dodges.count, 2)
+
+        self.user_1.account.lobby.set_public()
+        Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
+        self.assertEqual(models.PlayerRestriction.objects.all().count(), 0)
+        tasks.handle_dodges(self.user_1.account.lobby, [self.user_2.id])
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 1)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_1)
+        self.assertEqual(player_dodges.count, 3)
+
+        self.assertEqual(models.PlayerRestriction.objects.all().count(), 1)
+
+        dodges_to_restrict = settings.PLAYER_DODGES_MIN_TO_RESTRICT
+        dodges_multipliers = settings.PLAYER_DODGES_MULTIPLIER
+        factor_idx = player_dodges.count - dodges_to_restrict
+        if factor_idx > len(dodges_multipliers):
+            factor_idx = len(dodges_multipliers) - 1
+        factor = dodges_multipliers[factor_idx]
+        lock_minutes = player_dodges.count * factor
+        player_restriction = models.PlayerRestriction.objects.get(user=self.user_1)
+        self.assertEqual(
+            player_restriction.end_date.minute,
+            (
+                player_restriction.start_date + timezone.timedelta(minutes=lock_minutes)
+            ).minute,
+        )
+
+        tasks.handle_dodges(self.user_1.account.lobby, [self.user_1.id])
+        self.assertEqual(models.PlayerDodges.objects.all().count(), 2)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_1)
+        self.assertEqual(player_dodges.count, 3)
+        player_dodges = models.PlayerDodges.objects.get(user=self.user_2)
+        self.assertEqual(player_dodges.count, 1)
