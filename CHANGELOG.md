@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [a223be1 - 03/12/2023]
+
 ### Added
 
 - Possibilidade de criação de usuário a partir do admin [#890](https://github.com/3C-gg/reload-backend/issues/890).
