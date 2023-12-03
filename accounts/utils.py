@@ -12,12 +12,14 @@ from core.utils import generate_random_string, send_mail
 
 
 def generate_steam_extra_data(
-    public_profile: bool = True, username: bool = None
+    public_profile: bool = True,
+    username: str = None,
+    steamid: str = None,
 ) -> dict:
     """
     Generate fake Steam data.
     """
-    steamid = generate_random_string(length=18, allowed_chars='digits')
+    steamid = steamid or generate_random_string(length=18, allowed_chars='digits')
     personaname = username or generate_random_string(length=9, allowed_chars='letters')
     communityvisibilitystate = 3 if public_profile else 0
 
@@ -35,6 +37,7 @@ def create_social_auth(
     user,
     public_profile: bool = True,
     username: str = None,
+    steamid: str = None,
 ) -> UserSocialAuth:
     """
     Add a fake UserSocialAuth entry using the `generate_steam_extra_data` method
@@ -42,12 +45,17 @@ def create_social_auth(
 
     :params user User: User model.
     """
+    extra_data = generate_steam_extra_data(
+        public_profile=public_profile,
+        username=username,
+        steamid=steamid,
+    )
     return baker.make(
         UserSocialAuth,
         user=user,
-        extra_data=generate_steam_extra_data(
-            public_profile=public_profile, username=username
-        ),
+        extra_data=extra_data,
+        uid=steamid or extra_data.get('player').get('steamid'),
+        provider='steam',
     )
 
 
