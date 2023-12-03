@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Possibilidade de criação de usuário a partir do admin [#890](https://github.com/3C-gg/reload-backend/issues/890).
 - Ativação de tradução nas threads do celery, no sinal `celeryd_after_setup`, que roda depois que o celery foi iniciado.
 - Modelos `PlayerDodges` e `PlayerRestriction` para fazer a manutenção dos dodges e restrições dos jogadores. Esses modelos e suas lógicas substituem o antigo modelo de cache `Player`, que foi removido.
 
 ### Changed
 
+- Criação de SocialAuth fakes agora recebe `steamid` e `username`.
+- Usuários fakes (somente para desenvolvimento local) não precisam mais passar pelas checagens de beta, alpha ou convites.
 - Move tarefas de envio de email sobre servidores cheios e quase cheios para aplicação `matches`.
 - Atualiza as traduções.
 - Tarefa `queue` agora verifica por pré-partidas que expiraram sem que todos os jogadores ficassem prontos e exclui elas.
