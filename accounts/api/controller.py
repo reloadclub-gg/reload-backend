@@ -74,13 +74,13 @@ def auth(user: User, from_fake_signup=False) -> User:
     if not is_verified(user):
         return user
 
-    check_beta(user, user.email)
-    check_alpha(user)
-
     from_offline_status = user.auth.sessions is None
 
     # Adding and persisting session
     if not from_fake_signup:
+        check_beta(user, user.email)
+        check_alpha(user)
+
         user.add_session()
         user.auth.persist_session()
 
@@ -181,9 +181,10 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     except Account.DoesNotExist:
         pass
 
-    check_beta(user, email)
-    check_alpha(user)
-    check_invite(user, email, is_fake)
+    if not is_fake:
+        check_beta(user, email)
+        check_alpha(user)
+        check_invite(user, email, is_fake)
 
     try:
         with transaction.atomic():
