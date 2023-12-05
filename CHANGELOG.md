@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Tentativas de conexão com o servidor FiveM para criação de partidas. O sistema tentará criar uma partida no FiveM, por padrão, 10 vezes, com intervalos de 5 segundos para cada tentativa [#798](https://github.com/3C-gg/reload-backend/issues/798).
+
 ## [a223be1 - 03/12/2023]
 
 ### Added

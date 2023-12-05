@@ -379,6 +379,16 @@ FIVEM_MATCH_MOCK_START_SUCCESS = config(
     default=True,
     cast=bool,
 )
+FIVEM_MATCH_MOCK_CREATION_MAX_RETRIES = config(
+    'FIVEM_MATCH_MOCK_CREATION_MAX_RETRIES',
+    default=10,
+    cast=int,
+)
+FIVEM_MATCH_MOCK_CREATION_RETRIES_INTERVAL = config(
+    'FIVEM_MATCH_MOCK_CREATION_RETRIES_INTERVAL',
+    default=5,
+    cast=int,
+)
 
 
 # Store Settings
