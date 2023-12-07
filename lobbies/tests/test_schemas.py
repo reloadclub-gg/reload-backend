@@ -1,5 +1,7 @@
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
+from core.utils import get_full_file_path
+from store.models import Item
 
 from ..api import schemas
 from ..models import Lobby
@@ -14,6 +16,11 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
     def test_lobby_player_schema(self):
         Lobby.create(self.user_1.id)
         payload = schemas.LobbyPlayerSchema.from_orm(self.user_1.account).dict()
+        player_card = self.user_1.useritem_set.filter(
+            item__item_type=Item.ItemType.DECORATIVE,
+            item__subtype=Item.SubType.CARD,
+            in_use=True,
+        ).first()
 
         expected_payload = {
             'user_id': self.user_1.id,
@@ -24,6 +31,7 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
             'latest_matches_results': self.user_1.account.get_latest_matches_results(),
             'steam_url': self.user_1.steam_user.profileurl,
             'status': self.user_1.status,
+            'card': get_full_file_path(player_card) if player_card else None,
         }
         self.assertDictEqual(payload, expected_payload)
 
