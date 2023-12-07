@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera template de PR do Github [#899](https://github.com/3C-gg/reload-backend/issues/899).
 - Nome de tipo de item `CONSUMABLE` foi substituído por `DECORATIVE`, visto que os itens não são consumíveis, de usar ou gastar, e sim, itens de decoração.
 - Atualiza traduções.
 - Alterado limite de upload de arquivo na configuração do Nginx: ambiente local -> 300MB, ambiente de homologação (staging) -> 50MB e ambiente de produção -> 50MB.
