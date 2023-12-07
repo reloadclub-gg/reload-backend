@@ -228,7 +228,7 @@ http {
 server {
     listen 80;
     server_name api.reloadclub.gg;
-    client_max_body_size 10M;
+    client_max_body_size 50M;
 
     location = /favicon.ico {
         access_log off;
