@@ -2,9 +2,11 @@ from django.utils import timezone
 from model_bakery import baker
 
 from core.tests import TestCase
+from core.utils import get_full_file_path
 from matches.models import Match, MatchPlayer, Server
 from pre_matches.tests.mixins import TeamsMixin
 from profiles.api import schemas
+from store.models import Item
 
 
 class ProfilesSchemasTestCase(TeamsMixin, TestCase):
@@ -38,6 +40,12 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
 
         self.user_1.account.social_handles.update({'twitch': 'username'})
         self.user_1.account.save()
+
+        active_header = self.user_1.useritem_set.filter(
+            item__item_type=Item.ItemType.DECORATIVE,
+            item__subtype=Item.SubType.PROFILE,
+            in_use=True,
+        ).first()
 
         payload = schemas.ProfileSchema.from_orm(self.user_1.account).dict()
         expected_payload = {
@@ -100,6 +108,7 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
             },
             'date_joined': self.user_1.date_joined.isoformat(),
             'status': self.user_1.status,
+            'header': get_full_file_path(active_header) if active_header else None,
         }
 
         self.assertDictEqual(payload, expected_payload)

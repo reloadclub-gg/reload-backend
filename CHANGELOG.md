@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Campo `card` no esquema `LobbyPlayerSchema` para trazer o card do usuário ativo [#849](https://github.com/3C-gg/reload-backend/issues/849).
+- Campo `header` no esquema `ProfileSchema` que retorna o header do perfil ativo do usuário [#850](https://github.com/3C-gg/reload-backend/issues/850). 
+- Campo `card` no esquema `LobbyPlayerSchema` que retorna o card do usuário ativo [#849](https://github.com/3C-gg/reload-backend/issues/849).
 - Itens decorativos na carga de inicialização (`seed.json`).
 - Campo `decorative_image` no modelo `Item` para armazenar a imagem que será a decoração aplicada. Esse campo é obrigatório caso o Item tenha o tipo `DECORATIVE`.
 - Dois novos subtipos de itens: `CARD` para os cards de usuários no Lobby e `PROFILE` para headers de perfil.
