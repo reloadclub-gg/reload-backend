@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Atualiza traduções.
 - Alterado limite de upload de arquivo na configuração do Nginx: ambiente local -> 300MB, ambiente de homologação (staging) -> 50MB e ambiente de produção -> 50MB.
 
+### Fixed
+
+- Listagem de usuários no admin volta a poder ser ordenada por data de cadastro e último login [#894](https://github.com/3C-gg/reload-backend/issues/894).
+
 ## [a223be1 - 03/12/2023]
 
 ### Added
