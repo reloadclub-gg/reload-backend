@@ -9,7 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo `card` no esquema `LobbyPlayerSchema` para trazer o card do usuário ativo [#849](https://github.com/3C-gg/reload-backend/issues/849).
+- Itens decorativos na carga de inicialização (`seed.json`).
+- Campo `decorative_image` no modelo `Item` para armazenar a imagem que será a decoração aplicada. Esse campo é obrigatório caso o Item tenha o tipo `DECORATIVE`.
+- Dois novos subtipos de itens: `CARD` para os cards de usuários no Lobby e `PROFILE` para headers de perfil.
 - Tentativas de conexão com o servidor FiveM para criação de partidas. O sistema tentará criar uma partida no FiveM, por padrão, 10 vezes, com intervalos de 5 segundos para cada tentativa [#798](https://github.com/3C-gg/reload-backend/issues/798).
+
+### Changed
+
+- Nome de tipo de item `CONSUMABLE` foi substituído por `DECORATIVE`, visto que os itens não são consumíveis, de usar ou gastar, e sim, itens de decoração.
+- Atualiza traduções.
+- Alterado limite de upload de arquivo na configuração do Nginx: ambiente local -> 300MB, ambiente de homologação (staging) -> 50MB e ambiente de produção -> 50MB.
 
 ## [a223be1 - 03/12/2023]
 
