@@ -39,7 +39,13 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
             self.assertIsNotNone(session_id)
 
     def test_purchase_item(self):
-        item = baker.make(models.Item, price=500, is_available=True, name='i1')
+        item = baker.make(
+            models.Item,
+            price=500,
+            is_available=True,
+            name='i1',
+            item_type=models.Item.ItemType.SPRAY,
+        )
         self.user_1.account.coins = 1000
         self.user_1.account.save()
 
@@ -49,20 +55,38 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
         self.assertTrue(self.user_1.useritem_set.filter(item__id=item.id).exists())
         self.assertEqual(self.user_1.account.coins, new_coins)
 
-        item = baker.make(models.Item, price=2000, is_available=True, name='i2')
+        item = baker.make(
+            models.Item,
+            price=2000,
+            is_available=True,
+            name='i2',
+            item_type=models.Item.ItemType.SPRAY,
+        )
         with self.assertRaisesMessage(HttpError, 'Insufficient funds.'):
             controller.purchase_item(self.user_1, item.id)
         self.assertFalse(self.user_1.useritem_set.filter(item__id=item.id).exists())
         self.assertEqual(self.user_1.account.coins, new_coins)
 
-        item = baker.make(models.Item, price=1, is_available=False, name='i3')
+        item = baker.make(
+            models.Item,
+            price=1,
+            is_available=False,
+            name='i3',
+            item_type=models.Item.ItemType.SPRAY,
+        )
         with self.assertRaisesMessage(HttpError, 'Item not available.'):
             controller.purchase_item(self.user_1, item.id)
         self.assertFalse(self.user_1.useritem_set.filter(item__id=item.id).exists())
         self.assertEqual(self.user_1.account.coins, new_coins)
 
     def test_purchase_item_unique(self):
-        item = baker.make(models.Item, price=500, is_available=True, name='i1')
+        item = baker.make(
+            models.Item,
+            price=500,
+            is_available=True,
+            name='i1',
+            item_type=models.Item.ItemType.SPRAY,
+        )
         self.user_1.account.coins = 1000
         self.user_1.account.save()
         new_coins = self.user_1.account.coins - item.price
@@ -121,6 +145,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
             is_available=True,
             name='i1',
             collection=collection,
+            item_type=models.Item.ItemType.SPRAY,
         )
         baker.make(
             models.Item,
@@ -128,6 +153,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
             is_available=True,
             name='i2',
             collection=collection,
+            item_type=models.Item.ItemType.SPRAY,
         )
         baker.make(
             models.Item,
@@ -135,6 +161,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
             is_available=True,
             name='i3',
             collection=collection,
+            item_type=models.Item.ItemType.SPRAY,
         )
         self.user_1.account.coins = 1000
         self.user_1.account.save()
@@ -184,6 +211,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
             is_available=True,
             name='i1',
             collection=collection,
+            item_type=models.Item.ItemType.SPRAY,
         )
         baker.make(
             models.Item,
@@ -191,6 +219,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
             is_available=True,
             name='i2',
             collection=collection,
+            item_type=models.Item.ItemType.SPRAY,
         )
         baker.make(
             models.Item,
@@ -198,6 +227,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
             is_available=True,
             name='i3',
             collection=collection,
+            item_type=models.Item.ItemType.SPRAY,
         )
         self.user_1.account.coins = 1000
         self.user_1.account.save()
