@@ -373,7 +373,9 @@ class UserAdmin(
     report_points.admin_order_field = 'reports_received__report_points'
     restriction_countdown.short_description = 'Restriction ETA'
     formatted_date_joined.short_description = 'Date joined'
+    formatted_date_joined.admin_order_field = 'date_joined'
     formatted_last_login.short_description = 'Last login'
+    formatted_last_login.admin_order_field = 'last_login'
 
     @action(
         label=_('Assume Identity'),
