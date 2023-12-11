@@ -71,13 +71,15 @@ class Item(models.Model):
     class ItemType(models.TextChoices):
         WEAR = 'wear'
         WEAPON = 'weapon'
-        CONSUMABLE = 'consumable'
+        DECORATIVE = 'decorative'
         PERSONA = 'persona'
         SPRAY = 'spray'
 
     class SubType(models.TextChoices):
         DEF = 'def'
         ATA = 'ata'
+        CARD = 'card'
+        PROFILE = 'profile'
 
     owners = models.ManyToManyField(User, through='UserItem')
     name = models.CharField(max_length=128)
@@ -97,6 +99,11 @@ class Item(models.Model):
     discount = models.IntegerField(default=0)
     background_image = models.ImageField(upload_to=item_media_path)
     foreground_image = models.FileField(upload_to=item_media_path)
+    decorative_image = models.ImageField(
+        upload_to=item_media_path,
+        null=True,
+        blank=True,
+    )
     box = models.ForeignKey(Box, on_delete=models.CASCADE, null=True, blank=True)
     box_draw_chance = models.DecimalField(
         max_digits=5,
@@ -138,6 +145,10 @@ class Item(models.Model):
                 raise ValidationError(
                     _('The total sum of items on this box cannot be greater then 100%.')
                 )
+
+        if self.item_type == Item.ItemType.DECORATIVE:
+            if not self.decorative_image:
+                raise ValidationError(_('Decorative must have a decorative image.'))
 
         super().save(*args, **kwargs)
 

@@ -17,7 +17,11 @@ class StoreCommonModelsTestCase(AccountOneMixin, TestCase):
         self.assertEqual(collection.handle, 'sample-collection')
 
     def test_item_model(self):
-        item = baker.make(models.Item, name='Sample Item')
+        item = baker.make(
+            models.Item,
+            name='Sample Item',
+            item_type=models.Item.ItemType.SPRAY,
+        )
         self.assertEqual(item.handle, f'{item.item_type}-sample-item')
 
     def test_item_model_box(self):
@@ -27,6 +31,7 @@ class StoreCommonModelsTestCase(AccountOneMixin, TestCase):
             name='Sample Item',
             box=box,
             box_draw_chance=50,
+            item_type=models.Item.ItemType.SPRAY,
         )
 
         baker.make(
@@ -34,6 +39,7 @@ class StoreCommonModelsTestCase(AccountOneMixin, TestCase):
             name='Sample Item 2',
             box=box,
             box_draw_chance=45,
+            item_type=models.Item.ItemType.SPRAY,
         )
 
         with self.assertRaises(ValidationError):
@@ -42,6 +48,7 @@ class StoreCommonModelsTestCase(AccountOneMixin, TestCase):
                 name='Sample Item 3',
                 box=box,
                 box_draw_chance=10,
+                item_type=models.Item.ItemType.SPRAY,
             )
 
         baker.make(
@@ -49,4 +56,20 @@ class StoreCommonModelsTestCase(AccountOneMixin, TestCase):
             name='Sample Item 3',
             box=box,
             box_draw_chance=5,
+            item_type=models.Item.ItemType.SPRAY,
         )
+
+    def test_decorative_item(self):
+        item = models.Item(
+            name='Sample Item',
+            item_type=models.Item.ItemType.DECORATIVE,
+            subtype=models.Item.SubType.CARD,
+            price=5,
+            description='desc',
+        )
+
+        with self.assertRaises(ValidationError):
+            item.save()
+
+        item.decorative_image = 'decorative-card-item.png'
+        item.save()

@@ -26,6 +26,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             background_image=self.tmp_image,
             price=9,
             is_available=True,
+            item_type=models.Item.ItemType.SPRAY,
         )
         self.box = baker.make(
             models.Box,
@@ -51,6 +52,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             background_image=self.tmp_image,
             price=9,
             is_available=True,
+            item_type=models.Item.ItemType.SPRAY,
         )
         self.collection_item = baker.make(
             models.Item,
@@ -60,6 +62,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             background_image=self.tmp_image,
             price=9,
             is_available=True,
+            item_type=models.Item.ItemType.SPRAY,
         )
 
     def tearDown(self):
@@ -80,6 +83,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'discount': self.item.discount,
             'background_image': get_full_file_path(self.item.background_image),
             'foreground_image': get_full_file_path(self.item.foreground_image),
+            'decorative_image': get_full_file_path(self.item.decorative_image)
+            if self.item.decorative_image
+            else None,
             'box_id': schemas.BoxSchema.from_orm(self.item.box)
             if self.item.box
             else None,
@@ -110,6 +116,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'discount': self.item.discount,
             'background_image': get_full_file_path(self.item.background_image),
             'foreground_image': get_full_file_path(self.item.foreground_image),
+            'decorative_image': get_full_file_path(self.item.decorative_image)
+            if self.item.decorative_image
+            else None,
             'box_id': self.item.box.id if self.item.box else None,
             'box_draw_chance': self.item.box_draw_chance,
             'collection_id': self.collection.id if self.item.collection else None,
@@ -139,6 +148,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'discount': self.box_item.discount,
             'background_image': get_full_file_path(self.box_item.background_image),
             'foreground_image': get_full_file_path(self.box_item.foreground_image),
+            'decorative_image': get_full_file_path(self.box_item.decorative_image)
+            if self.box_item.decorative_image
+            else None,
             'box_id': self.box.id,
             'box_draw_chance': self.box_item.box_draw_chance,
             'collection_id': self.collection.id if self.box_item.collection else None,
@@ -168,6 +180,11 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'foreground_image': get_full_file_path(
                 self.collection_item.foreground_image
             ),
+            'decorative_image': get_full_file_path(
+                self.collection_item.decorative_image
+            )
+            if self.collection_item.decorative_image
+            else None,
             'box_id': self.item.box.id if self.item.box else None,
             'box_draw_chance': self.collection_item.box_draw_chance,
             'collection_id': self.collection.id,
@@ -280,6 +297,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             price=9,
             is_available=True,
             featured=True,
+            item_type=models.Item.ItemType.SPRAY,
         )
         payload = schemas.UserStoreSchema.from_orm(self.user).dict()
         self.assertEqual(len(payload.get('featured')), 1)
@@ -292,6 +310,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             price=9,
             is_available=False,
             featured=True,
+            item_type=models.Item.ItemType.SPRAY,
         )
 
         payload = schemas.UserStoreSchema.from_orm(self.user).dict()

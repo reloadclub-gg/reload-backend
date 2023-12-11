@@ -4,8 +4,6 @@ Siga as instruções abaixo para preencher o painel lateral.
 
 - Adicione os *"Reviewers"*. Normalmente é quem criou ou designou a tarefa para você. Caso tenha sido você mesmo que criou a issue, marque ali quem você acredita ser a melhor pessoa para fazer o review dessa tarefa.
 - Marque o desenvolvedor da tarefa como *"Assignee"*. Na maioria dos casos, você irá se marcar.
-- Selecione as *"Labels"* fazendo referência a(s) label(s) da issue.
-- Marque a *"Milestone"* do sprint atual.
 - Marque a issue em *"Development"*.
 
 ## Essa PR contém

@@ -5,6 +5,8 @@ from ninja import ModelSchema, Schema
 from pydantic import root_validator
 
 from accounts.models import Account
+from core.utils import get_full_file_path
+from store.models import Item
 
 from ..models import Lobby, LobbyInvite
 
@@ -18,6 +20,7 @@ class LobbyPlayerSchema(ModelSchema):
     latest_matches_results: list
     steam_url: str
     status: str
+    card: str = None
 
     class Config:
         model = Account
@@ -46,6 +49,17 @@ class LobbyPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_status(obj):
         return obj.user.status
+
+    @staticmethod
+    def resolve_card(obj):
+        active_card = obj.user.useritem_set.filter(
+            item__item_type=Item.ItemType.DECORATIVE,
+            item__subtype=Item.SubType.CARD,
+            in_use=True,
+        ).first()
+
+        if active_card:
+            return get_full_file_path(active_card.item.decorative_image)
 
 
 class LobbySchema(Schema):

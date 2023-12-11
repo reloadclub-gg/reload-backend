@@ -22,6 +22,7 @@ class StoreRoutesTestCase(VerifiedAccountsMixin, TestCase):
             background_image=self.tmp_image,
             price=9.90,
             is_available=True,
+            item_type=models.Item.ItemType.SPRAY,
         )
         self.box = baker.make(
             models.Box,
@@ -47,6 +48,7 @@ class StoreRoutesTestCase(VerifiedAccountsMixin, TestCase):
             background_image=self.tmp_image,
             price=9.90,
             is_available=True,
+            item_type=models.Item.ItemType.SPRAY,
         )
         self.collection_item = baker.make(
             models.Item,
@@ -56,6 +58,7 @@ class StoreRoutesTestCase(VerifiedAccountsMixin, TestCase):
             background_image=self.tmp_image,
             price=9.90,
             is_available=True,
+            item_type=models.Item.ItemType.SPRAY,
         )
 
     def test_inventory_list(self):

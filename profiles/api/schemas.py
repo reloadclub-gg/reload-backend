@@ -4,8 +4,10 @@ from django.contrib.auth import get_user_model
 from ninja import ModelSchema
 
 from accounts.models import Account
+from core.utils import get_full_file_path
 from matches.api.schemas import MatchPlayerStatsSchema
 from matches.models import Match, MatchPlayerStats
+from store.models import Item
 
 User = get_user_model()
 
@@ -52,6 +54,7 @@ class ProfileSchema(ModelSchema):
     stats: dict
     date_joined: str
     status: str
+    header: str = None
 
     class Config:
         model = Account
@@ -154,6 +157,17 @@ class ProfileSchema(ModelSchema):
     @staticmethod
     def resolve_status(obj):
         return obj.user.status
+
+    @staticmethod
+    def resolve_header(obj):
+        active_header = obj.user.useritem_set.filter(
+            item__item_type=Item.ItemType.DECORATIVE,
+            item__subtype=Item.SubType.PROFILE,
+            in_use=True,
+        ).first()
+
+        if active_header:
+            return get_full_file_path(active_header.item.decorative_image)
 
 
 class ProfileUpdateSchema(ModelSchema):
