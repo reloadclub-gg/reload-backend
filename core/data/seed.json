@@ -1927,5 +1927,51 @@
             "collection": 2,
             "featured": false
         }
+    },
+    {
+        "model": "store.item",
+        "pk": 16,
+        "fields": {
+            "name": "Item 16",
+            "item_type": "decorative",
+            "subtype": "card",
+            "handle": "decorative-card-item-16",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 0,
+            "background_image": "store/decorative-card-item-16/media/decorative-card-item-16.jpg",
+            "foreground_image": "store/decorative-card-item-16/media/decorative-card-item-16.jpg",
+            "decorative_image": "store/decorative-card-item-16/media/decorative-card-item-16_NVYjtVz.jpg",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 1,
+            "featured": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 17,
+        "fields": {
+            "name": "Item 17",
+            "item_type": "decorative",
+            "subtype": "profile",
+            "handle": "decorative-profile-item-17",
+            "price": "850",
+            "create_date": "2023-09-26T06:59:42.592Z",
+            "release_date": "2023-09-26T06:59:42.592Z",
+            "is_available": true,
+            "description": "h gjghjhj g",
+            "discount": 0,
+            "background_image": "store/decorative-profile-item-17/media/decorative-profile-item-17.jpg",
+            "foreground_image": "store/decorative-profile-item-17/media/decorative-profile-item-17.jpg",
+            "decorative_image": "store/decorative-profile-item-17/media/decorative-profile-item-17_lRabzsu.jpg",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 1,
+            "featured": false
+        }
     }
 ]

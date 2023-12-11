@@ -1,3 +1,4 @@
+import logging
 import time
 from typing import Union
 
@@ -71,14 +72,32 @@ def cancel_pre_match(
 
 
 def handle_create_fivem_match(match: Match) -> Match:
-    if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
-        status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
-        fivem_response = FiveMMatchResponseMock.from_orm({'status_code': status_code})
-        time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
-    else:
-        server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
-        payload = MatchFiveMSchema.from_orm(match).dict()
-        fivem_response = requests.post(server_url, json=payload)
+    retries = 0
+    max_retries = settings.FIVEM_MATCH_MOCK_CREATION_MAX_RETRIES
+    status_ok = False
+    while retries < max_retries and not status_ok:
+        if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
+            status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
+            fivem_response = FiveMMatchResponseMock.from_orm(
+                {'status_code': status_code}
+            )
+            time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
+            status_ok = fivem_response.status_code == 201
+        else:
+            server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
+            payload = MatchFiveMSchema.from_orm(match).dict()
+            try:
+                fivem_response = requests.post(
+                    server_url,
+                    json=payload,
+                    timeout=settings.FIVEM_MATCH_MOCK_CREATION_RETRIES_INTERVAL,
+                )
+                status_ok = fivem_response.status_code == 201
+            except requests.exceptions.Timeout:
+                logging_warning = f'{server_url} {retries}/{max_retries}'
+                logging.warning(f'[handle_create_fivem_match] {logging_warning}')
+
+        retries += 1
 
     return fivem_response
 
@@ -171,10 +190,7 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
         match = handle_create_match(pre_match)
         if not match:
             # cancel match due to lack of available servers
-            return cancel_pre_match(
-                pre_match,
-                'servers_full',
-            )
+            return cancel_pre_match(pre_match, 'servers_full')
         else:
             fivem_response = handle_create_fivem_match(match)
             if fivem_response.status_code != 201:

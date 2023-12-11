@@ -240,6 +240,8 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     @override_settings(
         FIVEM_MATCH_MOCK_DELAY_CONFIGURE=0,
         FIVEM_MATCH_MOCK_CREATION_SUCCESS=False,
+        FIVEM_MATCH_MOCK_CREATION_MAX_RETRIES=1,
+        FIVEM_MATCH_MOCK_CREATION_RETRIES_INTERVAL=0,
     )
     def test_handle_create_fivem_match_error(self):
         server = baker.make(Server)
