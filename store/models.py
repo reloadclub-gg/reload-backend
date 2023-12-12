@@ -7,18 +7,43 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 
+from core.utils import generate_random_string
+
 User = get_user_model()
 
 
 def item_media_path(instance, filename):
     extension = os.path.splitext(filename)[1]
-
+    random_id = generate_random_string()
     if hasattr(instance, 'handle'):
-        new_filename = f'{instance.handle}{extension}'
-        return f'store/{instance.handle}/media/{new_filename}'
+        new_filename = f'{random_id}__{instance.handle}{extension}'
+        path = f'store/{instance.handle}/media/'
     else:
-        new_filename = f'{instance.item.handle}{extension}'
-        return f'store/{instance.item.handle}/media/{new_filename}'
+        new_filename = f'{random_id}__{instance.item.handle}{extension}'
+        path = f'store/{instance.item.handle}/media/'
+
+    return path, new_filename
+
+
+def item_background_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/background__{file}'
+
+
+def item_foreground_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/foreground__{file}'
+
+
+def item_decorative_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/decorative__{file}'
+
+
+def item_alternative_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    random_id = generate_random_string()
+    return f'{path}/{instance.media_type}s/{random_id}__{file}'
 
 
 class Box(models.Model):
@@ -34,8 +59,8 @@ class Box(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_media_path)
-    foreground_image = models.FileField(upload_to=item_media_path)
+    background_image = models.ImageField(upload_to=item_background_media_path)
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -55,8 +80,8 @@ class Collection(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_media_path)
-    foreground_image = models.FileField(upload_to=item_media_path)
+    background_image = models.ImageField(upload_to=item_background_media_path)
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -97,10 +122,10 @@ class Item(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_media_path)
-    foreground_image = models.FileField(upload_to=item_media_path)
+    background_image = models.ImageField(upload_to=item_background_media_path)
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
     decorative_image = models.ImageField(
-        upload_to=item_media_path,
+        upload_to=item_decorative_media_path,
         null=True,
         blank=True,
     )
@@ -162,7 +187,7 @@ class ItemMedia(models.Model):
         IMAGE = 'image'
 
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    file = models.FileField(upload_to=item_media_path)
+    file = models.FileField(upload_to=item_alternative_media_path)
     media_type = models.CharField(max_length=16, choices=MediaType.choices)
 
 
