@@ -32,7 +32,7 @@ def update(request, item_id: int, payload: schemas.UserItemUpdateSchema):
 
 @router.get('/', auth=VerifiedRequiredAuth(), response={200: schemas.UserStoreSchema})
 def list(request):
-    return request.user
+    return controller.get_user_store(request.user)
 
 
 @router.post(
