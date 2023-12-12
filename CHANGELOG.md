@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Upload de imagens e assets de itens estava sendo sobrescrito em cada envio. Corrigimos para criar pastas separadas dentro de cada item no S3 garantindo que cada arquivo seja único [#905](https://github.com/3C-gg/reload-backend/issues/905).
+
+## [8b465a8 - 11/12/2023]
+
 ### Added
 
 - Campo `header` no esquema `ProfileSchema` que retorna o header do perfil ativo do usuário [#850](https://github.com/3C-gg/reload-backend/issues/850). 
