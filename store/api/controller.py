@@ -371,7 +371,7 @@ def buy_product(request, payload: schemas.PurchaseSchema):
                 line_items=[{'price': product.get('default_price'), 'quantity': 1}],
                 mode='payment',
                 success_url=request.build_absolute_uri(success_url),
-                cancel_url=f'{settings.FRONT_END_URL}/jogar',
+                cancel_url=f'{settings.FRONT_END_URL}/checkout/cancel',
             )
 
             checkout_transaction.session_id = checkout_session.get('id')
