@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Movemos a lógica da loja dos schemas para o controller.
+- Altera URL do campo `cancel_url` do checkout Stripe [#910](https://github.com/3C-gg/reload-backend/issues/910).
 
 ## [ca96632 - 12/12/2023]
 
