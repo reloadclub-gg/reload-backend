@@ -1,15 +1,10 @@
-import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Optional
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Subquery
-from django.utils import timezone
 from ninja import ModelSchema, Schema
 
-from core.redis import redis_client_instance as cache
-from core.utils import get_full_file_path, str_to_timezone
+from core.utils import get_full_file_path
 
 from .. import models
 
@@ -217,170 +212,12 @@ class UserInventorySchema(ModelSchema):
         return obj.id
 
 
-class UserStoreSchema(ModelSchema):
+class UserStoreSchema(Schema):
     id: str
     user_id: int
     featured: list = []
     products: list = []
     next_rotation: str
-
-    class Config:
-        model = User
-        model_fields = ['id']
-
-    @staticmethod
-    def get_featured_items(user):
-        user_items = models.UserItem.objects.filter(user=user).values('item__id')
-        return list(
-            models.Item.objects.filter(featured=True, is_available=True).exclude(
-                id__in=user_items
-            )
-        )
-
-    @staticmethod
-    def get_featured_boxes(user):
-        user_boxes = models.UserBox.objects.filter(user=user).values('box__id')
-        return list(
-            models.Box.objects.filter(featured=True, is_available=True).exclude(
-                id__in=user_boxes
-            )
-        )
-
-    @staticmethod
-    def get_featured_collections(user):
-        user_item_ids = set(
-            models.UserItem.objects.filter(user=user).values_list('item__id', flat=True)
-        )
-        collections = models.Collection.objects.filter(featured=True, is_available=True)
-
-        result = []
-        for collection in collections:
-            collection_item_ids = set(collection.item_set.values_list('id', flat=True))
-            if not collection_item_ids.intersection(user_item_ids):
-                result.append(collection)
-
-        return result
-
-    @staticmethod
-    def get_random_products(user: User):
-        items = list(
-            models.Item.objects.filter(is_available=True)
-            .exclude(
-                id__in=Subquery(
-                    models.UserItem.objects.filter(user=user).values('item__id')
-                )
-            )
-            .order_by('?')
-        )
-
-        boxes = list(
-            models.Box.objects.filter(is_available=True)
-            .exclude(
-                id__in=Subquery(
-                    models.UserBox.objects.filter(user=user).values('box__id')
-                )
-            )
-            .order_by('?')
-        )
-
-        return items, boxes
-
-    @staticmethod
-    def resolve_featured(obj):
-        model_to_schema = {
-            models.Collection: CollectionSchema,
-            models.Box: BoxSchema,
-            models.Item: ItemSchema,
-        }
-
-        items = (
-            UserStoreSchema.get_featured_collections(obj)
-            + UserStoreSchema.get_featured_boxes(obj)
-            + UserStoreSchema.get_featured_items(obj)
-        )[: settings.STORE_FEATURED_MAX_LENGTH]
-
-        return [model_to_schema[type(item)].from_orm(item) for item in items]
-
-    @staticmethod
-    def update_cache(key, values):
-        if values:
-            cache.sadd(key, *[item.id for item in values])
-
-    @staticmethod
-    def resolve_next_rotation(obj):
-        rotation_key = f'__store:user:{obj.id}:last_updated'
-        rotation = cache.get(rotation_key)
-        now = timezone.now()
-        duration = settings.STORE_ROTATION_DAYS
-
-        if rotation:
-            start_time = str_to_timezone(rotation)
-            end_time = start_time + timedelta(days=duration)
-        else:
-            end_time = now + timedelta(days=duration)
-
-        return end_time.isoformat()
-
-    @staticmethod
-    def resolve_products(obj):
-        rotation_key = f'__store:user:{obj.id}:last_updated'
-        rotation = cache.get(rotation_key)
-
-        if rotation and timezone.now() - str_to_timezone(rotation) <= timedelta(
-            days=settings.STORE_ROTATION_DAYS
-        ):
-            return UserStoreSchema.get_cached_products(obj)
-
-        items, boxes = UserStoreSchema.get_random_products(obj)
-        products = items + boxes
-        random.shuffle(products)
-        reduced_products = products[: settings.STORE_LENGTH]
-
-        UserStoreSchema.update_cache(
-            f'__store:user:{obj.id}:items',
-            [item for item in reduced_products if isinstance(item, models.Item)],
-        )
-        UserStoreSchema.update_cache(
-            f'__store:user:{obj.id}:boxes',
-            [box for box in reduced_products if isinstance(box, models.Box)],
-        )
-
-        schemas = [
-            ItemSchema.from_orm(item)
-            if isinstance(item, models.Item)
-            else BoxSchema.from_orm(item)
-            for item in reduced_products
-        ]
-
-        cache.set(rotation_key, timezone.now().isoformat())
-        return schemas if schemas else []
-
-    @staticmethod
-    def get_cached_products(obj):
-        items_ids = cache.smembers(f'__store:user:{obj.id}:items')
-        boxes_ids = cache.smembers(f'__store:user:{obj.id}:boxes')
-        items = models.Item.objects.filter(is_available=True, id__in=items_ids).exclude(
-            id__in=Subquery(models.UserItem.objects.filter(user=obj).values('item__id'))
-        )
-        boxes = models.Box.objects.filter(is_available=True, id__in=boxes_ids).exclude(
-            id__in=Subquery(models.UserBox.objects.filter(user=obj).values('box__id'))
-        )
-        products = list(items) + list(boxes)
-        reduced_products = products[: settings.STORE_LENGTH]
-        return [
-            ItemSchema.from_orm(item)
-            if isinstance(item, models.Item)
-            else BoxSchema.from_orm(item)
-            for item in reduced_products
-        ]
-
-    @staticmethod
-    def resolve_id(obj):
-        return f'{obj.email}{obj.id}store'
-
-    @staticmethod
-    def resolve_user_id(obj):
-        return obj.id
 
 
 class UserItemUpdateSchema(Schema):

@@ -46,3 +46,7 @@ def check_beta_required() -> bool:
 
 def check_alpha_required() -> bool:
     return AppSettings.get('Alpha Required', False)
+
+
+def replaceable_store_items() -> bool:
+    return AppSettings.get('Replaceable Store Items', False)
