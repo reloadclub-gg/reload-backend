@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Adiciona serviço de check de configuração `replaceable_store_items` para determinar se o sistema irá substituir os itens já comprados pelo usuário na loja por outros ainda não comprados [#909](https://github.com/3C-gg/reload-backend/issues/909).
+
+### Changed
+
+- Movemos a lógica da loja dos schemas para o controller.
+
 ## [ca96632 - 12/12/2023]
 
 ### Fixed
