@@ -114,6 +114,7 @@ class UserItemSchema(ModelSchema):
     description: str
     release_date: datetime = None
     item_type: str
+    item_id: int
 
     class Config:
         model = models.UserItem
@@ -147,6 +148,10 @@ class UserItemSchema(ModelSchema):
     def resolve_item_type(obj):
         return obj.item.item_type
 
+    @staticmethod
+    def resolve_item_id(obj):
+        return obj.item.id
+
 
 class UserBoxSchema(ModelSchema):
     id: int
@@ -155,6 +160,7 @@ class UserBoxSchema(ModelSchema):
     foreground_image: str
     description: str
     release_date: datetime = None
+    box_id: int
 
     class Config:
         model = models.UserBox
@@ -183,6 +189,10 @@ class UserBoxSchema(ModelSchema):
     @staticmethod
     def resolve_release_date(obj):
         return obj.box.release_date
+
+    @staticmethod
+    def resolve_box_id(obj):
+        return obj.box.id
 
 
 class UserInventorySchema(ModelSchema):
