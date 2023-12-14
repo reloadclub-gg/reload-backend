@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo `item_id` nos esquemas `UserItemSchema` e `UserBoxSchema` [#914](https://github.com/3C-gg/reload-backend/issues/914).
 - Adiciona serviço de check de configuração `replaceable_store_items` para determinar se o sistema irá substituir os itens já comprados pelo usuário na loja por outros ainda não comprados [#909](https://github.com/3C-gg/reload-backend/issues/909).
 
 ### Changed
