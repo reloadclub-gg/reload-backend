@@ -129,3 +129,14 @@ def logout_inactive_users():
         login.user.auth.expire_session(0)
         login.user.auth.refresh_token(0)
         watch_user_status_change(login.user.id)
+
+
+@shared_task
+def delete_not_registered_users():
+    date_limit = timezone.now() - datetime.timedelta(days=1)
+    User.objects.filter(
+        account__isnull=True,
+        is_staff=False,
+        is_superuser=False,
+        date_joined__lte=date_limit,
+    ).delete()

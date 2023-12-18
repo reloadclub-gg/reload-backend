@@ -35,6 +35,10 @@ app.conf.beat_schedule = {
         'task': 'accounts.tasks.logout_inactive_users',
         'schedule': crontab(minute=0, hour=0),
     },
+    'delete_not_registered_users': {
+        'task': 'accounts.tasks.delete_not_registered_users',
+        'schedule': crontab(minute=0, hour=0),
+    },
 }
 
 

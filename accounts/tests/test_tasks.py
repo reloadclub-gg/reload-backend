@@ -183,3 +183,16 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.assertEqual(self.user.status, User.Status.OFFLINE)
         self.assertFalse(self.user.is_online)
         self.assertFalse(self.user.has_sessions)
+
+    def test_delete_not_registered_users(self):
+        user = baker.make(User, email='not_registered@reloadclub.gg')
+        tasks.delete_not_registered_users()
+        self.assertTrue(
+            User.objects.filter(email='not_registered@reloadclub.gg').exists()
+        )
+        user.date_joined = timezone.now() - datetime.timedelta(days=2)
+        user.save()
+        tasks.delete_not_registered_users()
+        self.assertFalse(
+            User.objects.filter(email='not_registered@reloadclub.gg').exists()
+        )
