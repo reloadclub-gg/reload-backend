@@ -7,12 +7,13 @@ from django.utils import timezone
 from model_bakery import baker
 
 from accounts.tests.mixins import AccountOneMixin
+from appsettings.models import AppSettings
 from core.redis import redis_client_instance as cache
 from core.tests import TestCase
 from core.utils import get_full_file_path, str_to_timezone
 
 from .. import models
-from ..api import schemas
+from ..api import controller, schemas
 
 
 class StoreSchemaTestCase(AccountOneMixin, TestCase):
@@ -279,13 +280,33 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
         self.assertEqual(payload, expected_payload)
 
     def test_user_store_schema(self):
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 4)
+        item0 = baker.make(
+            models.Item,
+            name='Test Item 0',
+            foreground_image=self.tmp_image,
+            background_image=self.tmp_image,
+            price=9,
+            is_available=True,
+            item_type=models.Item.ItemType.SPRAY,
+        )
+
+        payload = controller.get_user_store(self.user).dict()
+        self.assertEqual(len(payload.get('products')), 5)
         self.assertEqual(payload.get('id'), f'{self.user.email}{self.user.id}store')
         self.assertEqual(payload.get('user_id'), self.user.id)
 
         baker.make(models.UserItem, item=self.item, user=self.user)
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        payload = controller.get_user_store(self.user).dict()
+        self.assertEqual(len(payload.get('products')), 5)
+
+        AppSettings.objects.create(
+            name='Replaceable Store Items',
+            kind=AppSettings.BOOLEAN,
+            value='1',
+        )
+
+        baker.make(models.UserItem, item=item0, user=self.user)
+        payload = controller.get_user_store(self.user).dict()
         self.assertEqual(len(payload.get('products')), 3)
 
         self.assertEqual(len(payload.get('featured')), 0)
@@ -299,7 +320,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             featured=True,
             item_type=models.Item.ItemType.SPRAY,
         )
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        payload = controller.get_user_store(self.user).dict()
         self.assertEqual(len(payload.get('featured')), 1)
 
         baker.make(
@@ -313,7 +334,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             item_type=models.Item.ItemType.SPRAY,
         )
 
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        payload = controller.get_user_store(self.user).dict()
         self.assertEqual(len(payload.get('products')), 3)
         self.assertEqual(len(payload.get('featured')), 1)
 
@@ -337,25 +358,22 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             featured=True,
         )
 
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        payload = controller.get_user_store(self.user).dict()
         self.assertEqual(len(payload.get('products')), 3)
         self.assertEqual(len(payload.get('featured')), 3)
 
     @override_settings(STORE_LENGTH=2)
     def test_user_store_schema_length(self):
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 2)
-
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        payload = controller.get_user_store(self.user).dict()
         self.assertEqual(len(payload.get('products')), 2)
 
     @override_settings(STORE_LENGTH=1)
     def test_user_store_schema_rotation(self):
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        payload = controller.get_user_store(self.user).dict()
         product1 = payload.get('products')[0]
         self.assertEqual(len(payload.get('products')), 1)
 
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        payload = controller.get_user_store(self.user).dict()
         product2 = payload.get('products')[0]
         self.assertEqual(len(payload.get('products')), 1)
         self.assertEqual(product1.get('id'), product2.get('id'))
@@ -364,7 +382,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
         cache.delete(f'__store:user:{self.user.id}:items')
         cache.delete(f'__store:user:{self.user.id}:boxes')
 
-        payload = schemas.UserStoreSchema.from_orm(self.user).dict()
+        payload = controller.get_user_store(self.user).dict()
         self.assertEqual(len(payload.get('products')), 1)
         next_rotation_date = str_to_timezone(payload.get('next_rotation'))
         expected_rotation_date = timezone.now() + timedelta(
