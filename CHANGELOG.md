@@ -9,13 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Tarefa `delete_not_registered_users` que apaga usuários que não possuem conta cadastrados a mais de 24h [#913](https://github.com/3C-gg/reload-backend/issues/913).
 - Campo `item_id` nos esquemas `UserItemSchema` e `UserBoxSchema` [#914](https://github.com/3C-gg/reload-backend/issues/914).
 - Adiciona serviço de check de configuração `replaceable_store_items` para determinar se o sistema irá substituir os itens já comprados pelo usuário na loja por outros ainda não comprados [#909](https://github.com/3C-gg/reload-backend/issues/909).
 
 ### Changed
 
+- Refatora criação de usuário pelo admin para apagar usuário e social auth relacionado ao steamid que está sendo criado, caso esse usuário não possua uma conta [#913](https://github.com/3C-gg/reload-backend/issues/913).
 - Movemos a lógica da loja dos schemas para o controller.
 - Altera URL do campo `cancel_url` do checkout Stripe [#910](https://github.com/3C-gg/reload-backend/issues/910).
+
+### Fixed
+
+- Ajusta filtro de usuário por steamid no admin para usuários que não possuem conta (`non_registered`) [#913](https://github.com/3C-gg/reload-backend/issues/913).
 
 ## [ca96632 - 12/12/2023]
 
