@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Campo `item_id` nos esquemas `UserItemSchema` e `UserBoxSchema` [#914](https://github.com/3C-gg/reload-backend/issues/914).
+- Adiciona serviço de check de configuração `replaceable_store_items` para determinar se o sistema irá substituir os itens já comprados pelo usuário na loja por outros ainda não comprados [#909](https://github.com/3C-gg/reload-backend/issues/909).
+
+### Changed
+
+- Movemos a lógica da loja dos schemas para o controller.
+- Altera URL do campo `cancel_url` do checkout Stripe [#910](https://github.com/3C-gg/reload-backend/issues/910).
+
+## [ca96632 - 12/12/2023]
+
 ### Fixed
 
 - Upload de imagens e assets de itens estava sendo sobrescrito em cada envio. Corrigimos para criar pastas separadas dentro de cada item no S3 garantindo que cada arquivo seja único [#905](https://github.com/3C-gg/reload-backend/issues/905).
