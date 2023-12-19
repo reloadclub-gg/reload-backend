@@ -160,14 +160,16 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     return match
 
 
-def handle_pre_match_checks(user: User, error: str) -> User:
-    if user.account.get_match():
-        raise HttpError(403, error)
-
-    if not user.account.pre_match:
+def handle_pre_match_checks(user: User, error: str) -> models.PreMatch:
+    pre_match = user.account.pre_match
+    if not pre_match:
         raise Http404()
 
-    return user
+    for player in pre_match.players:
+        if player.account.get_match() is not None:
+            raise HttpError(403, error)
+
+    return pre_match
 
 
 def get_pre_match(user: User) -> models.PreMatch:
