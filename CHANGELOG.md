@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Adiciona verificação de lobby na tarefa `end_player_restriction`. Em alguns casos, quando o lobby já não existia mais, e retornava `None`, a chamada de websocket `ws_update_lobby` acionava um erro [#924](https://github.com/3C-gg/reload-backend/issues/924).
 - Adiciona proteções na criação de partida e matchmaking para impedir criação de múltiplas partidas com os mesmos timers [#922](https://github.com/3C-gg/reload-backend/issues/922).
 - Ajusta filtro de usuário por steamid no admin para usuários que não possuem conta (`non_registered`) [#913](https://github.com/3C-gg/reload-backend/issues/913).
 
