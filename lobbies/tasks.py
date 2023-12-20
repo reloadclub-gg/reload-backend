@@ -219,8 +219,9 @@ def clear_dodges():
 def end_player_restriction(user_id: int):
     user = User.objects.get(pk=user_id)
     lobby = user.account.lobby
-    ws_update_lobby(lobby)
     ws_update_user(user)
+    if lobby:
+        ws_update_lobby(lobby)
 
 
 @shared_task
