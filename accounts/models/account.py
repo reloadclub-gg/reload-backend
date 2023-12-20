@@ -174,9 +174,13 @@ class Account(models.Model):
         )
 
     def get_match(self) -> Match:
-        exclude_statuses = [Match.Status.FINISHED, Match.Status.CANCELLED]
-        active_matches = MatchPlayer.objects.filter(user=self.user).exclude(
-            team__match__status__in=exclude_statuses
+        active_matches = MatchPlayer.objects.filter(
+            user=self.user,
+            team__match__status__in=[
+                Match.Status.LOADING,
+                Match.Status.RUNNING,
+                Match.Status.WARMUP,
+            ],
         )
 
         if active_matches.count() > 1:
