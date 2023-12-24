@@ -18,6 +18,7 @@ from ninja.errors import Http404, HttpError
 from appsettings.services import replaceable_store_items
 from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
+from lobbies.websocket import ws_update_lobby
 
 from .. import models, tasks
 from . import schemas
@@ -233,6 +234,9 @@ def item_update(user: User, item_id: int, payload: schemas.UserItemUpdateSchema)
     if item:
         item.in_use = payload.in_use
         item.save()
+
+        if item.item.subtype == models.Item.SubType.CARD:
+            ws_update_lobby(user.account.lobby)
 
     return user
 

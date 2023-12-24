@@ -293,6 +293,7 @@ class UserAdmin(
         'email',
         'date_joined',
         'account__steamid',
+        'social_auth__uid',
         'id',
         'account__username',
     )

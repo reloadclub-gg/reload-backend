@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from social_django.models import UserSocialAuth
 
 from .models import Account
 from .tasks import send_verify_email
@@ -22,6 +23,8 @@ class UserAddForm(UserCreationForm):
         user.save()
         username = self.cleaned_data['username']
         steamid = self.cleaned_data['steamid']
+        UserSocialAuth.objects.filter(steamid=steamid).delete()
+        User.objects.filter(social_auth__uid=steamid, account__is_null=True).delete()
         create_social_auth(user, username=username, steamid=steamid)
         account = Account.objects.create(user=user, steamid=steamid, username=username)
         send_verify_email.delay(user.email, username, account.verification_token)

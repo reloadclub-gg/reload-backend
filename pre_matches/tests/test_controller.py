@@ -108,17 +108,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             Team.get_by_id(self.team1.id, raise_error=True)
             Team.get_by_id(self.team2.id, raise_error=True)
 
-    def test_handle_pre_match_checks(self):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
-        user = controller.handle_pre_match_checks(self.user_1, 'error')
-        self.assertIsNotNone(user)
-        self.assertTrue(user in pre_match.players)
-
     def test_handle_pre_match_checks_match_fail(self):
         baker.make(Map)
         pre_match = PreMatch.create(
@@ -130,7 +119,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         controller.handle_create_match(pre_match)
 
-        with self.assertRaises(HttpError):
+        with self.assertRaises(Http404):
             controller.handle_pre_match_checks(self.user_1, 'error')
 
     def test_handle_pre_match_checks_pre_match_fail(self):

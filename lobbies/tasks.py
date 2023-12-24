@@ -52,6 +52,17 @@ def log_teaming_info():
 
 def handle_match_found(team: Team, opponent: Team):
     lobbies = team.lobbies + opponent.lobbies
+    user_ids = [player_id for lobby in lobbies for player_id in lobby.players_ids]
+    users = User.objects.filter(id__in=user_ids)
+
+    for user in users:
+        if user.account.get_match() is not None or user.account.pre_match:
+            logging.warning(
+                f'[handle_match_found] match or pre_match already exists for player {user.id}'
+            )
+            team.delete()
+            opponent.delete()
+            return
 
     if len(lobbies) < 2:
         logging.warning(
@@ -208,8 +219,9 @@ def clear_dodges():
 def end_player_restriction(user_id: int):
     user = User.objects.get(pk=user_id)
     lobby = user.account.lobby
-    ws_update_lobby(lobby)
     ws_update_user(user)
+    if lobby:
+        ws_update_lobby(lobby)
 
 
 @shared_task
