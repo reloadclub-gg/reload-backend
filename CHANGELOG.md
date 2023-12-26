@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Tarefa de admin `remove_bad_lobbies_from_teams` que checa por lobbies mal formados e remove eles de times.
+- Adiciona service que checa se `AppSettings` possui uma config ligada para restrição para dodges consecutivos.
 - Tarefa `delete_not_registered_users` que apaga usuários que não possuem conta cadastrados a mais de 24h [#913](https://github.com/3C-gg/reload-backend/issues/913).
 - Envio de websocket `ws_update_lobby` para atualizar card de usuário ao ativar um card no inventário [#904](https://github.com/3C-gg/reload-backend/issues/904).
 - Campo `item_id` nos esquemas `UserItemSchema` e `UserBoxSchema` [#914](https://github.com/3C-gg/reload-backend/issues/914).
@@ -16,12 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A restrição para os jogadores só é adicionada caso a flag de restrição esteja ligada no appsettings.
 - Refatora criação de usuário pelo admin para apagar usuário e social auth relacionado ao steamid que está sendo criado, caso esse usuário não possua uma conta [#913](https://github.com/3C-gg/reload-backend/issues/913).
 - Movemos a lógica da loja dos schemas para o controller.
 - Altera URL do campo `cancel_url` do checkout Stripe [#910](https://github.com/3C-gg/reload-backend/issues/910).
 
 ### Fixed
 
+- Remove lobbies mal formados de times que estão buscando partida.
 - Adiciona verificação de lobby na tarefa `end_player_restriction`. Em alguns casos, quando o lobby já não existia mais, e retornava `None`, a chamada de websocket `ws_update_lobby` acionava um erro [#924](https://github.com/3C-gg/reload-backend/issues/924).
 - Adiciona proteções na criação de partida e matchmaking para impedir criação de múltiplas partidas com os mesmos timers [#922](https://github.com/3C-gg/reload-backend/issues/922).
 - Ajusta filtro de usuário por steamid no admin para usuários que não possuem conta (`non_registered`) [#913](https://github.com/3C-gg/reload-backend/issues/913).
@@ -36,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Campo `header` no esquema `ProfileSchema` que retorna o header do perfil ativo do usuário [#850](https://github.com/3C-gg/reload-backend/issues/850). 
+- Campo `header` no esquema `ProfileSchema` que retorna o header do perfil ativo do usuário [#850](https://github.com/3C-gg/reload-backend/issues/850).
 - Campo `card` no esquema `LobbyPlayerSchema` que retorna o card do usuário ativo [#849](https://github.com/3C-gg/reload-backend/issues/849).
 - Itens decorativos na carga de inicialização (`seed.json`).
 - Campo `decorative_image` no modelo `Item` para armazenar a imagem que será a decoração aplicada. Esse campo é obrigatório caso o Item tenha o tipo `DECORATIVE`.
