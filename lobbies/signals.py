@@ -5,12 +5,17 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
+from appsettings.services import is_restriction_on
+
 from .models import PlayerDodges, PlayerRestriction
 from .tasks import end_player_restriction
 
 
 @receiver(post_save, sender=PlayerDodges)
 def apply_player_restriction(sender, instance: PlayerDodges, **kwargs):
+    if not is_restriction_on():
+        return
+
     dodges_to_restrict = settings.PLAYER_DODGES_MIN_TO_RESTRICT
     dodges_multipliers = settings.PLAYER_DODGES_MULTIPLIER
 
