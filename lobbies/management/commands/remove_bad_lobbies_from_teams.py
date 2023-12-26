@@ -1,10 +1,8 @@
-import time
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from lobbies.models import PlayerRestriction
 from matches.models import Match
 from pre_matches.models import Team
 
@@ -22,7 +20,7 @@ class Command(BaseCommand):
                 if lobby.players_count < 1 or not lobby.queue:
                     try:
                         team.remove_lobby(lobby.id)
-                    except:
+                    except Exception:
                         continue
 
                     print(f'removing lobby {lobby.id} from team {team.id}')

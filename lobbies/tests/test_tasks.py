@@ -6,6 +6,7 @@ from django.utils import timezone
 from ninja.errors import Http404
 
 from accounts.tasks import watch_user_status_change
+from appsettings.models import AppSettings
 from core.tests import TestCase
 from lobbies.models import Lobby
 from pre_matches.api.controller import set_player_ready
@@ -317,6 +318,11 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
         PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
     )
     def test_handle_dodges(self):
+        AppSettings.objects.create(
+            kind=AppSettings.BOOLEAN,
+            name='Dodges Restriction',
+            value='1',
+        )
         self.assertEqual(models.PlayerDodges.objects.all().count(), 0)
         tasks.handle_dodges(self.user_1.account.lobby, [])
         self.assertEqual(models.PlayerDodges.objects.all().count(), 1)

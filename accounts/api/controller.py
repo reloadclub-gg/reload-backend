@@ -181,6 +181,9 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     except Account.DoesNotExist:
         pass
 
+    if not email or email == '':
+        raise HttpError(400, _('Unable to create account.'))
+
     if not is_fake:
         check_beta(user, email)
         check_alpha(user)
@@ -251,6 +254,9 @@ def update_email(user: User, email: str) -> User:
     """
     Change user email and set user as unverified.
     """
+    if not email or email == '':
+        raise HttpError(400, _('Unable to update e-mail.'))
+
     try:
         with transaction.atomic():
             user.email = email

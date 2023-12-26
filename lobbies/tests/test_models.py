@@ -5,6 +5,7 @@ from django.test import override_settings
 from django.utils import timezone
 
 from accounts.tests.mixins import VerifiedAccountsMixin
+from appsettings.models import AppSettings
 from core.tests import TestCase, cache
 
 from ..models import (
@@ -672,6 +673,11 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
     )
     def test_start_queue(self):
+        AppSettings.objects.create(
+            kind=AppSettings.BOOLEAN,
+            name='Dodges Restriction',
+            value='1',
+        )
         lobby = Lobby.create(self.user_1.id)
         lobby.set_public()
         Lobby.create(self.user_2.id)
@@ -863,6 +869,11 @@ class PlayerModelTestCase(VerifiedAccountsMixin, TestCase):
         PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
     )
     def test_restriction_countdown(self):
+        AppSettings.objects.create(
+            kind=AppSettings.BOOLEAN,
+            name='Dodges Restriction',
+            value='1',
+        )
         lobby = Lobby.create(self.user_1.id)
         lobby.set_public()
         Lobby.create(self.user_2.id)
