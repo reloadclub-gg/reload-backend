@@ -50,3 +50,7 @@ def check_alpha_required() -> bool:
 
 def replaceable_store_items() -> bool:
     return AppSettings.get('Replaceable Store Items', False)
+
+
+def is_restriction_on() -> bool:
+    return AppSettings.get('Dodges Restriction', False)
