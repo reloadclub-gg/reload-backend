@@ -99,6 +99,11 @@ def handle_match_found(team: Team, opponent: Team):
     for lobby in lobbies:
         if not lobby.queue:
             logging.warning(f'[handle_match_found] lobby not queued: {lobby.id}')
+            if lobby.id in team.lobbies_ids:
+                team.remove_lobby(lobby.id)
+            else:
+                opponent.remove_lobby(lobby.id)
+
             return
 
         lobby.cancel_queue()
@@ -149,6 +154,7 @@ def handle_teaming():
                     ):
                         if (
                             lobby.queue
+                            and lobby.players_count >= 1
                             and not lobby_team.pre_match_id
                             and not team.pre_match_id
                         ):
