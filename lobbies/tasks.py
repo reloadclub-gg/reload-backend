@@ -182,13 +182,10 @@ def handle_dodges(lobby: models.Lobby, ready_players_ids: List[int]) -> List[int
 def handle_cancel_pre_match(pre_match: PreMatch):
     # get ready_players_ids and lobbies before we delete pre_match keys from Redis
     ready_players_ids = [player.id for player in pre_match.players_ready]
-    team1 = pre_match.teams[0]
-    team2 = pre_match.teams[1]
-    lobbies = team1.lobbies + team2.lobbies
     dodged_players_ids = []
 
     # restart queue for lobbies that were ready and handle dodges for the ones who aren't
-    for lobby in lobbies:
+    for lobby in pre_match.lobbies:
         if all(elem in ready_players_ids for elem in lobby.players_ids):
             ws_queue_start(lobby)
         else:

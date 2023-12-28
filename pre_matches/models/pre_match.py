@@ -97,6 +97,19 @@ class PreMatch(BaseModel):
         return self.team1_players + self.team2_players
 
     @property
+    def lobbies(self) -> list:
+        t1_lobbies = []
+        t2_lobbies = []
+
+        if self.teams[0]:
+            t1_lobbies = self.teams[0].lobbies
+
+        if self.teams[1]:
+            t2_lobbies = self.teams[1].lobbies
+
+        return t1_lobbies + t2_lobbies
+
+    @property
     def match_type(self) -> str:
         return cache.get(f'{self.cache_key}:type')
 
@@ -127,7 +140,12 @@ class PreMatch(BaseModel):
         team1 = Team.get_by_id(team1_id)
         team2 = Team.get_by_id(team2_id)
 
-        if not any([team1.ready, team2.ready]):
+        if not all([team1, team2]):
+            raise PreMatchException(
+                _('All teams must be ready in order to create a PreMatch.')
+            )
+
+        if not all([team1.ready, team2.ready]):
             raise PreMatchException(
                 _('All teams must be ready in order to create a PreMatch.')
             )

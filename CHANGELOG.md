@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Propriedade `lobbies` no modelo `PreMatch` que retorna todos os lobbies naquela pré partida.
 - Tarefa de admin `remove_bad_lobbies_from_teams` que checa por lobbies mal formados e remove eles de times.
 - Adiciona service que checa se `AppSettings` possui uma config ligada para restrição para dodges consecutivos.
 - Tarefa `delete_not_registered_users` que apaga usuários que não possuem conta cadastrados a mais de 24h [#913](https://github.com/3C-gg/reload-backend/issues/913).
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Correções para erros do sentry que podem estar ocasionando partidas mal formadas.
 - Remove lobbies mal formados de times que estão buscando partida.
 - Adiciona verificação de lobby na tarefa `end_player_restriction`. Em alguns casos, quando o lobby já não existia mais, e retornava `None`, a chamada de websocket `ws_update_lobby` acionava um erro [#924](https://github.com/3C-gg/reload-backend/issues/924).
 - Adiciona proteções na criação de partida e matchmaking para impedir criação de múltiplas partidas com os mesmos timers [#922](https://github.com/3C-gg/reload-backend/issues/922).
