@@ -3,8 +3,10 @@ from __future__ import annotations
 import logging
 import random
 from datetime import datetime
+from typing import List
 
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
@@ -66,6 +68,10 @@ class Lobby(BaseModel):
         All player_ids that are in lobby. Owner included.
         """
         return sorted(list(map(int, cache.smembers(f'{self.cache_key}:players'))))
+
+    @property
+    def players(self) -> List[User]:
+        return User.objects.filter(id__in=self.players_ids)
 
     @property
     def non_owners_ids(self) -> list:
@@ -461,6 +467,19 @@ class Lobby(BaseModel):
         queued_ids = [int(key.split(':')[2]) for key in keys]
         return [Lobby(owner_id=queued_id) for queued_id in queued_ids]
 
+    @staticmethod
+    def get_active_lobbies():
+        keys = cache.scan_keys('__mm:lobby:*')
+        if not keys:
+            return []
+
+        return [
+            Lobby(owner_id=int(key.split(':')[2]))
+            for key in keys
+            if len(key.split(':')) == 3
+            and Lobby(owner_id=int(key.split(':')[2])).players_count >= 1
+        ]
+
     def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:
         """
         Lobby players can invite others players to join them in the lobby following
@@ -676,3 +695,10 @@ class Lobby(BaseModel):
             max = self.overall + 5
 
         return min, max
+
+
+class LobbyAdminModel(models.Model):
+    class Meta:
+        managed = False
+        verbose_name_plural = "Lobbies"
+        verbose_name = 'Lobby'

@@ -1,0 +1,59 @@
+.grid {
+	display: flex;
+	gap: 10px;
+}
+
+.item {
+	background: var(--darkened-bg);
+	display: flex;
+	flex-direction: column;
+	min-width: 200px;
+	max-width: 200px;
+}
+
+.item-header {
+	background-color: var(--primary);
+	display: flex;
+	flex: 1;
+	justify-content: space-between;
+	padding: 6px 15px;
+	align-items: center;
+}
+
+.item-title {
+	font-weight: bold;
+	font-size: 20px;
+}
+
+.tooltip {
+	color: black;
+	background-color: cornsilk;
+	display: none;
+	position: absolute;
+	padding: 5px 15px;
+}
+
+.item-meta {
+	cursor: default;
+}
+
+.item-meta:hover .tooltip {
+	display: block;
+}
+
+.item-player {
+	display: flex;
+	gap: 5px;
+	padding: 8px 15px;
+}
+
+.item-player:nth-child(even) {
+	background-color: var(--body-bg);
+}
+
+.item-player a {
+	text-overflow: ellipsis;
+	max-width: 100%;
+	display: flex;
+	overflow: hidden;
+}

@@ -1,0 +1,47 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+{% load lobby_extras %}
+
+{% block extrahead %}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/grid.css' %}"/>
+
+
+{% endblock %}
+
+{% block result_list %}
+
+	<div style="margin-bottom: 40px;">
+
+		<div class='grid'>
+			{% for obj in objects %}
+				<div class='item'>
+					<div class="item-header">
+						<div class="item-title">#{{obj.id}}</div>
+						<div class="item-meta">
+							{% if obj.queue %}
+								🟢 {{obj.queue_time|format_seconds}}
+								<span class="tooltip">in queue</span>
+							{% elif obj.restriction_countdown %}
+								🔴 {{obj.restriction_countdown|format_seconds}}
+								<span class="tooltip">restricted</span>
+							{% else %}
+								⚪<span class="tooltip">idle</span>
+							{% endif %}
+						</div>
+					</div>
+
+					<div class="item-players">
+						{% for player in obj.players %}
+							<div class="item-player">
+								<a href="{% url 'admin:accounts_user_change' player.id %}">{{player.account.username}}</a>
+								{% if player.id == obj.owner_id %}👑{% endif %}
+							</div>
+						{% endfor %}
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+
+	</div>
+
+{% endblock %}
