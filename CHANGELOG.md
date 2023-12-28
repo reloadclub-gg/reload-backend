@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [50e0001 - 27/12/2023]
+
 ### Added
 
 - Propriedade `lobbies` no modelo `PreMatch` que retorna todos os lobbies naquela pré partida.
