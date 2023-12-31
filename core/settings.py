@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'websocket.apps.WebsocketConfig',
     'lobbies.apps.LobbiesConfig',
     'store.apps.StoreConfig',
+    'friends.apps.FriendsConfig',
 ]
 
 if ENVIRONMENT == LOCAL:
@@ -379,14 +380,19 @@ FIVEM_MATCH_MOCK_START_SUCCESS = config(
     default=True,
     cast=bool,
 )
-FIVEM_MATCH_MOCK_CREATION_MAX_RETRIES = config(
-    'FIVEM_MATCH_MOCK_CREATION_MAX_RETRIES',
-    default=10,
+FIVEM_MATCH_CREATION_MAX_RETRIES = config(
+    'FIVEM_MATCH_CREATION_MAX_RETRIES',
+    default=3,
     cast=int,
 )
-FIVEM_MATCH_MOCK_CREATION_RETRIES_INTERVAL = config(
-    'FIVEM_MATCH_MOCK_CREATION_RETRIES_INTERVAL',
-    default=5,
+FIVEM_MATCH_CREATION_RETRIES_INTERVAL = config(
+    'FIVEM_MATCH_CREATION_RETRIES_INTERVAL',
+    default=3,
+    cast=int,
+)
+FIVEM_MATCH_CREATION_RETRIES_TIMEOUT = config(
+    'FIVEM_MATCH_CREATION_RETRIES_TIMEOUT',
+    default=3,
     cast=int,
 )
 

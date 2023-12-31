@@ -12,9 +12,8 @@ from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
 
 from accounts.utils import hex_to_steamid64
-from accounts.websocket import ws_update_user
+from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from core.utils import get_full_file_path
-from friends.websocket import ws_friend_update_or_create
 from pre_matches.models import PreMatch
 
 from .. import models, websocket
@@ -163,7 +162,7 @@ def get_match(user: User, match_id: int) -> models.Match:
 def notify_users(match):
     for player in match.players:
         ws_update_user(player.user)
-        ws_friend_update_or_create(player.user)
+        ws_update_status_on_friendlist(player.user)
 
 
 def should_finish_match(is_overtime, scores):
@@ -275,4 +274,4 @@ def cancel_match(match_id: int):
             PreMatch.delete(pre_match.id)
 
         ws_update_user(player.user)
-        ws_friend_update_or_create(player.user)
+        ws_update_status_on_friendlist(player.user)

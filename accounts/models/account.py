@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 
 from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string
+from friends.models import Friendship
 from lobbies.models import Lobby, LobbyInvite
 from matches.models import Match, MatchPlayer
 from notifications.models import Notification
@@ -140,6 +141,21 @@ class Account(models.Model):
 
         return max_streak
 
+    @property
+    def friends(self):
+        friendships = Friendship.objects.filter(
+            models.Q(user_from=self.user) | models.Q(user_to=self.user),
+            accept_date__isnull=False,
+        )
+        friends = []
+        for friendship in friendships:
+            friends.append(
+                friendship.user_from.account
+                if friendship.user_from != self.user
+                else friendship.user_to.account
+            )
+        return friends
+
     def __str__(self):
         return self.user.email
 
@@ -251,11 +267,6 @@ class Account(models.Model):
             self.level_points = level_points
             self.save()
 
-    def check_friendship(self, friend_account: Account) -> bool:
-        steam_friends = Steam.get_player_friends(self.user.steam_user)
-        steam_friends_ids = [friend.get('steamid') for friend in steam_friends]
-        return friend_account.steamid in steam_friends_ids
-
     def get_matches_played(self, asc=False) -> List[Match]:
         return Match.objects.filter(
             matchteam__matchplayer__user=self.user,
@@ -268,50 +279,14 @@ class Account(models.Model):
             status=Match.Status.FINISHED,
         ).count()
 
-    def fetch_steam_friends(self) -> list:
-        steam_friends = Steam.get_player_friends(self.user.steam_user)
-        steam_friends_ids = {
-            friend['steamid']
-            for friend in steam_friends
-            if friend['steamid'] != self.user.steam_user.steamid
-        }
-
-        # it will perform better by getting all accounts and then
-        # filter the steamids in python
-        all_accounts = Account.objects.filter(
-            user__is_active=True,
-            is_verified=True,
-            user__is_staff=False,
-        ).prefetch_related('user')
-
-        friends_accounts = [
-            account for account in all_accounts if account.steamid in steam_friends_ids
-        ]
-
-        if friends_accounts:
-            cache.sadd(
-                f'__friendlist:user:{self.user.id}',
-                *[friend_account.user.id for friend_account in friends_accounts],
-            )
-
-        return friends_accounts
-
-    def get_friends(self) -> list:
-        if settings.TEST_MODE:
-            return Account.objects.filter(
-                user__is_active=True,
-                is_verified=True,
-                user__is_staff=False,
-            ).exclude(user_id=self.user.id)
-        else:
-            friends_ids = cache.smembers(f'__friendlist:user:{self.user.id}')
-            if not friends_ids:
-                return self.fetch_steam_friends()
-
-            return Account.objects.filter(user__id__in=friends_ids)
-
     def get_online_friends(self) -> list:
-        return [friend for friend in self.get_friends() if friend.user.is_online]
+        return [friend for friend in self.friends if friend.user.is_online]
+
+    def get_friendship(self, friend: User) -> Friendship:
+        return Friendship.objects.filter(
+            (models.Q(user_from=self.user) & models.Q(user_to=friend))
+            | (models.Q(user_from=friend) & models.Q(user_to=self.user))
+        ).first()
 
     @staticmethod
     def get_notification_avatar_url(user_id: int = None):
