@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Adiciona proteção na tarefa `send_user_update_to_friendlist` para que nenhum erro seja levantado ao tentar encontrar um usuário que não existe. Ao invés disso, dispara um log `warning` [#929](https://github.com/3C-gg/reload-backend/issues/929).
+
+## [50e0001 - 27/12/2023]
+
 ### Added
 
 - Propriedade `lobbies` no modelo `PreMatch` que retorna todos os lobbies naquela pré partida.
@@ -324,7 +330,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Possível correção para erro de pré partida tentando dar `ready` em players com `state` errado. Antes checávamos cada variação da partida, por exemplo, se ainda não tinha acabado o countdown e não tinha todos os players `ready`, então ela estava em `lock_in`. Alteramos isso para, sempre que houver uma alteração na `pre_match`, a gente salvar uma entrada no Redis para dizer o status dessa `PreMatch`. Também mudamos os estados para `lock_in`, `ready_in` e `ready` (nessa ordem). O campo também foi alterado de `state` para `status`, mas uma cópia do campo ficou no esquema para ser removido quando o client removê-lo também [#744](https://github.com/3C-gg/reload-backend/issues/744).
 - Adiciona possível correção e proteção em `max_players` no modelo `Lobby`. Essa propriedade retorna o valor de `self.mode`. Mas a propriedade `mode` tem um `if`, que só retorna um valor se existir a chave `lobby:{lobby_id}:mode` no Redis. Não consegui entender ou reproduzir um cenário em que o `max_players` fosse chamado sem que a chave `mode` exista, então apenas adicionei uma proteção para retornar `0` no `max_players` caso a chave `mode` volte nula [#739](https://github.com/3C-gg/reload-backend/issues/739).
 - Corrige método que move usuário entre lobbies, adicionando proteção caso o `from_lobby_id` não exista.
-- Adiciona proteção no websocket `ws_friend_update_or_create` e em alguns pontos do código que chamam esse WS para usuários que não possuem conta [#732](https://github.com/3C-gg/reload-backend/issues/732).
+- Adiciona proteção no websocket `ws_update_status_on_friendlist` e em alguns pontos do código que chamam esse WS para usuários que não possuem conta [#732](https://github.com/3C-gg/reload-backend/issues/732).
 - Corrige tarefa de montar times no mm que estava fazendo com que o mesmo lobby fosse adicionado a vários times diferentes [#730](https://github.com/3C-gg/reload-backend/issues/730).
 
 ### Removed
@@ -514,7 +520,7 @@ Ao testar com o Locust (outra ferramenta bem importante nesse processo), usando 
 - Nova tarefa `end_player_restriction` que será chamada quando uma restrição de jogador terminar. Essa tarefa faz chamadas websockets para o FE saber que a restrição do player acabou [#587](https://github.com/3C-gg/reload-backend/issues/587).
 - Configuração no settings para definir os multiplicadores de tempo de restrição dos dodges(`PLAYER_DODGES_MULTIPLIER`).
 - Configuração no settings para definir a quantidade mínima de dodges que o jogador precisa fazer para sofre a primeira restrição (`PLAYER_DODGES_MIN_TO_RESTRICT`).
-- Chamadas websocket `ws_update_user` e `ws_friend_update_or_create` quando a partida é finalizada [#539](https://github.com/3C-gg/reload-backend/issues/539).
+- Chamadas websocket `ws_update_user` e `ws_update_status_on_friendlist` quando a partida é finalizada [#539](https://github.com/3C-gg/reload-backend/issues/539).
 - Esquemas `MatchUpdatePlayerStats` e `MatchUpdateSchema` para conter os dados recebidos pelo servidor FiveM.
 - Decorator que garante que determinados endpoints do app `Matches` sejam acessados somente por servidores conhecidos.
 - Websocket `matches/update` para atualizar partida em andamento para jogadores.

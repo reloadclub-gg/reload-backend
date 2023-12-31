@@ -68,7 +68,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_update_user.assert_not_called()
         mock_send_mail.assert_called_once()
 
-    @mock.patch('pre_matches.api.controller.ws_friend_update_or_create')
     @mock.patch('pre_matches.api.controller.ws_update_user')
     @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_delete')
     @mock.patch('pre_matches.api.controller.ws_create_toast')
@@ -77,7 +76,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_create_toast,
         mock_pre_match_delete,
         mock_update_user,
-        mock_friend_update,
     ):
         pre_match = PreMatch.create(
             self.team1.id,
@@ -98,7 +96,6 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
 
         mock_pre_match_delete.assert_called_once()
         self.assertEqual(mock_create_toast.call_count, 10)
-        mock_friend_update.assert_has_calls(mock_calls)
         mock_update_user.assert_has_calls(mock_calls)
 
         with self.assertRaises(PreMatchException):

@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from core.redis import redis_client_instance as cache
-from friends.websocket import ws_friend_update_or_create
 from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites, ws_update_lobby
@@ -54,7 +53,7 @@ def watch_user_status_change(user_id: int):
         user.refresh_from_db()
 
         # Update or create friend
-        ws_friend_update_or_create(user)
+        websocket.ws_update_status_on_friendlist(user)
 
         # Send websocket logout message
         websocket.ws_user_logout(user.id)

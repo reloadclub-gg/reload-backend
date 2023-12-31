@@ -5,7 +5,6 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
@@ -16,11 +15,6 @@ from appsettings.services import (
 )
 from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string, get_ip_address
-from friends.tasks import (
-    add_user_to_friends_friendlist,
-    notify_friends_about_signup,
-    send_user_update_to_friendlist,
-)
 from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
@@ -59,13 +53,6 @@ def check_invite(user, email: str = None, is_fake: bool = False):
         invites.update(datetime_accepted=timezone.now())
 
 
-def handle_verify_tasks(user: User):
-    lang = get_language()
-    notify_friends_about_signup.delay(user.id, lang)
-    add_user_to_friends_friendlist.delay(user.id)
-    send_user_update_to_friendlist.delay(user.id, action='create')
-
-
 def auth(user: User, from_fake_signup=False) -> User:
     """
     Authenticate user, add session and possibly update friends and create lobby.
@@ -90,7 +77,7 @@ def auth(user: User, from_fake_signup=False) -> User:
 
     # Updating friends if user status has changed from offline
     if from_offline_status:
-        send_user_update_to_friendlist.delay(user.id)
+        websocket.ws_update_status_on_friendlist(user)
 
     return user
 
@@ -144,8 +131,8 @@ def logout(user: User) -> dict:
         except LobbyException as e:
             raise HttpError(400, e)
 
-        # Update or create friend
-        send_user_update_to_friendlist.delay(user.id)
+        # Update its friendlist
+        websocket.ws_update_status_on_friendlist(user)
 
     # Expiring user session
     user.logout()
@@ -229,9 +216,6 @@ def verify_account(user: User, verification_token: str) -> User:
 
     if not user.date_email_update:
         tasks.send_welcome_email.delay(user.email)
-        handle_verify_tasks(user)
-    else:
-        send_user_update_to_friendlist.delay(user.id)
 
     # Refresh user instance with updated related account
     user.refresh_from_db()

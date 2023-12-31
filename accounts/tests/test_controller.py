@@ -180,14 +180,12 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.auth(user)
 
     @mock.patch('accounts.api.controller.tasks.send_welcome_email.delay')
-    @mock.patch('accounts.api.controller.handle_verify_tasks')
-    def test_verify_account(self, mock_verify_tasks, mock_welcome_email):
+    def test_verify_account(self, mock_welcome_email):
         controller.verify_account(self.user, self.user.account.verification_token)
         self.user.refresh_from_db()
         self.assertTrue(self.user.account.is_verified)
         self.assertIsNone(self.user.auth.sessions)
 
-        mock_verify_tasks.assert_called_once()
         mock_welcome_email.assert_called_once_with(self.user.email)
 
     def test_verify_account_already_verified(self):
@@ -316,12 +314,10 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
         self.user_6.add_session()
 
     @mock.patch('accounts.api.controller.ws_expire_player_invites')
-    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
     @mock.patch('accounts.api.controller.handle_player_move')
     def test_logout_lobby_owner(
         self,
         mock_expire_player_invites,
-        mock_friend_create_or_update,
         mock_player_move,
     ):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -340,7 +336,6 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
 
         controller.logout(self.user_1)
         mock_expire_player_invites.assert_called_once()
-        mock_friend_create_or_update.assert_called_once()
         mock_player_move.assert_called_once()
 
     def test_user_matches(self):
@@ -352,18 +347,15 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
         with self.assertRaises(Http404):
             controller.user_matches(597865)
 
-    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
-    def test_auth(self, mock_friend_update_or_create):
+    def test_auth(self):
         self.user_1.auth.remove_session()
         self.user_1.logout()
 
         controller.auth(self.user_1)
-        mock_friend_update_or_create.assert_called_once()
         self.assertIsNotNone(self.user_1.auth.sessions)
         self.assertIsNotNone(self.user_1.account.lobby)
 
-    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
-    def test_auth_unverified(self, mock_friend_update_or_create):
+    def test_auth_unverified(self):
         self.user_1.account.is_verified = False
         self.user_1.account.save()
         self.user_1.refresh_from_db()
@@ -372,12 +364,10 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
         self.user_1.logout()
 
         controller.auth(self.user_1)
-        mock_friend_update_or_create.assert_not_called()
         self.assertIsNone(self.user_1.auth.sessions)
         self.assertIsNone(self.user_1.account.lobby)
 
-    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
-    def test_auth_no_account(self, mock_friend_update_or_create):
+    def test_auth_no_account(self):
         self.user_1.account.delete()
         self.user_1.refresh_from_db()
 
@@ -385,14 +375,11 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
         self.user_1.logout()
 
         controller.auth(self.user_1)
-        mock_friend_update_or_create.assert_not_called()
         self.assertIsNone(self.user_1.auth.sessions)
         self.assertFalse(hasattr(self.user_1, 'account'))
 
-    @mock.patch('accounts.api.controller.send_user_update_to_friendlist.delay')
-    def test_auth_with_session(self, mock_friend_update_or_create):
+    def test_auth_with_session(self):
         controller.auth(self.user_1)
-        mock_friend_update_or_create.assert_not_called()
         self.assertIsNotNone(self.user_1.auth.sessions)
         self.assertEqual(self.user_1.auth.sessions, 2)
         self.assertIsNotNone(self.user_1.account.lobby)
@@ -404,19 +391,6 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
         mock_persist_session.assert_called_once()
         mock_add_session.assert_called_once()
         self.assertEqual(self.user_1.auth.sessions_ttl, -1)
-
-    @mock.patch('accounts.api.controller.handle_verify_tasks')
-    def test_verify_account_with_online_friends(
-        self,
-        mock_verify_tasks,
-    ):
-        self.user_1.account.is_verified = False
-        self.user_1.account.save()
-        self.user_1.refresh_from_db()
-        self.assertEqual(len(self.user_2.account.get_online_friends()), 4)
-        controller.verify_account(self.user_1, self.user_1.account.verification_token)
-        self.assertEqual(len(self.user_2.account.get_online_friends()), 5)
-        self.assertEqual(mock_verify_tasks.call_count, 1)
 
     @mock.patch('accounts.api.controller.tasks.send_invite_mail.delay')
     def test_send_invite(self, mock_send_email):

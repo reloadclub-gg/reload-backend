@@ -21,6 +21,7 @@ class LobbyPlayerSchema(ModelSchema):
     steam_url: str
     status: str
     card: str = None
+    friends_ids: list
 
     class Config:
         model = Account
@@ -60,6 +61,10 @@ class LobbyPlayerSchema(ModelSchema):
 
         if active_card:
             return get_full_file_path(active_card.item.decorative_image)
+
+    @staticmethod
+    def resolve_friends_ids(obj):
+        return [friend.user.id for friend in obj.friends]
 
 
 class LobbySchema(Schema):

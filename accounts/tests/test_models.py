@@ -1,5 +1,3 @@
-from unittest import mock
-
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -36,88 +34,6 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         account = models.Account(user=user)
         self.assertRaises(ValidationError, account.save)
 
-    @mock.patch('steam.SteamClient.get_friends')
-    def test_friends(self, mock_friends):
-        f1 = self.__create_friend()
-
-        f2 = self.__create_friend()
-        f2.account.is_verified = False
-        f2.account.save()
-
-        mock_friends.return_value = [
-            {
-                'steamid': f1.steam_user.steamid,
-                'relationship': 'friend',
-                'friend_since': 1635963090,
-            },
-            {
-                'steamid': f2.steam_user.steamid,
-                'relationship': 'friend',
-                'friend_since': 1637350627,
-            },
-            {
-                'steamid': '12345678901234',
-                'relationship': 'friend',
-                'friend_since': 1637350627,
-            },
-        ]
-
-        baker.make(models.Account, user=self.user)
-        self.assertEqual(len(self.user.account.get_friends()), 1)
-        self.assertEqual(self.user.account.get_friends()[0].user.email, f1.email)
-
-    @mock.patch('steam.SteamClient.get_friends')
-    def test_online_friends(self, mock_friends):
-        f1 = self.__create_friend()
-
-        f2 = self.__create_friend()
-        f2.account.is_verified = False
-        f2.account.save()
-
-        mock_friends.return_value = [
-            {
-                'steamid': f1.steam_user.steamid,
-                'relationship': 'friend',
-                'friend_since': 1635963090,
-            },
-            {
-                'steamid': f2.steam_user.steamid,
-                'relationship': 'friend',
-                'friend_since': 1637350627,
-            },
-            {
-                'steamid': '12345678901234',
-                'relationship': 'friend',
-                'friend_since': 1637350627,
-            },
-        ]
-
-        baker.make(models.Account, user=self.user)
-        f1.add_session()
-        self.assertEqual(len(self.user.account.get_online_friends()), 1)
-
-    @mock.patch('accounts.models.account.Steam.get_player_friends')
-    def test_fetch_steam_friends_empty(self, mock_get_friends):
-        baker.make(models.Account, user=self.user)
-        mock_get_friends.return_value = []
-        response = self.user.account.fetch_steam_friends()
-        self.assertEqual(list(response), [])
-
-    @mock.patch('accounts.models.account.Steam.get_player_friends')
-    def test_fetch_steam_friends(self, mock_get_friends):
-        baker.make(models.Account, user=self.user)
-        f1 = self.__create_friend()
-
-        mock_get_friends.return_value = [
-            {
-                'steamid': f1.steam_user.steamid,
-                'relationship': 'friend',
-                'friend_since': 1635963090,
-            }
-        ]
-        response = self.user.account.fetch_steam_friends()
-        self.assertEqual(list(response), [f1.account])
-
     def test_notifications(self):
         account = baker.make(models.Account, user=self.user)
         self.assertEqual(len(account.notifications), 0)
@@ -145,36 +61,6 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         self.assertEqual(account.level_points, 0)
         account.apply_points_earned(points_earned)
         self.assertEqual(account.level_points, points_earned)
-
-    @mock.patch('steam.SteamClient.get_friends')
-    def test_check_friendship(self, mock_friends):
-        f1 = self.__create_friend()
-        f2 = self.__create_friend()
-        f3 = self.__create_friend()
-
-        mock_friends.return_value = [
-            {
-                'steamid': f1.steam_user.steamid,
-                'relationship': 'friend',
-                'friend_since': 1635963090,
-            },
-            {
-                'steamid': f2.steam_user.steamid,
-                'relationship': 'friend',
-                'friend_since': 1637350627,
-            },
-            {
-                'steamid': '12345678901234',
-                'relationship': 'friend',
-                'friend_since': 1637350627,
-            },
-        ]
-
-        account = baker.make(models.Account, user=self.user)
-        with self.settings(TEST_MODE=False):
-            self.assertTrue(account.check_friendship(f1.account))
-            self.assertTrue(account.check_friendship(f2.account))
-            self.assertFalse(account.check_friendship(f3.account))
 
 
 class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
