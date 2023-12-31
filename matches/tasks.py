@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 import requests
@@ -75,3 +76,16 @@ def send_servers_full_mail():
         'Servidores cheios',
         f'Todos os servidores estão cheios. Total de partidas: {running_matches}',
     )
+
+
+@shared_task
+def remove_pending_loading_matches():
+    matches = models.Match.objects.filter(
+        status=models.Match.Status.LOADING,
+        create_date__lt=timezone.now() - timedelta(seconds=10),
+    )
+    if len(matches) > 0:
+        logging.warning(
+            f'[remove_pending_loading_matches] {[match.id for match in matches]}'
+        )
+        matches.delete()

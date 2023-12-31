@@ -39,6 +39,10 @@ app.conf.beat_schedule = {
         'task': 'accounts.tasks.delete_not_registered_users',
         'schedule': crontab(minute=0, hour=0),
     },
+    'remove_pending_loading_matches': {
+        'task': 'matches.tasks.remove_pending_loading_matches',
+        'schedule': 10.0,
+    },
 }
 
 

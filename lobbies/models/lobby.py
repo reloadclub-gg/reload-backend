@@ -459,7 +459,19 @@ class Lobby(BaseModel):
             return []
 
         queued_ids = [int(key.split(':')[2]) for key in keys]
-        return [Lobby(owner_id=queued_id) for queued_id in queued_ids]
+        queued_lobbies = [Lobby(owner_id=queued_id) for queued_id in queued_ids]
+        free_lobbies = []
+        for lobby in queued_lobbies:
+            players = User.objects.filter(id__in=lobby.players_ids)
+            if all(
+                [
+                    not player.account.pre_match and player.account.get_match() is None
+                    for player in players
+                ]
+            ):
+                free_lobbies.append(lobby)
+
+        return free_lobbies
 
     def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:
         """

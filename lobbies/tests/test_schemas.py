@@ -32,6 +32,7 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
             'steam_url': self.user_1.steam_user.profileurl,
             'status': self.user_1.status,
             'card': get_full_file_path(player_card) if player_card else None,
+            'friends_ids': [friend.user.id for friend in self.user_1.account.friends],
         }
         self.assertDictEqual(payload, expected_payload)
 

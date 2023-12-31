@@ -8,9 +8,8 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
 
-from accounts.websocket import ws_update_user
+from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from core.websocket import ws_create_toast
-from friends.websocket import ws_friend_update_or_create
 from matches.api.controller import cancel_match
 from matches.api.schemas import FiveMMatchResponseMock, MatchFiveMSchema
 from matches.models import Match, MatchPlayer, Server
@@ -58,7 +57,7 @@ def cancel_pre_match(
     websocket.ws_pre_match_delete(pre_match)
     for player in pre_match.players:
         ws_update_user(player)
-        ws_friend_update_or_create(player)
+        ws_update_status_on_friendlist(player)
 
     # delete the pre_match and teams from Redis
     team1 = pre_match.teams[0]
@@ -72,32 +71,21 @@ def cancel_pre_match(
 
 
 def handle_create_fivem_match(match: Match) -> Match:
-    retries = 0
-    max_retries = settings.FIVEM_MATCH_MOCK_CREATION_MAX_RETRIES
-    status_ok = False
-    while retries < max_retries and not status_ok:
-        if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
-            status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
-            fivem_response = FiveMMatchResponseMock.from_orm(
-                {'status_code': status_code}
+    if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
+        status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
+        fivem_response = FiveMMatchResponseMock.from_orm({'status_code': status_code})
+        time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
+    else:
+        server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
+        payload = MatchFiveMSchema.from_orm(match).dict()
+        try:
+            fivem_response = requests.post(
+                server_url,
+                json=payload,
+                timeout=settings.FIVEM_MATCH_CREATION_RETRIES_TIMEOUT,
             )
-            time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
-            status_ok = fivem_response.status_code == 201
-        else:
-            server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
-            payload = MatchFiveMSchema.from_orm(match).dict()
-            try:
-                fivem_response = requests.post(
-                    server_url,
-                    json=payload,
-                    timeout=settings.FIVEM_MATCH_MOCK_CREATION_RETRIES_INTERVAL,
-                )
-                status_ok = fivem_response.status_code == 201
-            except requests.exceptions.Timeout:
-                logging_warning = f'{server_url} {retries}/{max_retries}'
-                logging.warning(f'[handle_create_fivem_match] {logging_warning}')
-
-        retries += 1
+        except requests.exceptions.Timeout:
+            logging.warning(f'[handle_create_fivem_match] {match.id}')
 
     return fivem_response
 
@@ -155,7 +143,7 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     ws_match_create(match)
     for match_player in match.players:
         ws_update_user(match_player.user)
-        ws_friend_update_or_create(match_player.user)
+        ws_update_status_on_friendlist(match_player.user)
 
     return match
 

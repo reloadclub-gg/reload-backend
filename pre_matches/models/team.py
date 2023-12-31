@@ -247,6 +247,9 @@ class Team(BaseModel):
         if players_count > max_players[0]:
             raise TeamException(_('Team players count exceeded.'))
 
+        if not all([lobby.queue for lobby in lobbies]):
+            raise TeamException(_('Lobbies not queued'))
+
         team_id = secrets.token_urlsafe(TeamConfig.ID_SIZE)
         cache.sadd(f'{TeamConfig.CACHE_PREFIX}{team_id}', *lobbies_ids)
         return Team.get_by_id(team_id)
@@ -345,6 +348,9 @@ class Team(BaseModel):
         """
         lobby = Lobby(owner_id=lobby_id)
 
+        if not lobby.queue:
+            raise TeamException(_('Lobby not queued'))
+
         def transaction_operations(pipe, pre_result):
             if self.ready:
                 raise TeamException(_('Team is full. Can\'t add a lobby.'))
@@ -384,9 +390,16 @@ class Team(BaseModel):
             logging.info(f'[team:remove_lobby] delete team {self.id}')
             self.delete()
 
+    def handle_non_queued_lobbies(self):
+        non_queued = [lobby for lobby in self.lobbies if not lobby.queue]
+        for lobby in non_queued:
+            self.remove_lobby(lobby.id)
+
+        return non_queued
+
     def get_opponent_team(self):
-        if not all(lobby.queue for lobby in self.lobbies):
-            logging.info('[team:get_opponent_team] some lobby isn\'t queued')
+        if self.handle_non_queued_lobbies():
+            logging.info('[team:get_opponent_team] some lobby isn\'t queued, continue')
             return
 
         ready_teams = self.get_all_ready()
@@ -400,7 +413,7 @@ class Team(BaseModel):
                 logging.info('[team:get_opponent_team] is same team, continue')
                 continue
 
-            if not all(lobby.queue for lobby in team.lobbies):
+            if team.handle_non_queued_lobbies():
                 logging.info(
                     '[team:get_opponent_team] some lobby isn\'t queued, continue'
                 )

@@ -11,6 +11,12 @@ class TeamsMixin(LobbiesMixin):
     def setUp(self):
         super().setUp()
 
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
+        self.lobby4.start_queue()
+        self.lobby5.start_queue()
+
         self.team1 = Team.create(
             [
                 self.lobby1.id,
@@ -20,6 +26,13 @@ class TeamsMixin(LobbiesMixin):
                 self.lobby5.id,
             ]
         )
+
+        self.lobby6.start_queue()
+        self.lobby7.start_queue()
+        self.lobby8.start_queue()
+        self.lobby9.start_queue()
+        self.lobby10.start_queue()
+
         self.team2 = Team.create(
             [
                 self.lobby6.id,
@@ -29,6 +42,12 @@ class TeamsMixin(LobbiesMixin):
                 self.lobby10.id,
             ]
         )
+
+        self.lobby16.start_queue()
+        self.lobby17.start_queue()
+        self.lobby18.start_queue()
+        self.lobby19.start_queue()
+        self.lobby20.start_queue()
         self.team3 = Team.create(
             [
                 self.lobby16.id,
@@ -38,6 +57,12 @@ class TeamsMixin(LobbiesMixin):
                 self.lobby20.id,
             ]
         )
+
+        self.lobby21.start_queue()
+        self.lobby22.start_queue()
+        self.lobby23.start_queue()
+        self.lobby24.start_queue()
+        self.lobby25.start_queue()
         self.team4 = Team.create(
             [
                 self.lobby21.id,
