@@ -15,6 +15,7 @@ from django_object_actions import DjangoObjectActions, action
 from social_django.models import Association, Nonce, UserSocialAuth
 
 from core import admin_mixins
+from friends.models import Friendship
 from matches.models import MatchPlayer
 from store.models import UserBox, UserItem
 
@@ -211,6 +212,7 @@ class UserAdmin(
 ):
     form = forms.UserUpdateForm
     add_form = forms.UserAddForm
+    change_form_template = 'admin/user_change_form.html'
     fieldsets = (
         (
             _('ACCOUNT'),
@@ -432,6 +434,32 @@ class UserAdmin(
         if obj:
             return self.readonly_fields + ['steamid', 'username']
         return self.readonly_fields
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        user = models.User.objects.get(pk=object_id)
+        friendships = Friendship.objects.filter(Q(user_from=user) | Q(user_to=user))
+        friends = []
+        for friendship in friendships:
+            friend = (
+                friendship.user_to
+                if user == friendship.user_from
+                else friendship.user_from
+            )
+            friends.append(
+                {
+                    'friend': friend,
+                    'friendship': friendship,
+                    'admin_url': reverse(
+                        'admin:accounts_user_change', args=[friend.id]
+                    ),
+                }
+            )
+
+        extra_context['friends'] = friends
+        return super().change_view(
+            request, object_id, form_url, extra_context=extra_context
+        )
 
 
 @admin.register(models.Invite)

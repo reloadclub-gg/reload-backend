@@ -4,11 +4,9 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
 
-from accounts.websocket import ws_update_user
+from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from appsettings.services import maintenance_window
 from core.websocket import ws_create_toast
-from friends.tasks import send_user_update_to_friendlist
-from friends.websocket import ws_friend_update_or_create
 from pre_matches.models import Team
 
 from .. import websocket
@@ -23,8 +21,7 @@ def handle_lobby_update_ws(lobby):
     lobby_players = User.objects.filter(id__in=lobby.players_ids)
     for player in lobby_players:
         ws_update_user(player)
-        ws_friend_update_or_create(player)
-        send_user_update_to_friendlist.delay(player.id)
+        ws_update_status_on_friendlist(player)
         websocket.ws_expire_player_invites(player)
 
 
@@ -105,7 +102,7 @@ def handle_player_move_remnants(
     for player in players:
         websocket.ws_expire_player_invites(player, sent=True)
         # send user status update to its online friends
-        ws_friend_update_or_create(player)
+        ws_update_status_on_friendlist(player)
 
         # update user so FE can get its new status and lobby_id
         ws_update_user(player)
@@ -120,7 +117,7 @@ def handle_player_move_remnants(
             websocket.ws_update_lobby(new_lobby)
 
             # send user status update to its online friends
-            ws_friend_update_or_create(user)
+            ws_update_status_on_friendlist(player)
 
             # send user update to user, so it can update
             # its lobby_id and status
@@ -139,7 +136,7 @@ def handle_player_move_remnants(
         for player_id in new_lobby.players_ids:
             player = User.objects.get(id=player_id)
             # send user status update to its online friends
-            ws_friend_update_or_create(player)
+            ws_update_status_on_friendlist(player)
 
             # update user so FE can get its new status and lobby_id
             ws_update_user(player)
@@ -148,21 +145,21 @@ def handle_player_move_remnants(
 def handle_player_move_other_lobby(new_lobby: Lobby, old_lobby: Lobby, user: User):
     websocket.ws_expire_player_invites(user, sent=True)
     ws_update_user(user)
-    ws_friend_update_or_create(user)
+    ws_update_status_on_friendlist(user)
 
     websocket.ws_update_lobby(new_lobby)
     websocket.ws_update_player(new_lobby, user, 'join')
     if new_lobby.players_count == 2:
         new_lobby_owner = User.objects.get(pk=new_lobby.owner_id)
         ws_update_user(new_lobby_owner)
-        ws_friend_update_or_create(new_lobby_owner)
+        ws_update_status_on_friendlist(new_lobby_owner)
 
     websocket.ws_update_lobby(old_lobby)
     websocket.ws_update_player(old_lobby, user, 'leave')
     if old_lobby.players_count == 1:
         old_lobby_owner = User.objects.get(pk=old_lobby.owner_id)
         ws_update_user(old_lobby_owner)
-        ws_friend_update_or_create(old_lobby_owner)
+        ws_update_status_on_friendlist(old_lobby_owner)
 
 
 def handle_player_move_original_lobby(
@@ -193,14 +190,14 @@ def handle_player_move_original_lobby(
             old_lobby_owner = User.objects.get(id=old_lobby.owner_id)
 
             # send user status update to its online friends
-            ws_friend_update_or_create(old_lobby_owner)
+            ws_update_status_on_friendlist(old_lobby_owner)
 
             # update user so FE can get its new status and lobby_id
             ws_update_user(old_lobby_owner)
 
         if not delete_lobby:
             # send user status update to its online friends
-            ws_friend_update_or_create(user)
+            ws_update_status_on_friendlist(user)
 
             # update user so FE can get its new status and lobby_id
             ws_update_user(user)

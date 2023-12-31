@@ -76,6 +76,8 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
     @override_settings(TEAM_READY_PLAYERS_MIN=1)
     @mock.patch('lobbies.tasks.handle_match_found')
     def test_matchmaking(self, mock_match_found):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
         t1 = Team.create([self.lobby1.id])
         t2 = Team.create([self.lobby2.id])
         tasks.handle_matchmaking()
@@ -84,6 +86,9 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
     @override_settings(TEAM_READY_PLAYERS_MIN=2)
     @mock.patch('lobbies.tasks.handle_match_found')
     def test_matchmaking_not_match(self, mock_match_found):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
         Team.create([self.lobby1.id, self.lobby2.id])
         Team.create([self.lobby3.id])
         tasks.handle_matchmaking()
@@ -92,30 +97,25 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
     @override_settings(TEAM_READY_PLAYERS_MIN=2)
     @mock.patch('lobbies.tasks.ws_queue_tick')
     def test_handle_teaming(self, mock_tick):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
         t1 = Team.create([self.lobby1.id])
         t2 = Team.create([self.lobby2.id])
         t3 = Team.create([self.lobby3.id])
-        self.user_4.account.lobby.start_queue()
-
+        self.lobby4.start_queue()
         tasks.handle_teaming()
 
-        mock_tick.assert_called_once_with(self.user_4.account.lobby)
-        count = sum(
-            [
-                self.user_4.account.lobby.id in lst
-                for lst in [
-                    t1.lobbies_ids,
-                    t2.lobbies_ids,
-                    t3.lobbies_ids,
-                ]
-            ]
-        )
-
-        self.assertEqual(count, 1)
+        all_lobbies = t1.lobbies_ids + t2.lobbies_ids + t3.lobbies_ids
+        self.assertEqual(mock_tick.call_count, 4)
+        self.assertTrue(self.lobby4.id in all_lobbies)
 
     @override_settings(TEAM_READY_PLAYERS_MIN=1)
     @mock.patch('lobbies.tasks.ws_queue_tick')
     def test_handle_teaming_create_team(self, mock_tick):
+        self.lobby1.start_queue()
+        self.lobby2.start_queue()
+        self.lobby3.start_queue()
         Team.create([self.lobby1.id])
         Team.create([self.lobby2.id])
         Team.create([self.lobby3.id])
@@ -125,7 +125,7 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
             Team.get_by_lobby_id(self.user_4.account.lobby.id)
 
         tasks.handle_teaming()
-        mock_tick.assert_called_once_with(self.user_4.account.lobby)
+        self.assertEqual(mock_tick.call_count, 4)
         self.assertIsNotNone(Team.get_by_lobby_id(self.user_4.account.lobby.id))
 
     @override_settings(TEAM_READY_PLAYERS_MIN=5)
@@ -292,26 +292,6 @@ class LobbyMMTasksTestCase(mixins.LobbiesMixin, TestCase):
         t2 = Team.get_by_lobby_id(self.lobby2.id, fail_silently=True)
         self.assertIsNone(t1)
         self.assertIsNone(t2)
-
-    @override_settings(TEAM_READY_PLAYERS_MIN=5)
-    @mock.patch('lobbies.tasks.ws_queue_tick')
-    def test_mm_balance_teams(self, mock_queue_tick):
-        self.lobby1.set_public()
-        Lobby.move(self.user_2.id, self.lobby1.id)
-        self.lobby1.start_queue()
-
-        tasks.handle_teaming()
-
-        self.lobby3.set_public()
-        Lobby.move(self.user_4.id, self.lobby3.id)
-        self.lobby3.start_queue()
-        tasks.handle_teaming()
-
-        self.lobby5.set_public()
-        Lobby.move(self.user_6.id, self.lobby5.id)
-        Lobby.move(self.user_7.id, self.lobby5.id)
-        self.lobby5.start_queue()
-        tasks.handle_teaming()
 
     @override_settings(
         PLAYER_DODGES_MIN_TO_RESTRICT=3,

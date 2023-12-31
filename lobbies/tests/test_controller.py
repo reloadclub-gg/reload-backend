@@ -32,14 +32,12 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_single_to_group(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -49,7 +47,6 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
 
         mock_expire_invites.assert_called_once_with(self.user_2, sent=True)
         mock_update_user.assert_called_once_with(self.user_2)
-        mock_friend_update.assert_called_once_with(self.user_2)
 
         mock_lobby_calls = [
             mock.call(Lobby(owner_id=self.user_1.id)),
@@ -66,14 +63,12 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_single_to_single_grouping(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -99,20 +94,17 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         ]
 
         mock_update_user.assert_has_calls(mock_update_user_calls)
-        mock_friend_update.assert_has_calls(mock_update_user_calls)
         mock_update_lobby.assert_has_calls(mock_lobby_calls)
         mock_update_player.assert_has_calls(mock_update_player_calls)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_group_to_group_leaving_solo(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -142,20 +134,17 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
 
         mock_update_lobby.assert_has_calls(mock_update_lobby_calls)
         mock_update_player.assert_has_calls(mock_update_player_calls)
-        mock_friend_update.assert_has_calls(mock_update_friend_calls)
         mock_update_user.assert_has_calls(mock_update_friend_calls)
         mock_expire_invites.assert_called_once_with(self.user_4, sent=True)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_group_owner_to_group(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -179,20 +168,17 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
 
         mock_update_lobby.assert_has_calls(mock_update_lobby_calls)
         mock_update_player.assert_has_calls(mock_update_player_calls)
-        self.assertEqual(mock_friend_update.call_count, 5)
         self.assertEqual(mock_update_user.call_count, 5)
         self.assertEqual(mock_expire_invites.call_count, 4)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_group_owner_to_single(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -215,19 +201,16 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             'leave',
         )
         self.assertEqual(mock_expire_invites.call_count, 4)
-        self.assertEqual(mock_friend_update.call_count, 4)
         self.assertEqual(mock_update_user.call_count, 4)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_group_owner_to_single_leaving_single(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -241,11 +224,6 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             mock.call(self.user_1.account.lobby),
         ]
 
-        mock_friend_update_calls = [
-            mock.call(self.user_2),
-            mock.call(self.user_1),
-        ]
-
         mock_update_user_calls = [
             mock.call(self.user_2),
             mock.call(self.user_1),
@@ -257,20 +235,17 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             self.user_1,
             'leave',
         )
-        mock_friend_update.assert_has_calls(mock_friend_update_calls)
         mock_update_user.assert_has_calls(mock_update_user_calls)
         self.assertEqual(mock_expire_invites.call_count, 2)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_group_to_single(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -292,20 +267,17 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             self.user_2,
             'leave',
         )
-        mock_friend_update.assert_called_once_with(self.user_2)
         mock_update_user.assert_called_once_with(self.user_2)
         mock_expire_invites.assert_called_once_with(self.user_2, sent=True)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_group_to_single_leaving_single(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -316,11 +288,6 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         mock_update_lobby_calls = [
             mock.call(self.user_1.account.lobby),
             mock.call(self.user_2.account.lobby),
-        ]
-
-        mock_friend_update_calls = [
-            mock.call(self.user_1),
-            mock.call(self.user_2),
         ]
 
         mock_update_user_calls = [
@@ -334,20 +301,17 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             self.user_2,
             'leave',
         )
-        mock_friend_update.assert_has_calls(mock_friend_update_calls)
         mock_update_user.assert_has_calls(mock_update_user_calls)
         mock_expire_invites.assert_called_once_with(self.user_2, sent=True)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_group_to_single_delete(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -364,20 +328,17 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             self.user_2,
             'leave',
         )
-        mock_friend_update.assert_not_called()
         mock_update_user.assert_not_called()
         mock_expire_invites.assert_called_once_with(self.user_2, sent=True)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_group_owner_to_single_delete(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -396,18 +357,15 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         )
         self.assertEqual(mock_expire_invites.call_count, 4)
         self.assertEqual(mock_update_user.call_count, 3)
-        self.assertEqual(mock_friend_update.call_count, 3)
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_player')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_handle_player_move_single_to_single_delete(
         self,
         mock_update_lobby,
         mock_update_player,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -415,7 +373,6 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
 
         mock_update_lobby.assert_not_called()
         mock_update_player.assert_not_called()
-        mock_friend_update.assert_not_called()
         mock_update_user.assert_not_called()
         mock_expire_invites.assert_called_once_with(self.user_1, sent=True)
 
@@ -592,12 +549,10 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
 
     @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
     @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.ws_friend_update_or_create')
     @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
     def test_update_lobby_start_queue_owner(
         self,
         mock_update_lobby,
-        mock_friend_update,
         mock_update_user,
         mock_expire_invites,
     ):
@@ -624,7 +579,6 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             mock.call(self.user_2),
         ]
 
-        mock_friend_update.assert_has_calls(mock_calls)
         mock_update_user.assert_has_calls(mock_calls)
         mock_expire_invites.assert_has_calls(mock_calls)
 

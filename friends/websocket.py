@@ -1,46 +1,81 @@
 from asgiref.sync import async_to_sync
-from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from websocket.utils import ws_send
 
+from . import models
 from .api import schemas
 
 User = get_user_model()
 
 
-def ws_friend_update_or_create(user: User, action: str = 'update'):
+def ws_friends_add(user: User, friend: User):
     """
-    Triggered everytime a user change its state. This sends an update
-    about the user state to his online friends.
+    Triggered when a Friendship is accepted. We send this for both users (from and to).
 
     Cases:
-    - User logs in.
-    - User joins a lobby friend leaving its old lobby empty.
-    - User's current lobby starts queue.
-    - User starts a match.
-    - User is away due to being inactive for a period of time.
-    - User doesn't refresh its sessions or expire them manually by logging out.
-    - User friend just signup, verified and became online.
+    - User accepts a Friendship request.
 
     Payload:
     friends.api.schemas.FriendSchema: object
 
     Actions:
-    - friends/update
     - friends/create
     """
-    if action not in ['update', 'create']:
-        raise ValueError('action param should be "update" or "create".')
 
-    if not hasattr(user, 'account'):
-        return
+    user_payload = schemas.FriendSchema.from_orm(user.account).dict()
+    friend_payload = schemas.FriendSchema.from_orm(friend.account).dict()
 
-    if settings.DEBUG:
-        groups = ['global']
-    else:
-        groups = [account.user.id for account in user.account.get_online_friends()]
+    results = [
+        async_to_sync(ws_send)('friends/create', user_payload, groups=[friend.id]),
+        async_to_sync(ws_send)('friends/create', friend_payload, groups=[user.id]),
+    ]
 
-    user.refresh_from_db()
-    payload = schemas.FriendSchema.from_orm(user.account).dict()
-    return async_to_sync(ws_send)(f'friends/{action}', payload, groups=groups)
+    return results
+
+
+def ws_friend_request(friendship: models.Friendship):
+    """
+    Triggered when a Friendship is requested.
+
+    Cases:
+    - User sends a friend request to another user.
+
+    Payload:
+    friends.api.schemas.FriendshipSchema: object
+
+    Actions:
+    - friends/request
+    """
+
+    payload = schemas.FriendshipSchema.from_orm(friendship).dict()
+    return async_to_sync(ws_send)(
+        'friends/request',
+        payload,
+        groups=[friendship.user_to.id],
+    )
+
+
+def ws_friend_remove(user: User, friend: User):
+    """
+    Triggered when a Friendship is over.
+
+    Cases:
+    - User removes a friend.
+
+    Payload:
+    friends.api.schemas.FriendSchema: object
+
+    Actions:
+    - friends/delete
+    """
+
+    user_payload = schemas.FriendSchema.from_orm(user.account).dict()
+    friend_payload = schemas.FriendSchema.from_orm(friend.account).dict()
+
+    results = [
+        async_to_sync(ws_send)('friends/delete', user_payload, groups=[friend.id]),
+        async_to_sync(ws_send)('friends/delete', friend_payload, groups=[user.id]),
+    ]
+
+    return results

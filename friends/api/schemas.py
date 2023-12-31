@@ -5,6 +5,8 @@ from ninja import ModelSchema, Schema
 
 from accounts.models import Account
 
+from .. import models
+
 User = get_user_model()
 
 
@@ -52,6 +54,29 @@ class FriendSchema(ModelSchema):
         return None
 
 
+class FriendshipSchema(ModelSchema):
+    user_from: FriendSchema
+    user_to: FriendSchema
+    create_date: str
+
+    class Config:
+        model = models.Friendship
+        model_exclude = ['create_date']
+
+    @staticmethod
+    def resolve_user_from(obj):
+        return obj.user_from.account
+
+    @staticmethod
+    def resolve_user_to(obj):
+        return obj.user_to.account
+
+    @staticmethod
+    def resolve_create_date(obj):
+        return obj.create_date.isoformat()
+
+
 class FriendListSchema(Schema):
+    requests: dict
     online: List[FriendSchema]
     offline: List[FriendSchema]

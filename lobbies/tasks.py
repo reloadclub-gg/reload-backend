@@ -144,22 +144,23 @@ def handle_teaming():
             else:
                 team = Team.create([lobby.id])
 
-        else:
-            for team in unready_teams:
-                if team.id != lobby_team.id:
-                    players_length = team.players_count + lobby.players_count
-                    if (
-                        players_length <= settings.TEAM_READY_PLAYERS_MIN
-                        and players_length > lobby_team.players_count
-                    ):
-                        if (
-                            lobby.queue
-                            and lobby.players_count >= 1
-                            and not lobby_team.pre_match_id
-                            and not team.pre_match_id
-                        ):
-                            lobby_team.remove_lobby(lobby.id)
-                            team.add_lobby(lobby.id)
+        # else:
+        #     for team in unready_teams:
+        #         print(team.lobbies_ids, team.players_count)
+        #         if team.id != lobby_team.id:
+        #             players_length = team.players_count + lobby.players_count
+        #             if (
+        #                 players_length <= settings.TEAM_READY_PLAYERS_MIN
+        #                 and players_length > lobby_team.players_count
+        #             ):
+        #                 if (
+        #                     lobby.queue
+        #                     and lobby.players_count >= 1
+        #                     and not lobby_team.pre_match_id
+        #                     and not team.pre_match_id
+        #                 ):
+        #                     lobby_team.remove_lobby(lobby.id)
+        #                     team.add_lobby(lobby.id)
 
     log_teaming_info()
 
@@ -193,6 +194,7 @@ def handle_cancel_pre_match(pre_match: PreMatch):
 
         ws_update_lobby(lobby)
 
+    msg_type = None
     if len(dodged_players_ids) > 0:
         msg_type = 'dodge'
 
