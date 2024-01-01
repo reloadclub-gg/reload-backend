@@ -1,54 +1,71 @@
 {% extends "admin/change_form.html" %}
 {% load static %}
+{% load add_preserved_filters from admin_urls %}
+
+{% block object-tools-items %}
+  {% for tool in objectactions %}
+    <li class="objectaction-item" data-tool-name="{{ tool.name }}">
+      {% url tools_view_name pk=object_id tool=tool.name as action_url %}
+      <a href="{% add_preserved_filters action_url %}" title="{{ tool.standard_attrs.title }}"
+         {% for k, v in tool.custom_attrs.items %}
+           {{ k }}="{{ v }}"
+         {% endfor %}
+         class="{{ tool.standard_attrs.class }}">
+      {{ tool.label|capfirst }}
+      </a>
+    </li>
+  {% endfor %}
+  {{ block.super }}
+{% endblock %}
+
 {% block after_related_objects %}
+	<style>
+	.friendship-inline {
+		margin-top: 10px;
+	}
+	.friendship-inline h2 {
+		padding: 10px;
+		background: #f1f1f1;
+	}
+	.friendship-inline table {
+		width: 100%;
+		background: white;
+		border-spacing: 0;
+		border-collapse: collapse;
+	}
+	.friendship-inline th, .friendship-inline td {
+		padding: 8px;
+		border: 1px solid #ddd;
+		text-align: left;
+	}
+	</style>
 
-<style>
-.friendship-inline {
-    margin-top: 10px;
-}
-.friendship-inline h2 {
-    padding: 10px;
-    background: #f1f1f1;
-}
-.friendship-inline table {
-    width: 100%;
-    background: white;
-    border-spacing: 0;
-    border-collapse: collapse;
-}
-.friendship-inline th, .friendship-inline td {
-    padding: 8px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-</style>
+	<div class="js-inline-admin-formset inline-group" id="friendship_set-group" data-inline-type="tabular" data-inline-formset="{&quot;name&quot;: &quot;#friendship_set&quot;, &quot;options&quot;: {&quot;prefix&quot;: &quot;friendship_set&quot;, &quot;addText&quot;: &quot;Adicionar outro(a) Friendship&quot;, &quot;deleteText&quot;: &quot;Remover&quot;}}">
+		<div class="tabular inline-related">
+			<fieldset class="module">
+				<h2>Friendships</h2>
 
-<div class="js-inline-admin-formset inline-group" id="friendship_set-group" data-inline-type="tabular" data-inline-formset="{&quot;name&quot;: &quot;#friendship_set&quot;, &quot;options&quot;: {&quot;prefix&quot;: &quot;friendship_set&quot;, &quot;addText&quot;: &quot;Adicionar outro(a) Friendship&quot;, &quot;deleteText&quot;: &quot;Remover&quot;}}">
-	<div class="tabular inline-related">
-		<fieldset class="module">
-			<h2>Friendships</h2>
+				<table>
+					<thead>
+						<tr>
+							<th class="column-friend">Friend</th>
+							<th class="column-accept_date">Friends Since</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for item in friends %}
+						<tr>
+							<td><a href="{{ item.admin_url }}">{{ item.friend.account.username }}</a></td>
+							<td>{{ item.friendship.accept_date }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</fieldset>
+		</div>
 
-			<table>
-				<thead>
-					<tr>
-						<th class="column-friend">Friend</th>
-						<th class="column-accept_date">Friends Since</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for item in friends %}
-					<tr>
-						<td><a href="{{ item.admin_url }}">{{ item.friend.account.username }}</a></td>
-						<td>{{ item.friendship.accept_date }}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</fieldset>
+
 	</div>
 
-
-</div>
-
-{{ block.super }}
+	{{ block.super }}
 {% endblock %}
