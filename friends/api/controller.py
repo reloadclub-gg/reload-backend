@@ -46,7 +46,7 @@ def list(user: User) -> dict:
 def add_friend(from_user: User, username: str):
     if is_email(username):
         try:
-            to_user_account = Account.objects.get(email=username)
+            to_user_account = Account.objects.get(user__email=username)
         except Account.DoesNotExist as e:
             logging.warning(e)
             raise HttpError(400, _('User not found.'))
