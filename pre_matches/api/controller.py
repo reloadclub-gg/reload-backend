@@ -86,6 +86,7 @@ def handle_create_fivem_match(match: Match) -> Match:
             )
         except requests.exceptions.Timeout:
             logging.warning(f'[handle_create_fivem_match] {match.id}')
+            return None
 
     return fivem_response
 
