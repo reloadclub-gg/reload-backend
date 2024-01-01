@@ -58,12 +58,13 @@ def add_friend(from_user: User, username: str):
             raise HttpError(400, _('User not found.'))
         except Account.MultipleObjectsReturned as e:
             logging.warning(e)
-            raise HttpError(
-                400,
+            msg = (
                 _(
-                    'We found multiple users with this username. Try add by email or contact us for further help.'
+                    'We found multiple users with this username.'
+                    'Try add by email or contact us for further help.'
                 ),
             )
+            raise HttpError(400, msg)
 
     friendship, created = models.Friendship.objects.filter(
         Q(user_from=from_user) | Q(user_to=from_user),
