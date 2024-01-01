@@ -50,10 +50,8 @@ def add_friend(from_user: User, username: str):
         raise HttpError(400, _('User not found.'))
 
     friendship, created = models.Friendship.objects.filter(
-        Q(user_from=from_user)
-        | Q(user_to=from_user)
-        | Q(user_from=to_user_account.user)
-        | Q(user_to=to_user_account.user),
+        Q(user_from=from_user) | Q(user_to=from_user),
+        Q(user_from=to_user_account.user) | Q(user_to=to_user_account.user),
     ).get_or_create(defaults={'user_from': from_user, 'user_to': to_user_account.user})
 
     if created:
