@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 from ninja.errors import HttpError
 
 from accounts.models import Account
+from core.utils import is_email
 from notifications.websocket import ws_new_notification
 
 from .. import models, websocket
@@ -43,11 +44,26 @@ def list(user: User) -> dict:
 
 
 def add_friend(from_user: User, username: str):
-    try:
-        to_user_account = Account.objects.get(username=username)
-    except Account.DoesNotExist as e:
-        logging.warning(e)
-        raise HttpError(400, _('User not found.'))
+    if is_email(username):
+        try:
+            to_user_account = Account.objects.get(email=username)
+        except Account.DoesNotExist as e:
+            logging.warning(e)
+            raise HttpError(400, _('User not found.'))
+    else:
+        try:
+            to_user_account = Account.objects.get(username=username)
+        except Account.DoesNotExist as e:
+            logging.warning(e)
+            raise HttpError(400, _('User not found.'))
+        except Account.MultipleObjectsReturned as e:
+            logging.warning(e)
+            raise HttpError(
+                400,
+                _(
+                    'We found multiple users with this username. Try add by email or contact us for further help.'
+                ),
+            )
 
     friendship, created = models.Friendship.objects.filter(
         Q(user_from=from_user) | Q(user_to=from_user),

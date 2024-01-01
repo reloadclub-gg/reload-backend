@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 import string
 from datetime import datetime
 from typing import Union
@@ -94,3 +95,11 @@ def get_full_file_path(file):
         return file.url
 
     return settings.SITE_URL + file.url
+
+
+def is_email(email):
+    pattern = r'^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$'
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
