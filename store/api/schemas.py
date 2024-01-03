@@ -22,7 +22,7 @@ class ItemMediaSchema(ModelSchema):
 
 
 class ItemSchema(ModelSchema):
-    background_image: str
+    background_image: str = None
     foreground_image: str
     box_id: int = None
     collection_id: int = None
@@ -37,7 +37,8 @@ class ItemSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.background_image)
+        if obj.background_image:
+            return get_full_file_path(obj.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -59,7 +60,7 @@ class ItemSchema(ModelSchema):
 
 
 class BoxSchema(ModelSchema):
-    background_image: str
+    background_image: str = None
     foreground_image: str
     can_open: bool = None
     object: str = 'box'
@@ -71,7 +72,8 @@ class BoxSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.background_image)
+        if obj.background_image:
+            return get_full_file_path(obj.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -83,7 +85,7 @@ class BoxSchema(ModelSchema):
 
 
 class CollectionSchema(ModelSchema):
-    background_image: str
+    background_image: str = None
     foreground_image: str
     object: str = 'collection'
     items: List[ItemSchema] = []
@@ -94,7 +96,8 @@ class CollectionSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.background_image)
+        if obj.background_image:
+            return get_full_file_path(obj.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -108,7 +111,7 @@ class CollectionSchema(ModelSchema):
 class UserItemSchema(ModelSchema):
     id: int
     name: str
-    background_image: str
+    background_image: str = None
     foreground_image: str
     subtype: str = None
     description: str
@@ -126,7 +129,8 @@ class UserItemSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.item.background_image)
+        if obj.item.background_image:
+            return get_full_file_path(obj.item.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -156,7 +160,7 @@ class UserItemSchema(ModelSchema):
 class UserBoxSchema(ModelSchema):
     id: int
     name: str
-    background_image: str
+    background_image: str = None
     foreground_image: str
     description: str
     release_date: datetime = None
@@ -176,7 +180,8 @@ class UserBoxSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return obj.box.background_image
+        if obj.box.background_image:
+            return obj.box.background_image
 
     @staticmethod
     def resolve_foreground_image(obj):
