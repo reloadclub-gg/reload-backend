@@ -16,7 +16,7 @@ from social_django.models import Association, Nonce, UserSocialAuth
 
 from core import admin_mixins
 from friends.models import Friendship
-from matches.models import MatchPlayer
+from matches.models import Match, MatchPlayer
 from store.models import UserBox, UserItem
 
 from . import forms, models
@@ -57,6 +57,8 @@ class UserLoginAdminInline(admin.TabularInline):
 
 class UserMatchesAdminInline(admin.TabularInline):
     model = MatchPlayer
+    max_num = 3
+    template = 'admin/tabular_count_link.html'
     verbose_name = 'Match'
     verbose_name_plural = 'Matches'
     readonly_fields = [
@@ -80,7 +82,24 @@ class UserMatchesAdminInline(admin.TabularInline):
         formset = super().get_formset(request, obj, **kwargs)
         formset.model._meta.verbose_name = 'Match'
         formset.model._meta.verbose_name_plural = 'Matches'
+        if obj:
+            formset.total_matches = self.model.objects.filter(
+                team__match__status__in=[
+                    Match.Status.FINISHED,
+                    Match.Status.RUNNING,
+                ],
+                user_id=obj.id,
+            ).count()
         return formset
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(
+            team__match__status__in=[
+                Match.Status.FINISHED,
+                Match.Status.RUNNING,
+            ]
+        )
 
     def match(self, obj):
         url = reverse("admin:matches_match_change", args=[obj.team.match.id])

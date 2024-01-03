@@ -3,6 +3,7 @@ import json
 import requests
 from django.conf import settings
 from django.contrib import admin
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -101,6 +102,29 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
     exclude = ['map', 'chat']
     readonly_fields = ['score', 'map_name']
     inlines = [MatchTeamAdminInline]
+    search_fields = [
+        'matchteam__matchplayer__user__account__username',
+        'matchteam__matchplayer__user__email',
+    ]
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(
+            request,
+            queryset,
+            search_term,
+        )
+
+        if search_term:
+            user_query = Q(
+                matchteam__matchplayer__user__account__username__icontains=search_term
+            ) | Q(matchteam__matchplayer__user__email__icontains=search_term)
+            user_queryset = self.model.objects.filter(user_query)
+            if use_distinct:
+                queryset = queryset.distinct()
+                user_queryset = user_queryset.distinct()
+
+            queryset = queryset | user_queryset
+        return queryset, use_distinct
 
     def map_name(self, obj):
         return obj.map
