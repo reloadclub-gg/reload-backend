@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [9c7bf28 - 1/1/2024]
+
+### Changed
+
+- Alteramos o sistema de lista de amigos. Criamos nossos próprios modelos de amizade e deixamos de usar a Steam pra isso.
+
 ### Fixed
 
+- Muitas correções em várias partes do código. Como foi tudo muito corrido (estávamos com 80/90 jogadores na fila em determinados momentos), não consegui mapear tudo que fiz.
 - Adiciona proteção na tarefa `send_user_update_to_friendlist` para que nenhum erro seja levantado ao tentar encontrar um usuário que não existe. Ao invés disso, dispara um log `warning` [#929](https://github.com/3C-gg/reload-backend/issues/929).
 
 ## [50e0001 - 27/12/2023]
