@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Os backgrounds de itens da loja não são mais obrigatórios. Agora é possível cadastrar itens na loja sem imagens de fundo [#933](https://github.com/3C-gg/reload-backend/issues/933).
+
 ## [9c7bf28 - 1/1/2024]
 
 ### Changed
