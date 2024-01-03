@@ -59,7 +59,11 @@ class Box(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_background_media_path)
+    background_image = models.ImageField(
+        upload_to=item_background_media_path,
+        null=True,
+        blank=True,
+    )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
     featured = models.BooleanField(default=False)
 
@@ -80,7 +84,11 @@ class Collection(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_background_media_path)
+    background_image = models.ImageField(
+        upload_to=item_background_media_path,
+        null=True,
+        blank=True,
+    )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
     featured = models.BooleanField(default=False)
 
@@ -122,7 +130,11 @@ class Item(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_background_media_path)
+    background_image = models.ImageField(
+        upload_to=item_background_media_path,
+        null=True,
+        blank=True,
+    )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
     decorative_image = models.ImageField(
         upload_to=item_decorative_media_path,
