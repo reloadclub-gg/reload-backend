@@ -35,6 +35,11 @@ def item_foreground_media_path(instance, filename):
     return f'{path}/foreground__{file}'
 
 
+def item_featured_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/featured__{file}'
+
+
 def item_decorative_media_path(instance, filename):
     path, file = item_media_path(instance, filename)
     return f'{path}/decorative__{file}'
@@ -65,6 +70,7 @@ class Box(models.Model):
         blank=True,
     )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    featured_image = models.FileField(upload_to=item_featured_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -90,6 +96,7 @@ class Collection(models.Model):
         blank=True,
     )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    featured_image = models.FileField(upload_to=item_featured_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -136,6 +143,7 @@ class Item(models.Model):
         blank=True,
     )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    featured_image = models.FileField(upload_to=item_featured_media_path)
     decorative_image = models.ImageField(
         upload_to=item_decorative_media_path,
         null=True,
