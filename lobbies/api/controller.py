@@ -52,7 +52,7 @@ def handle_start_queue(lobby, user):
 
 def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
     old_lobby = user.account.lobby
-    new_lobby = Lobby(owner_id=lobby_id)
+    new_lobby = get_lobby(lobby_id)
 
     try:
         remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id, remove=delete_lobby)
@@ -207,8 +207,11 @@ def handle_player_move_original_lobby(
 
 
 def get_lobby(lobby_id: int) -> Lobby:
-    # TODO: check if lobby exists
-    return Lobby(owner_id=lobby_id)
+    lobby = Lobby(owner_id=lobby_id)
+    if not lobby:
+        raise Http404(_('Lobby not found'))
+
+    return lobby
 
 
 def get_user_invites(
@@ -255,9 +258,9 @@ def accept_invite(user: User, invite_id: str):
         raise AuthenticationError()
 
     current_lobby = user.account.lobby
-    new_lobby = Lobby(owner_id=invite.lobby_id)
+    new_lobby = get_lobby(invite.lobby_id)
 
-    if current_lobby.id == new_lobby.id:
+    if not current_lobby or current_lobby.id == new_lobby.id:
         return {'status': None}
 
     websocket.ws_delete_invite(invite, 'accepted')
@@ -277,7 +280,8 @@ def refuse_invite(user: User, invite_id: str):
         raise AuthenticationError()
 
     websocket.ws_delete_invite(invite, 'refused')
-    lobby = Lobby(owner_id=invite.lobby_id)
+    lobby = get_lobby(invite.lobby_id)
+
     lobby.delete_invite(invite.id)
     websocket.ws_update_lobby(lobby)
     return {'status': 'refused'}

@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lista de partidas do jogador no admin de usuário agora mostra somente as últimas 3 partidas (ordenadas por data de finalização) e um link para ver todas as partidas daquele usuário [#920](https://github.com/3C-gg/reload-backend/issues/920).
 - Os backgrounds de itens da loja não são mais obrigatórios. Agora é possível cadastrar itens na loja sem imagens de fundo [#933](https://github.com/3C-gg/reload-backend/issues/933).
 
+### Fixed
+
+- Corrige função que procura por lobby, retornando um erro 404 em caso de lobby não encontrado e passa a usar esse método em todo o controller de lobby [#946](https://github.com/3C-gg/reload-backend/issues/946).
+
 ## [9c7bf28 - 1/1/2024]
 
 ### Changed
