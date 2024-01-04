@@ -24,6 +24,7 @@ class ItemMediaSchema(ModelSchema):
 class ItemSchema(ModelSchema):
     background_image: str = None
     foreground_image: str
+    featured_image: str
     box_id: int = None
     collection_id: int = None
     in_use: bool = None
@@ -45,6 +46,10 @@ class ItemSchema(ModelSchema):
         return get_full_file_path(obj.foreground_image)
 
     @staticmethod
+    def resolve_featured_image(obj):
+        return get_full_file_path(obj.featured_image)
+
+    @staticmethod
     def resolve_media(obj):
         return obj.itemmedia_set.all()
 
@@ -62,6 +67,7 @@ class ItemSchema(ModelSchema):
 class BoxSchema(ModelSchema):
     background_image: str = None
     foreground_image: str
+    featured_image: str
     can_open: bool = None
     object: str = 'box'
     items: List[ItemSchema] = []
@@ -80,6 +86,10 @@ class BoxSchema(ModelSchema):
         return get_full_file_path(obj.foreground_image)
 
     @staticmethod
+    def resolve_featured_image(obj):
+        return get_full_file_path(obj.featured_image)
+
+    @staticmethod
     def resolve_items(obj):
         return obj.item_set.filter(is_available=True)
 
@@ -87,6 +97,7 @@ class BoxSchema(ModelSchema):
 class CollectionSchema(ModelSchema):
     background_image: str = None
     foreground_image: str
+    featured_image: str
     object: str = 'collection'
     items: List[ItemSchema] = []
 
@@ -104,6 +115,10 @@ class CollectionSchema(ModelSchema):
         return get_full_file_path(obj.foreground_image)
 
     @staticmethod
+    def resolve_featured_image(obj):
+        return get_full_file_path(obj.featured_image)
+
+    @staticmethod
     def resolve_items(obj):
         return obj.item_set.filter(is_available=True)
 
@@ -113,6 +128,7 @@ class UserItemSchema(ModelSchema):
     name: str
     background_image: str = None
     foreground_image: str
+    featured_image: str
     subtype: str = None
     description: str
     release_date: datetime = None
@@ -135,6 +151,10 @@ class UserItemSchema(ModelSchema):
     @staticmethod
     def resolve_foreground_image(obj):
         return get_full_file_path(obj.item.foreground_image)
+
+    @staticmethod
+    def resolve_featured_image(obj):
+        return get_full_file_path(obj.item.featured_image)
 
     @staticmethod
     def resolve_subtype(obj):
@@ -162,6 +182,7 @@ class UserBoxSchema(ModelSchema):
     name: str
     background_image: str = None
     foreground_image: str
+    featured_image: str = None
     description: str
     release_date: datetime = None
     box_id: int
@@ -186,6 +207,10 @@ class UserBoxSchema(ModelSchema):
     @staticmethod
     def resolve_foreground_image(obj):
         return obj.box.foreground_image
+
+    @staticmethod
+    def resolve_featured_image(obj):
+        return obj.box.featured_image
 
     @staticmethod
     def resolve_description(obj):
