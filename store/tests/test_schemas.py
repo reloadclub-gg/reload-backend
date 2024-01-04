@@ -24,6 +24,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Item,
             name='Test Item',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
             item_type=models.Item.ItemType.SPRAY,
@@ -32,6 +33,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Box,
             name='Test Box',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
         )
@@ -39,6 +41,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Collection,
             name='Test Collection',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
         )
@@ -47,6 +50,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             box=self.box,
             name='Test Box Item',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
             item_type=models.Item.ItemType.SPRAY,
@@ -56,6 +60,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             collection=self.collection,
             name='Test Collection Item',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
             item_type=models.Item.ItemType.SPRAY,
@@ -81,6 +86,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             if self.item.background_image
             else None,
             'foreground_image': get_full_file_path(self.item.foreground_image),
+            'featured_image': get_full_file_path(self.item.featured_image),
             'decorative_image': get_full_file_path(self.item.decorative_image)
             if self.item.decorative_image
             else None,
@@ -116,6 +122,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             if self.item.background_image
             else None,
             'foreground_image': get_full_file_path(self.item.foreground_image),
+            'featured_image': get_full_file_path(self.item.featured_image),
             'decorative_image': get_full_file_path(self.item.decorative_image)
             if self.item.decorative_image
             else None,
@@ -150,6 +157,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             if self.box_item.background_image
             else None,
             'foreground_image': get_full_file_path(self.box_item.foreground_image),
+            'featured_image': get_full_file_path(self.box_item.featured_image),
             'decorative_image': get_full_file_path(self.box_item.decorative_image)
             if self.box_item.decorative_image
             else None,
@@ -184,6 +192,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'foreground_image': get_full_file_path(
                 self.collection_item.foreground_image
             ),
+            'featured_image': get_full_file_path(self.collection_item.featured_image),
             'decorative_image': get_full_file_path(
                 self.collection_item.decorative_image
             )
@@ -214,6 +223,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             if self.box.background_image
             else None,
             'foreground_image': get_full_file_path(self.box.foreground_image),
+            'featured_image': get_full_file_path(self.box.featured_image),
             'featured': self.box.featured,
             'can_open': None,
             'object': 'box',
@@ -238,6 +248,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             if self.box.background_image
             else None,
             'foreground_image': get_full_file_path(self.collection.foreground_image),
+            'featured_image': get_full_file_path(self.collection.featured_image),
             'featured': self.collection.featured,
             'object': 'collection',
             'items': [
@@ -291,6 +302,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Item,
             name='Test Item 0',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
             item_type=models.Item.ItemType.SPRAY,
@@ -320,6 +332,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Item,
             name='Test Item Featured',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
             featured=True,
@@ -332,6 +345,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Item,
             name='Test Item 2',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=False,
             featured=True,
@@ -346,6 +360,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Box,
             name='Feat Box',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
             featured=True,
@@ -355,6 +370,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Collection,
             name='Feat Collection',
             foreground_image=self.tmp_image,
+            featured_image=self.tmp_image,
             price=9,
             is_available=True,
             featured=True,
