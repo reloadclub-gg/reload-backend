@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Corrige função que procura por lobby, retornando um erro 404 em caso de lobby não encontrado e passa a usar esse método em todo o controller de lobby [#946](https://github.com/3C-gg/reload-backend/issues/946).
+- Corrige erro ao tentar pegar token inexistente de usuário [#948](https://github.com/3C-gg/reload-backend/issues/948).
 
 ## [9c7bf28 - 1/1/2024]
 
