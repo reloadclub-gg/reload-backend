@@ -71,7 +71,11 @@ def cancel_pre_match(
 
 
 def handle_create_fivem_match(match: Match) -> Match:
-    if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
+    if (
+        settings.ENVIRONMENT == settings.LOCAL
+        or settings.TEST_MODE
+        or settings.FIVEM_MATCH_MOCKS_ON
+    ):
         status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
         fivem_response = FiveMMatchResponseMock.from_orm({'status_code': status_code})
         time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
