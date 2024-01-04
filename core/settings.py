@@ -360,6 +360,7 @@ PAGINATION_PER_PAGE = 10
 
 
 # FiveM Settings
+FIVEM_MATCH_MOCKS_ON = config('FIVEM_MATCH_MOCKS_ON', default=False, cast=bool)
 FIVEM_MATCH_MOCK_CREATION_SUCCESS = config(
     'FIVEM_MATCH_MOCK_CREATION_SUCCESS',
     default=True,
