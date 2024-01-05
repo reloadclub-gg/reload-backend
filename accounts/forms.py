@@ -44,6 +44,9 @@ class UserUpdateForm(UserChangeForm):
 
     class Meta(UserChangeForm.Meta):
         model = User
+        labels = {
+            'ban': 'Ban',
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
