@@ -72,6 +72,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         QUEUED = 'queued'
         IN_GAME = 'in_game'
 
+    class InactivationReason(models.TextChoices):
+        USER_REQUESTED = 'user requested'
+        USER_BAN = 'user ban'
+
     online_statuses = [
         Status.ONLINE,
         Status.TEAMING,
@@ -84,6 +88,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField('active', default=True)
     date_joined = models.DateTimeField('date joined', default=timezone.now)
     date_inactivation = models.DateTimeField('date inactivation', blank=True, null=True)
+    reason_inactivated = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        choices=InactivationReason.choices,
+    )
     date_email_update = models.DateTimeField(
         'latest email update date',
         blank=True,
@@ -161,6 +171,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_available(self):
         return self.is_online and not self.is_in_game and not self.is_queued
 
+    @property
+    def is_banned(self):
+        return bool(self.ban)
+
     def __str__(self):
         return self.email if self.email else str(self.id)
 
@@ -183,6 +197,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def inactivate(self):
         self.is_active = False
         self.date_inactivation = timezone.now()
+        self.reason_inactivated = User.InactivationReason.USER_REQUESTED
         self.save()
 
     def add_session(self):
@@ -232,3 +247,31 @@ class IdentityManager(models.Model):
 
     def __str__(self):
         return f"{self.agent.email} as {self.user.email} at {self.timestamp}"
+
+
+class BannedUser(models.Model):
+    class Subject(models.TextChoices):
+        CHEATING = 'cheating'
+        REPEATED_MISSCONDUCT = 'repeated missconduct'
+        MULTIPLE_ACCOUNT_BANNED = 'multiple account banned'
+        OTHER = 'other'
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ban')
+    agent = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
+    datetime_created = models.DateTimeField(auto_now_add=True, editable=False)
+    subject = models.CharField(max_length=32, choices=Subject.choices)
+    description = models.TextField()
+
+    class Meta:
+        verbose_name = 'Banned User'
+        verbose_name_plural = 'Banned Users'
+
+    def __str__(self):
+        return f'{self.subject} - {self.datetime_created}'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.user.is_active = False
+        self.user.date_inactivation = timezone.now()
+        self.user.reason_inactivated = User.InactivationReason.USER_BAN
+        self.user.save()
