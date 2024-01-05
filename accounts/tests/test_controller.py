@@ -208,6 +208,50 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         mocker.assert_called_once()
         mocker.assert_called_once_with(self.user.email)
 
+    @mock.patch('accounts.utils.send_inactivation_mail')
+    @mock.patch.object(
+        controller.Account,
+        'pre_match',
+        new_callable=mock.PropertyMock,
+    )
+    @mock.patch('accounts.models.Account.get_match')
+    @mock.patch.object(
+        controller.Lobby,
+        'queue',
+        new_callable=mock.PropertyMock,
+    )
+    def test_inactivate_in_match_pre_match_queue(
+        self,
+        lobby_mock,
+        match_mock,
+        pre_match_mock,
+        mocker,
+    ):
+        self.user.add_session()
+        self.user.account.is_verified = True
+        self.user.account.save()
+        Lobby.create(self.user.id)
+        self.assertTrue(self.user.is_active)
+
+        match_mock.return_value = True
+        with self.assertRaises(HttpError):
+            controller.inactivate(self.user)
+        match_mock.return_value = False
+
+        pre_match_mock.return_value = True
+        with self.assertRaises(HttpError):
+            controller.inactivate(self.user)
+        pre_match_mock.return_value = False
+
+        lobby_mock.return_value = True
+        with self.assertRaises(HttpError):
+            controller.inactivate(self.user)
+        lobby_mock.return_value = False
+
+        controller.inactivate(self.user)
+        self.assertFalse(self.user.is_active)
+        self.assertIsNotNone(self.user.date_inactivation)
+
     @mock.patch('accounts.api.controller.handle_player_move')
     @mock.patch('accounts.api.controller.websocket.ws_update_user')
     @mock.patch('accounts.api.controller.utils.send_verify_account_mail')
@@ -299,6 +343,49 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         Lobby.create(self.user.id)
         controller.delete_account(self.user)
 
+        with self.assertRaises(ObjectDoesNotExist):
+            User.objects.get(pk=user_id)
+
+    @mock.patch.object(
+        controller.Account,
+        'pre_match',
+        new_callable=mock.PropertyMock,
+    )
+    @mock.patch('accounts.models.Account.get_match')
+    @mock.patch.object(
+        controller.Lobby,
+        'queue',
+        new_callable=mock.PropertyMock,
+    )
+    def test_delete_account_in_match_pre_match_queue(
+        self,
+        lobby_mock,
+        match_mock,
+        pre_match_mock,
+    ):
+        user_id = self.user.id
+        self.user.add_session()
+        self.user.account.is_verified = True
+        self.user.account.save()
+        Lobby.create(self.user.id)
+        self.assertTrue(self.user.is_active)
+
+        match_mock.return_value = True
+        with self.assertRaises(HttpError):
+            controller.delete_account(self.user)
+        match_mock.return_value = False
+
+        pre_match_mock.return_value = True
+        with self.assertRaises(HttpError):
+            controller.delete_account(self.user)
+        pre_match_mock.return_value = False
+
+        lobby_mock.return_value = True
+        with self.assertRaises(HttpError):
+            controller.delete_account(self.user)
+        lobby_mock.return_value = False
+
+        controller.delete_account(self.user)
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(pk=user_id)
 

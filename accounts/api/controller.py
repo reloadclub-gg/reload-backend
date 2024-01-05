@@ -228,6 +228,19 @@ def inactivate(user: User) -> User:
     Mark an user as inactive.
     Inactive users shouldn't be able to access any endpoint that requires authentication.
     """
+
+    if (
+        user.account.get_match()
+        or user.account.pre_match
+        or (user.account.lobby and user.account.lobby.queue)
+    ):
+        raise HttpError(
+            400,
+            _(
+                'You can\'t inactivate or delete your account while in queueing or in a match.'
+            ),
+        )
+
     logout(user)
     user.inactivate()
     tasks.send_inactivation_mail.delay(user.email)
@@ -280,6 +293,18 @@ def user_matches(user_id: int) -> Match:
 
 
 def delete_account(user: User) -> dict:
+    if (
+        user.account.get_match()
+        or user.account.pre_match
+        or (user.account.lobby and user.account.lobby.queue)
+    ):
+        raise HttpError(
+            400,
+            _(
+                'You can\'t inactivate or delete your account while in queueing or in a match.'
+            ),
+        )
+
     logout(user)
     user.delete()
     return {'status': 'deleted'}

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Passamos a não permitir que o usuário desative ou exclua sua conta enquanto estiver na fila, com partida encontrada ou em uma partida [#950](https://github.com/3C-gg/reload-backend/issues/950).
 - Detalhes de inativação do usuário no admin.
 - Campo `reason_inactivated` no modelo `User` para controlar se o usuário desativou sua conta ou se foi por outro motivo.
 - Modelo `BannedUser` para controlar os bans dos usuários.
