@@ -138,6 +138,7 @@ class UserReportsAdminInline(admin.TabularInline):
     extra = 0
     readonly_fields = ['datetime_created']
     fk_name = 'target'
+    autocomplete_fields = ['reporter']
 
     def has_change_permission(self, request, obj=None) -> bool:
         return False
@@ -157,6 +158,7 @@ class UserItemAdminInline(admin.TabularInline):
         'in_use',
     ]
     extra = 0
+    autocomplete_fields = ['item']
 
     def item_type(self, obj):
         return obj.item.item_type
@@ -253,6 +255,7 @@ class UserAdmin(
             _('STATUSES'),
             {
                 'fields': (
+                    'ban',
                     'is_alpha',
                     'is_beta',
                     'is_active',
@@ -300,6 +303,7 @@ class UserAdmin(
         'coins',
         'report_points',
         'restriction_countdown',
+        'is_banned',
     )
     readonly_fields = [
         'last_login',
@@ -309,6 +313,7 @@ class UserAdmin(
         'verification_token',
         'social_handles',
         'highest_level',
+        'ban',
     ]
     search_fields = (
         'email',
@@ -381,13 +386,20 @@ class UserAdmin(
             return date_format(obj.playerrestriction.end_date, 'd/m/Y H:i')
 
     def formatted_date_joined(self, obj):
-        return date_format(obj.date_joined, 'd/m/Y H:i')
+        localtime = timezone.localtime(obj.date_joined)
+        return date_format(localtime, 'd/m/Y H:i', use_l10n=True)
 
     def formatted_last_login(self, obj):
         if obj.last_login:
-            return date_format(obj.last_login, 'd/m/Y H:i')
+            localtime = timezone.localtime(obj.last_login)
+            return date_format(localtime, 'd/m/Y H:i', use_l10n=True)
+
+    def is_banned(self, obj):
+        return bool(obj.ban)
 
     is_verified.boolean = True
+    is_banned.short_description = 'Banned'
+    is_banned.boolean = True
     coins.short_description = 'RC Wallet'
     coins.admin_order_field = 'account__coins'
     level.admin_order_field = 'account__level'
@@ -476,8 +488,14 @@ class UserAdmin(
             )
 
         extra_context['friends'] = friends
+        if hasattr(user, 'ban'):
+            extra_context['subtitle'] = f'{user.email} 🚫 USUÁRIO BANIDO 🚫'
+
         return super().change_view(
-            request, object_id, form_url, extra_context=extra_context
+            request,
+            object_id,
+            form_url,
+            extra_context=extra_context,
         )
 
 
@@ -555,3 +573,28 @@ class IdentityManagerAdmin(admin.ModelAdmin):
         'agent__email',
         'agent__id',
     ]
+
+
+@admin.register(models.BannedUser)
+class BannedUserAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'agent',
+        'datetime_created',
+        'subject',
+    )
+    ordering = ('-datetime_created',)
+    list_filter = [StaffUserListFilter, 'subject']
+    search_fields = [
+        'user__email',
+        'user__id',
+        'user__account__steamid',
+        'agent__email',
+        'agent__id',
+    ]
+    autocomplete_fields = ['user']
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.agent = request.user
+        super().save_model(request, obj, form, change)
