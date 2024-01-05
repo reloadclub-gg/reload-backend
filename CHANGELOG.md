@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige ordem dos itens do inventário do usuário [#943](https://github.com/3C-gg/reload-backend/issues/943).
+- Corrige itens sendo desmarcados de uso ao adquirir novo item.
 - Corrige datas sem localização do admin.
 - Corrige função que procura por lobby, retornando um erro 404 em caso de lobby não encontrado e passa a usar esse método em todo o controller de lobby [#946](https://github.com/3C-gg/reload-backend/issues/946).
 - Corrige erro ao tentar pegar token inexistente de usuário [#948](https://github.com/3C-gg/reload-backend/issues/948).
