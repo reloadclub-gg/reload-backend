@@ -221,15 +221,17 @@ class UserItem(models.Model):
     class Meta:
         unique_together = ['user', 'item']
         indexes = [models.Index(fields=['in_use'])]
+        ordering = ['item__id']
 
     def save(self, *args, **kwargs):
-        existing = UserItem.objects.filter(
-            user=self.user,
-            item__item_type=self.item.item_type,
-            item__subtype=self.item.subtype,
-        ).exclude(pk=self.pk)
+        if not self._state.adding:
+            existing = UserItem.objects.filter(
+                user=self.user,
+                item__item_type=self.item.item_type,
+                item__subtype=self.item.subtype,
+            ).exclude(pk=self.pk)
 
-        existing.update(in_use=False)
+            existing.update(in_use=False)
         super(UserItem, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -247,6 +249,7 @@ class UserBox(models.Model):
         verbose_name_plural = 'user boxes'
         unique_together = ['user', 'box']
         indexes = [models.Index(fields=['can_open'])]
+        ordering = ['box__id']
 
     def __str__(self):
         return f'{self.box.name} (RC {self.box.price})'
