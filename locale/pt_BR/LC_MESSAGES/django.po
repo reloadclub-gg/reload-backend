@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-01 12:37-0300\n"
-"PO-Revision-Date: 2024-01-01 12:38-0300\n"
+"POT-Creation-Date: 2024-01-09 19:12-0300\n"
+"PO-Revision-Date: 2023-12-07 12:48-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -19,23 +19,23 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Translated-Using: django-rosetta 0.9.9\n"
 
-#: accounts/admin.py:218
+#: accounts/admin.py:239
 msgid "ACCOUNT"
 msgstr "CONTA"
 
-#: accounts/admin.py:234
+#: accounts/admin.py:257
 msgid "STATUSES"
 msgstr "STATUS"
 
-#: accounts/admin.py:247
+#: accounts/admin.py:271
 msgid "ACTIVATION"
 msgstr "ATIVAÇÃO"
 
-#: accounts/admin.py:384
+#: accounts/admin.py:419
 msgid "Assume Identity"
 msgstr "Assumir Identidade"
 
-#: accounts/admin.py:385
+#: accounts/admin.py:420
 msgid "Assume a user identity and use the application as the user"
 msgstr ""
 "Assuma a identidade de um usuário e utiliza a aplicação como se fosse ele"
@@ -53,32 +53,41 @@ msgstr "Usuário já possui uma conta."
 msgid "Unable to create account."
 msgstr "Não foi possível criar uma conta para esse usuário."
 
-#: accounts/api/controller.py:212 accounts/api/schemas.py:181
+#: accounts/api/controller.py:212 accounts/api/schemas.py:182
 msgid "Invalid verification token."
 msgstr "Código de verificação inválido."
 
-#: accounts/api/controller.py:242 accounts/api/controller.py:256
+#: accounts/api/controller.py:240 accounts/api/controller.py:304
+#, fuzzy
+#| msgid "Can't ready in for a new match while in a match."
+msgid ""
+"You can't inactivate or delete your account while in queueing or in a match."
+msgstr ""
+"Não é possível desativar ou excluir sua conta enquanto estiver na fila ou em "
+"uma partida."
+
+#: accounts/api/controller.py:255 accounts/api/controller.py:269
 msgid "Unable to update e-mail."
 msgstr "Não foi possível atualizar o email."
 
-#: accounts/api/schemas.py:144 accounts/api/schemas.py:191
+#: accounts/api/schemas.py:145 accounts/api/schemas.py:192
 msgid "E-mail must be unique."
 msgstr "O e-mail informado já está sendo utilizado."
 
-#: accounts/api/schemas.py:149 accounts/api/schemas.py:154
+#: accounts/api/schemas.py:150 accounts/api/schemas.py:155
 msgid "User must read and agree with our Terms and Policy."
 msgstr ""
 "Usuário precisa ler e aceitar os Termos de Uso e a Política de Privacidade."
 
-#: accounts/api/schemas.py:173
+#: accounts/api/schemas.py:174
 msgid "One of e-mail or verification_token must have a value."
 msgstr "É preciso informar ao menos o e-mail ou o código de verificação."
 
-#: accounts/api/schemas.py:201
+#: accounts/api/schemas.py:202
 msgid "User already invited by someone else."
 msgstr "Usuário já foi convidado."
 
-#: accounts/api/schemas.py:204
+#: accounts/api/schemas.py:205
 msgid "User has already been registered."
 msgstr "Usuário já se cadastrou."
 
@@ -103,6 +112,22 @@ msgstr "Convites aceitos não podem ser modificados."
 msgid "An invite already exists for this email."
 msgstr "Já existe um convite para este e-mail."
 
+#: accounts/templates/admin/tabular_count_link.html:22
+msgid "Delete?"
+msgstr "Delete?"
+
+#: accounts/templates/admin/tabular_count_link.html:39
+msgid "Change"
+msgstr "Change"
+
+#: accounts/templates/admin/tabular_count_link.html:39
+msgid "View"
+msgstr "View"
+
+#: accounts/templates/admin/tabular_count_link.html:41
+msgid "View on site"
+msgstr "View on site"
+
 #: accounts/templates/registration/login.html:23
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
@@ -112,8 +137,8 @@ msgstr[1] "Por favor, corrija o erro abaixo."
 #: accounts/templates/registration/login.html:39
 #, python-format
 msgid ""
-"You are authenticated as %(username)s, but are not authorized to access this"
-" page. Would you like to login to a different account?"
+"You are authenticated as %(username)s, but are not authorized to access this "
+"page. Would you like to login to a different account?"
 msgstr ""
 "Você está autenticado como %(username)s, mas não está autorizado a acessar "
 "essa página. Você gostaria de fazer o login com uma conta diferente?"
@@ -479,7 +504,8 @@ msgstr "Tamanho para um {}."
 
 #: core/api/pydantic_messages.py:125
 msgid "could not parse value and unit from byte string"
-msgstr "Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
+msgstr ""
+"Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
 
 #: core/api/pydantic_messages.py:127
 msgid "could not interpret byte unit: {}"
@@ -520,8 +546,8 @@ msgid ""
 "We found multiple users with this username.Try add by email or contact us "
 "for further help."
 msgstr ""
-"Encontramos mais de um usuário com esse email. Tente adicionar por e-mail ou"
-" entre em contato para mais ajuda."
+"Encontramos mais de um usuário com esse email. Tente adicionar por e-mail ou "
+"entre em contato para mais ajuda."
 
 #: friends/api/controller.py:77
 #, python-brace-format
@@ -550,17 +576,23 @@ msgstr "O seu amigo {} acabou de entrar para a ReloadClub!"
 msgid "Can't cancel queue while in match."
 msgstr "Não é possível cancelar a fila enquanto está em uma partida."
 
-#: lobbies/api/controller.py:42 lobbies/api/controller.py:251
-#: lobbies/api/controller.py:273 lobbies/api/controller.py:290
-#: lobbies/api/controller.py:331
+#: lobbies/api/controller.py:42 lobbies/api/controller.py:254
+#: lobbies/api/controller.py:276 lobbies/api/controller.py:294
+#: lobbies/api/controller.py:335
 msgid "We are under maintenance. Try again later."
 msgstr "Estamos em manutenção. Tente novamente mais tarde."
 
-#: lobbies/api/controller.py:236
+#: lobbies/api/controller.py:212
+#, fuzzy
+#| msgid "Lobby not found."
+msgid "Lobby not found"
+msgstr "Lobby não encontrado."
+
+#: lobbies/api/controller.py:239
 msgid "Invalid invite id"
 msgstr "Convite inválido."
 
-#: lobbies/api/controller.py:309
+#: lobbies/api/controller.py:313
 msgid "{} kicked you from lobby."
 msgstr "{} removeu você do lobby."
 
@@ -684,12 +716,12 @@ msgstr ""
 "partida foi cancelada. A recorrência dessa conduta pode resultar em "
 "restrições."
 
-#: pre_matches/api/controller.py:171
+#: pre_matches/api/controller.py:175
 msgid "Can't ready in for a new match while in a match."
 msgstr ""
 "Não é possível entrar em uma nova partida enquanto estiver em uma partida."
 
-#: pre_matches/api/controller.py:176
+#: pre_matches/api/controller.py:180
 msgid "Player already set as ready."
 msgstr "Jogador já foi marcado como pronto."
 
@@ -756,11 +788,11 @@ msgstr "Fundos insuficientes."
 msgid "Cannot process purchase."
 msgstr "Não foi possível processar a compra."
 
-#: store/models.py:171
+#: store/models.py:191
 msgid "The total sum of items on this box cannot be greater then 100%."
 msgstr "A soma total dos itens da caixa não podem ultrapassar 100%"
 
-#: store/models.py:176
+#: store/models.py:196
 msgid "Decorative must have a decorative image."
 msgstr "Itens decorativos precisam ter uma imagem decorativa."
 
@@ -775,4 +807,10 @@ msgstr "Assunto de ticket inválido."
 
 #: support/api/schemas.py:38
 msgid "\"report_user_id\" field cannot be blank for this subject."
-msgstr "O campo \"report_user_id\" não pode ser vazio para esse tipo de ticket."
+msgstr ""
+"O campo \"report_user_id\" não pode ser vazio para esse tipo de ticket."
+
+#, fuzzy
+#~| msgid "A verified account is required to perform this action."
+#~ msgid "You must be verified to perform this action."
+#~ msgstr "Uma conta verificada é necessária para realizar esta ação."
