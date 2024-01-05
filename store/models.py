@@ -35,6 +35,11 @@ def item_foreground_media_path(instance, filename):
     return f'{path}/foreground__{file}'
 
 
+def item_featured_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/featured__{file}'
+
+
 def item_decorative_media_path(instance, filename):
     path, file = item_media_path(instance, filename)
     return f'{path}/decorative__{file}'
@@ -59,8 +64,13 @@ class Box(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_background_media_path)
+    background_image = models.ImageField(
+        upload_to=item_background_media_path,
+        null=True,
+        blank=True,
+    )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    featured_image = models.FileField(upload_to=item_featured_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -80,8 +90,13 @@ class Collection(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_background_media_path)
+    background_image = models.ImageField(
+        upload_to=item_background_media_path,
+        null=True,
+        blank=True,
+    )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    featured_image = models.FileField(upload_to=item_featured_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -122,8 +137,13 @@ class Item(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(upload_to=item_background_media_path)
+    background_image = models.ImageField(
+        upload_to=item_background_media_path,
+        null=True,
+        blank=True,
+    )
     foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    featured_image = models.FileField(upload_to=item_featured_media_path)
     decorative_image = models.ImageField(
         upload_to=item_decorative_media_path,
         null=True,
@@ -201,15 +221,17 @@ class UserItem(models.Model):
     class Meta:
         unique_together = ['user', 'item']
         indexes = [models.Index(fields=['in_use'])]
+        ordering = ['item__id']
 
     def save(self, *args, **kwargs):
-        existing = UserItem.objects.filter(
-            user=self.user,
-            item__item_type=self.item.item_type,
-            item__subtype=self.item.subtype,
-        ).exclude(pk=self.pk)
+        if not self._state.adding:
+            existing = UserItem.objects.filter(
+                user=self.user,
+                item__item_type=self.item.item_type,
+                item__subtype=self.item.subtype,
+            ).exclude(pk=self.pk)
 
-        existing.update(in_use=False)
+            existing.update(in_use=False)
         super(UserItem, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -227,6 +249,7 @@ class UserBox(models.Model):
         verbose_name_plural = 'user boxes'
         unique_together = ['user', 'box']
         indexes = [models.Index(fields=['can_open'])]
+        ordering = ['box__id']
 
     def __str__(self):
         return f'{self.box.name} (RC {self.box.price})'

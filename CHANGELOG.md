@@ -7,8 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Passamos a não permitir que o usuário desative ou exclua sua conta enquanto estiver na fila, com partida encontrada ou em uma partida [#950](https://github.com/3C-gg/reload-backend/issues/950).
+- Detalhes de inativação do usuário no admin.
+- Campo `reason_inactivated` no modelo `User` para controlar se o usuário desativou sua conta ou se foi por outro motivo.
+- Modelo `BannedUser` para controlar os bans dos usuários.
+- Campo `steamid64` no esquema `MatchTeamPlayerFiveMSchema` [#952](https://github.com/3C-gg/reload-backend/issues/952).
+- Adiciona configuração `FIVEM_MATCH_MOCKS_ON` que determina se a API deve enviar ou mockar o pedido de criação de partidas no FiveM [#944](https://github.com/3C-gg/reload-backend/issues/944).
+- Campo de busca por username e email na lista de partidas do admin.
+- Campo `featured_image` para itens da loja [#939](https://github.com/3C-gg/reload-backend/issues/939).
+
+### Changed
+
+- Selects dos inlines do admin de user agora possuem um filtro [#953](https://github.com/3C-gg/reload-backend/issues/953).
+- Lista de partidas do jogador no admin de usuário agora mostra somente as últimas 3 partidas (ordenadas por data de finalização) e um link para ver todas as partidas daquele usuário [#920](https://github.com/3C-gg/reload-backend/issues/920).
+- Os backgrounds de itens da loja não são mais obrigatórios. Agora é possível cadastrar itens na loja sem imagens de fundo [#933](https://github.com/3C-gg/reload-backend/issues/933).
+
 ### Fixed
 
+- Corrige ordem dos itens do inventário do usuário [#943](https://github.com/3C-gg/reload-backend/issues/943).
+- Corrige itens sendo desmarcados de uso ao adquirir novo item.
+- Corrige datas sem localização do admin.
+- Corrige função que procura por lobby, retornando um erro 404 em caso de lobby não encontrado e passa a usar esse método em todo o controller de lobby [#946](https://github.com/3C-gg/reload-backend/issues/946).
+- Corrige erro ao tentar pegar token inexistente de usuário [#948](https://github.com/3C-gg/reload-backend/issues/948).
+
+## [9c7bf28 - 1/1/2024]
+
+### Changed
+
+- Alteramos o sistema de lista de amigos. Criamos nossos próprios modelos de amizade e deixamos de usar a Steam pra isso.
+
+### Fixed
+
+- Muitas correções em várias partes do código. Como foi tudo muito corrido (estávamos com 80/90 jogadores na fila em determinados momentos), não consegui mapear tudo que fiz.
 - Adiciona proteção na tarefa `send_user_update_to_friendlist` para que nenhum erro seja levantado ao tentar encontrar um usuário que não existe. Ao invés disso, dispara um log `warning` [#929](https://github.com/3C-gg/reload-backend/issues/929).
 
 ## [50e0001 - 27/12/2023]

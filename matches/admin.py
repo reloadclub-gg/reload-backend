@@ -3,7 +3,10 @@ import json
 import requests
 from django.conf import settings
 from django.contrib import admin
+from django.db.models import Q
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.html import format_html
 
 from accounts.models import Account
@@ -83,9 +86,9 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
     list_display = (
         'id',
         'server',
-        'create_date',
-        'start_date',
-        'end_date',
+        'formatted_create_date',
+        'formatted_start_date',
+        'formatted_end_date',
         'status',
         'map',
         'game_type',
@@ -101,6 +104,29 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
     exclude = ['map', 'chat']
     readonly_fields = ['score', 'map_name']
     inlines = [MatchTeamAdminInline]
+    search_fields = [
+        'matchteam__matchplayer__user__account__username',
+        'matchteam__matchplayer__user__email',
+    ]
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(
+            request,
+            queryset,
+            search_term,
+        )
+
+        if search_term:
+            user_query = Q(
+                matchteam__matchplayer__user__account__username__icontains=search_term
+            ) | Q(matchteam__matchplayer__user__email__icontains=search_term)
+            user_queryset = self.model.objects.filter(user_query)
+            if use_distinct:
+                queryset = queryset.distinct()
+                user_queryset = user_queryset.distinct()
+
+            queryset = queryset | user_queryset
+        return queryset, use_distinct
 
     def map_name(self, obj):
         return obj.map
@@ -132,6 +158,20 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
             form_url,
             extra_context=extra_context,
         )
+
+    def formatted_create_date(self, obj):
+        localtime = timezone.localtime(obj.create_date)
+        return date_format(localtime, 'SHORT_DATETIME_FORMAT')
+
+    def formatted_start_date(self, obj):
+        if obj.start_date:
+            localtime = timezone.localtime(obj.start_date)
+            return date_format(localtime, 'SHORT_DATETIME_FORMAT')
+
+    def formatted_end_date(self, obj):
+        if obj.end_date:
+            localtime = timezone.localtime(obj.end_date)
+            return date_format(localtime, 'SHORT_DATETIME_FORMAT')
 
 
 @admin.register(models.MatchTeam)

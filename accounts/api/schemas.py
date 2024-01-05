@@ -66,6 +66,7 @@ class UserSchema(ModelSchema):
             'last_login',
             'date_joined',
             'date_inactivation',
+            'reason_inactivated',
             'date_email_update',
             'is_beta',
         ]

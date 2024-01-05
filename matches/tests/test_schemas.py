@@ -234,6 +234,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'id': match_player.user.id,
             'username': match_player.user.account.username,
             'steamid': steamid64_to_hex(match_player.user.account.steamid),
+            'steamid64': match_player.user.account.steamid,
             'level': match_player.user.account.level,
             'avatar': Steam.build_avatar_url(
                 match_player.user.steam_user.avatarhash,
@@ -251,6 +252,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'id': match_player.user.id,
             'username': match_player.user.account.username,
             'steamid': steamid64_to_hex(match_player.user.account.steamid),
+            'steamid64': match_player.user.account.steamid,
             'level': match_player.user.account.level,
             'avatar': Steam.build_avatar_url(
                 match_player.user.steam_user.avatarhash,
