@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo `steamid64` no esquema `MatchTeamPlayerFiveMSchema` [#952](https://github.com/3C-gg/reload-backend/issues/952).
 - Adiciona configuração `FIVEM_MATCH_MOCKS_ON` que determina se a API deve enviar ou mockar o pedido de criação de partidas no FiveM [#944](https://github.com/3C-gg/reload-backend/issues/944).
 - Campo de busca por username e email na lista de partidas do admin.
 - Campo `featured_image` para itens da loja [#939](https://github.com/3C-gg/reload-backend/issues/939).
