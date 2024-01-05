@@ -248,6 +248,8 @@ class UserAdmin(
                     'date_joined',
                     'last_login',
                     'social_handles',
+                    'date_inactivation',
+                    'reason_inactivated',
                 )
             },
         ),
@@ -314,6 +316,8 @@ class UserAdmin(
         'social_handles',
         'highest_level',
         'ban',
+        'date_inactivation',
+        'reason_inactivated',
     ]
     search_fields = (
         'email',
