@@ -164,6 +164,7 @@ class Item(models.Model):
         blank=True,
     )
     featured = models.BooleanField(default=False)
+    is_starter = models.BooleanField(default=False)
 
     class Meta:
         indexes = [

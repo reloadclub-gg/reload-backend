@@ -20,6 +20,7 @@ from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import BetaUser, Match
 from steam import SteamClient
+from store.models import Item
 
 from .. import tasks, utils, websocket
 from ..models import Account, Auth, Invite, SteamUser, UserLogin
@@ -219,6 +220,10 @@ def verify_account(user: User, verification_token: str) -> User:
 
     # Refresh user instance with updated related account
     user.refresh_from_db()
+
+    starter_items = Item.objects.filter(is_starter=True)
+    for item in starter_items:
+        user.useritem_set.create(item=item, in_use=True)
 
     return user
 

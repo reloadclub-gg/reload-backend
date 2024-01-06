@@ -1959,7 +1959,8 @@
             "box": null,
             "box_draw_chance": null,
             "collection": 1,
-            "featured": false
+            "featured": false,
+            "is_starter": true
         }
     },
     {
@@ -1982,7 +1983,8 @@
             "box": null,
             "box_draw_chance": null,
             "collection": 1,
-            "featured": false
+            "featured": false,
+            "is_starter": true
         }
     }
 ]
