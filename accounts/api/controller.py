@@ -20,7 +20,7 @@ from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import BetaUser, Match
 from steam import SteamClient
-from store.models import Item, UserItem
+from store.models import Item
 
 from .. import tasks, utils, websocket
 from ..models import Account, Auth, Invite, SteamUser, UserLogin
