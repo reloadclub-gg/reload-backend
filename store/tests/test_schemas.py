@@ -101,6 +101,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'in_use': None,
             'can_use': None,
             'object': 'item',
+            'is_starter': self.item.is_starter,
             'media': [],
         }
         self.assertEqual(payload, expected_payload)
@@ -130,6 +131,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'box_draw_chance': self.item.box_draw_chance,
             'collection_id': self.collection.id if self.item.collection else None,
             'featured': self.item.featured,
+            'is_starter': self.item.is_starter,
             'in_use': None,
             'can_use': None,
             'object': 'item',
@@ -165,6 +167,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'box_draw_chance': self.box_item.box_draw_chance,
             'collection_id': self.collection.id if self.box_item.collection else None,
             'featured': self.box_item.featured,
+            'is_starter': self.box_item.is_starter,
             'in_use': None,
             'can_use': None,
             'object': 'item',
@@ -202,6 +205,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'box_draw_chance': self.collection_item.box_draw_chance,
             'collection_id': self.collection.id,
             'featured': self.collection_item.featured,
+            'is_starter': self.collection_item.is_starter,
             'in_use': None,
             'can_use': None,
             'object': 'item',
