@@ -249,29 +249,53 @@ class IdentityManager(models.Model):
         return f"{self.agent.email} as {self.user.email} at {self.timestamp}"
 
 
-class BannedUser(models.Model):
+class UserBan(models.Model):
     class Subject(models.TextChoices):
         CHEATING = 'cheating'
         REPEATED_MISSCONDUCT = 'repeated missconduct'
         MULTIPLE_ACCOUNT_BANNED = 'multiple account banned'
         OTHER = 'other'
 
+    class RevokeSubject(models.TextChoices):
+        LAST_CHANCE = 'last chance'
+        WRONG = 'wrong'
+        OTHER = 'other'
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ban')
-    agent = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
+    agent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        editable=False,
+        related_name='userbans_applied',
+    )
     datetime_created = models.DateTimeField(auto_now_add=True, editable=False)
+    datetime_end = models.DateField()
+    is_revoked = models.BooleanField(default=False)
+    revoke_agent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        editable=False,
+        blank=True,
+        null=True,
+        related_name='userbans_revoked',
+    )
+    revoke_subject = models.CharField(
+        max_length=32,
+        choices=RevokeSubject.choices,
+        blank=True,
+        null=True,
+    )
     subject = models.CharField(max_length=32, choices=Subject.choices)
-    description = models.TextField()
+    description = models.TextField(
+        help_text=(
+            'Links to images, videos or a detailed explanation that'
+            'could help others to understand why the ban was applied or revoked.'
+        )
+    )
 
     class Meta:
-        verbose_name = 'Banned User'
-        verbose_name_plural = 'Banned Users'
+        verbose_name = 'User Ban'
+        verbose_name_plural = 'Users Bans'
 
     def __str__(self):
         return f'{self.subject} - {self.datetime_created}'
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.user.is_active = False
-        self.user.date_inactivation = timezone.now()
-        self.user.reason_inactivated = User.InactivationReason.USER_BAN
-        self.user.save()
