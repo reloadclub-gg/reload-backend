@@ -85,6 +85,8 @@ class UserMatchesAdminInline(admin.TabularInline):
         if obj:
             formset.total_matches = self.model.objects.filter(
                 team__match__status__in=[
+                    Match.Status.LOADING,
+                    Match.Status.WARMUP,
                     Match.Status.FINISHED,
                     Match.Status.RUNNING,
                 ],
@@ -94,12 +96,19 @@ class UserMatchesAdminInline(admin.TabularInline):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.filter(
+        qs_filtered = qs.filter(
             team__match__status__in=[
+                Match.Status.LOADING,
+                Match.Status.WARMUP,
                 Match.Status.FINISHED,
                 Match.Status.RUNNING,
-            ]
-        )
+            ],
+        ).order_by('-team__match__end_date')
+        if self.parent_obj:
+            qs_filtered = qs_filtered.filter(user=self.parent_obj)
+        ids_max_rows = qs_filtered.filter().values_list('id', flat=True)[: self.max_num]
+        qs_filtered_limited = qs.filter(id__in=ids_max_rows)
+        return qs_filtered_limited
 
     def match(self, obj):
         url = reverse("admin:matches_match_change", args=[obj.team.match.id])
@@ -469,6 +478,12 @@ class UserAdmin(
         if obj:
             return self.readonly_fields + ['steamid', 'username']
         return self.readonly_fields
+
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+        for inline_instance in inline_instances:
+            inline_instance.parent_obj = obj
+        return inline_instances
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
