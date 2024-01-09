@@ -16,7 +16,7 @@ from social_django.models import Association, Nonce, UserSocialAuth
 
 from core import admin_mixins
 from friends.models import Friendship
-from matches.models import MatchPlayer
+from matches.models import Match, MatchPlayer
 from store.models import UserBox, UserItem
 
 from . import forms, models
@@ -57,6 +57,8 @@ class UserLoginAdminInline(admin.TabularInline):
 
 class UserMatchesAdminInline(admin.TabularInline):
     model = MatchPlayer
+    max_num = 3
+    template = 'admin/tabular_count_link.html'
     verbose_name = 'Match'
     verbose_name_plural = 'Matches'
     readonly_fields = [
@@ -80,7 +82,33 @@ class UserMatchesAdminInline(admin.TabularInline):
         formset = super().get_formset(request, obj, **kwargs)
         formset.model._meta.verbose_name = 'Match'
         formset.model._meta.verbose_name_plural = 'Matches'
+        if obj:
+            formset.total_matches = self.model.objects.filter(
+                team__match__status__in=[
+                    Match.Status.LOADING,
+                    Match.Status.WARMUP,
+                    Match.Status.FINISHED,
+                    Match.Status.RUNNING,
+                ],
+                user_id=obj.id,
+            ).count()
         return formset
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs_filtered = qs.filter(
+            team__match__status__in=[
+                Match.Status.LOADING,
+                Match.Status.WARMUP,
+                Match.Status.FINISHED,
+                Match.Status.RUNNING,
+            ],
+        ).order_by('-team__match__end_date')
+        if self.parent_obj:
+            qs_filtered = qs_filtered.filter(user=self.parent_obj)
+        ids_max_rows = qs_filtered.filter().values_list('id', flat=True)[: self.max_num]
+        qs_filtered_limited = qs.filter(id__in=ids_max_rows)
+        return qs_filtered_limited
 
     def match(self, obj):
         url = reverse("admin:matches_match_change", args=[obj.team.match.id])
@@ -119,6 +147,7 @@ class UserReportsAdminInline(admin.TabularInline):
     extra = 0
     readonly_fields = ['datetime_created']
     fk_name = 'target'
+    autocomplete_fields = ['reporter']
 
     def has_change_permission(self, request, obj=None) -> bool:
         return False
@@ -138,6 +167,7 @@ class UserItemAdminInline(admin.TabularInline):
         'in_use',
     ]
     extra = 0
+    autocomplete_fields = ['item']
 
     def item_type(self, obj):
         return obj.item.item_type
@@ -227,6 +257,8 @@ class UserAdmin(
                     'date_joined',
                     'last_login',
                     'social_handles',
+                    'date_inactivation',
+                    'reason_inactivated',
                 )
             },
         ),
@@ -234,6 +266,7 @@ class UserAdmin(
             _('STATUSES'),
             {
                 'fields': (
+                    'ban',
                     'is_alpha',
                     'is_beta',
                     'is_active',
@@ -281,6 +314,7 @@ class UserAdmin(
         'coins',
         'report_points',
         'restriction_countdown',
+        'is_banned',
     )
     readonly_fields = [
         'last_login',
@@ -290,6 +324,9 @@ class UserAdmin(
         'verification_token',
         'social_handles',
         'highest_level',
+        'ban',
+        'date_inactivation',
+        'reason_inactivated',
     ]
     search_fields = (
         'email',
@@ -362,13 +399,20 @@ class UserAdmin(
             return date_format(obj.playerrestriction.end_date, 'd/m/Y H:i')
 
     def formatted_date_joined(self, obj):
-        return date_format(obj.date_joined, 'd/m/Y H:i')
+        localtime = timezone.localtime(obj.date_joined)
+        return date_format(localtime, 'd/m/Y H:i', use_l10n=True)
 
     def formatted_last_login(self, obj):
         if obj.last_login:
-            return date_format(obj.last_login, 'd/m/Y H:i')
+            localtime = timezone.localtime(obj.last_login)
+            return date_format(localtime, 'd/m/Y H:i', use_l10n=True)
+
+    def is_banned(self, obj):
+        return bool(obj.ban)
 
     is_verified.boolean = True
+    is_banned.short_description = 'Banned'
+    is_banned.boolean = True
     coins.short_description = 'RC Wallet'
     coins.admin_order_field = 'account__coins'
     level.admin_order_field = 'account__level'
@@ -435,6 +479,12 @@ class UserAdmin(
             return self.readonly_fields + ['steamid', 'username']
         return self.readonly_fields
 
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+        for inline_instance in inline_instances:
+            inline_instance.parent_obj = obj
+        return inline_instances
+
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         user = models.User.objects.get(pk=object_id)
@@ -457,8 +507,14 @@ class UserAdmin(
             )
 
         extra_context['friends'] = friends
+        if hasattr(user, 'ban'):
+            extra_context['subtitle'] = f'{user.email} 🚫 USUÁRIO BANIDO 🚫'
+
         return super().change_view(
-            request, object_id, form_url, extra_context=extra_context
+            request,
+            object_id,
+            form_url,
+            extra_context=extra_context,
         )
 
 
@@ -536,3 +592,31 @@ class IdentityManagerAdmin(admin.ModelAdmin):
         'agent__email',
         'agent__id',
     ]
+
+
+@admin.register(models.UserBan)
+class UserBanAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'agent',
+        'datetime_created',
+        'subject',
+        'is_revoked',
+    )
+    ordering = ('-datetime_created',)
+    list_filter = [StaffUserListFilter, 'subject', 'is_revoked', 'revoke_subject']
+    search_fields = [
+        'user__email',
+        'user__id',
+        'user__account__steamid',
+        'agent__email',
+        'agent__id',
+        'revoke_agent__email',
+        'revoke_agent__id',
+    ]
+    autocomplete_fields = ['user']
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.agent = request.user
+        super().save_model(request, obj, form, change)

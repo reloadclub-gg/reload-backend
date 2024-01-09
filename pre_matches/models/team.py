@@ -119,20 +119,20 @@ class Team(BaseModel):
             elapsed_time = ceil(mean(queue_times))
 
             if elapsed_time < 30:
-                min = self.overall - 1 if self.overall > 0 else 0
-                max = self.overall + 1
-            elif elapsed_time < 60:
-                min = self.overall - 2 if self.overall > 1 else 0
-                max = self.overall + 2
-            elif elapsed_time < 90:
-                min = self.overall - 3 if self.overall > 2 else 0
+                min = self.overall - 3 if self.overall > 3 else 0
                 max = self.overall + 3
-            elif elapsed_time < 120:
-                min = self.overall - 4 if self.overall > 3 else 0
+            elif elapsed_time < 60:
+                min = self.overall - 4 if self.overall > 4 else 0
                 max = self.overall + 4
-            else:
-                min = self.overall - 5 if self.overall > 4 else 0
+            elif elapsed_time < 90:
+                min = self.overall - 5 if self.overall > 5 else 0
                 max = self.overall + 5
+            elif elapsed_time < 120:
+                min = self.overall - 6 if self.overall > 6 else 0
+                max = self.overall + 6
+            else:
+                min = self.overall - 7 if self.overall > 7 else 0
+                max = self.overall + 7
 
             return min, max
 

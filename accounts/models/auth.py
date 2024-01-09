@@ -82,7 +82,7 @@ class Auth(BaseModel):
         values = cache.mget(keys)
 
         for key, value in zip(keys, values):
-            if int(value) == self.user_id:
+            if key and value and int(value) == self.user_id:
                 return key.split(':')[-1:][0]
 
     def refresh_token(self, seconds: int = Config.SESSION_TTL):

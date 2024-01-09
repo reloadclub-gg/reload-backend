@@ -237,6 +237,8 @@ SOCIAL_AUTH_LOGIN_ERROR_URL = '/accounts/auth/finish/'
 SOCIAL_AUTH_URL_NAMESPACE = 'accounts:auth'
 SOCIAL_AUTH_ALLOW_INACTIVE_USERS_LOGIN = True
 FRONT_END_AUTH_URL = FRONT_END_URL + '/auth/?token={}'
+# New FE URL for Next.js
+# FRONT_END_AUTH_URL = FRONT_END_URL + '/api/auth/?token={}'
 LOGIN_URL = reverse_lazy('admin:login')
 
 
@@ -360,6 +362,7 @@ PAGINATION_PER_PAGE = 10
 
 
 # FiveM Settings
+FIVEM_MATCH_MOCKS_ON = config('FIVEM_MATCH_MOCKS_ON', default=False, cast=bool)
 FIVEM_MATCH_MOCK_CREATION_SUCCESS = config(
     'FIVEM_MATCH_MOCK_CREATION_SUCCESS',
     default=True,

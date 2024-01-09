@@ -227,6 +227,7 @@ class MatchUpdateSchema(Schema):
 class MatchTeamPlayerFiveMSchema(ModelSchema):
     username: str
     steamid: str
+    steamid64: str
     level: int
     avatar: str
     assets: dict = {}
@@ -238,6 +239,10 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
     @staticmethod
     def resolve_steamid(obj):
         return steamid64_to_hex(obj.account.steamid)
+
+    @staticmethod
+    def resolve_steamid64(obj):
+        return obj.account.steamid
 
     @staticmethod
     def resolve_level(obj):

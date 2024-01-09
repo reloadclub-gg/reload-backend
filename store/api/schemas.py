@@ -22,8 +22,9 @@ class ItemMediaSchema(ModelSchema):
 
 
 class ItemSchema(ModelSchema):
-    background_image: str
+    background_image: str = None
     foreground_image: str
+    featured_image: str
     box_id: int = None
     collection_id: int = None
     in_use: bool = None
@@ -37,11 +38,16 @@ class ItemSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.background_image)
+        if obj.background_image:
+            return get_full_file_path(obj.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
         return get_full_file_path(obj.foreground_image)
+
+    @staticmethod
+    def resolve_featured_image(obj):
+        return get_full_file_path(obj.featured_image)
 
     @staticmethod
     def resolve_media(obj):
@@ -59,8 +65,9 @@ class ItemSchema(ModelSchema):
 
 
 class BoxSchema(ModelSchema):
-    background_image: str
+    background_image: str = None
     foreground_image: str
+    featured_image: str
     can_open: bool = None
     object: str = 'box'
     items: List[ItemSchema] = []
@@ -71,11 +78,16 @@ class BoxSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.background_image)
+        if obj.background_image:
+            return get_full_file_path(obj.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
         return get_full_file_path(obj.foreground_image)
+
+    @staticmethod
+    def resolve_featured_image(obj):
+        return get_full_file_path(obj.featured_image)
 
     @staticmethod
     def resolve_items(obj):
@@ -83,8 +95,9 @@ class BoxSchema(ModelSchema):
 
 
 class CollectionSchema(ModelSchema):
-    background_image: str
+    background_image: str = None
     foreground_image: str
+    featured_image: str
     object: str = 'collection'
     items: List[ItemSchema] = []
 
@@ -94,11 +107,16 @@ class CollectionSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.background_image)
+        if obj.background_image:
+            return get_full_file_path(obj.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
         return get_full_file_path(obj.foreground_image)
+
+    @staticmethod
+    def resolve_featured_image(obj):
+        return get_full_file_path(obj.featured_image)
 
     @staticmethod
     def resolve_items(obj):
@@ -108,8 +126,9 @@ class CollectionSchema(ModelSchema):
 class UserItemSchema(ModelSchema):
     id: int
     name: str
-    background_image: str
+    background_image: str = None
     foreground_image: str
+    featured_image: str
     subtype: str = None
     description: str
     release_date: datetime = None
@@ -126,11 +145,16 @@ class UserItemSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return get_full_file_path(obj.item.background_image)
+        if obj.item.background_image:
+            return get_full_file_path(obj.item.background_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
         return get_full_file_path(obj.item.foreground_image)
+
+    @staticmethod
+    def resolve_featured_image(obj):
+        return get_full_file_path(obj.item.featured_image)
 
     @staticmethod
     def resolve_subtype(obj):
@@ -156,8 +180,9 @@ class UserItemSchema(ModelSchema):
 class UserBoxSchema(ModelSchema):
     id: int
     name: str
-    background_image: str
+    background_image: str = None
     foreground_image: str
+    featured_image: str = None
     description: str
     release_date: datetime = None
     box_id: int
@@ -176,11 +201,16 @@ class UserBoxSchema(ModelSchema):
 
     @staticmethod
     def resolve_background_image(obj):
-        return obj.box.background_image
+        if obj.box.background_image:
+            return obj.box.background_image
 
     @staticmethod
     def resolve_foreground_image(obj):
         return obj.box.foreground_image
+
+    @staticmethod
+    def resolve_featured_image(obj):
+        return obj.box.featured_image
 
     @staticmethod
     def resolve_description(obj):

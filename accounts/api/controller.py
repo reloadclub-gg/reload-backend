@@ -20,6 +20,7 @@ from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import BetaUser, Match
 from steam import SteamClient
+from store.models import Item
 
 from .. import tasks, utils, websocket
 from ..models import Account, Auth, Invite, SteamUser, UserLogin
@@ -216,6 +217,9 @@ def verify_account(user: User, verification_token: str) -> User:
 
     if not user.date_email_update:
         tasks.send_welcome_email.delay(user.email)
+        starter_items = Item.objects.filter(is_starter=True)
+        for item in starter_items:
+            user.useritem_set.create(item=item, in_use=True)
 
     # Refresh user instance with updated related account
     user.refresh_from_db()
@@ -228,6 +232,19 @@ def inactivate(user: User) -> User:
     Mark an user as inactive.
     Inactive users shouldn't be able to access any endpoint that requires authentication.
     """
+
+    if (
+        user.account.get_match()
+        or user.account.pre_match
+        or (user.account.lobby and user.account.lobby.queue)
+    ):
+        raise HttpError(
+            400,
+            _(
+                'You can\'t inactivate or delete your account while in queueing or in a match.'
+            ),
+        )
+
     logout(user)
     user.inactivate()
     tasks.send_inactivation_mail.delay(user.email)
@@ -280,6 +297,18 @@ def user_matches(user_id: int) -> Match:
 
 
 def delete_account(user: User) -> dict:
+    if (
+        user.account.get_match()
+        or user.account.pre_match
+        or (user.account.lobby and user.account.lobby.queue)
+    ):
+        raise HttpError(
+            400,
+            _(
+                'You can\'t inactivate or delete your account while in queueing or in a match.'
+            ),
+        )
+
     logout(user)
     user.delete()
     return {'status': 'deleted'}

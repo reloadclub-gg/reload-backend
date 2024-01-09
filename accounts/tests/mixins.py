@@ -92,6 +92,13 @@ class VerifiedAccountsMixin:
     def setUp(self):
         super().setUp()
 
+        self.staff_user = baker.make(
+            User,
+            email='staff@rc.gg',
+            is_active=True,
+            is_staff=True,
+        )
+
         self.user_1 = baker.make(User, email='user_1@example.com', is_active=True)
         create_social_auth(self.user_1)
         baker.make(Account, user=self.user_1, is_verified=True)
