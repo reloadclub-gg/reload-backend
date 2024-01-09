@@ -89,6 +89,7 @@ def handle_create_fivem_match(match: Match) -> Match:
                 timeout=settings.FIVEM_MATCH_CREATION_RETRIES_TIMEOUT,
             )
         except requests.exceptions.Timeout:
+            fivem_response = FiveMMatchResponseMock.from_orm({'status_code': 400})
             logging.warning(f'[handle_create_fivem_match] {match.id}')
 
     return fivem_response
@@ -192,7 +193,11 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
                 return match
             else:
                 match.warmup()
-                if settings.ENVIRONMENT == settings.LOCAL or settings.TEST_MODE:
+                if (
+                    settings.ENVIRONMENT == settings.LOCAL
+                    or settings.TEST_MODE
+                    or settings.FIVEM_MATCH_MOCKS_ON
+                ):
                     if settings.FIVEM_MATCH_MOCK_START_SUCCESS:
                         mock_fivem_match_start.apply_async(
                             (match.id,),
