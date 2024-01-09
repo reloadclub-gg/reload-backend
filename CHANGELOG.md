@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Alteramos o range de níveis necessários para o MM: ao invés de começar buscando por `1` nível abaixo ou acima, começamos buscando por `3` níveis abaixo ou acima do overral do lobby [#951](https://github.com/3C-gg/reload-backend/issues/951).
 - Funcionalidade de ban agora é um histórico. Alteramos o modelo para que todo o histórico de ban de usuário fique registrado.
 - Selects dos inlines do admin de user agora possuem um filtro [#953](https://github.com/3C-gg/reload-backend/issues/953).
 - Lista de partidas do jogador no admin de usuário agora mostra somente as últimas 3 partidas (ordenadas por data de finalização) e um link para ver todas as partidas daquele usuário [#920](https://github.com/3C-gg/reload-backend/issues/920).

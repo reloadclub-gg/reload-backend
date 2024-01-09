@@ -369,7 +369,7 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         self.lobby2.start_queue()
 
         team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
-        self.assertEqual(team.min_max_overall_by_queue_time, (0, 4))
+        self.assertEqual(team.min_max_overall_by_queue_time, (0, 6))
 
     def test_overall_match(self):
         self.lobby1.start_queue()
