@@ -579,22 +579,25 @@ class IdentityManagerAdmin(admin.ModelAdmin):
     ]
 
 
-@admin.register(models.BannedUser)
-class BannedUserAdmin(admin.ModelAdmin):
+@admin.register(models.UserBan)
+class UserBanAdmin(admin.ModelAdmin):
     list_display = (
         'user',
         'agent',
         'datetime_created',
         'subject',
+        'is_revoked',
     )
     ordering = ('-datetime_created',)
-    list_filter = [StaffUserListFilter, 'subject']
+    list_filter = [StaffUserListFilter, 'subject', 'is_revoked', 'revoke_subject']
     search_fields = [
         'user__email',
         'user__id',
         'user__account__steamid',
         'agent__email',
         'agent__id',
+        'revoke_agent__email',
+        'revoke_agent__id',
     ]
     autocomplete_fields = ['user']
 

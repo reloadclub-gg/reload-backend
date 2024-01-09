@@ -21,12 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Funcionalidade de ban agora é um histórico. Alteramos o modelo para que todo o histórico de ban de usuário fique registrado.
 - Selects dos inlines do admin de user agora possuem um filtro [#953](https://github.com/3C-gg/reload-backend/issues/953).
 - Lista de partidas do jogador no admin de usuário agora mostra somente as últimas 3 partidas (ordenadas por data de finalização) e um link para ver todas as partidas daquele usuário [#920](https://github.com/3C-gg/reload-backend/issues/920).
 - Os backgrounds de itens da loja não são mais obrigatórios. Agora é possível cadastrar itens na loja sem imagens de fundo [#933](https://github.com/3C-gg/reload-backend/issues/933).
 
 ### Fixed
 
+- Ao banir um usuário não estava sendo enviado um websocket para ele e seus amigos no FE. Corrigimos isso [#964](https://github.com/3C-gg/reload-backend/issues/964).
 - Corrige ordem dos itens do inventário do usuário [#943](https://github.com/3C-gg/reload-backend/issues/943).
 - Corrige itens sendo desmarcados de uso ao adquirir novo item.
 - Corrige datas sem localização do admin.

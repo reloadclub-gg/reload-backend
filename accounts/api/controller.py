@@ -217,13 +217,12 @@ def verify_account(user: User, verification_token: str) -> User:
 
     if not user.date_email_update:
         tasks.send_welcome_email.delay(user.email)
+        starter_items = Item.objects.filter(is_starter=True)
+        for item in starter_items:
+            user.useritem_set.create(item=item, in_use=True)
 
     # Refresh user instance with updated related account
     user.refresh_from_db()
-
-    starter_items = Item.objects.filter(is_starter=True)
-    for item in starter_items:
-        user.useritem_set.create(item=item, in_use=True)
 
     return user
 
