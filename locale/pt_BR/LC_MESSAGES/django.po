@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-09 19:12-0300\n"
+"POT-Creation-Date: 2024-01-09 19:14-0300\n"
 "PO-Revision-Date: 2023-12-07 12:48-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,45 +19,45 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Translated-Using: django-rosetta 0.9.9\n"
 
-#: accounts/admin.py:239
+#: accounts/admin.py:248
 msgid "ACCOUNT"
 msgstr "CONTA"
 
-#: accounts/admin.py:257
+#: accounts/admin.py:266
 msgid "STATUSES"
 msgstr "STATUS"
 
-#: accounts/admin.py:271
+#: accounts/admin.py:280
 msgid "ACTIVATION"
 msgstr "ATIVAÇÃO"
 
-#: accounts/admin.py:419
+#: accounts/admin.py:428
 msgid "Assume Identity"
 msgstr "Assumir Identidade"
 
-#: accounts/admin.py:420
+#: accounts/admin.py:429
 msgid "Assume a user identity and use the application as the user"
 msgstr ""
 "Assuma a identidade de um usuário e utiliza a aplicação como se fosse ele"
 
-#: accounts/api/controller.py:37 accounts/api/controller.py:43
-#: accounts/api/controller.py:52 lobbies/models/lobby.py:348
+#: accounts/api/controller.py:38 accounts/api/controller.py:44
+#: accounts/api/controller.py:53 lobbies/models/lobby.py:348
 msgid "User must be invited."
 msgstr "Usuário deve ser convidado."
 
-#: accounts/api/controller.py:167
+#: accounts/api/controller.py:168
 msgid "User already has an account."
 msgstr "Usuário já possui uma conta."
 
-#: accounts/api/controller.py:172 accounts/api/controller.py:186
+#: accounts/api/controller.py:173 accounts/api/controller.py:187
 msgid "Unable to create account."
 msgstr "Não foi possível criar uma conta para esse usuário."
 
-#: accounts/api/controller.py:212 accounts/api/schemas.py:182
+#: accounts/api/controller.py:213 accounts/api/schemas.py:182
 msgid "Invalid verification token."
 msgstr "Código de verificação inválido."
 
-#: accounts/api/controller.py:240 accounts/api/controller.py:304
+#: accounts/api/controller.py:244 accounts/api/controller.py:308
 #, fuzzy
 #| msgid "Can't ready in for a new match while in a match."
 msgid ""
@@ -66,7 +66,7 @@ msgstr ""
 "Não é possível desativar ou excluir sua conta enquanto estiver na fila ou em "
 "uma partida."
 
-#: accounts/api/controller.py:255 accounts/api/controller.py:269
+#: accounts/api/controller.py:259 accounts/api/controller.py:273
 msgid "Unable to update e-mail."
 msgstr "Não foi possível atualizar o email."
 
@@ -716,12 +716,12 @@ msgstr ""
 "partida foi cancelada. A recorrência dessa conduta pode resultar em "
 "restrições."
 
-#: pre_matches/api/controller.py:175
+#: pre_matches/api/controller.py:176
 msgid "Can't ready in for a new match while in a match."
 msgstr ""
 "Não é possível entrar em uma nova partida enquanto estiver em uma partida."
 
-#: pre_matches/api/controller.py:180
+#: pre_matches/api/controller.py:181
 msgid "Player already set as ready."
 msgstr "Jogador já foi marcado como pronto."
 
@@ -788,11 +788,11 @@ msgstr "Fundos insuficientes."
 msgid "Cannot process purchase."
 msgstr "Não foi possível processar a compra."
 
-#: store/models.py:191
+#: store/models.py:192
 msgid "The total sum of items on this box cannot be greater then 100%."
 msgstr "A soma total dos itens da caixa não podem ultrapassar 100%"
 
-#: store/models.py:196
+#: store/models.py:197
 msgid "Decorative must have a decorative image."
 msgstr "Itens decorativos precisam ter uma imagem decorativa."
 
