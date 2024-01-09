@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrigimos a limitação da quantidade de partidas exibidas no admin de usuário [#920](https://github.com/3C-gg/reload-backend/issues/920).
 - Ao banir um usuário não estava sendo enviado um websocket para ele e seus amigos no FE. Corrigimos isso [#964](https://github.com/3C-gg/reload-backend/issues/964).
 - Corrigimos um erro que fazia com que a partida fake não estava sendo iniciada corretamente [#966](https://github.com/3C-gg/reload-backend/issues/966).
 - Corrige ordem dos itens do inventário do usuário [#943](https://github.com/3C-gg/reload-backend/issues/943).
