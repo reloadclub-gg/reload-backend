@@ -23,8 +23,8 @@ class UserAddForm(UserCreationForm):
         user.save()
         username = self.cleaned_data['username']
         steamid = self.cleaned_data['steamid']
-        UserSocialAuth.objects.filter(steamid=steamid).delete()
-        User.objects.filter(social_auth__uid=steamid, account__is_null=True).delete()
+        User.objects.filter(social_auth__uid=steamid, account__isnull=True).delete()
+        UserSocialAuth.objects.filter(uid=steamid).delete()
         create_social_auth(user, username=username, steamid=steamid)
         account = Account.objects.create(user=user, steamid=steamid, username=username)
         send_verify_email.delay(user.email, username, account.verification_token)

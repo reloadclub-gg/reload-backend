@@ -1,3 +1,6 @@
+from datetime import timedelta
+from unittest import mock
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -530,3 +533,40 @@ class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):
         auth.add_session()
         auth.expire_session()
         self.assertEqual(auth.sessions_ttl, models.Auth.Config.SESSION_GAP_TTL)
+
+
+class AccountsUserBanTestCase(mixins.VerifiedAccountsMixin, TestCase):
+    @mock.patch('accounts.signals.websocket.ws_update_user')
+    @mock.patch('accounts.signals.websocket.ws_update_status_on_friendlist')
+    def test_user_ban(self, mock_ws_friendlist, mock_ws_user):
+        self.assertTrue(self.user_1.is_active)
+        self.assertIsNone(self.user_1.date_inactivation)
+        self.assertIsNone(self.user_1.reason_inactivated)
+
+        ban = models.UserBan.objects.create(
+            user=self.user_1,
+            agent=self.staff_user,
+            datetime_end=timezone.now() + timedelta(days=9999),
+            subject=models.UserBan.Subject.CHEATING,
+            description='was cheating',
+        )
+
+        self.assertFalse(self.user_1.is_active)
+        self.assertIsNotNone(self.user_1.date_inactivation)
+        self.assertIsNotNone(self.user_1.reason_inactivated)
+        self.assertEqual(
+            self.user_1.reason_inactivated,
+            models.User.InactivationReason.USER_BAN,
+        )
+
+        ban.is_revoked = True
+        ban.revoke_agent = self.staff_user
+        ban.revoke_subject = models.UserBan.RevokeSubject.LAST_CHANCE
+        ban.save()
+
+        self.assertTrue(self.user_1.is_active)
+        self.assertIsNone(self.user_1.date_inactivation)
+        self.assertIsNone(self.user_1.reason_inactivated)
+
+        self.assertEqual(mock_ws_user.call_count, 2)
+        self.assertEqual(mock_ws_friendlist.call_count, 2)
