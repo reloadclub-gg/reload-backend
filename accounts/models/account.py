@@ -143,18 +143,25 @@ class Account(models.Model):
 
     @property
     def friends(self):
-        friendships = Friendship.objects.filter(
-            models.Q(user_from=self.user) | models.Q(user_to=self.user),
-            accept_date__isnull=False,
-        )
-        friends = []
-        for friendship in friendships:
-            friends.append(
-                friendship.user_from.account
-                if friendship.user_from != self.user
-                else friendship.user_to.account
+        if settings.APP_GLOBAL_FRIENDSHIP:
+            return Account.objects.filter(
+                user__is_active=True,
+                is_verified=True,
+                user__is_staff=False,
+            ).exclude(id=self.id)
+        else:
+            friendships = Friendship.objects.filter(
+                models.Q(user_from=self.user) | models.Q(user_to=self.user),
+                accept_date__isnull=False,
             )
-        return friends
+            friends = []
+            for friendship in friendships:
+                friends.append(
+                    friendship.user_from.account
+                    if friendship.user_from != self.user
+                    else friendship.user_to.account
+                )
+            return friends
 
     def __str__(self):
         return self.user.email

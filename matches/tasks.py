@@ -13,7 +13,11 @@ from . import models
 
 @shared_task
 def mock_fivem_match_start(match_id: int):
-    if settings.ENVIRONMENT != settings.LOCAL and not settings.FIVEM_MATCH_MOCKS_ON:
+    if (
+        settings.ENVIRONMENT != settings.LOCAL
+        and not settings.FIVEM_MATCH_MOCKS_ON
+        or settings.TEST_MODE
+    ):
         return
 
     if settings.ENVIRONMENT == settings.LOCAL:
@@ -30,7 +34,11 @@ def mock_fivem_match_start(match_id: int):
 
 @shared_task
 def mock_fivem_match_cancel(match_id: int):
-    if settings.ENVIRONMENT != settings.LOCAL and not settings.FIVEM_MATCH_MOCKS_ON:
+    if (
+        settings.ENVIRONMENT != settings.LOCAL
+        and not settings.FIVEM_MATCH_MOCKS_ON
+        or settings.TEST_MODE
+    ):
         return
 
     if settings.ENVIRONMENT == settings.LOCAL:

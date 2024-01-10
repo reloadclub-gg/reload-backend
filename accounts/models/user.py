@@ -221,6 +221,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     def online_users():
         return User.objects.filter(~Q(status=User.Status.OFFLINE))
 
+    @staticmethod
+    def active_verified_users(exclude_ids=[]):
+        qs = User.objects.filter(
+            account__isnull=False,
+            is_active=True,
+            account__is_verified=True,
+        )
+
+        if exclude_ids:
+            qs.exclude(id__in=exclude_ids)
+
+        return qs
+
 
 class UserLogin(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
