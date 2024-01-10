@@ -26,7 +26,7 @@ def list(user: User) -> dict:
             user__is_active=True,
             is_verified=True,
             user__is_staff=False,
-        )
+        ).exclude(id=user.account.id)
     else:
         friends = user.account.friends
 
