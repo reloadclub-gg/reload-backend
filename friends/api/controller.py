@@ -21,7 +21,7 @@ User = get_user_model()
 def list(user: User) -> dict:
     online_friends, offline_friends = [], []
 
-    if settings.DEBUG:
+    if settings.APP_GLOBAL_FRIENDSHIP:
         friends = Account.objects.filter(
             user__is_active=True,
             is_verified=True,
