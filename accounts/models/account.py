@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 
 from django.conf import settings
@@ -207,8 +208,7 @@ class Account(models.Model):
         )
 
         if active_matches.count() > 1:
-            # TODO send alert to admin
-            raise ValidationError(_('User should not be in more than one match.'))
+            logging.error(_('User should not be in more than one match.'))
 
         match_player = active_matches.first()
         if match_player is not None:
