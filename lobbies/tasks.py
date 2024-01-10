@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from accounts.websocket import ws_update_user
 from pre_matches.api.controller import cancel_pre_match
-from pre_matches.models import PreMatch, Team
+from pre_matches.models import PreMatch, PreMatchException, Team
 from pre_matches.websocket import ws_pre_match_create
 
 from . import models
@@ -50,11 +50,12 @@ def log_teaming_info():
     logging.info(separator_line)
 
 
-def handle_match_found(team: Team, opponent: Team):
-    lobbies = team.lobbies + opponent.lobbies
-    user_ids = [player_id for lobby in lobbies for player_id in lobby.players_ids]
-    users = User.objects.filter(id__in=user_ids)
-
+def handle_match_found_checks(
+    users: List[User],
+    team: Team,
+    opponent: Team,
+    lobbies: List[models.Lobby],
+):
     for user in users:
         if user.account.get_match() is not None or user.account.pre_match:
             logging.warning(
@@ -109,13 +110,27 @@ def handle_match_found(team: Team, opponent: Team):
         lobby.cancel_queue()
         ws_update_lobby(lobby)
 
-    pre_match = PreMatch.create(
-        team.id,
-        opponent.id,
-        lobbies[0].lobby_type,
-        lobbies[0].mode,
-    )
-    ws_pre_match_create(pre_match)
+
+def handle_match_found(team: Team, opponent: Team):
+    lobbies = team.lobbies + opponent.lobbies
+    user_ids = [player_id for lobby in lobbies for player_id in lobby.players_ids]
+    users = User.objects.filter(id__in=user_ids)
+
+    handle_match_found_checks(users, team, opponent, lobbies)
+
+    try:
+        pre_match = PreMatch.create(
+            team.id,
+            opponent.id,
+            lobbies[0].lobby_type,
+            lobbies[0].mode,
+        )
+        ws_pre_match_create(pre_match)
+
+    except PreMatchException as e:
+        players_count = team.players_count + opponent.players_count
+        logging.warning(f'[handle_match_found] {e} ({players_count})')
+        return
 
 
 def handle_matchmaking():
@@ -143,24 +158,6 @@ def handle_teaming():
 
             else:
                 team = Team.create([lobby.id])
-
-        # else:
-        #     for team in unready_teams:
-        #         print(team.lobbies_ids, team.players_count)
-        #         if team.id != lobby_team.id:
-        #             players_length = team.players_count + lobby.players_count
-        #             if (
-        #                 players_length <= settings.TEAM_READY_PLAYERS_MIN
-        #                 and players_length > lobby_team.players_count
-        #             ):
-        #                 if (
-        #                     lobby.queue
-        #                     and lobby.players_count >= 1
-        #                     and not lobby_team.pre_match_id
-        #                     and not team.pre_match_id
-        #                 ):
-        #                     lobby_team.remove_lobby(lobby.id)
-        #                     team.add_lobby(lobby.id)
 
     log_teaming_info()
 
