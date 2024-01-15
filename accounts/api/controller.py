@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.utils import IntegrityError
@@ -15,6 +16,7 @@ from appsettings.services import (
 )
 from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string, get_ip_address
+from friends.websocket import ws_friends_add
 from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
@@ -215,14 +217,18 @@ def verify_account(user: User, verification_token: str) -> User:
     account.is_verified = True
     account.save()
 
+    # Refresh user instance with updated related account
+    user.refresh_from_db()
+
     if not user.date_email_update:
         tasks.send_welcome_email.delay(user.email)
         starter_items = Item.objects.filter(is_starter=True)
         for item in starter_items:
             user.useritem_set.create(item=item, in_use=True)
 
-    # Refresh user instance with updated related account
-    user.refresh_from_db()
+        if settings.APP_GLOBAL_FRIENDSHIP:
+            for user in User.active_verified_users([account.user.id]):
+                ws_friends_add(account.user, user)
 
     return user
 
