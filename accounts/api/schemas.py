@@ -97,7 +97,7 @@ class UserSchema(ModelSchema):
     @staticmethod
     def resolve_pre_match_id(obj):
         if hasattr(obj, 'account'):
-            if obj.account.pre_match:
+            if obj.account.pre_match is not None:
                 return obj.account.pre_match.id
 
         return None

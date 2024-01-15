@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Novo método no modelo `User`: `active_verified_users` que retorna todos os usuários ativos e verificados.
+- Nova configuração `APP_GLOBAL_FRIENDSHIP` que determina se todos usuários cadastrados são amigos.
 - Campo `is_starter` no modelo `Item` para identificar os itens que devem ser atribuídos automaticamente aos jogadores assim que verificarem a conta [#961](https://github.com/3C-gg/reload-backend/issues/961).
 - Passamos a não permitir que o usuário desative ou exclua sua conta enquanto estiver na fila, com partida encontrada ou em uma partida [#950](https://github.com/3C-gg/reload-backend/issues/950).
 - Detalhes de inativação do usuário no admin.
@@ -29,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Remove alguns erros que estavam sendo levantados e não estavam sendo tratados, atrapalhando a experiência do usuário e poluindo o Sentry [#929](https://github.com/3C-gg/reload-backend/issues/929).
 - Corrigimos a limitação da quantidade de partidas exibidas no admin de usuário [#920](https://github.com/3C-gg/reload-backend/issues/920).
 - Ao banir um usuário não estava sendo enviado um websocket para ele e seus amigos no FE. Corrigimos isso [#964](https://github.com/3C-gg/reload-backend/issues/964).
 - Corrigimos um erro que fazia com que a partida fake não estava sendo iniciada corretamente [#966](https://github.com/3C-gg/reload-backend/issues/966).

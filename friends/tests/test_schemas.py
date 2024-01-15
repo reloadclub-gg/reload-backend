@@ -1,3 +1,5 @@
+from django.test import override_settings
+
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
 from friends.api.schemas import FriendListSchema, FriendSchema
@@ -22,6 +24,24 @@ class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(payload, expected_payload)
 
     def test_friend_list_schema(self):
+        payload = FriendListSchema.from_orm(
+            {
+                'requests': {'received': [], 'sent': []},
+                'online': self.user_1.account.get_online_friends(),
+                'offline': [
+                    friend
+                    for friend in self.user_1.account.friends
+                    if not friend.user.is_online
+                ],
+            }
+        ).dict()
+        online_friends_count = len(self.user_1.account.get_online_friends())
+        offline_friends_count = len(self.user_1.account.friends) - online_friends_count
+        self.assertEqual(len(payload.get('online')), online_friends_count)
+        self.assertEqual(len(payload.get('offline')), offline_friends_count)
+
+    @override_settings(APP_GLOBAL_FRIENDSHIP=False)
+    def test_friend_list_schema_no_friends(self):
         self.user_2.add_session()
         self.user_3.add_session()
         payload = FriendListSchema.from_orm(
@@ -35,5 +55,7 @@ class FriendsSchemasTestCase(VerifiedAccountsMixin, TestCase):
                 ],
             }
         ).dict()
-        self.assertEqual(len(payload.get('online')), 0)
-        self.assertEqual(len(payload.get('offline')), 0)
+        online_friends_count = len(self.user_1.account.get_online_friends())
+        offline_friends_count = len(self.user_1.account.friends) - online_friends_count
+        self.assertEqual(len(payload.get('online')), online_friends_count)
+        self.assertEqual(len(payload.get('offline')), offline_friends_count)
