@@ -1,5 +1,6 @@
 from accounts.tests.mixins import VerifiedAccountsMixin
 from core.tests import TestCase
+from friends.api.schemas import FriendSchema
 from profiles.api import controller, schemas
 
 
@@ -35,4 +36,20 @@ class ProfilesControllerTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(
             self.user_1.account.social_handles,
             {'twitch': None, 'discord': None, 'youtube': None},
+        )
+
+    def test_search(self):
+        result = controller.search(self.user_1.account.username)
+        self.assertEqual(result, [FriendSchema.from_orm(self.user_1.account)])
+
+        result = controller.search('user_')
+        self.assertEqual(len(result), 25)
+
+        result = controller.search('@example')
+        self.assertEqual(len(result), 26)
+
+        result = controller.search('offline_verified_user')
+        self.assertEqual(
+            result,
+            [FriendSchema.from_orm(self.offline_verified_user.account)],
         )
