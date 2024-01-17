@@ -1,7 +1,10 @@
+from typing import List
+
 from django.contrib.auth import get_user_model
 from ninja import Router
 
 from accounts.api.authentication import VerifiedRequiredAuth
+from friends.api.schemas import FriendSchema
 
 from . import controller
 from .schemas import ProfileSchema, ProfileUpdateSchema
@@ -19,3 +22,8 @@ def detail(request, user_id: int = None, steamid: str = None, username: str = No
 @router.patch('/', auth=VerifiedRequiredAuth(), response={200: ProfileSchema})
 def update(request, payload: ProfileUpdateSchema):
     return controller.update(request.user, payload)
+
+
+@router.get('/search', auth=VerifiedRequiredAuth(), response={200: List[FriendSchema]})
+def search(request, query: str):
+    return controller.search(query)

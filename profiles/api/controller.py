@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from accounts.models import Account
+from friends.api.schemas import FriendSchema
 
 from . import schemas
 
@@ -34,3 +36,13 @@ def update(user: User, payload: schemas.ProfileUpdateSchema):
     user.account.social_handles.update(valid_handles)
     user.account.save()
     return user.account
+
+
+def search(query: str):
+    qs = Account.objects.filter(
+        Q(username__contains=query) | Q(user__email__contains=query),
+        user__is_active=True,
+        is_verified=True,
+        user__is_staff=False,
+    )
+    return [FriendSchema.from_orm(account) for account in qs]

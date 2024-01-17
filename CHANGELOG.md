@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint para pesquisar usuários por username ou e-mail [#980](https://github.com/3C-gg/reload-backend/issues/980).
+
+## [8c3f0e0 - 15/1/2024]
+
+### Added
+
 - Novo método no modelo `User`: `active_verified_users` que retorna todos os usuários ativos e verificados.
 - Nova configuração `APP_GLOBAL_FRIENDSHIP` que determina se todos usuários cadastrados são amigos.
 - Campo `is_starter` no modelo `Item` para identificar os itens que devem ser atribuídos automaticamente aos jogadores assim que verificarem a conta [#961](https://github.com/3C-gg/reload-backend/issues/961).
