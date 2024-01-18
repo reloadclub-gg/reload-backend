@@ -120,6 +120,35 @@ class Item(models.Model):
         ATA = 'ata'
         CARD = 'card'
         PROFILE = 'profile'
+        PISTOLS = 'pistols'
+        SMGS = 'smgs'
+        SHOTGUNS = 'shotguns'
+        MACHINEGUNS = 'machineguns'
+        RIFLES = 'rifles'
+
+    class Weapon(models.TextChoices):
+        PISTOLA = 'Pistola'
+        RAPIDINHA = 'Rapidinha'
+        NOVIDADE = '9idade'
+        TRINTA_E_OITO = 'Trinta e Oito'
+        MICRO = 'Micro'
+        NOVA = 'Nova'
+        DOZE = 'Doze'
+        BULL = 'Bull'
+        RAMBINHO = 'Rambinho'
+        RAMBAO = 'Rambão'
+        AK = 'AK'
+        M4 = 'M4'
+        TECO_TECO = 'Teco-Teco'
+        SNIPER = 'Sniper'
+
+    WEAPON_TYPES = {
+        'pistols': ['Pistola', 'Rapidinha', '9idade', 'Trinta e Oito'],
+        'smgs': ['Micro', 'Nova'],
+        'shotguns': ['Doze', 'Bull'],
+        'machineguns': ['Rambinho', 'Rambão'],
+        'rifles': ['AK', 'M4', 'Teco-Teco', 'Sniper'],
+    }
 
     owners = models.ManyToManyField(User, through='UserItem')
     name = models.CharField(max_length=128)
@@ -127,6 +156,12 @@ class Item(models.Model):
     subtype = models.CharField(
         max_length=32,
         choices=SubType.choices,
+        null=True,
+        blank=True,
+    )
+    weapon = models.CharField(
+        max_length=32,
+        choices=Weapon.choices,
         null=True,
         blank=True,
     )
@@ -191,10 +226,6 @@ class Item(models.Model):
                 raise ValidationError(
                     _('The total sum of items on this box cannot be greater then 100%.')
                 )
-
-        if self.item_type == Item.ItemType.DECORATIVE:
-            if not self.decorative_image:
-                raise ValidationError(_('Decorative must have a decorative image.'))
 
         super().save(*args, **kwargs)
 
