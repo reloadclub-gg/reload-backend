@@ -173,6 +173,10 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
             localtime = timezone.localtime(obj.end_date)
             return date_format(localtime, 'SHORT_DATETIME_FORMAT')
 
+    formatted_create_date.admin_order_field = 'create_date'
+    formatted_start_date.admin_order_field = 'start_date'
+    formatted_end_date.admin_order_field = 'end_date'
+
 
 @admin.register(models.MatchTeam)
 class MatchTeamAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):

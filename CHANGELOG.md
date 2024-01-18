@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ajusta ordenação na lista de partidas do admin [#988](https://github.com/3C-gg/reload-backend/issues/988).
 - Corrige método que lista produtos do Stripe para trazer somente produtos ativos (não arquivados) [#983](https://github.com/3C-gg/reload-backend/issues/983).
 
 ### Added
