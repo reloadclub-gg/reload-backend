@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-09 19:14-0300\n"
-"PO-Revision-Date: 2023-12-07 12:48-0300\n"
+"POT-Creation-Date: 2024-01-18 13:35-0300\n"
+"PO-Revision-Date: 2024-01-18 13:38-0300\n"
 "Last-Translator: Anonymous User <dev@3c.gg>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -40,33 +40,32 @@ msgid "Assume a user identity and use the application as the user"
 msgstr ""
 "Assuma a identidade de um usuário e utiliza a aplicação como se fosse ele"
 
-#: accounts/api/controller.py:38 accounts/api/controller.py:44
-#: accounts/api/controller.py:53 lobbies/models/lobby.py:348
+#: accounts/api/controller.py:40 accounts/api/controller.py:46
+#: accounts/api/controller.py:55 lobbies/models/lobby.py:348
 msgid "User must be invited."
 msgstr "Usuário deve ser convidado."
 
-#: accounts/api/controller.py:168
+#: accounts/api/controller.py:170
 msgid "User already has an account."
 msgstr "Usuário já possui uma conta."
 
-#: accounts/api/controller.py:173 accounts/api/controller.py:187
+#: accounts/api/controller.py:175 accounts/api/controller.py:189
 msgid "Unable to create account."
 msgstr "Não foi possível criar uma conta para esse usuário."
 
-#: accounts/api/controller.py:213 accounts/api/schemas.py:182
+#: accounts/api/controller.py:215 accounts/api/schemas.py:182
 msgid "Invalid verification token."
 msgstr "Código de verificação inválido."
 
-#: accounts/api/controller.py:244 accounts/api/controller.py:308
-#, fuzzy
+#: accounts/api/controller.py:250 accounts/api/controller.py:314
 #| msgid "Can't ready in for a new match while in a match."
 msgid ""
 "You can't inactivate or delete your account while in queueing or in a match."
 msgstr ""
-"Não é possível desativar ou excluir sua conta enquanto estiver na fila ou em "
-"uma partida."
+"Não é possível desativar ou excluir sua conta enquanto estiver na fila ou em"
+" uma partida."
 
-#: accounts/api/controller.py:259 accounts/api/controller.py:273
+#: accounts/api/controller.py:265 accounts/api/controller.py:279
 msgid "Unable to update e-mail."
 msgstr "Não foi possível atualizar o email."
 
@@ -91,24 +90,24 @@ msgstr "Usuário já foi convidado."
 msgid "User has already been registered."
 msgstr "Usuário já se cadastrou."
 
-#: accounts/models/account.py:175
+#: accounts/models/account.py:183
 msgid "Steam account not found."
 msgstr "Conta Steam não encontrada."
 
-#: accounts/models/account.py:204
+#: accounts/models/account.py:211
 msgid "User should not be in more than one match."
 msgstr "Usuário não pode estar em mais de uma partida ao mesmo tempo."
 
-#: accounts/models/account.py:316
+#: accounts/models/account.py:323
 #, python-brace-format
 msgid "Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT})."
 msgstr "Máximo número de convites atingido ({self.MAX_INVITES_PER_ACCOUNT})."
 
-#: accounts/models/account.py:320
+#: accounts/models/account.py:327
 msgid "Accepted invites cannot be modified."
 msgstr "Convites aceitos não podem ser modificados."
 
-#: accounts/models/account.py:323
+#: accounts/models/account.py:330
 msgid "An invite already exists for this email."
 msgstr "Já existe um convite para este e-mail."
 
@@ -137,8 +136,8 @@ msgstr[1] "Por favor, corrija o erro abaixo."
 #: accounts/templates/registration/login.html:39
 #, python-format
 msgid ""
-"You are authenticated as %(username)s, but are not authorized to access this "
-"page. Would you like to login to a different account?"
+"You are authenticated as %(username)s, but are not authorized to access this"
+" page. Would you like to login to a different account?"
 msgstr ""
 "Você está autenticado como %(username)s, mas não está autorizado a acessar "
 "essa página. Você gostaria de fazer o login com uma conta diferente?"
@@ -504,8 +503,7 @@ msgstr "Tamanho para um {}."
 
 #: core/api/pydantic_messages.py:125
 msgid "could not parse value and unit from byte string"
-msgstr ""
-"Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
+msgstr "Não foi possível converter o valor e unidade de \"byte\" para \"string\"."
 
 #: core/api/pydantic_messages.py:127
 msgid "could not interpret byte unit: {}"
@@ -546,8 +544,8 @@ msgid ""
 "We found multiple users with this username.Try add by email or contact us "
 "for further help."
 msgstr ""
-"Encontramos mais de um usuário com esse email. Tente adicionar por e-mail ou "
-"entre em contato para mais ajuda."
+"Encontramos mais de um usuário com esse email. Tente adicionar por e-mail ou"
+" entre em contato para mais ajuda."
 
 #: friends/api/controller.py:77
 #, python-brace-format
@@ -563,10 +561,9 @@ msgid "Friendship already exists."
 msgstr "Amizade já existe."
 
 #: friends/models.py:45
-#, fuzzy
 #| msgid "User must be invited."
 msgid "Users must have verified accounts."
-msgstr "Usuário deve ser convidado."
+msgstr "Usuários precisam ter suas contas verificadas."
 
 #: friends/tasks.py:19
 msgid "Your friend {} just joined ReloadClub!"
@@ -583,7 +580,6 @@ msgid "We are under maintenance. Try again later."
 msgstr "Estamos em manutenção. Tente novamente mais tarde."
 
 #: lobbies/api/controller.py:212
-#, fuzzy
 #| msgid "Lobby not found."
 msgid "Lobby not found"
 msgstr "Lobby não encontrado."
@@ -746,30 +742,20 @@ msgid "Team players count exceeded."
 msgstr "A quantidade de jogadores em time foi excedida."
 
 #: pre_matches/models/team.py:251
-#, fuzzy
 #| msgid "Lobby not queued."
 msgid "Lobbies not queued"
-msgstr "Lobby não está em fila."
+msgstr "Lobbies não estão em fila."
 
-#: pre_matches/models/team.py:265 pre_matches/models/team.py:289
-msgid "Lobby already on a team."
-msgstr "O lobby já está em um time."
-
-#: pre_matches/models/team.py:269 pre_matches/models/team.py:293
-msgid "Lobby not queued."
-msgstr "Lobby não está em fila."
-
-#: pre_matches/models/team.py:352
-#, fuzzy
+#: pre_matches/models/team.py:274
 #| msgid "Lobby not queued."
 msgid "Lobby not queued"
 msgstr "Lobby não está em fila."
 
-#: pre_matches/models/team.py:356
+#: pre_matches/models/team.py:278
 msgid "Team is full. Can't add a lobby."
 msgstr "O time está cheio. Não é possível adicionar um novo lobby."
 
-#: pre_matches/models/team.py:377
+#: pre_matches/models/team.py:299
 msgid "Can't remove a lobby while in pre_match."
 msgstr "Não é possível remover um lobby de um time enquanto está em partida."
 
@@ -788,13 +774,40 @@ msgstr "Fundos insuficientes."
 msgid "Cannot process purchase."
 msgstr "Não foi possível processar a compra."
 
-#: store/models.py:192
-msgid "The total sum of items on this box cannot be greater then 100%."
-msgstr "A soma total dos itens da caixa não podem ultrapassar 100%"
+#: store/forms.py:31
+msgid "Weapon subtype must be one of the following: "
+msgstr "O subtipo de Arma precisa ser um dos seguintes: "
 
-#: store/models.py:197
+#: store/forms.py:37
+msgid "Weapon must be one of the following: "
+msgstr "A arma precisa ser uma das seguintes: "
+
+#: store/forms.py:43
 msgid "Decorative must have a decorative image."
 msgstr "Itens decorativos precisam ter uma imagem decorativa."
+
+#: store/forms.py:51
+msgid "Decorative subtype must be one of the following: "
+msgstr "O subtipo de Decorativo precisa ser um dos seguintes: "
+
+#: store/forms.py:59
+msgid "Wear subtype must be one of the following: "
+msgstr "O subtipo de Roupa precisa ser um dos seguintes: "
+
+#: store/forms.py:64
+msgid "To select a weapon, item must be a weapon type."
+msgstr "Para selecionar uma arma, o item precisa ser do tipo Arma."
+
+#: store/forms.py:68
+#| msgid "Decorative must have a decorative image."
+msgid "To upload a decorative image, item must be a decorative type."
+msgstr ""
+"Para fazer upload de uma imagem decorativa, o item precisa ser do tipo "
+"Decorativo."
+
+#: store/models.py:227
+msgid "The total sum of items on this box cannot be greater then 100%."
+msgstr "A soma total dos itens da caixa não podem ultrapassar 100%"
 
 #: support/api/controller.py:72
 #, python-brace-format
@@ -807,10 +820,4 @@ msgstr "Assunto de ticket inválido."
 
 #: support/api/schemas.py:38
 msgid "\"report_user_id\" field cannot be blank for this subject."
-msgstr ""
-"O campo \"report_user_id\" não pode ser vazio para esse tipo de ticket."
-
-#, fuzzy
-#~| msgid "A verified account is required to perform this action."
-#~ msgid "You must be verified to perform this action."
-#~ msgstr "Uma conta verificada é necessária para realizar esta ação."
+msgstr "O campo \"report_user_id\" não pode ser vazio para esse tipo de ticket."
