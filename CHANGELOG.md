@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Envio de websocket para FE quando um pedido de amizade for recusado [#982](https://github.com/3C-gg/reload-backend/issues/982).
 - Endpoint para pesquisar usuários por username ou e-mail [#980](https://github.com/3C-gg/reload-backend/issues/980).
 
 ## [8c3f0e0 - 15/1/2024]
