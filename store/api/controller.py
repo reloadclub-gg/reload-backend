@@ -340,7 +340,7 @@ def fetch_price(price_id: str):
 
 
 def fetch_products():
-    products = stripe.Product.list().get('data')
+    products = stripe.Product.list(active=True).get('data')
     reduced_products = [
         {
             'id': product.get('id'),

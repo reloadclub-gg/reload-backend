@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrige método que lista produtos do Stripe para trazer somente produtos ativos (não arquivados) [#983](https://github.com/3C-gg/reload-backend/issues/983).
+
 ### Added
 
 - Envio de websocket para FE quando um pedido de amizade for recusado [#982](https://github.com/3C-gg/reload-backend/issues/982).
