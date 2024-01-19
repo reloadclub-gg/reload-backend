@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campos `weapon` e `media` esquema de inventário do usuário [#990](https://github.com/3C-gg/reload-backend/issues/990).
 - Campo `weapon` no modelo `Item`. Também adicionamos verificações a nível de formulário no admin para adição de itens [#984](https://github.com/3C-gg/reload-backend/issues/984).
 - Envio de websocket para FE quando um pedido de amizade for recusado [#982](https://github.com/3C-gg/reload-backend/issues/982).
 - Endpoint para pesquisar usuários por username ou e-mail [#980](https://github.com/3C-gg/reload-backend/issues/980).
