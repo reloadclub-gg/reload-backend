@@ -217,6 +217,10 @@ class VerifiedAccountsMixin:
         create_social_auth(self.offline_unverified_user)
         baker.make(Account, user=self.offline_unverified_user, is_verified=False)
 
-        self.offline_verified_user = baker.make(User)
+        self.offline_verified_user = baker.make(
+            User,
+            email='offline_verified_user@example.com',
+            is_active=True,
+        )
         create_social_auth(self.offline_verified_user)
         baker.make(Account, user=self.offline_verified_user, is_verified=True)

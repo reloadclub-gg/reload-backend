@@ -103,6 +103,7 @@ def accept_request(user: User, friendship_id: int):
 
 def refuse_request(user: User, friendship_id: int):
     friendship = get_object_or_404(models.Friendship, pk=friendship_id, user_to=user)
+    websocket.ws_friend_request_refuse(friendship)
     friendship.delete()
     return {}
 

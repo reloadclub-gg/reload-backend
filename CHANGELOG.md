@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Ajusta ordenação na lista de partidas do admin [#988](https://github.com/3C-gg/reload-backend/issues/988).
+- Corrige método que lista produtos do Stripe para trazer somente produtos ativos (não arquivados) [#983](https://github.com/3C-gg/reload-backend/issues/983).
+
+### Added
+
+- Campos `weapon` e `media` esquema de inventário do usuário [#990](https://github.com/3C-gg/reload-backend/issues/990).
+- Campo `weapon` no modelo `Item`. Também adicionamos verificações a nível de formulário no admin para adição de itens [#984](https://github.com/3C-gg/reload-backend/issues/984).
+- Envio de websocket para FE quando um pedido de amizade for recusado [#982](https://github.com/3C-gg/reload-backend/issues/982).
+- Endpoint para pesquisar usuários por username ou e-mail [#980](https://github.com/3C-gg/reload-backend/issues/980).
+
+## [8c3f0e0 - 15/1/2024]
+
 ### Added
 
 - Novo método no modelo `User`: `active_verified_users` que retorna todos os usuários ativos e verificados.
