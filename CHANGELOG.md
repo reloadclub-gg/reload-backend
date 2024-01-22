@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1d5bb65 - 22/1/2024]
+
 ### Fixed
 
 - Ajusta ordenação na lista de partidas do admin [#988](https://github.com/3C-gg/reload-backend/issues/988).
