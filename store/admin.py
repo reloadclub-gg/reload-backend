@@ -4,7 +4,7 @@ from django_object_actions import action
 
 from core.admin_mixins import AreYouSureActionsAdminMixin
 
-from . import models
+from . import forms, models
 
 
 class ItemMediaAdminInline(admin.TabularInline):
@@ -14,6 +14,7 @@ class ItemMediaAdminInline(admin.TabularInline):
 
 @admin.register(models.Item)
 class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
+    form = forms.ItemForm
     list_display = (
         'name',
         'item_type',

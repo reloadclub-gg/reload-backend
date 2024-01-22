@@ -134,6 +134,8 @@ class UserItemSchema(ModelSchema):
     release_date: datetime = None
     item_type: str
     item_id: int
+    weapon: str = None
+    media: List[ItemMediaSchema] = []
 
     class Config:
         model = models.UserItem
@@ -175,6 +177,15 @@ class UserItemSchema(ModelSchema):
     @staticmethod
     def resolve_item_id(obj):
         return obj.item.id
+
+    @staticmethod
+    def resolve_weapon(obj):
+        if obj.item.weapon:
+            return obj.item.weapon
+
+    @staticmethod
+    def resolve_media(obj):
+        return obj.item.itemmedia_set.all()
 
 
 class UserBoxSchema(ModelSchema):

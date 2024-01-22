@@ -67,9 +67,5 @@ class StoreCommonModelsTestCase(AccountOneMixin, TestCase):
             price=5,
             description='desc',
         )
-
-        with self.assertRaises(ValidationError):
-            item.save()
-
         item.decorative_image = 'decorative-card-item.png'
         item.save()

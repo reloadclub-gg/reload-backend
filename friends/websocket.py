@@ -34,6 +34,31 @@ def ws_friends_add(user: User, friend: User):
     return results
 
 
+def ws_friend_request_refuse(friendship: models.Friendship):
+    """
+    Triggered when a friend request is refused.
+
+    Cases:
+    - User refuses a friend request from another user.
+
+    Payload:
+    user_id: int
+
+    Actions:
+    - friends/request/refuse
+    """
+
+    payload = {'from_id': friendship.user_from.id, 'to_id': friendship.user_to.id}
+
+    return (
+        async_to_sync(ws_send)(
+            'friends/request/refuse',
+            payload,
+            groups=[friendship.user_from.id, friendship.user_to.id],
+        ),
+    )
+
+
 def ws_friend_request(friendship: models.Friendship):
     """
     Triggered when a Friendship is requested.

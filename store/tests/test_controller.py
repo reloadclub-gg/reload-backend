@@ -17,7 +17,7 @@ class StoreControllerTestCase(VerifiedAccountsMixin, TestCase):
                 products = controller.fetch_products()
         else:
             products = controller.fetch_products()
-            self.assertTrue(len(products) > 0)
+            self.assertEqual(len(products), 6)
 
     def test_buy_product(self):
         if not settings.STRIPE_PUBLIC_KEY or not settings.STRIPE_SECRET_KEY:
