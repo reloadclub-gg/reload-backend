@@ -261,6 +261,7 @@ class UserItem(models.Model):
                 user=self.user,
                 item__item_type=self.item.item_type,
                 item__subtype=self.item.subtype,
+                item__weapon=self.item.weapon,
             ).exclude(pk=self.pk)
 
             existing.update(in_use=False)
