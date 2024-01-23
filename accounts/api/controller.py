@@ -130,7 +130,7 @@ def logout(user: User) -> dict:
     ws_expire_player_invites(user)
 
     # If user has an account
-    if hasattr(user, 'account'):
+    if hasattr(user, 'account') and user.account.lobby:
         try:
             handle_player_move(user, user.id, delete_lobby=True)
         except LobbyException as e:

@@ -337,9 +337,6 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.user.account.save()
         user_id = self.user.id
 
-        with self.assertRaises(HttpError):
-            controller.delete_account(self.user)
-
         Lobby.create(self.user.id)
         controller.delete_account(self.user)
 
