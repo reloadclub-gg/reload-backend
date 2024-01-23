@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige problema que acontecia com usuários inativos ao tentar acessar o site. Não era possível resgatar as informações do usuário logado caso ele estivesse inativo. Movemos a verificação de `is_active` para um código mais apropriado que permite que esse comportamento funcione normalmente [#996](https://github.com/3C-gg/reload-backend/issues/996).
 - Corrige bug ao ativar skin de arma. O código exclua a skin de uma outra arma para salvar a atual. Adicionamos uma condição na `query` e foi resolvido [#992](https://github.com/3C-gg/reload-backend/issues/992).
 
 ## [1d5bb65 - 22/1/2024]
