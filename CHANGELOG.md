@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Removemos o campo `background_image` que não estava mais sendo usado dos modelos de `store`. Em seu lugar, adicionamos o campo `cover_image` [#998](998-adicionar-campo-cover_image-no-modelo-e-esquema-de-item).
+
 ### Fixed
 
 - Adicionamos uma proteção para evitar um erro ao tentar fazer logout sem um lobby.

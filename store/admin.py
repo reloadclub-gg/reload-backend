@@ -36,7 +36,7 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'collection__name',
     )
 
-    ordering = ('name', 'price', 'discount')
+    ordering = ('-create_date', 'name', 'price', 'discount')
     list_filter = ('item_type', 'subtype', 'is_available', 'price')
     inlines = [ItemMediaAdminInline]
 
@@ -74,6 +74,7 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
 
 @admin.register(models.Box)
 class BoxAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
+    form = forms.BoxForm
     list_display = (
         'name',
         'handle',
@@ -87,7 +88,7 @@ class BoxAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'handle',
     )
 
-    ordering = ('name', 'price', 'discount')
+    ordering = ('-create_date', 'name', 'price', 'discount')
     list_filter = ('is_available', 'price')
 
     @action(description='Add box on app store.')
@@ -124,6 +125,7 @@ class BoxAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
 
 @admin.register(models.Collection)
 class CollectionAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
+    form = forms.CollectionForm
     list_display = (
         'name',
         'handle',
@@ -137,7 +139,7 @@ class CollectionAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'handle',
     )
 
-    ordering = ('name', 'price', 'discount')
+    ordering = ('-create_date', 'name', 'price', 'discount')
     list_filter = ('is_available', 'price')
 
     @action(description='Add collection on app store.')
