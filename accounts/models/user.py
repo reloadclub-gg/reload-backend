@@ -227,6 +227,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             account__isnull=False,
             is_active=True,
             account__is_verified=True,
+            is_staff=False,
+            is_superuser=False,
         )
 
         if exclude_ids:

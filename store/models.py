@@ -35,6 +35,11 @@ def item_foreground_media_path(instance, filename):
     return f'{path}/foreground__{file}'
 
 
+def item_cover_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/cover__{file}'
+
+
 def item_featured_media_path(instance, filename):
     path, file = item_media_path(instance, filename)
     return f'{path}/featured__{file}'
@@ -64,13 +69,13 @@ class Box(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(
-        upload_to=item_background_media_path,
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    cover_image = models.FileField(upload_to=item_cover_media_path)
+    featured_image = models.FileField(
+        upload_to=item_featured_media_path,
         null=True,
         blank=True,
     )
-    foreground_image = models.FileField(upload_to=item_foreground_media_path)
-    featured_image = models.FileField(upload_to=item_featured_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -90,13 +95,13 @@ class Collection(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(
-        upload_to=item_background_media_path,
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    cover_image = models.FileField(upload_to=item_cover_media_path)
+    featured_image = models.FileField(
+        upload_to=item_featured_media_path,
         null=True,
         blank=True,
     )
-    foreground_image = models.FileField(upload_to=item_foreground_media_path)
-    featured_image = models.FileField(upload_to=item_featured_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -172,13 +177,13 @@ class Item(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(
-        upload_to=item_background_media_path,
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    cover_image = models.FileField(upload_to=item_cover_media_path)
+    featured_image = models.FileField(
+        upload_to=item_featured_media_path,
         null=True,
         blank=True,
     )
-    foreground_image = models.FileField(upload_to=item_foreground_media_path)
-    featured_image = models.FileField(upload_to=item_featured_media_path)
     decorative_image = models.ImageField(
         upload_to=item_decorative_media_path,
         null=True,
@@ -211,7 +216,10 @@ class Item(models.Model):
 
     def save(self, *args, **kwargs):
         subtype_handle = f'-{self.subtype}' if self.subtype else ''
-        self.handle = f'{self.item_type}{subtype_handle}-{slugify(self.name)}'
+        weapon_handle = f'-{self.weapon}' if self.weapon else ''
+        self.handle = (
+            f'{self.item_type}{subtype_handle}{weapon_handle}-{slugify(self.name)}'
+        )
 
         if self.box:
             total_chance = (
@@ -226,6 +234,20 @@ class Item(models.Model):
                 raise ValidationError(
                     _('The total sum of items on this box cannot be greater then 100%.')
                 )
+
+        if self.is_starter:
+            users_ids = set(User.active_verified_users().values_list('id', flat=True))
+            user_items = set(
+                UserItem.objects.filter(user_id__in=users_ids).values_list(
+                    'user_id', flat=True
+                )
+            )
+            users_ids_without_item = users_ids - user_items
+            user_items = [
+                UserItem(user_id=user_id, item=self)
+                for user_id in users_ids_without_item
+            ]
+            UserItem.objects.bulk_create(user_items, batch_size=1000)
 
         super().save(*args, **kwargs)
 

@@ -22,9 +22,9 @@ class ItemMediaSchema(ModelSchema):
 
 
 class ItemSchema(ModelSchema):
-    background_image: str = None
+    cover_image: str
     foreground_image: str
-    featured_image: str
+    featured_image: str = None
     box_id: int = None
     collection_id: int = None
     in_use: bool = None
@@ -37,9 +37,8 @@ class ItemSchema(ModelSchema):
         model_exclude = ['create_date', 'is_available', 'owners', 'box', 'collection']
 
     @staticmethod
-    def resolve_background_image(obj):
-        if obj.background_image:
-            return get_full_file_path(obj.background_image)
+    def resolve_cover_image(obj):
+        return get_full_file_path(obj.cover_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -47,7 +46,8 @@ class ItemSchema(ModelSchema):
 
     @staticmethod
     def resolve_featured_image(obj):
-        return get_full_file_path(obj.featured_image)
+        if obj.featured_image:
+            return get_full_file_path(obj.featured_image)
 
     @staticmethod
     def resolve_media(obj):
@@ -65,9 +65,9 @@ class ItemSchema(ModelSchema):
 
 
 class BoxSchema(ModelSchema):
-    background_image: str = None
+    cover_image: str
     foreground_image: str
-    featured_image: str
+    featured_image: str = None
     can_open: bool = None
     object: str = 'box'
     items: List[ItemSchema] = []
@@ -77,9 +77,8 @@ class BoxSchema(ModelSchema):
         model_exclude = ['create_date', 'is_available', 'owners']
 
     @staticmethod
-    def resolve_background_image(obj):
-        if obj.background_image:
-            return get_full_file_path(obj.background_image)
+    def resolve_cover_image(obj):
+        return get_full_file_path(obj.cover_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -87,7 +86,8 @@ class BoxSchema(ModelSchema):
 
     @staticmethod
     def resolve_featured_image(obj):
-        return get_full_file_path(obj.featured_image)
+        if obj.featured_image:
+            return get_full_file_path(obj.featured_image)
 
     @staticmethod
     def resolve_items(obj):
@@ -95,9 +95,9 @@ class BoxSchema(ModelSchema):
 
 
 class CollectionSchema(ModelSchema):
-    background_image: str = None
+    cover_image: str
     foreground_image: str
-    featured_image: str
+    featured_image: str = None
     object: str = 'collection'
     items: List[ItemSchema] = []
 
@@ -106,9 +106,8 @@ class CollectionSchema(ModelSchema):
         model_exclude = ['create_date', 'is_available']
 
     @staticmethod
-    def resolve_background_image(obj):
-        if obj.background_image:
-            return get_full_file_path(obj.background_image)
+    def resolve_cover_image(obj):
+        return get_full_file_path(obj.cover_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -116,7 +115,8 @@ class CollectionSchema(ModelSchema):
 
     @staticmethod
     def resolve_featured_image(obj):
-        return get_full_file_path(obj.featured_image)
+        if obj.featured_image:
+            return get_full_file_path(obj.featured_image)
 
     @staticmethod
     def resolve_items(obj):
@@ -126,9 +126,9 @@ class CollectionSchema(ModelSchema):
 class UserItemSchema(ModelSchema):
     id: int
     name: str
-    background_image: str = None
+    cover_image: str
     foreground_image: str
-    featured_image: str
+    featured_image: str = None
     subtype: str = None
     description: str
     release_date: datetime = None
@@ -146,9 +146,8 @@ class UserItemSchema(ModelSchema):
         return obj.item.name
 
     @staticmethod
-    def resolve_background_image(obj):
-        if obj.item.background_image:
-            return get_full_file_path(obj.item.background_image)
+    def resolve_cover_image(obj):
+        return get_full_file_path(obj.item.cover_image)
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -156,7 +155,8 @@ class UserItemSchema(ModelSchema):
 
     @staticmethod
     def resolve_featured_image(obj):
-        return get_full_file_path(obj.item.featured_image)
+        if obj.item.featured_image:
+            return get_full_file_path(obj.item.featured_image)
 
     @staticmethod
     def resolve_subtype(obj):
@@ -191,7 +191,7 @@ class UserItemSchema(ModelSchema):
 class UserBoxSchema(ModelSchema):
     id: int
     name: str
-    background_image: str = None
+    cover_image: str
     foreground_image: str
     featured_image: str = None
     description: str
@@ -211,9 +211,8 @@ class UserBoxSchema(ModelSchema):
         return obj.box.name
 
     @staticmethod
-    def resolve_background_image(obj):
-        if obj.box.background_image:
-            return obj.box.background_image
+    def resolve_cover_image(obj):
+        return obj.box.cover_image
 
     @staticmethod
     def resolve_foreground_image(obj):
@@ -221,7 +220,8 @@ class UserBoxSchema(ModelSchema):
 
     @staticmethod
     def resolve_featured_image(obj):
-        return obj.box.featured_image
+        if obj.box.featured_image:
+            return obj.box.featured_image
 
     @staticmethod
     def resolve_description(obj):

@@ -5,6 +5,38 @@ from django.utils.translation import gettext as _
 from . import models
 
 
+class BoxForm(forms.ModelForm):
+    class Meta:
+        model = models.Box
+        fields = '__all__'
+
+    def _clean_featured(self, featured, featured_image):
+        if featured and not featured_image:
+            raise ValidationError(_('Featured must have a featured image.'))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        featured = cleaned_data.get('featured')
+        featured_image = cleaned_data.get('featured_image')
+        self._clean_featured(featured, featured_image)
+
+
+class CollectionForm(forms.ModelForm):
+    class Meta:
+        model = models.Collection
+        fields = '__all__'
+
+    def _clean_featured(self, featured, featured_image):
+        if featured and not featured_image:
+            raise ValidationError(_('Featured must have a featured image.'))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        featured = cleaned_data.get('featured')
+        featured_image = cleaned_data.get('featured_image')
+        self._clean_featured(featured, featured_image)
+
+
 class ItemForm(forms.ModelForm):
     class Meta:
         model = models.Item
@@ -64,15 +96,22 @@ class ItemForm(forms.ModelForm):
                     + ', '.join(wear_subtypes)
                 )
 
+    def _clean_featured(self, featured, featured_image):
+        if featured and not featured_image:
+            raise ValidationError(_('Featured must have a featured image.'))
+
     def clean(self):
         cleaned_data = super().clean()
         item_type = cleaned_data.get('item_type')
         subtype = cleaned_data.get('subtype')
         weapon = cleaned_data.get('weapon')
         decorative_image = cleaned_data.get('decorative_image')
+        featured = cleaned_data.get('featured')
+        featured_image = cleaned_data.get('featured_image')
 
         self._clean_weapon(item_type, subtype, weapon)
         self._clean_decorative(item_type, subtype, decorative_image)
         self._clean_wear(item_type, subtype)
+        self._clean_featured(featured, featured_image)
 
         return cleaned_data
