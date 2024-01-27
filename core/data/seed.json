@@ -1525,466 +1525,1580 @@
         }
     },
     {
-        "model": "store.box",
-        "pk": 1,
-        "fields": {
-            "name": "Box Fluxo",
-            "handle": "box-fluxo",
-            "price": "3700",
-            "create_date": "2023-09-26T06:58:21.185Z",
-            "release_date": "2023-09-26T06:58:21.185Z",
-            "is_available": true,
-            "description": "af adf adf adf asd",
-            "discount": 0,
-            "foreground_image": "store/box-fluxo/media/box-fluxo.jpg",
-            "featured_image": "store/box-fluxo/media/box-fluxo.jpg",
-            "featured": true
-        }
-    },
-    {
-        "model": "store.box",
-        "pk": 1,
-        "fields": {
-            "name": "Box 1",
-            "handle": "box-1",
-            "price": "3700",
-            "create_date": "2023-09-26T06:58:21.185Z",
-            "release_date": "2023-09-26T06:58:21.185Z",
-            "is_available": true,
-            "description": "af adf adf adf asd",
-            "discount": 0,
-            "foreground_image": "store/box-fluxo/media/box-fluxo.jpg",
-            "featured_image": "store/box-fluxo/media/box-fluxo.jpg",
-            "featured": true
-        }
-    },
-    {
-        "model": "store.box",
-        "pk": 2,
-        "fields": {
-            "name": "Box 2",
-            "handle": "box-2",
-            "price": "3700",
-            "create_date": "2023-09-26T06:58:21.185Z",
-            "release_date": "2023-09-26T06:58:21.185Z",
-            "is_available": true,
-            "description": "af adf adf adf asd",
-            "discount": 0,
-            "foreground_image": "store/box-fluxo/media/box-fluxo.jpg",
-            "featured_image": "store/box-fluxo/media/box-fluxo.jpg",
-            "featured": true
-        }
-    },
-    {
         "model": "store.collection",
-        "pk": 1,
-        "fields": {
-            "name": "Coleção 1",
-            "handle": "colecao-1",
-            "price": "2900",
-            "create_date": "2023-09-26T06:58:53.031Z",
-            "release_date": "2023-09-26T06:58:53.031Z",
-            "is_available": true,
-            "description": "asd asd asd asd asd as d",
-            "discount": 0,
-            "foreground_image": "store/colecao-dragao/media/colecao-dragao.jpg",
-            "featured_image": "store/colecao-dragao/media/colecao-dragao.jpg",
-            "featured": true
-        }
-    },
-    {
-        "model": "store.collection",
-        "pk": 2,
-        "fields": {
-            "name": "Coleção 2",
-            "handle": "colecao-2",
-            "price": "2900",
-            "create_date": "2023-09-26T06:58:53.031Z",
-            "release_date": "2023-09-26T06:58:53.031Z",
-            "is_available": false,
-            "description": "asd asd asd asd asd as d",
-            "discount": 0,
-            "foreground_image": "store/colecao-dragao/media/colecao-dragao.jpg",
-            "featured_image": "store/colecao-dragao/media/colecao-dragao.jpg",
-            "featured": false
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 1,
-        "fields": {
-            "name": "Item 1",
-            "item_type": "spray",
-            "subtype": null,
-            "handle": "spray-item-1",
-            "price": "600",
-            "create_date": "2023-09-26T06:56:43.742Z",
-            "release_date": "2023-09-26T06:56:43.742Z",
-            "is_available": true,
-            "description": "djwf ijafj piajfiaj",
-            "discount": 0,
-            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "featured_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "box": null,
-            "box_draw_chance": null,
-            "collection": null,
-            "featured": true
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 2,
-        "fields": {
-            "name": "Item 2",
-            "item_type": "spray",
-            "subtype": null,
-            "handle": "spray-item-2",
-            "price": "600",
-            "create_date": "2023-09-26T06:56:43.742Z",
-            "release_date": "2023-09-26T06:56:43.742Z",
-            "is_available": true,
-            "description": "djwf ijafj piajfiaj",
-            "discount": 0,
-            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "featured_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "box": null,
-            "box_draw_chance": null,
-            "collection": null,
-            "featured": true
-        }
-    },
-    {
-        "model": "store.item",
         "pk": 3,
         "fields": {
-            "name": "Item 3",
-            "item_type": "spray",
-            "subtype": null,
-            "handle": "spray-item-3",
-            "price": "600",
-            "create_date": "2023-09-26T06:56:43.742Z",
-            "release_date": "2023-09-26T06:56:43.742Z",
+            "name": "Coleção Primal",
+            "handle": "colecao-primal",
+            "price": 4950,
+            "create_date": "2024-01-27T17:28:59.198Z",
+            "release_date": "2024-01-27T17:29:03.310Z",
             "is_available": true,
-            "description": "djwf ijafj piajfiaj",
+            "description": "Das selvas, dos primórdios, dos ancestrais. Nossa primeira coleção autoral vai despertar o seu lado mais selvagem nos mapas.",
             "discount": 0,
-            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "featured_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "box": null,
-            "box_draw_chance": null,
-            "collection": null,
+            "foreground_image": "store/colecao-primal/media/foreground__RPoqkM__colecao-primal.png",
+            "cover_image": "store/colecao-primal/media/cover__sHjbs3__colecao-primal.png",
+            "featured_image": "store/colecao-primal/media/featured__aWn6l1__colecao-primal.png",
             "featured": true
         }
     },
     {
         "model": "store.item",
-        "pk": 4,
+        "pk": 18,
         "fields": {
-            "name": "Item 4",
+            "name": "Spray Reload Cola Aê!",
             "item_type": "spray",
             "subtype": null,
-            "handle": "spray-item-4",
-            "price": "600",
-            "create_date": "2023-09-26T06:56:43.742Z",
-            "release_date": "2023-09-26T06:56:43.742Z",
-            "is_available": true,
-            "description": "djwf ijafj piajfiaj",
+            "weapon": null,
+            "handle": "spray-spray-reload-cola-ae",
+            "price": 0,
+            "create_date": "2024-01-27T17:41:38.051Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Cola aê com os parceiros pra trocar tiro nos nossos mapas!",
             "discount": 0,
-            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "featured_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
+            "foreground_image": "store/spray-spray-reload-cola-ae/media/foreground__1ktnEg__spray-spray-reload-cola-ae.png",
+            "cover_image": "store/spray-spray-reload-cola-ae/media/cover__bsF4c2__spray-spray-reload-cola-ae.png",
+            "featured_image": "",
+            "decorative_image": "",
             "box": null,
             "box_draw_chance": null,
             "collection": null,
-            "featured": true
+            "featured": false,
+            "is_starter": true
         }
     },
     {
         "model": "store.item",
-        "pk": 5,
+        "pk": 19,
         "fields": {
-            "name": "Item 5",
+            "name": "Spray A morte é Red",
             "item_type": "spray",
             "subtype": null,
-            "handle": "spray-item-5",
-            "price": "600",
-            "create_date": "2023-09-26T06:56:43.742Z",
-            "release_date": "2023-09-26T06:56:43.742Z",
+            "weapon": null,
+            "handle": "spray-spray-a-morte-e-red",
+            "price": 760,
+            "create_date": "2024-01-27T17:43:06.452Z",
+            "release_date": "2024-01-27T18:29:29.470Z",
             "is_available": true,
-            "description": "djwf ijafj piajfiaj",
+            "description": "Vacilou é Red neles!",
             "discount": 0,
-            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "featured_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
+            "foreground_image": "store/spray-spray-a-morte-e-red/media/foreground__hC1mB8__spray-spray-a-morte-e-red.png",
+            "cover_image": "store/spray-spray-a-morte-e-red/media/cover__XqUnfa__spray-spray-a-morte-e-red.png",
+            "featured_image": "",
+            "decorative_image": "",
             "box": null,
             "box_draw_chance": null,
             "collection": null,
-            "featured": true
+            "featured": false,
+            "is_starter": false
         }
     },
     {
         "model": "store.item",
-        "pk": 6,
+        "pk": 20,
         "fields": {
-            "name": "Item 6",
+            "name": "Spray Beta First",
             "item_type": "spray",
             "subtype": null,
-            "handle": "spray-item-6",
-            "price": "600",
-            "create_date": "2023-09-26T06:56:43.742Z",
-            "release_date": "2023-09-26T06:56:43.742Z",
-            "is_available": true,
-            "description": "djwf ijafj piajfiaj",
+            "weapon": null,
+            "handle": "spray-spray-beta-first",
+            "price": 999999,
+            "create_date": "2024-01-27T17:43:47.279Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Chegou cedo hein! Você merece esse spray, toma aqui!",
             "discount": 0,
-            "foreground_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
-            "featured_image": "store/spray-spray-complexo/media/spray-spray-complexo_prsHDeW.png",
+            "foreground_image": "store/spray-spray-beta-first/media/foreground__vv7QWl__spray-spray-beta-first.png",
+            "cover_image": "store/spray-spray-beta-first/media/cover__NG9f5I__spray-spray-beta-first.png",
+            "featured_image": "",
+            "decorative_image": "",
             "box": null,
             "box_draw_chance": null,
             "collection": null,
-            "featured": true
+            "featured": false,
+            "is_starter": false
         }
     },
     {
         "model": "store.item",
-        "pk": 7,
+        "pk": 21,
         "fields": {
-            "name": "Item 7",
-            "item_type": "wear",
-            "subtype": "def",
-            "handle": "wear-def-item-7",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
-            "discount": 15,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "box": 1,
-            "box_draw_chance": "10.00",
-            "collection": null,
-            "featured": false
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 8,
-        "fields": {
-            "name": "Item 8",
-            "item_type": "wear",
-            "subtype": "def",
-            "handle": "wear-def-item-8",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
-            "discount": 15,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "box": 1,
-            "box_draw_chance": "10.00",
-            "collection": null,
-            "featured": false
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 9,
-        "fields": {
-            "name": "Item 9",
-            "item_type": "wear",
-            "subtype": "def",
-            "handle": "wear-def-item-9",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
-            "discount": 15,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "box": 1,
-            "box_draw_chance": "10.00",
-            "collection": null,
-            "featured": false
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 10,
-        "fields": {
-            "name": "Item 10",
+            "name": "Spray Beta: Made for Gamers",
             "item_type": "spray",
             "subtype": null,
-            "handle": "spray-item-10",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
-            "discount": 15,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "box": 1,
-            "box_draw_chance": "50.00",
-            "collection": null,
-            "featured": false
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 11,
-        "fields": {
-            "name": "Item 11",
-            "item_type": "persona",
-            "subtype": null,
-            "handle": "persona-item-11",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
-            "discount": 15,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "box": 1,
-            "box_draw_chance": "20.00",
-            "collection": null,
-            "featured": false
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 12,
-        "fields": {
-            "name": "Item 12",
-            "item_type": "persona",
-            "subtype": null,
-            "handle": "persona-item-12",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
-            "discount": 15,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "box": null,
-            "box_draw_chance": null,
-            "collection": 1,
-            "featured": false
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 13,
-        "fields": {
-            "name": "Item 13",
-            "item_type": "spray",
-            "subtype": null,
-            "handle": "spray-item-13",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
-            "discount": 15,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "box": null,
-            "box_draw_chance": null,
-            "collection": 1,
-            "featured": false
-        }
-    },
-    {
-        "model": "store.item",
-        "pk": 14,
-        "fields": {
-            "name": "Item 14",
-            "item_type": "spray",
-            "subtype": null,
-            "handle": "spray-item-14",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
+            "weapon": null,
+            "handle": "spray-spray-beta-made-for-gamers",
+            "price": 999999,
+            "create_date": "2024-01-27T17:44:42.174Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "O Beta é seu, gamer! Pera aí... você é gamer né?",
             "discount": 0,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "foreground_image": "store/spray-spray-beta-made-for-gamers/media/foreground__yv9UHN__spray-spray-beta-made-f_f6Bc2gh.png",
+            "cover_image": "store/spray-spray-beta-made-for-gamers/media/cover__SaltcO__spray-spray-beta-made-for-gamers.png",
+            "featured_image": "",
+            "decorative_image": "",
             "box": null,
             "box_draw_chance": null,
-            "collection": 2,
-            "featured": false
+            "collection": null,
+            "featured": false,
+            "is_starter": false
         }
     },
     {
         "model": "store.item",
-        "pk": 15,
+        "pk": 22,
         "fields": {
-            "name": "Item 15",
-            "item_type": "wear",
-            "subtype": "ata",
-            "handle": "wear-ata-item-15",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
+            "name": "Spray Beta V1.0",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-beta-v10",
+            "price": 999999,
+            "create_date": "2024-01-27T17:46:39.714Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Instalando versão 1.0... error... Iniciando projeto Beta v1.0... sucesso!",
             "discount": 0,
-            "foreground_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
-            "featured_image": "store/wear-def-jersey-segueofx/media/wear-def-jersey-segueofx_AUT7TdN.png",
+            "foreground_image": "store/spray-spray-beta-v10/media/foreground__fpsolU__spray-spray-beta-v10.png",
+            "cover_image": "store/spray-spray-beta-v10/media/cover__eGTqV9__spray-spray-beta-v10.png",
+            "featured_image": "",
+            "decorative_image": "",
             "box": null,
             "box_draw_chance": null,
-            "collection": 2,
-            "featured": false
+            "collection": null,
+            "featured": false,
+            "is_starter": false
         }
     },
     {
         "model": "store.item",
-        "pk": 16,
+        "pk": 23,
         "fields": {
-            "name": "Item 16",
+            "name": "Spray COM PLE XO",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-com-ple-xo",
+            "price": 760,
+            "create_date": "2024-01-27T17:47:16.803Z",
+            "release_date": "2024-01-27T18:29:23.553Z",
+            "is_available": true,
+            "description": "É o CPX né vida...",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-com-ple-xo/media/foreground__MuHNko__spray-spray-com-ple-xo.png",
+            "cover_image": "store/spray-spray-com-ple-xo/media/cover__BXbUxp__spray-spray-com-ple-xo.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 24,
+        "fields": {
+            "name": "Spray CPX O Final",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-cpx-o-final",
+            "price": 760,
+            "create_date": "2024-01-27T17:47:54.559Z",
+            "release_date": "2024-01-27T18:29:21.525Z",
+            "is_available": true,
+            "description": "E quando você percebe que O Final não muda...",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-cpx-o-final/media/foreground__jCyzl7__spray-spray-cpx-o-final.png",
+            "cover_image": "store/spray-spray-cpx-o-final/media/cover__uhRHDa__spray-spray-cpx-o-final.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 25,
+        "fields": {
+            "name": "Spray CPX Tá Tega",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-cpx-ta-tega",
+            "price": 760,
+            "create_date": "2024-01-27T17:48:20.267Z",
+            "release_date": "2024-01-27T18:29:19.368Z",
+            "is_available": true,
+            "description": "O CPX tá lindo, tá tega demais!",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-cpx-ta-tega/media/foreground__EXXVA3__spray-spray-cpx-ta-tega.png",
+            "cover_image": "store/spray-spray-cpx-ta-tega/media/cover__cA0IJY__spray-spray-cpx-ta-tega.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 26,
+        "fields": {
+            "name": "Spray Dislike",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-dislike",
+            "price": 450,
+            "create_date": "2024-01-27T17:48:57.416Z",
+            "release_date": "2024-01-27T18:29:16.156Z",
+            "is_available": true,
+            "description": "Nada a ver isso aí, time...",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-dislike/media/foreground__5mqQUJ__spray-spray-dislike.png",
+            "cover_image": "store/spray-spray-dislike/media/cover__d7EZqh__spray-spray-dislike.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 27,
+        "fields": {
+            "name": "Spray Fala se não é",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-fala-se-nao-e",
+            "price": 760,
+            "create_date": "2024-01-27T17:49:45.082Z",
+            "release_date": "2024-01-27T18:29:10.888Z",
+            "is_available": true,
+            "description": "É eleeeeeeee... o PAAAAAAAAA...",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-fala-se-nao-e/media/foreground__gHoNhq__spray-spray-fala-se-nao-e.png",
+            "cover_image": "store/spray-spray-fala-se-nao-e/media/cover__XSqt6V__spray-spray-fala-se-nao-e.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 28,
+        "fields": {
+            "name": "Spray Like",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-like",
+            "price": 450,
+            "create_date": "2024-01-27T18:17:17.212Z",
+            "release_date": "2024-01-27T18:29:08.653Z",
+            "is_available": true,
+            "description": "Agora sim, bem jogado!",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-like/media/foreground__xVkdY9__spray-spray-like.png",
+            "cover_image": "store/spray-spray-like/media/cover__DzRp2Y__spray-spray-like.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 29,
+        "fields": {
+            "name": "Spray Primal Be Wild",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-primal-be-wild",
+            "price": 625,
+            "create_date": "2024-01-27T18:18:10.653Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Das selvas, dos primórdios, dos ancestrais. Nossa primeira coleção autoral vai despertar o seu lado mais selvagem nos mapas.",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-primal-be-wild/media/foreground__09fDZa__spray-spray-primal-be-wild.png",
+            "cover_image": "store/spray-spray-primal-be-wild/media/cover__2n9jfh__spray-spray-primal-be-wild.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 3,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 30,
+        "fields": {
+            "name": "Spray Primal Tribal",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-primal-tribal",
+            "price": 625,
+            "create_date": "2024-01-27T18:18:57.871Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Das selvas, dos primórdios, dos ancestrais. Nossa primeira coleção autoral vai despertar o seu lado mais selvagem nos mapas.",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-primal-tribal/media/foreground__9xDC5x__spray-spray-primal-tribal.png",
+            "cover_image": "store/spray-spray-primal-tribal/media/cover__Tq3oRE__spray-spray-primal-tribal.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 3,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 31,
+        "fields": {
+            "name": "Spray Reload Fade",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-reload-fade",
+            "price": 0,
+            "create_date": "2024-01-27T18:19:39.130Z",
+            "release_date": "2024-01-27T18:28:53.244Z",
+            "is_available": false,
+            "description": "Saímos agora do forno. Tentaram tirar a etiqueta, mas não deu certo...",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-reload-fade/media/foreground__MSibD4__spray-spray-reload-fade.png",
+            "cover_image": "store/spray-spray-reload-fade/media/cover__DsujXe__spray-spray-reload-fade.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": true
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 32,
+        "fields": {
+            "name": "Spray Sangue do meu Sangue",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-sangue-do-meu-sangue",
+            "price": 760,
+            "create_date": "2024-01-27T18:25:58.891Z",
+            "release_date": "2024-01-27T18:28:51.193Z",
+            "is_available": true,
+            "description": "Diz se você não é... eu sou, todo mundo é. E ele é muito Sangue do meu Sangue!",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-sangue-do-meu-sangue/media/foreground__1CQG6M__spray-spray-sangue-do-m_UgIOmPn.png",
+            "cover_image": "store/spray-spray-sangue-do-meu-sangue/media/cover__VUUym3__spray-spray-sangue-do-meu-sangue.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 33,
+        "fields": {
+            "name": "Spray Vapo!",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-vapo",
+            "price": 625,
+            "create_date": "2024-01-27T18:26:29.428Z",
+            "release_date": "2024-01-27T18:28:49.272Z",
+            "is_available": true,
+            "description": "Del V4le é suco, Del Mole é Vapo!",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-vapo/media/foreground__uaLxrA__spray-spray-vapo.png",
+            "cover_image": "store/spray-spray-vapo/media/cover__AHIXvw__spray-spray-vapo.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 34,
+        "fields": {
+            "name": "Spray W",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-w",
+            "price": 625,
+            "create_date": "2024-01-27T18:27:13.018Z",
+            "release_date": "2024-01-27T18:28:46.679Z",
+            "is_available": true,
+            "description": "W até o final! Só para quando ganhar ou perder...",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-w/media/foreground__LZWiM0__spray-spray-w.png",
+            "cover_image": "store/spray-spray-w/media/cover__uxA1Ax__spray-spray-w.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 35,
+        "fields": {
+            "name": "Spray Xei de ódio",
+            "item_type": "spray",
+            "subtype": null,
+            "weapon": null,
+            "handle": "spray-spray-xei-de-odio",
+            "price": 760,
+            "create_date": "2024-01-27T18:27:44.675Z",
+            "release_date": "2024-01-27T18:28:34.495Z",
+            "is_available": true,
+            "description": "Não me perturba não hein... to xei de ódio hoje!",
+            "discount": 0,
+            "foreground_image": "store/spray-spray-xei-de-odio/media/foreground__0Eqx8p__spray-spray-xei-de-odio.png",
+            "cover_image": "store/spray-spray-xei-de-odio/media/cover__l6gBUd__spray-spray-xei-de-odio.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 36,
+        "fields": {
+            "name": "Card FIB",
             "item_type": "decorative",
             "subtype": "card",
-            "handle": "decorative-card-item-16",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
+            "weapon": null,
+            "handle": "decorative-card-card-fib",
+            "price": 250,
+            "create_date": "2024-01-27T18:30:30.243Z",
+            "release_date": "2024-01-27T18:35:37.100Z",
             "is_available": true,
-            "description": "h gjghjhj g",
+            "description": "Quem é o próximo investigado na FIB?",
             "discount": 0,
-            "foreground_image": "store/decorative-card-item-16/media/decorative-card-item-16.jpg",
-            "featured_image": "store/decorative-card-item-16/media/decorative-card-item-16.jpg",
-            "decorative_image": "store/decorative-card-item-16/media/decorative-card-item-16_NVYjtVz.jpg",
+            "foreground_image": "store/decorative-card-card-fib/media/foreground__ZIFkux__decorative-card-card-fib.png",
+            "cover_image": "store/decorative-card-card-fib/media/cover__gXah2C__decorative-card-card-fib.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-card-card-fib/media/decorative__gG4Pwv__decorative-card-card-fib.png",
             "box": null,
             "box_draw_chance": null,
-            "collection": 1,
+            "collection": null,
             "featured": false,
-            "is_starter": true
+            "is_starter": false
         }
     },
     {
         "model": "store.item",
-        "pk": 17,
+        "pk": 37,
         "fields": {
-            "name": "Item 17",
+            "name": "Card Beta: Made for Gamers",
             "item_type": "decorative",
-            "subtype": "profile",
-            "handle": "decorative-profile-item-17",
-            "price": "850",
-            "create_date": "2023-09-26T06:59:42.592Z",
-            "release_date": "2023-09-26T06:59:42.592Z",
-            "is_available": true,
-            "description": "h gjghjhj g",
+            "subtype": "card",
+            "weapon": null,
+            "handle": "decorative-card-card-beta-made-for-gamers",
+            "price": 999999,
+            "create_date": "2024-01-27T18:31:51.424Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "O Beta é seu gamer! Pera aí... você é gamer né?",
             "discount": 0,
-            "foreground_image": "store/decorative-profile-item-17/media/decorative-profile-item-17.jpg",
-            "featured_image": "store/decorative-profile-item-17/media/decorative-profile-item-17.jpg",
-            "decorative_image": "store/decorative-profile-item-17/media/decorative-profile-item-17_lRabzsu.jpg",
+            "foreground_image": "store/decorative-card-card-beta-made-for-gamers/media/foreground__0RH6Hu__decorative-car_iG0YcxK.png",
+            "cover_image": "store/decorative-card-card-beta-made-for-gamers/media/cover__oZdqQf__decorative-card-car_4STZ1NJ.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-card-card-beta-made-for-gamers/media/decorative__JWGoiK__decorative-car_oZF52IE.png",
             "box": null,
             "box_draw_chance": null,
-            "collection": 1,
+            "collection": null,
             "featured": false,
-            "is_starter": true
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 38,
+        "fields": {
+            "name": "Card Beta v1.0",
+            "item_type": "decorative",
+            "subtype": "card",
+            "weapon": null,
+            "handle": "decorative-card-card-beta-v10",
+            "price": 999999,
+            "create_date": "2024-01-27T18:32:41.096Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Instalando versão 1.0... error... Iniciando projeto Beta v1.0... sucesso!",
+            "discount": 999999,
+            "foreground_image": "store/decorative-card-card-beta-v10/media/foreground__ABFrzI__decorative-card-card-beta-v10.png",
+            "cover_image": "store/decorative-card-card-beta-v10/media/cover__6bHMfn__decorative-card-card-beta-v10.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-card-card-beta-v10/media/decorative__0SNp6s__decorative-card-card-beta-v10.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 39,
+        "fields": {
+            "name": "Card Primal",
+            "item_type": "decorative",
+            "subtype": "card",
+            "weapon": null,
+            "handle": "decorative-card-card-primal",
+            "price": 450,
+            "create_date": "2024-01-27T18:33:09.262Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Das selvas, dos primórdios, dos ancestrais. Nossa primeira coleção autoral vai despertar o seu lado mais selvagem nos mapas.",
+            "discount": 0,
+            "foreground_image": "store/decorative-card-card-primal/media/foreground__2ibljc__decorative-card-card-primal.png",
+            "cover_image": "store/decorative-card-card-primal/media/cover__DYU2hn__decorative-card-card-primal.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-card-card-primal/media/decorative__lbzF3k__decorative-card-card-primal.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 3,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 40,
+        "fields": {
+            "name": "Perfil Beta: Made for Gamers",
+            "item_type": "decorative",
+            "subtype": "profile",
+            "weapon": null,
+            "handle": "decorative-profile-perfil-beta-made-for-gamers",
+            "price": 999999,
+            "create_date": "2024-01-27T18:33:37.450Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "O Beta é seu gamer! Pera aí... você é gamer né?",
+            "discount": 0,
+            "foreground_image": "store/decorative-profile-perfil-beta-made-for-gamers/media/foreground__70cMxA__decorativ_EbxIacQ.png",
+            "cover_image": "store/decorative-profile-perfil-beta-made-for-gamers/media/cover__ryPZMo__decorative-pro_3rWC2C4.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-profile-perfil-beta-made-for-gamers/media/decorative__Mbg0cf__decorativ_1eptvim.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 41,
+        "fields": {
+            "name": "Perfil Beta v1.0",
+            "item_type": "decorative",
+            "subtype": "profile",
+            "weapon": null,
+            "handle": "decorative-profile-perfil-beta-v10",
+            "price": 999999,
+            "create_date": "2024-01-27T18:34:08.819Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Instalando versão 1.0... error... Iniciando projeto Beta v1.0... sucesso!",
+            "discount": 0,
+            "foreground_image": "store/decorative-profile-perfil-beta-v10/media/foreground__zcfW3V__decorative-profile-pe_ugdr4RE.png",
+            "cover_image": "store/decorative-profile-perfil-beta-v10/media/cover__w811Xj__decorative-profile-perfil-beta-v10.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-profile-perfil-beta-v10/media/decorative__lZzL0o__decorative-profile-pe_Qkvp6H8.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 42,
+        "fields": {
+            "name": "Perfil FIB",
+            "item_type": "decorative",
+            "subtype": "profile",
+            "weapon": null,
+            "handle": "decorative-profile-perfil-fib",
+            "price": 250,
+            "create_date": "2024-01-27T18:34:41.069Z",
+            "release_date": "2024-01-27T18:35:34.695Z",
+            "is_available": true,
+            "description": "Quem é o próximo investigado na FIB?",
+            "discount": 0,
+            "foreground_image": "store/decorative-profile-perfil-fib/media/foreground__mscHD4__decorative-profile-perfil-fib.png",
+            "cover_image": "store/decorative-profile-perfil-fib/media/cover__XRgSJE__decorative-profile-perfil-fib.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-profile-perfil-fib/media/decorative__6W59nJ__decorative-profile-perfil-fib.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 43,
+        "fields": {
+            "name": "Perfil Primal",
+            "item_type": "decorative",
+            "subtype": "profile",
+            "weapon": null,
+            "handle": "decorative-profile-perfil-primal",
+            "price": 450,
+            "create_date": "2024-01-27T18:35:03.168Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Das selvas, dos primórdios, dos ancestrais. Nossa primeira coleção autoral vai despertar o seu lado mais selvagem nos mapas.",
+            "discount": 0,
+            "foreground_image": "store/decorative-profile-perfil-primal/media/foreground__bi5SbS__decorative-profile-perf_Y4neU97.png",
+            "cover_image": "store/decorative-profile-perfil-primal/media/cover__ZcxHg9__decorative-profile-perfil-primal.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-profile-perfil-primal/media/decorative__5tiumQ__decorative-profile-perf_omEwQWQ.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 3,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 44,
+        "fields": {
+            "name": "Skin 9idade Primal",
+            "item_type": "weapon",
+            "subtype": "pistols",
+            "weapon": "9idade",
+            "handle": "weapon-pistols-9idade-skin-9idade-primal",
+            "price": 1345,
+            "create_date": "2024-01-27T18:36:47.622Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Das selvas, dos primórdios, dos ancestrais. Nossa primeira coleção autoral vai despertar o seu lado mais selvagem nos mapas.",
+            "discount": 0,
+            "foreground_image": "store/weapon-pistols-9idade-skin-9idade-primal/media/foreground__a4KnlA__weapon-pistols-_9fUP8qf.png",
+            "cover_image": "store/weapon-pistols-9idade-skin-9idade-primal/media/cover__9lk8BU__weapon-pistols-9idad_iy5Z2TZ.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 3,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 45,
+        "fields": {
+            "name": "Skin 9idade Reload",
+            "item_type": "weapon",
+            "subtype": "pistols",
+            "weapon": "9idade",
+            "handle": "weapon-pistols-9idade-skin-9idade-reload",
+            "price": 1030,
+            "create_date": "2024-01-27T18:37:55.248Z",
+            "release_date": "2024-01-27T18:38:00.963Z",
+            "is_available": true,
+            "description": "Forjada no sol do deserto de Los Santos, nossa primeira skin chega pra causar inveja.",
+            "discount": 0,
+            "foreground_image": "store/weapon-pistols-9idade-skin-9idade-reload/media/foreground__OTMBXT__weapon-pistols-_xAzbLm8.png",
+            "cover_image": "store/weapon-pistols-9idade-skin-9idade-reload/media/cover__Ve1zNU__weapon-pistols-9idad_jQK0GPl.png",
+            "featured_image": "store/weapon-pistols-9idade-skin-9idade-reload/media/featured__tRie8k__weapon-pistols-9i_WeXAzfW.png",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": true,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 46,
+        "fields": {
+            "name": "Conjunto CPX A Vontade",
+            "item_type": "wear",
+            "subtype": "ata",
+            "weapon": null,
+            "handle": "wear-ata-conjunto-cpx-a-vontade",
+            "price": 1040,
+            "create_date": "2024-01-27T18:39:38.140Z",
+            "release_date": "2024-01-27T18:44:11.234Z",
+            "is_available": true,
+            "description": "Tamo a vontade, curtindo com os amigos... hoje tem baile mais tarde.",
+            "discount": 0,
+            "foreground_image": "store/wear-ata-conjunto-cpx-a-vontade/media/foreground__reyfMl__wear-ata-conjunto-cpx-a-vontade.png",
+            "cover_image": "store/wear-ata-conjunto-cpx-a-vontade/media/cover__VKTKLV__wear-ata-conjunto-cpx-a-vontade.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 47,
+        "fields": {
+            "name": "Conjunto CPX Bota a cara",
+            "item_type": "wear",
+            "subtype": "ata",
+            "weapon": null,
+            "handle": "wear-ata-conjunto-cpx-bota-a-cara",
+            "price": 1040,
+            "create_date": "2024-01-27T18:40:21.578Z",
+            "release_date": "2024-01-27T18:44:09.043Z",
+            "is_available": true,
+            "description": "Bota a cara pra tu ver...",
+            "discount": 0,
+            "foreground_image": "store/wear-ata-conjunto-cpx-bota-a-cara/media/foreground__NsdFEe__wear-ata-conjunto-cpx-_zkvZiPm.png",
+            "cover_image": "store/wear-ata-conjunto-cpx-bota-a-cara/media/cover__pdaqnm__wear-ata-conjunto-cpx-bota-a-cara.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 48,
+        "fields": {
+            "name": "Conjunto Primal Ao Ataque",
+            "item_type": "wear",
+            "subtype": "ata",
+            "weapon": null,
+            "handle": "wear-ata-conjunto-primal-ao-ataque",
+            "price": 950,
+            "create_date": "2024-01-27T18:41:01.596Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Das selvas, dos primórdios, dos ancestrais. Nossa primeira coleção autoral vai despertar o seu lado mais selvagem nos mapas.",
+            "discount": 0,
+            "foreground_image": "store/wear-ata-conjunto-primal-ao-ataque/media/foreground__vmYNY1__wear-ata-conjunto-pri_p94cKAl.png",
+            "cover_image": "store/wear-ata-conjunto-primal-ao-ataque/media/cover__hzsLdl__wear-ata-conjunto-primal-ao-ataque.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 3,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 49,
+        "fields": {
+            "name": "Conjunto CPX Caçador",
+            "item_type": "wear",
+            "subtype": "def",
+            "weapon": null,
+            "handle": "wear-def-conjunto-cpx-cacador",
+            "price": 860,
+            "create_date": "2024-01-27T18:41:49.849Z",
+            "release_date": "2024-01-27T18:44:05.558Z",
+            "is_available": true,
+            "description": "Tem que saber procurar... se procurar direitinho, sempre acha...",
+            "discount": 0,
+            "foreground_image": "store/wear-def-conjunto-cpx-cacador/media/foreground__q9R8ma__wear-def-conjunto-cpx-cacador.png",
+            "cover_image": "store/wear-def-conjunto-cpx-cacador/media/cover__zTVJ3E__wear-def-conjunto-cpx-cacador.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 50,
+        "fields": {
+            "name": "Conjunto CPX Sentinela",
+            "item_type": "wear",
+            "subtype": "def",
+            "weapon": null,
+            "handle": "wear-def-conjunto-cpx-sentinela",
+            "price": 860,
+            "create_date": "2024-01-27T18:42:39.094Z",
+            "release_date": "2024-01-27T18:44:02.941Z",
+            "is_available": true,
+            "description": "Boa 06! Fatiou, passou!",
+            "discount": 0,
+            "foreground_image": "store/wear-def-conjunto-cpx-sentinela/media/foreground__swjIYi__wear-def-conjunto-cpx-sentinela.png",
+            "cover_image": "store/wear-def-conjunto-cpx-sentinela/media/cover__tiOZ1I__wear-def-conjunto-cpx-sentinela.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 51,
+        "fields": {
+            "name": "Conjunto Primal Selva!",
+            "item_type": "wear",
+            "subtype": "def",
+            "weapon": null,
+            "handle": "wear-def-conjunto-primal-selva",
+            "price": 950,
+            "create_date": "2024-01-27T18:43:51.092Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Das selvas, dos primórdios, dos ancestrais. Nossa primeira coleção autoral vai despertar o seu lado mais selvagem nos mapas.",
+            "discount": 0,
+            "foreground_image": "store/wear-def-conjunto-primal-selva/media/foreground__1FBrkw__wear-def-conjunto-primal-selva.png",
+            "cover_image": "store/wear-def-conjunto-primal-selva/media/cover__jg5S0l__wear-def-conjunto-primal-selva.png",
+            "featured_image": "",
+            "decorative_image": "",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": 3,
+            "featured": false,
+            "is_starter": false
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 1,
+        "fields": {
+            "item": 18,
+            "file": "store/spray-spray-reload-cola-ae/media/images/sCsUkQ__2Pgzih__spray-spray-reload-cola-ae.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 2,
+        "fields": {
+            "item": 18,
+            "file": "store/spray-spray-reload-cola-ae/media/images/eDUTht__dZDfc3__spray-spray-reload-cola-ae.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 3,
+        "fields": {
+            "item": 19,
+            "file": "store/spray-spray-a-morte-e-red/media/images/HrMSNR__wmS2HM__spray-spray-a-morte-e-red.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 4,
+        "fields": {
+            "item": 19,
+            "file": "store/spray-spray-a-morte-e-red/media/images/rhWIml__8PYe7P__spray-spray-a-morte-e-red.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 5,
+        "fields": {
+            "item": 20,
+            "file": "store/spray-spray-beta-first/media/images/2sUGP8__0KPWXU__spray-spray-beta-first.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 6,
+        "fields": {
+            "item": 20,
+            "file": "store/spray-spray-beta-first/media/images/hCy0LV__Q8fhOx__spray-spray-beta-first.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 7,
+        "fields": {
+            "item": 21,
+            "file": "store/spray-spray-beta-made-for-gamers/media/images/3vQ9Oj__2fvfsr__spray-spray-beta-mad_umT5udI.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 8,
+        "fields": {
+            "item": 21,
+            "file": "store/spray-spray-beta-made-for-gamers/media/images/4bKuah__htTpN7__spray-spray-beta-mad_7KjC3aw.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 9,
+        "fields": {
+            "item": 22,
+            "file": "store/spray-spray-beta-v10/media/images/ZWMXin__Bom1Iu__spray-spray-beta-v10.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 10,
+        "fields": {
+            "item": 22,
+            "file": "store/spray-spray-beta-v10/media/images/2A2Br0__oGPo75__spray-spray-beta-v10.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 11,
+        "fields": {
+            "item": 23,
+            "file": "store/spray-spray-com-ple-xo/media/images/jZ8GH5__c7nwgT__spray-spray-com-ple-xo.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 12,
+        "fields": {
+            "item": 23,
+            "file": "store/spray-spray-com-ple-xo/media/images/HjvLFi__zpUYvQ__spray-spray-com-ple-xo.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 13,
+        "fields": {
+            "item": 24,
+            "file": "store/spray-spray-cpx-o-final/media/images/LXPeQw__e1VK1l__spray-spray-cpx-o-final.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 14,
+        "fields": {
+            "item": 24,
+            "file": "store/spray-spray-cpx-o-final/media/images/Ywg6xM__pWbmJg__spray-spray-cpx-o-final.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 15,
+        "fields": {
+            "item": 25,
+            "file": "store/spray-spray-cpx-ta-tega/media/images/uMxb81__0WHhVi__spray-spray-cpx-ta-tega.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 16,
+        "fields": {
+            "item": 25,
+            "file": "store/spray-spray-cpx-ta-tega/media/images/9x8baH__pFxG9K__spray-spray-cpx-ta-tega.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 17,
+        "fields": {
+            "item": 26,
+            "file": "store/spray-spray-dislike/media/images/IGDFKD__9iVkko__spray-spray-dislike.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 18,
+        "fields": {
+            "item": 26,
+            "file": "store/spray-spray-dislike/media/images/PgM5RS__pY1Gus__spray-spray-dislike.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 19,
+        "fields": {
+            "item": 27,
+            "file": "store/spray-spray-fala-se-nao-e/media/images/1Ilj9J__OZ6ZJj__spray-spray-fala-se-nao-e.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 20,
+        "fields": {
+            "item": 27,
+            "file": "store/spray-spray-fala-se-nao-e/media/images/8ZzBc8__SiKbNV__spray-spray-fala-se-nao-e.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 21,
+        "fields": {
+            "item": 28,
+            "file": "store/spray-spray-like/media/images/meEygy__Q04FyR__spray-spray-like.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 22,
+        "fields": {
+            "item": 28,
+            "file": "store/spray-spray-like/media/images/zs42e2__ZLmX3X__spray-spray-like.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 23,
+        "fields": {
+            "item": 29,
+            "file": "store/spray-spray-primal-be-wild/media/images/DFnCe1__2HeAcP__spray-spray-primal-be-wild.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 24,
+        "fields": {
+            "item": 29,
+            "file": "store/spray-spray-primal-be-wild/media/images/SmPfHj__3iFvyW__spray-spray-primal-be-wild.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 25,
+        "fields": {
+            "item": 30,
+            "file": "store/spray-spray-primal-tribal/media/images/6S9TUh__dsiLH2__spray-spray-primal-tribal.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 26,
+        "fields": {
+            "item": 30,
+            "file": "store/spray-spray-primal-tribal/media/images/kfVGTl__h97zZs__spray-spray-primal-tribal.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 27,
+        "fields": {
+            "item": 31,
+            "file": "store/spray-spray-reload-fade/media/images/JOcf0u__ruc0SV__spray-spray-reload-fade.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 28,
+        "fields": {
+            "item": 31,
+            "file": "store/spray-spray-reload-fade/media/images/YIBM9w__OGpqml__spray-spray-reload-fade.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 29,
+        "fields": {
+            "item": 32,
+            "file": "store/spray-spray-sangue-do-meu-sangue/media/images/XiEwqd__lsUOoy__spray-spray-sangue-d_TsrEo5V.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 30,
+        "fields": {
+            "item": 32,
+            "file": "store/spray-spray-sangue-do-meu-sangue/media/images/daKBpx__8Xi6R3__spray-spray-sangue-d_9Nfr94V.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 31,
+        "fields": {
+            "item": 33,
+            "file": "store/spray-spray-vapo/media/images/sdHJ1X__s4Rpl5__spray-spray-vapo.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 32,
+        "fields": {
+            "item": 33,
+            "file": "store/spray-spray-vapo/media/images/WHKDib__9yS7mt__spray-spray-vapo.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 33,
+        "fields": {
+            "item": 34,
+            "file": "store/spray-spray-w/media/images/ELeqsj__qLKsN4__spray-spray-w.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 34,
+        "fields": {
+            "item": 34,
+            "file": "store/spray-spray-w/media/images/pagHt7__AGOaRI__spray-spray-w.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 35,
+        "fields": {
+            "item": 35,
+            "file": "store/spray-spray-xei-de-odio/media/images/3JM71s__D81PYa__spray-spray-xei-de-odio.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 36,
+        "fields": {
+            "item": 35,
+            "file": "store/spray-spray-xei-de-odio/media/images/QHAKdS__QJOXRi__spray-spray-xei-de-odio.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 37,
+        "fields": {
+            "item": 44,
+            "file": "store/weapon-pistols-9idade-skin-9idade-primal/media/images/Zo5go9__USlPGF__weapon-pisto_KEB0DKF.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 38,
+        "fields": {
+            "item": 44,
+            "file": "store/weapon-pistols-9idade-skin-9idade-primal/media/images/U6jccz__M7Qbma__weapon-pisto_YUtaPn9.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 39,
+        "fields": {
+            "item": 44,
+            "file": "store/weapon-pistols-9idade-skin-9idade-primal/media/images/NBFUgH__tER48V__weapon-pisto_k0GkYwO.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 40,
+        "fields": {
+            "item": 44,
+            "file": "store/weapon-pistols-9idade-skin-9idade-primal/media/images/qm8q9h__fPzQ6j__weapon-pisto_I7fc89W.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 41,
+        "fields": {
+            "item": 44,
+            "file": "store/weapon-pistols-9idade-skin-9idade-primal/media/videos/SKY8jJ__xJ0Er6__weapon-pisto_PP5YcgV.mp4",
+            "media_type": "video"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 42,
+        "fields": {
+            "item": 45,
+            "file": "store/weapon-pistols-9idade-skin-9idade-reload/media/videos/u03pOe__GXiTl0__weapon-pisto_PGArWED.mp4",
+            "media_type": "video"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 43,
+        "fields": {
+            "item": 45,
+            "file": "store/weapon-pistols-9idade-skin-9idade-reload/media/images/WfdzUN__d0EKd6__weapon-pisto_XNZVs6j.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 44,
+        "fields": {
+            "item": 45,
+            "file": "store/weapon-pistols-9idade-skin-9idade-reload/media/images/Z9ES39__5eetv8__weapon-pisto_imYAVN3.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 45,
+        "fields": {
+            "item": 45,
+            "file": "store/weapon-pistols-9idade-skin-9idade-reload/media/images/7aXsBL__FFvyi3__weapon-pisto_iu3BGY6.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 46,
+        "fields": {
+            "item": 46,
+            "file": "store/wear-ata-conjunto-cpx-a-vontade/media/images/aDNsSd__48t5FF__wear-ata-conjunto-cpx_X72Lyxn.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 47,
+        "fields": {
+            "item": 46,
+            "file": "store/wear-ata-conjunto-cpx-a-vontade/media/images/n0T6fl__4ADvX3__wear-ata-conjunto-cpx_XXnRLKz.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 48,
+        "fields": {
+            "item": 46,
+            "file": "store/wear-ata-conjunto-cpx-a-vontade/media/images/dw8IKb__GmQaZT__wear-ata-conjunto-cpx_UEJnWlQ.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 49,
+        "fields": {
+            "item": 46,
+            "file": "store/wear-ata-conjunto-cpx-a-vontade/media/images/QMA5qO__66jI8l__wear-ata-conjunto-cpx_xvPBjJ6.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 50,
+        "fields": {
+            "item": 46,
+            "file": "store/wear-ata-conjunto-cpx-a-vontade/media/videos/6WXcdL__G1eunR__wear-ata-conjunto-cpx_BV7oSoV.mp4",
+            "media_type": "video"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 51,
+        "fields": {
+            "item": 47,
+            "file": "store/wear-ata-conjunto-cpx-bota-a-cara/media/images/htWxqR__8O3VNv__wear-ata-conjunto-c_mxMYCgG.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 52,
+        "fields": {
+            "item": 47,
+            "file": "store/wear-ata-conjunto-cpx-bota-a-cara/media/images/hTfaE3__W66lil__wear-ata-conjunto-c_BE2Bo8F.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 53,
+        "fields": {
+            "item": 47,
+            "file": "store/wear-ata-conjunto-cpx-bota-a-cara/media/images/il6O41__jonNH4__wear-ata-conjunto-c_VQsvITF.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 54,
+        "fields": {
+            "item": 47,
+            "file": "store/wear-ata-conjunto-cpx-bota-a-cara/media/images/RNp3OP__528V13__wear-ata-conjunto-c_gGfFC2B.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 55,
+        "fields": {
+            "item": 47,
+            "file": "store/wear-ata-conjunto-cpx-bota-a-cara/media/videos/tK8OB3__pnHXyO__wear-ata-conjunto-c_F3xzh47.mp4",
+            "media_type": "video"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 56,
+        "fields": {
+            "item": 48,
+            "file": "store/wear-ata-conjunto-primal-ao-ataque/media/images/aL8KRQ__OqpfhA__wear-ata-conjunto-_7yHCywN.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 57,
+        "fields": {
+            "item": 48,
+            "file": "store/wear-ata-conjunto-primal-ao-ataque/media/images/luSS43__r6PJoL__wear-ata-conjunto-_W82Vfz0.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 58,
+        "fields": {
+            "item": 48,
+            "file": "store/wear-ata-conjunto-primal-ao-ataque/media/images/NZNFEg__Tv9h3H__wear-ata-conjunto-_lw2Zfh2.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 59,
+        "fields": {
+            "item": 48,
+            "file": "store/wear-ata-conjunto-primal-ao-ataque/media/videos/zguVfC__tu1DJJ__wear-ata-conjunto-_FpBBvMB.mp4",
+            "media_type": "video"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 60,
+        "fields": {
+            "item": 49,
+            "file": "store/wear-def-conjunto-cpx-cacador/media/images/T6reQ8__KlXe5D__wear-def-conjunto-cpx-cacador.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 61,
+        "fields": {
+            "item": 49,
+            "file": "store/wear-def-conjunto-cpx-cacador/media/images/sWoeHD__ETiyQR__wear-def-conjunto-cpx-cacador.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 62,
+        "fields": {
+            "item": 49,
+            "file": "store/wear-def-conjunto-cpx-cacador/media/images/5qadQV__Rh2L0x__wear-def-conjunto-cpx-cacador.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 63,
+        "fields": {
+            "item": 49,
+            "file": "store/wear-def-conjunto-cpx-cacador/media/images/zF42lg__TVmFTM__wear-def-conjunto-cpx-cacador.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 64,
+        "fields": {
+            "item": 49,
+            "file": "store/wear-def-conjunto-cpx-cacador/media/videos/x7ibkd__qOR6to__wear-def-conjunto-cpx-cacador.mp4",
+            "media_type": "video"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 65,
+        "fields": {
+            "item": 49,
+            "file": "store/wear-def-conjunto-cpx-cacador/media/images/oJOSWm__9daKfd__wear-def-conjunto-cpx-cacador.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 66,
+        "fields": {
+            "item": 50,
+            "file": "store/wear-def-conjunto-cpx-sentinela/media/images/ZHNNjB__hHYMGt__wear-def-conjunto-cpx_DgEqZdZ.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 67,
+        "fields": {
+            "item": 50,
+            "file": "store/wear-def-conjunto-cpx-sentinela/media/images/rEZyz5__wWiJzW__wear-def-conjunto-cpx_CQTYRi9.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 68,
+        "fields": {
+            "item": 50,
+            "file": "store/wear-def-conjunto-cpx-sentinela/media/images/VDzf7e__3uxb5o__wear-def-conjunto-cpx_vW5DhkC.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 69,
+        "fields": {
+            "item": 50,
+            "file": "store/wear-def-conjunto-cpx-sentinela/media/images/mAT9yP__ZQll85__wear-def-conjunto-cpx_B7BCyr3.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 70,
+        "fields": {
+            "item": 50,
+            "file": "store/wear-def-conjunto-cpx-sentinela/media/videos/rJe4tx__5DOfft__wear-def-conjunto-cpx_jt6H8Z8.mp4",
+            "media_type": "video"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 71,
+        "fields": {
+            "item": 51,
+            "file": "store/wear-def-conjunto-primal-selva/media/images/Kmi1QB__0D6iOU__wear-def-conjunto-primal-selva.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 72,
+        "fields": {
+            "item": 51,
+            "file": "store/wear-def-conjunto-primal-selva/media/images/AyKDOl__PKSFqL__wear-def-conjunto-primal-selva.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 73,
+        "fields": {
+            "item": 51,
+            "file": "store/wear-def-conjunto-primal-selva/media/images/x8i9jp__Ov4Er0__wear-def-conjunto-primal-selva.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 74,
+        "fields": {
+            "item": 51,
+            "file": "store/wear-def-conjunto-primal-selva/media/images/IP2bBD__gsCSOB__wear-def-conjunto-primal-selva.png",
+            "media_type": "image"
+        }
+    },
+    {
+        "model": "store.itemmedia",
+        "pk": 75,
+        "fields": {
+            "item": 51,
+            "file": "store/wear-def-conjunto-primal-selva/media/videos/ucOlty__wavK34__wear-def-conjunto-primal-selva.mp4",
+            "media_type": "video"
         }
     }
 ]
