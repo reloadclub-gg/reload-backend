@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Ao verificar uma nova conta criada, agora passamos a criar a primeira loja desse usuário.
 - Removemos o campo `background_image` que não estava mais sendo usado dos modelos de `store`. Em seu lugar, adicionamos o campo `cover_image` [#998](998-adicionar-campo-cover_image-no-modelo-e-esquema-de-item).
 
 ### Fixed
 
+- Um problema fazia com que a loja fosse exibida igual para todos os usuários. Corrigimos esse problema [#1000](https://github.com/3C-gg/reload-backend/issues/1000).
 - Adicionamos uma proteção para evitar um erro ao tentar fazer logout sem um lobby.
 - Corrige problema que acontecia com usuários inativos ao tentar acessar o site. Não era possível resgatar as informações do usuário logado caso ele estivesse inativo. Movemos a verificação de `is_active` para um código mais apropriado que permite que esse comportamento funcione normalmente [#996](https://github.com/3C-gg/reload-backend/issues/996).
 - Corrige bug ao ativar skin de arma. O código exclua a skin de uma outra arma para salvar a atual. Adicionamos uma condição na `query` e foi resolvido [#992](https://github.com/3C-gg/reload-backend/issues/992).

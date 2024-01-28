@@ -100,6 +100,20 @@ class ItemForm(forms.ModelForm):
         if featured and not featured_image:
             raise ValidationError(_('Featured must have a featured image.'))
 
+    def _clean_box_chance(self, box, box_draw_chance):
+        if box:
+            total_chance = (
+                models.Item.objects.filter(box=box).aggregate(
+                    models.Sum('box_draw_chance')
+                )['box_draw_chance__sum']
+                or 0
+            )
+
+            if total_chance + box_draw_chance > 100:
+                raise ValidationError(
+                    _('The total sum of items on this box cannot be greater then 100%.')
+                )
+
     def clean(self):
         cleaned_data = super().clean()
         item_type = cleaned_data.get('item_type')
@@ -108,10 +122,13 @@ class ItemForm(forms.ModelForm):
         decorative_image = cleaned_data.get('decorative_image')
         featured = cleaned_data.get('featured')
         featured_image = cleaned_data.get('featured_image')
+        box = cleaned_data.get('box')
+        box_draw_chance = cleaned_data.get('box_draw_chance')
 
         self._clean_weapon(item_type, subtype, weapon)
         self._clean_decorative(item_type, subtype, decorative_image)
         self._clean_wear(item_type, subtype)
         self._clean_featured(featured, featured_image)
+        self._clean_box_chance(box, box_draw_chance)
 
         return cleaned_data

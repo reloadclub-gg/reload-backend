@@ -263,12 +263,28 @@ class UserInventorySchema(ModelSchema):
         return obj.id
 
 
-class UserStoreSchema(Schema):
-    id: str
+class UserStoreSchema(ModelSchema):
     user_id: int
     featured: list = []
     products: list = []
     next_rotation: str
+    last_rotation: str
+
+    class Config:
+        model = models.UserStore
+        model_exclude = ['user', 'items_ids', 'last_rotation_items_ids']
+
+    @staticmethod
+    def resolve_user_id(obj):
+        return obj.user.id
+
+    @staticmethod
+    def resolve_next_rotation(obj):
+        return obj.next_rotation_date.isoformat()
+
+    @staticmethod
+    def resolve_last_rotation(obj):
+        return obj.last_rotation_date.isoformat()
 
 
 class UserItemUpdateSchema(Schema):
