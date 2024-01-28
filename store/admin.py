@@ -25,6 +25,7 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'discount',
         'box',
         'collection',
+        'is_starter',
     )
     readonly_fields = ('release_date', 'is_available', 'handle')
     search_fields = (
