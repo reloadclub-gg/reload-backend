@@ -22,7 +22,7 @@ from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import BetaUser, Match
 from steam import SteamClient
-from store.models import Item
+from store.models import Item, UserStore
 
 from .. import tasks, utils, websocket
 from ..models import Account, Auth, Invite, SteamUser, UserLogin
@@ -231,6 +231,9 @@ def verify_account(user: User, verification_token: str) -> User:
         if settings.APP_GLOBAL_FRIENDSHIP:
             for user in User.active_verified_users([account.user.id]):
                 ws_friends_add(account.user, user)
+
+        # create user store
+        UserStore.populate(user)
 
     return user
 

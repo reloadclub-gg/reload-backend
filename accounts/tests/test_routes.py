@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.core.exceptions import ObjectDoesNotExist
 from model_bakery import baker
 
@@ -163,7 +165,8 @@ class AccountsAPITestCase(mixins.UserOneMixin, TestCase):
         r = self.api.get('/auth', token=self.user.auth.token)
         self.assertEqual(r.status_code, 200)
 
-    def test_account_verification(self):
+    @mock.patch('store.models.repopulate_user_store.apply_async')
+    def test_account_verification(self, mock_user_store_task):
         baker.make(Account, user=self.user)
         self.user.auth.create_token()
         payload = {'verification_token': self.user.account.verification_token}

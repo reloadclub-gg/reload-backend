@@ -180,11 +180,15 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         controller.auth(user)
 
     @mock.patch('accounts.api.controller.tasks.send_welcome_email.delay')
-    def test_verify_account(self, mock_welcome_email):
+    @mock.patch('store.models.repopulate_user_store.apply_async')
+    def test_verify_account(self, mock_user_store_task, mock_welcome_email):
+        self.assertFalse(hasattr(self.user, 'userstore'))
         controller.verify_account(self.user, self.user.account.verification_token)
         self.user.refresh_from_db()
         self.assertTrue(self.user.account.is_verified)
         self.assertIsNone(self.user.auth.sessions)
+        self.assertTrue(hasattr(self.user, 'userstore'))
+        self.assertIsNotNone(self.user.userstore)
 
         mock_welcome_email.assert_called_once_with(self.user.email)
 
