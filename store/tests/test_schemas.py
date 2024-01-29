@@ -87,6 +87,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'decorative_image': get_full_file_path(self.item.decorative_image)
             if self.item.decorative_image
             else None,
+            'preview_image': get_full_file_path(self.item.preview_image)
+            if self.item.preview_image
+            else None,
             'box_id': schemas.BoxSchema.from_orm(self.item.box)
             if self.item.box
             else None,
@@ -125,6 +128,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'decorative_image': get_full_file_path(self.item.decorative_image)
             if self.item.decorative_image
             else None,
+            'preview_image': get_full_file_path(self.item.preview_image)
+            if self.item.preview_image
+            else None,
             'box_id': self.item.box.id if self.item.box else None,
             'box_draw_chance': self.item.box_draw_chance,
             'collection_id': self.collection.id if self.item.collection else None,
@@ -162,6 +168,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'decorative_image': get_full_file_path(self.box_item.decorative_image)
             if self.box_item.decorative_image
             else None,
+            'preview_image': get_full_file_path(self.box_item.preview_image)
+            if self.box_item.preview_image
+            else None,
             'box_id': self.box.id,
             'box_draw_chance': self.box_item.box_draw_chance,
             'collection_id': self.collection.id if self.box_item.collection else None,
@@ -198,6 +207,9 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
                 self.collection_item.decorative_image
             )
             if self.collection_item.decorative_image
+            else None,
+            'preview_image': get_full_file_path(self.collection_item.preview_image)
+            if self.collection_item.preview_image
             else None,
             'box_id': self.item.box.id if self.item.box else None,
             'box_draw_chance': self.collection_item.box_draw_chance,

@@ -25,6 +25,8 @@ class ItemSchema(ModelSchema):
     cover_image: str
     foreground_image: str
     featured_image: str = None
+    decorative_image: str = None
+    preview_image: str = None
     box_id: int = None
     collection_id: int = None
     in_use: bool = None
@@ -48,6 +50,16 @@ class ItemSchema(ModelSchema):
     def resolve_featured_image(obj):
         if obj.featured_image:
             return get_full_file_path(obj.featured_image)
+
+    @staticmethod
+    def resolve_decorative_image(obj):
+        if obj.decorative_image:
+            return get_full_file_path(obj.decorative_image)
+
+    @staticmethod
+    def resolve_preview_image(obj):
+        if obj.preview_image:
+            return get_full_file_path(obj.preview_image)
 
     @staticmethod
     def resolve_media(obj):
@@ -129,6 +141,8 @@ class UserItemSchema(ModelSchema):
     cover_image: str
     foreground_image: str
     featured_image: str = None
+    decorative_image: str = None
+    preview_image: str = None
     subtype: str = None
     description: str
     release_date: datetime = None
@@ -157,6 +171,16 @@ class UserItemSchema(ModelSchema):
     def resolve_featured_image(obj):
         if obj.item.featured_image:
             return get_full_file_path(obj.item.featured_image)
+
+    @staticmethod
+    def resolve_decorative_image(obj):
+        if obj.item.decorative_image:
+            return get_full_file_path(obj.item.decorative_image)
+
+    @staticmethod
+    def resolve_preview_image(obj):
+        if obj.item.preview_image:
+            return get_full_file_path(obj.item.preview_image)
 
     @staticmethod
     def resolve_subtype(obj):
