@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
@@ -265,8 +265,8 @@ class UserInventorySchema(ModelSchema):
 
 class UserStoreSchema(ModelSchema):
     user_id: int
-    featured: list = []
-    products: list = []
+    featured: list = [Union[ItemSchema, CollectionSchema]]
+    products: list = [ItemSchema]
     next_rotation: str
     last_rotation: str
 
@@ -285,6 +285,19 @@ class UserStoreSchema(ModelSchema):
     @staticmethod
     def resolve_last_rotation(obj):
         return obj.last_rotation_date.isoformat()
+
+    @staticmethod
+    def resolve_featured(obj):
+        return [
+            ItemSchema.from_orm(item)
+            if isinstance(item, models.Item)
+            else CollectionSchema.from_orm(item)
+            for item in obj.featured
+        ]
+
+    @staticmethod
+    def resolve_products(obj):
+        return [ItemSchema.from_orm(item) for item in obj.products]
 
 
 class UserItemUpdateSchema(Schema):
