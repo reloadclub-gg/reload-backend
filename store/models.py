@@ -322,21 +322,17 @@ class UserStore(models.Model):
 
     @property
     def featured(self) -> List[Union[Item, Collection]]:
-        user_items_ids = UserItem.objects.filter(user=self.user).values_list(
-            'id',
-            flat=True,
-        )
         featured_items = list(
             Item.objects.filter(
                 featured=True,
                 is_available=True,
-            ).exclude(id__in=user_items_ids)
+            )
         )
         featured_collections = list(
             Collection.objects.filter(
                 featured=True,
                 is_available=True,
-            ).exclude(item__id__in=user_items_ids)
+            )
         )
 
         return (featured_collections + featured_items)[
@@ -354,7 +350,7 @@ class UserStore(models.Model):
         user_items_ids = UserItem.objects.all().values_list('id', flat=True)
         items_ids = list(
             Item.objects.filter(is_available=True)
-            .exclude(id__in=user_items_ids)
+            .exclude(id__in=user_items_ids, featured=True)
             .order_by('?')
             .values_list(
                 'id',
