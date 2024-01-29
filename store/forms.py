@@ -125,9 +125,7 @@ class ItemForm(forms.ModelForm):
 
             if total_chance + box_draw_chance > 100:
                 raise ValidationError(
-                    _(
-                        f'The total sum of items on this box cannot be greater then 100% ({total_chance + box_draw_chance}).'
-                    )
+                    _('The total sum of items on this box cannot be greater then 100%.')
                 )
 
         return box_draw_chance
