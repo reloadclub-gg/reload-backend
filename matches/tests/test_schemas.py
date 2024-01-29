@@ -240,7 +240,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
                 match_player.user.steam_user.avatarhash,
                 'medium',
             ),
-            'assets': {'persona': None, 'spray': None, 'wear': None},
+            'assets': {'persona': None, 'spray': None, 'wear': None, 'weapon': None},
         }
 
         self.assertEqual(payload, expected_payload)
@@ -258,7 +258,12 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
                 match_player.user.steam_user.avatarhash,
                 'medium',
             ),
-            'assets': {'persona': None, 'spray': item.handle, 'wear': None},
+            'assets': {
+                'persona': None,
+                'spray': item.handle,
+                'wear': None,
+                'weapon': None,
+            },
         }
 
         self.assertEqual(payload, expected_payload)
