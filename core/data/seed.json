@@ -1903,7 +1903,7 @@
             "box_draw_chance": null,
             "collection": null,
             "featured": false,
-            "is_starter": true
+            "is_starter": false
         }
     },
     {
@@ -2424,6 +2424,58 @@
             "collection": 3,
             "featured": false,
             "is_starter": false
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 52,
+        "fields": {
+            "name": "Card O Começo",
+            "item_type": "decorative",
+            "subtype": "card",
+            "weapon": null,
+            "handle": "decorative-card-card-o-comeco",
+            "price": 0,
+            "create_date": "2024-01-29T16:52:18.370Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Tudo começa aqui...",
+            "discount": 0,
+            "foreground_image": "store/decorative-card-card-o-comeco/media/foreground__TYzGsQ__decorative-card-card-o-comeco.png",
+            "cover_image": "store/decorative-card-card-o-comeco/media/cover__fOX6Ed__decorative-card-card-o-comeco.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-card-card-o-comeco/media/decorative__vEdSvL__decorative-card-card-o-comeco.jpg",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": true
+        }
+    },
+    {
+        "model": "store.item",
+        "pk": 53,
+        "fields": {
+            "name": "Perfil O Começo",
+            "item_type": "decorative",
+            "subtype": "profile",
+            "weapon": null,
+            "handle": "decorative-profile-perfil-o-comeco",
+            "price": 0,
+            "create_date": "2024-01-29T16:52:43.467Z",
+            "release_date": null,
+            "is_available": false,
+            "description": "Tudo começa aqui...",
+            "discount": 0,
+            "foreground_image": "store/decorative-profile-perfil-o-comeco/media/foreground__OSsSFA__decorative-profile-pe_PaZcx58.png",
+            "cover_image": "store/decorative-profile-perfil-o-comeco/media/cover__WB5vf9__decorative-profile-perfil-o-comeco.png",
+            "featured_image": "",
+            "decorative_image": "store/decorative-profile-perfil-o-comeco/media/decorative__ScxR36__decorative-profile-pe_dLEmyD3.png",
+            "box": null,
+            "box_draw_chance": null,
+            "collection": null,
+            "featured": false,
+            "is_starter": true
         }
     },
     {
