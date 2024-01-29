@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -224,9 +225,11 @@ def verify_account(user: User, verification_token: str) -> User:
 
     if not user.date_email_update:
         tasks.send_welcome_email.delay(user.email)
-        starter_items = Item.objects.filter(is_starter=True)
+
+        # give starter and free items
+        starter_items = Item.objects.filter(Q(is_starter=True) | Q(price=0))
         for item in starter_items:
-            user.useritem_set.create(item=item, in_use=False)
+            user.useritem_set.create(item=item, in_use=item.is_starter)
 
         if settings.APP_GLOBAL_FRIENDSHIP:
             for user in User.active_verified_users([account.user.id]):

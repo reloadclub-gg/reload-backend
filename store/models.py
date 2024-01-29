@@ -312,7 +312,10 @@ class UserStore(models.Model):
 
     @property
     def featured(self) -> List[Union[Item, Collection]]:
-        user_items_ids = UserItem.objects.all().values_list('id', flat=True)
+        user_items_ids = UserItem.objects.filter(user=self.user).values_list(
+            'id',
+            flat=True,
+        )
         featured_items = list(
             Item.objects.filter(
                 featured=True,
