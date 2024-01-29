@@ -132,7 +132,7 @@ class CollectionSchema(ModelSchema):
 
     @staticmethod
     def resolve_items(obj):
-        return obj.item_set.filter(is_available=True)
+        return obj.item_set.all()
 
 
 class UserItemSchema(ModelSchema):
