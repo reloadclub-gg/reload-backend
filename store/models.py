@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from datetime import timedelta
+from typing import List, Union
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -309,9 +310,8 @@ class UserStore(models.Model):
         ordering = ['next_rotation_date', '-last_rotation_date']
         indexes = [models.Index(fields=['items_ids'])]
 
-    # TODO: boxes
     @property
-    def featured(self):
+    def featured(self) -> List[Union[Item, Collection]]:
         user_items_ids = UserItem.objects.all().values_list('id', flat=True)
         featured_items = list(
             Item.objects.filter(
@@ -330,12 +330,10 @@ class UserStore(models.Model):
             : settings.STORE_FEATURED_MAX_LENGTH
         ]
 
-    # TODO: boxes
     @property
     def products(self):
         return Item.objects.filter(id__in=self.items_ids)
 
-    # TODO: boxes
     @staticmethod
     def populate(user: User) -> UserStore:
         now = timezone.now()
