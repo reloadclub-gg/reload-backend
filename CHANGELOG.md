@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Remove itens em destaque da lista de itens temporizados da loja do usuário [#1014](https://github.com/3C-gg/reload-backend/issues/1014).
 - Corrigido um erro que aparecia na loja de todos os usuários quando um usuário comprava um item de uma coleção. Isso fazia com que a coleção não fosse exibida para todos os outros usuários do site, mas só deveria não ser exibido para o usuário que comprou.
 - Erro que era apresentado ao acessar a loja do usuário. O esquema `UserStoreSchema` não estava entregando corretamente os dados, causando esse erro [#1004](https://github.com/3C-gg/reload-backend/issues/1004).
 - Um problema fazia com que a loja fosse exibida igual para todos os usuários. Corrigimos esse problema [#1000](https://github.com/3C-gg/reload-backend/issues/1000).
