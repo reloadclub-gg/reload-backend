@@ -59,6 +59,11 @@ def item_decorative_media_path(instance, filename):
     return f'{path}/decorative__{file}'
 
 
+def item_preview_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/preview__{file}'
+
+
 def item_alternative_media_path(instance, filename):
     path, file = item_media_path(instance, filename)
     random_id = generate_random_string()
@@ -195,6 +200,11 @@ class Item(models.Model):
     )
     decorative_image = models.ImageField(
         upload_to=item_decorative_media_path,
+        null=True,
+        blank=True,
+    )
+    preview_image = models.ImageField(
+        upload_to=item_preview_media_path,
         null=True,
         blank=True,
     )

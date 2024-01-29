@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Adicionamos o campo `preview_image` no modelo `Item`. Esse campo serve para exibir como ficaria o item decorativo aplicado no perfil do usuário [#1012](https://github.com/3C-gg/reload-backend/issues/1012).
+
 ### Changed
 
 - Alteramos o esquema `MatchTeamPlayerFiveMSchema` para enviar os assets de maneira correta para o FiveM [#1007](https://github.com/3C-gg/reload-backend/issues/1007).
