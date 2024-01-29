@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Alteramos a URL de retorno `FRONT_END_AUTH_URL` para refletir as alterações da bilbioteca Next.js [#1003](https://github.com/3C-gg/reload-backend/issues/1003).
 - Ao verificar uma nova conta criada, agora passamos a criar a primeira loja desse usuário.
 - Removemos o campo `background_image` que não estava mais sendo usado dos modelos de `store`. Em seu lugar, adicionamos o campo `cover_image` [#998](998-adicionar-campo-cover_image-no-modelo-e-esquema-de-item).
 
