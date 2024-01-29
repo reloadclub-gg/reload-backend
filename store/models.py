@@ -407,11 +407,11 @@ def send_starter_item_to_users_signal(sender, instance, created, **kwargs):
             )
         )
         users_ids_without_item = users_ids - user_items
-        user_items = [
+        start_items_to_give = [
             UserItem(user_id=user_id, item=instance)
             for user_id in users_ids_without_item
         ]
-        UserItem.objects.bulk_create(user_items, batch_size=1000)
+        UserItem.objects.bulk_create(start_items_to_give, batch_size=1000)
 
 
 @receiver(post_save, sender=UserStore)
