@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Erro que era apresentado ao acessar a loja do usuário. O esquema `UserStoreSchema` não estava entregando corretamente os dados, causando esse erro [#1004](https://github.com/3C-gg/reload-backend/issues/1004).
 - Um problema fazia com que a loja fosse exibida igual para todos os usuários. Corrigimos esse problema [#1000](https://github.com/3C-gg/reload-backend/issues/1000).
 - Adicionamos uma proteção para evitar um erro ao tentar fazer logout sem um lobby.
 - Corrige problema que acontecia com usuários inativos ao tentar acessar o site. Não era possível resgatar as informações do usuário logado caso ele estivesse inativo. Movemos a verificação de `is_active` para um código mais apropriado que permite que esse comportamento funcione normalmente [#996](https://github.com/3C-gg/reload-backend/issues/996).
