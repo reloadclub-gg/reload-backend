@@ -226,7 +226,7 @@ def verify_account(user: User, verification_token: str) -> User:
         tasks.send_welcome_email.delay(user.email)
         starter_items = Item.objects.filter(is_starter=True)
         for item in starter_items:
-            user.useritem_set.create(item=item, in_use=True)
+            user.useritem_set.create(item=item, in_use=False)
 
         if settings.APP_GLOBAL_FRIENDSHIP:
             for user in User.active_verified_users([account.user.id]):
