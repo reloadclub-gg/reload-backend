@@ -1,23 +1,16 @@
 import logging
-import random
-from datetime import timedelta
-from itertools import chain
 from typing import List
 
 import stripe
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Count, Subquery
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from ninja.errors import Http404, HttpError
 
-from appsettings.services import replaceable_store_items
-from core.redis import redis_client_instance as cache
-from core.utils import str_to_timezone
 from lobbies.websocket import ws_update_lobby
 
 from .. import models, tasks
@@ -25,200 +18,6 @@ from . import schemas
 
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
-
-
-def get_featured_items(exclude_owned: bool = False, user: User = None):
-    result = models.Item.objects.filter(featured=True, is_available=True)
-    if exclude_owned:
-        owned_items = models.UserItem.objects.filter(user=user).values('item__id')
-        return list(result.exclude(id__in=owned_items))
-
-    return list(result)
-
-
-def get_featured_boxes(exclude_owned: bool = False, user: User = None):
-    result = models.Box.objects.filter(featured=True, is_available=True)
-    if exclude_owned:
-        owned_items = models.UserBox.objects.filter(user=user).values('box__id')
-        return list(result.exclude(id__in=owned_items))
-    return list(result)
-
-
-def get_featured_collections(exclude_owned: bool = False, user: User = None):
-    collections = models.Collection.objects.filter(featured=True, is_available=True)
-
-    if exclude_owned:
-        user_item_ids = set(
-            models.UserItem.objects.filter(user=user).values_list('item__id', flat=True)
-        )
-        result = []
-        for collection in collections:
-            collection_item_ids = set(collection.item_set.values_list('id', flat=True))
-            if not collection_item_ids.intersection(user_item_ids):
-                result.append(collection)
-
-        return result
-
-    return list(collections)
-
-
-def get_random_items(exclude_owned: bool = False, user: User = None):
-    items = models.Item.objects.filter(is_available=True).order_by('?')
-    boxes = models.Box.objects.filter(is_available=True).order_by('?')
-
-    if exclude_owned:
-        items = items.exclude(
-            id__in=Subquery(
-                models.UserItem.objects.filter(user=user).values('item__id')
-            )
-        )
-
-        boxes = boxes.exclude(
-            id__in=Subquery(models.UserBox.objects.filter(user=user).values('box__id'))
-        )
-
-    return list(items), list(boxes)
-
-
-def update_cache(user_id: int, items: list):
-    pipe = cache.pipeline()
-    for item in items:
-        pipe.zadd(f'__store:user:{user_id}:store', {item.handle: item.id})
-
-    pipe.execute()
-
-
-def get_cached_user_store(user: User, exclude_owned: bool = False):
-    handles = cache.zrange(f'__store:user:{user.id}:store', 0, -1)
-    items = models.Item.objects.filter(is_available=True, handle__in=handles)
-    boxes = models.Box.objects.filter(is_available=True, handle__in=handles)
-
-    if exclude_owned:
-        items = items.exclude(
-            id__in=Subquery(
-                models.UserItem.objects.filter(user=user).values('item__id')
-            )
-        )
-
-        boxes = boxes.exclude(
-            id__in=Subquery(models.UserBox.objects.filter(user=user).values('box__id'))
-        )
-
-    store_items = list(chain(items, boxes))
-    sorted_store_items = sorted(store_items, key=lambda instance: instance.id)
-    reduced_store_items = sorted_store_items[: settings.STORE_LENGTH]
-
-    return [
-        schemas.ItemSchema.from_orm(item)
-        if isinstance(item, models.Item)
-        else schemas.BoxSchema.from_orm(item)
-        for item in reduced_store_items
-    ]
-
-
-def get_next_rotation_date(user: User):
-    rotation_key = f'__store:user:{user.id}:last_updated'
-    rotation = cache.get(rotation_key)
-    now = timezone.now()
-    duration = settings.STORE_ROTATION_DAYS
-
-    if rotation:
-        start_time = str_to_timezone(rotation)
-        end_time = start_time + timedelta(days=duration)
-    else:
-        end_time = now + timedelta(days=duration)
-
-    return end_time.isoformat()
-
-
-def get_user_store_featured(user: User, exclude_owned: bool = False):
-    model_to_schema = {
-        models.Collection: schemas.CollectionSchema,
-        models.Box: schemas.BoxSchema,
-        models.Item: schemas.ItemSchema,
-    }
-
-    items = (
-        get_featured_collections(exclude_owned, user)
-        + get_featured_boxes(exclude_owned, user)
-        + get_featured_items(exclude_owned, user)
-    )[: settings.STORE_FEATURED_MAX_LENGTH]
-
-    return [model_to_schema[type(item)].from_orm(item) for item in items]
-
-
-def get_user_store_items(user: User, exclude_owned: bool = False):
-    rotation_key = f'__store:user:{user.id}:last_updated'
-    rotation = cache.get(rotation_key)
-
-    if rotation and timezone.now() - str_to_timezone(rotation) <= timedelta(
-        days=settings.STORE_ROTATION_DAYS
-    ):
-        return get_cached_user_store(user, exclude_owned)
-
-    items, boxes = get_random_items(exclude_owned, user)
-    products = items + boxes
-    sorted_products = sorted(products, key=lambda instance: instance.id)
-    reduced_products = sorted_products[: settings.STORE_LENGTH]
-    update_cache(user.id, reduced_products)
-
-    result = [
-        schemas.ItemSchema.from_orm(item)
-        if isinstance(item, models.Item)
-        else schemas.BoxSchema.from_orm(item)
-        for item in reduced_products
-    ]
-
-    cache.set(rotation_key, timezone.now().isoformat())
-    return result if result else []
-
-
-def get_random_item(user_id: int):
-    item, box = None, None
-    items_on_store = cache.smembers(f'__store:user:{user_id}:items')
-    items_on_store_ids = [int(item_id) for item_id in items_on_store]
-    user_item_ids = models.UserItem.objects.filter(user__id=user_id).values_list(
-        'item__id',
-        flat=True,
-    )
-
-    available_items = (
-        models.Item.objects.filter(is_available=True)
-        .exclude(id__in=user_item_ids)
-        .exclude(id__in=items_on_store_ids)
-    )
-    items_count = available_items.aggregate(count=Count('id'))['count']
-    if items_count > 0:
-        random_index = random.randint(0, items_count - 1)
-        item = available_items[random_index]
-
-    boxes_on_store = cache.smembers(f'__store:user:{user_id}:boxes')
-    boxes_on_store_ids = [int(item_id) for item_id in boxes_on_store]
-    user_box_ids = models.UserBox.objects.filter(user__id=user_id).values_list(
-        'box__id',
-        flat=True,
-    )
-
-    available_boxes = (
-        models.Box.objects.filter(is_available=True)
-        .exclude(id__in=user_box_ids)
-        .exclude(id__in=boxes_on_store_ids)
-    )
-    boxes_count = available_boxes.aggregate(count=Count('id'))['count']
-    if boxes_count > 0:
-        random_index = random.randint(0, boxes_count - 1)
-        box = available_boxes[random_index]
-
-    choices = [obj for obj in [box, item] if obj is not None]
-    return random.choice(choices) if choices else None
-
-
-def replace_purchased_item(user_id: int):
-    new_product = get_random_item(user_id)
-    if new_product:
-        item_key_name = 'items' if isinstance(new_product, models.Item) else 'boxes'
-        cache.sadd(f'__store:user:{user_id}:{item_key_name}', new_product.id)
-    return new_product
 
 
 def item_update(user: User, item_id: int, payload: schemas.UserItemUpdateSchema):
@@ -241,20 +40,11 @@ def item_update(user: User, item_id: int, payload: schemas.UserItemUpdateSchema)
     return user
 
 
-def get_user_store(user: User):
-    exclude_owned = replaceable_store_items()
-    featured = get_user_store_featured(user, exclude_owned)
-    products = get_user_store_items(user, exclude_owned)
-    next_rotation = get_next_rotation_date(user)
-    return schemas.UserStoreSchema.from_orm(
-        {
-            'id': f'{user.email}{user.id}store',
-            'user_id': user.id,
-            'featured': featured,
-            'products': products,
-            'next_rotation': next_rotation,
-        }
-    )
+def get_user_store(user: User) -> models.UserStore:
+    if not hasattr(user, 'userstore'):
+        models.UserStore.populate(user)
+
+    return user.userstore
 
 
 def purchase_item(user: User, item_id: int) -> models.UserItem:
@@ -275,9 +65,6 @@ def purchase_item(user: User, item_id: int) -> models.UserItem:
         logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
-    if replaceable_store_items():
-        cache.srem(f'__store:user:{user.id}:items', item.id)
-        replace_purchased_item(user_id=user.id)
     return user_item
 
 
@@ -299,9 +86,6 @@ def purchase_box(user: User, box_id: int) -> models.UserBox:
         logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))
 
-    if replaceable_store_items():
-        cache.srem(f'__store:user:{user.id}:boxes', box.id)
-        replace_purchased_item(user_id=user.id)
     return user_box
 
 
@@ -322,10 +106,6 @@ def purchase_collection(user: User, collection_id: int) -> List[models.UserItem]
             for item in collection.item_set.filter(is_available=True):
                 user_item = user.useritem_set.create(item=item)
                 user_items.append(user_item)
-                cached_items = cache.smembers(f'__store:user:{user.id}:items')
-                if replaceable_store_items() and str(item.id) in cached_items:
-                    cache.srem(f'__store:user:{user.id}:items', item.id)
-                    replace_purchased_item(user_id=user.id)
     except IntegrityError as e:
         logging.error(e)
         raise HttpError(400, _('Cannot process purchase.'))

@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -22,7 +23,7 @@ from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import BetaUser, Match
 from steam import SteamClient
-from store.models import Item
+from store.models import Item, UserStore
 
 from .. import tasks, utils, websocket
 from ..models import Account, Auth, Invite, SteamUser, UserLogin
@@ -61,7 +62,7 @@ def auth(user: User, from_fake_signup=False) -> User:
     Authenticate user, add session and possibly update friends and create lobby.
     """
 
-    if not is_verified(user):
+    if not is_verified(user) or not user.is_active:
         return user
 
     from_offline_status = user.auth.sessions is None
@@ -104,7 +105,9 @@ def login(request, token: str) -> Auth:
     except User.DoesNotExist:
         return None
 
-    if not hasattr(request, 'verified_exempt') and not is_verified(user):
+    if not hasattr(request, 'verified_exempt') and (
+        not is_verified(user) or not user.is_active
+    ):
         return None
 
     UserLogin.objects.update_or_create(
@@ -128,7 +131,7 @@ def logout(user: User) -> dict:
     ws_expire_player_invites(user)
 
     # If user has an account
-    if hasattr(user, 'account'):
+    if hasattr(user, 'account') and user.account.lobby:
         try:
             handle_player_move(user, user.id, delete_lobby=True)
         except LobbyException as e:
@@ -222,13 +225,18 @@ def verify_account(user: User, verification_token: str) -> User:
 
     if not user.date_email_update:
         tasks.send_welcome_email.delay(user.email)
-        starter_items = Item.objects.filter(is_starter=True)
+
+        # give starter and free items
+        starter_items = Item.objects.filter(Q(is_starter=True) | Q(price=0))
         for item in starter_items:
-            user.useritem_set.create(item=item, in_use=True)
+            user.useritem_set.create(item=item, in_use=item.is_starter)
 
         if settings.APP_GLOBAL_FRIENDSHIP:
             for user in User.active_verified_users([account.user.id]):
                 ws_friends_add(account.user, user)
+
+        # create user store
+        UserStore.populate(user)
 
     return user
 

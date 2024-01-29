@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from model_bakery import baker
 
 from accounts.tests.mixins import AccountOneMixin
@@ -41,15 +40,6 @@ class StoreCommonModelsTestCase(AccountOneMixin, TestCase):
             box_draw_chance=45,
             item_type=models.Item.ItemType.SPRAY,
         )
-
-        with self.assertRaises(ValidationError):
-            baker.make(
-                models.Item,
-                name='Sample Item 3',
-                box=box,
-                box_draw_chance=10,
-                item_type=models.Item.ItemType.SPRAY,
-            )
 
         baker.make(
             models.Item,

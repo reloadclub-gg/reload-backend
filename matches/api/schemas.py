@@ -262,6 +262,7 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
             Item.ItemType.SPRAY: 'spray',
             Item.ItemType.PERSONA: 'persona',
             Item.ItemType.WEAR: 'wear',
+            Item.ItemType.WEAPON: 'weapon',
         }
 
         items = obj.useritem_set.filter(
@@ -269,10 +270,25 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
             in_use=True,
         )
 
-        item_mapping = {item.item.item_type: item for item in items}
+        wear_items = []
+        weapon_items = []
+        item_mapping = {}
+        for item in items:
+            if item.item.item_type == Item.ItemType.WEAR:
+                wear_items.append(item.item.handle)
+            elif item.item.item_type == Item.ItemType.WEAPON:
+                weapon_items.append(item.item.handle)
+            else:
+                item_mapping[item.item.item_type] = item
+
+        item_mapping[Item.ItemType.WEAR] = wear_items if wear_items else None
+        item_mapping[Item.ItemType.WEAPON] = weapon_items if weapon_items else None
 
         return {
-            value: item_mapping.get(key).item.handle if key in item_mapping else None
+            value: item_mapping.get(key).item.handle
+            if key in item_mapping
+            and key not in [Item.ItemType.WEAR, Item.ItemType.WEAPON]
+            else item_mapping.get(key)
             for key, value in item_types.items()
         }
 
