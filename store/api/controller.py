@@ -103,7 +103,7 @@ def purchase_collection(user: User, collection_id: int) -> List[models.UserItem]
         with transaction.atomic():
             user.account.coins -= collection.price
             user.account.save()
-            for item in collection.item_set.filter(is_available=True):
+            for item in collection.item_set.all():
                 user_item = user.useritem_set.create(item=item)
                 user_items.append(user_item)
     except IntegrityError as e:
