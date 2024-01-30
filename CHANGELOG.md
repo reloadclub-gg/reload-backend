@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrige um erro que fazia os itens da coleção não irem para o inventário do usuário após comprar a coleção [#1019](https://github.com/3C-gg/reload-backend/issues/1019).
 - Ajusta itens não retornados para o FE nas coleções. Estávamos filtrando por `is_available=True`, porém os itens da coleção são `is_available=False` para que não apareçam na listagem de itens da loja e somente seja capaz de adquiri-los ao comprar a coleção inteira [#1017](https://github.com/3C-gg/reload-backend/issues/1017).
 - Remove itens em destaque da lista de itens temporizados da loja do usuário [#1014](https://github.com/3C-gg/reload-backend/issues/1014).
 - Corrigido um erro que aparecia na loja de todos os usuários quando um usuário comprava um item de uma coleção. Isso fazia com que a coleção não fosse exibida para todos os outros usuários do site, mas só deveria não ser exibido para o usuário que comprou.
