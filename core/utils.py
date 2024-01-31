@@ -94,6 +94,9 @@ def get_full_file_path(file):
     if hasattr(settings, 'AWS_LOCATION'):
         return file.url
 
+    if isinstance(file, str):
+        return settings.SITE_URL + file
+
     return settings.SITE_URL + file.url
 
 
