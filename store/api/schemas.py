@@ -289,8 +289,8 @@ class UserInventorySchema(ModelSchema):
 
 class UserStoreSchema(ModelSchema):
     user_id: int
-    featured: list = [Union[ItemSchema, CollectionSchema]]
-    products: list = [ItemSchema]
+    featured: List[Union[ItemSchema, CollectionSchema]] = []
+    products: List[ItemSchema] = []
     next_rotation: str
     last_rotation: str
 
