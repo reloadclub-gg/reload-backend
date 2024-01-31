@@ -141,7 +141,8 @@ class MapSchema(ModelSchema):
 
     class Config:
         model = models.Map
-        model_fields = "__all__"
+        model_fields = '__all__'
+        model_exclude = ['weight']
 
     @staticmethod
     def resolve_thumbnail(obj):

@@ -1,3 +1,6 @@
+import re
+from decimal import Decimal
+
 from django.contrib import admin
 from django.utils import timezone
 from django_object_actions import action
@@ -184,3 +187,69 @@ class CollectionAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
     change_actions = ('publish', 'unpublish')
     are_you_sure_actions = ('publish', 'unpublish')
     are_you_sure_prompt_f = 'Are you sure you want to {label} this item?'
+
+
+@admin.register(models.ProductTransaction)
+class ProductTransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'create_date',
+        'complete_date',
+        'amount',
+        'price',
+        'status',
+    )
+    search_fields = ('user__email',)
+    ordering = ('-create_date', '-complete_date', 'price', 'amount')
+    list_filter = ('amount', 'status', 'price')
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['now'] = timezone.now()
+
+        today_transactions = models.ProductTransaction.objects.filter(
+            complete_date__day=timezone.now().day,
+            status=models.ProductTransaction.Status.COMPLETE,
+        ).values_list('price', flat=True)
+        today_total = sum(
+            Decimal(re.sub(r'[^\d,]', '', price).replace(',', '.'))
+            for price in today_transactions
+            if price
+        )
+
+        month_transactions = models.ProductTransaction.objects.filter(
+            complete_date__month=timezone.now().month,
+            status=models.ProductTransaction.Status.COMPLETE,
+        ).values_list('price', flat=True)
+        month_total = sum(
+            Decimal(re.sub(r'[^\d,]', '', price).replace(',', '.'))
+            for price in month_transactions
+            if price
+        )
+
+        all_transactions = models.ProductTransaction.objects.filter(
+            status=models.ProductTransaction.Status.COMPLETE,
+        ).values_list('price', flat=True)
+        all_total = sum(
+            Decimal(re.sub(r'[^\d,]', '', price).replace(',', '.'))
+            for price in all_transactions
+            if price
+        )
+
+        extra_context['today_total'] = today_total
+        extra_context['month_total'] = month_total
+        extra_context['all_total'] = all_total
+
+        return super().changelist_view(request, extra_context=extra_context)

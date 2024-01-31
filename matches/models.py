@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import os
+import random
 from typing import List
 
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save
@@ -98,9 +100,19 @@ class Map(models.Model):
     sys_name = models.CharField(max_length=32, unique=True)
     is_active = models.BooleanField(default=True)
     thumbnail = models.ImageField(upload_to=map_media_path, null=True)
+    weight = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+    )
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def randomize():
+        maps = Map.objects.filter(is_active=True)
+        maplist = [map for map in maps for _ in range(map.weight)]
+        return random.choice(maplist)
 
 
 class Match(models.Model):

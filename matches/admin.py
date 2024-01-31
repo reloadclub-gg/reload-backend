@@ -35,8 +35,8 @@ class ServerAdmin(admin.ModelAdmin):
 
 @admin.register(models.Map)
 class MapAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'id', 'sys_name', 'is_active')
-    list_filter = ('is_active',)
+    list_display = ('name', 'id', 'sys_name', 'is_active', 'weight')
+    list_filter = ('is_active', 'weight')
 
 
 class MatchPlayerInline(admin.TabularInline):
