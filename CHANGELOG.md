@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6598714 - 31/1/2024]
+
 ### Added
 
 - Possibilidade de publicar ou despublicar vários itens ao mesmo tempo na loja no admin de Itens [#1022](https://github.com/3C-gg/reload-backend/issues/1022).
