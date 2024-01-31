@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Peso nos mapas [#1029](https://github.com/3C-gg/reload-backend/issues/1029).
 - Área no admin para visualizar compras [#1028](https://github.com/3C-gg/reload-backend/issues/1028).
 
 ## [6598714 - 31/1/2024]
