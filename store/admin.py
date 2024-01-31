@@ -7,6 +7,16 @@ from core.admin_mixins import AreYouSureActionsAdminMixin
 from . import forms, models
 
 
+@admin.action(description="Mark selected items as published on store")
+def make_published(modeladmin, request, queryset):
+    queryset.update(is_available=True)
+
+
+@admin.action(description="Mark selected items as unpublished on store")
+def make_unpublished(modeladmin, request, queryset):
+    queryset.update(is_available=False)
+
+
 class ItemMediaAdminInline(admin.TabularInline):
     model = models.ItemMedia
     extra = 0
@@ -15,6 +25,7 @@ class ItemMediaAdminInline(admin.TabularInline):
 @admin.register(models.Item)
 class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
     form = forms.ItemForm
+    actions = [make_published, make_unpublished]
     list_display = (
         'name',
         'item_type',
