@@ -1,13 +1,22 @@
-import os
+from __future__ import annotations
 
+import os
+from datetime import timedelta
+from typing import List, Union
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils import timezone
 from django.utils.text import slugify
-from django.utils.translation import gettext as _
 
 from core.utils import generate_random_string
+
+from .tasks import repopulate_user_store
 
 User = get_user_model()
 
@@ -35,6 +44,11 @@ def item_foreground_media_path(instance, filename):
     return f'{path}/foreground__{file}'
 
 
+def item_cover_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/cover__{file}'
+
+
 def item_featured_media_path(instance, filename):
     path, file = item_media_path(instance, filename)
     return f'{path}/featured__{file}'
@@ -43,6 +57,11 @@ def item_featured_media_path(instance, filename):
 def item_decorative_media_path(instance, filename):
     path, file = item_media_path(instance, filename)
     return f'{path}/decorative__{file}'
+
+
+def item_preview_media_path(instance, filename):
+    path, file = item_media_path(instance, filename)
+    return f'{path}/preview__{file}'
 
 
 def item_alternative_media_path(instance, filename):
@@ -64,13 +83,13 @@ class Box(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(
-        upload_to=item_background_media_path,
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    cover_image = models.FileField(upload_to=item_cover_media_path)
+    featured_image = models.FileField(
+        upload_to=item_featured_media_path,
         null=True,
         blank=True,
     )
-    foreground_image = models.FileField(upload_to=item_foreground_media_path)
-    featured_image = models.FileField(upload_to=item_featured_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -90,13 +109,13 @@ class Collection(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(
-        upload_to=item_background_media_path,
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    cover_image = models.FileField(upload_to=item_cover_media_path)
+    featured_image = models.FileField(
+        upload_to=item_featured_media_path,
         null=True,
         blank=True,
     )
-    foreground_image = models.FileField(upload_to=item_foreground_media_path)
-    featured_image = models.FileField(upload_to=item_featured_media_path)
     featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -172,15 +191,20 @@ class Item(models.Model):
     is_available = models.BooleanField(default=False)
     description = models.TextField()
     discount = models.IntegerField(default=0)
-    background_image = models.ImageField(
-        upload_to=item_background_media_path,
+    foreground_image = models.FileField(upload_to=item_foreground_media_path)
+    cover_image = models.FileField(upload_to=item_cover_media_path)
+    featured_image = models.FileField(
+        upload_to=item_featured_media_path,
         null=True,
         blank=True,
     )
-    foreground_image = models.FileField(upload_to=item_foreground_media_path)
-    featured_image = models.FileField(upload_to=item_featured_media_path)
     decorative_image = models.ImageField(
         upload_to=item_decorative_media_path,
+        null=True,
+        blank=True,
+    )
+    preview_image = models.ImageField(
+        upload_to=item_preview_media_path,
         null=True,
         blank=True,
     )
@@ -211,21 +235,10 @@ class Item(models.Model):
 
     def save(self, *args, **kwargs):
         subtype_handle = f'-{self.subtype}' if self.subtype else ''
-        self.handle = f'{self.item_type}{subtype_handle}-{slugify(self.name)}'
-
-        if self.box:
-            total_chance = (
-                Item.objects.filter(box=self.box)
-                .exclude(id=self.id)
-                .aggregate(models.Sum('box_draw_chance'))['box_draw_chance__sum']
-                or 0
-            )
-            total_chance += self.box_draw_chance or 0
-
-            if total_chance > 100:
-                raise ValidationError(
-                    _('The total sum of items on this box cannot be greater then 100%.')
-                )
+        weapon_handle = f'-{self.weapon}' if self.weapon else ''
+        self.handle = (
+            f'{self.item_type}{subtype_handle}{weapon_handle}-{slugify(self.name)}'
+        )
 
         super().save(*args, **kwargs)
 
@@ -261,6 +274,7 @@ class UserItem(models.Model):
                 user=self.user,
                 item__item_type=self.item.item_type,
                 item__subtype=self.item.subtype,
+                item__weapon=self.item.weapon,
             ).exclude(pk=self.pk)
 
             existing.update(in_use=False)
@@ -285,6 +299,81 @@ class UserBox(models.Model):
 
     def __str__(self):
         return f'{self.box.name} (RC {self.box.price})'
+
+
+class UserStore(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    last_rotation_date = models.DateTimeField()
+    next_rotation_date = models.DateTimeField()
+    items_ids = ArrayField(
+        models.IntegerField(),
+        name='items_ids',
+        size=settings.STORE_LENGTH,
+    )
+    last_rotation_items_ids = ArrayField(
+        models.IntegerField(),
+        name='last_rotation_items_ids',
+        size=settings.STORE_LENGTH,
+    )
+
+    class Meta:
+        ordering = ['next_rotation_date', '-last_rotation_date']
+        indexes = [models.Index(fields=['items_ids'])]
+
+    @property
+    def featured(self) -> List[Union[Item, Collection]]:
+        featured_items = list(
+            Item.objects.filter(
+                featured=True,
+                is_available=True,
+            )
+        )
+        featured_collections = list(
+            Collection.objects.filter(
+                featured=True,
+                is_available=True,
+            )
+        )
+
+        return (featured_collections + featured_items)[
+            : settings.STORE_FEATURED_MAX_LENGTH
+        ]
+
+    @property
+    def products(self):
+        return Item.objects.filter(id__in=self.items_ids)
+
+    @staticmethod
+    def populate(user: User) -> UserStore:
+        now = timezone.now()
+        next_rotation_date = now + timedelta(days=settings.STORE_ROTATION_DAYS)
+        user_items_ids = UserItem.objects.all().values_list('id', flat=True)
+        items_ids = list(
+            Item.objects.filter(is_available=True)
+            .exclude(id__in=user_items_ids, featured=True)
+            .order_by('?')
+            .values_list(
+                'id',
+                flat=True,
+            )[: settings.STORE_LENGTH]
+        )
+
+        if not hasattr(user, 'userstore'):
+            UserStore.objects.create(
+                user=user,
+                next_rotation_date=next_rotation_date,
+                last_rotation_date=now,
+                items_ids=items_ids,
+                last_rotation_items_ids=items_ids,
+            )
+        else:
+            user.userstore.next_rotation_date = next_rotation_date
+            user.userstore.last_rotation_date = now
+            user.userstore.last_rotation_items_ids = user.userstore.items_ids
+            user.userstore.items_ids = items_ids
+            user.userstore.save()
+
+        return user.userstore
 
 
 class ProductTransaction(models.Model):
@@ -315,3 +404,29 @@ class ProductTransaction(models.Model):
 
     def __str__(self):
         return f'{self.user.email}: {self.amount} x {self.price}'
+
+
+@receiver(post_save, sender=Item)
+def send_starter_item_to_users_signal(sender, instance, created, **kwargs):
+    if instance.is_starter:
+        users_ids = set(User.active_verified_users().values_list('id', flat=True))
+        user_items = set(
+            UserItem.objects.filter(user_id__in=users_ids, item=instance).values_list(
+                'user_id', flat=True
+            )
+        )
+        users_ids_without_item = users_ids - user_items
+        start_items_to_give = [
+            UserItem(user_id=user_id, item=instance)
+            for user_id in users_ids_without_item
+        ]
+        UserItem.objects.bulk_create(start_items_to_give, batch_size=1000)
+
+
+@receiver(post_save, sender=UserStore)
+def schedule_user_store_repopulate_signal(sender, instance, created, **kwargs):
+    repopulate_user_store.apply_async(
+        (instance.user.id,),
+        eta=instance.next_rotation_date,
+        serializer='json',
+    )

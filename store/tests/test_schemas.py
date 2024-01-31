@@ -1,19 +1,15 @@
 import tempfile
-from datetime import timedelta
+from unittest import mock
 
 from django.conf import settings
-from django.test import override_settings
-from django.utils import timezone
 from model_bakery import baker
 
 from accounts.tests.mixins import AccountOneMixin
-from appsettings.models import AppSettings
-from core.redis import redis_client_instance as cache
 from core.tests import TestCase
-from core.utils import get_full_file_path, str_to_timezone
+from core.utils import get_full_file_path
 
 from .. import models
-from ..api import controller, schemas
+from ..api import schemas
 
 
 class StoreSchemaTestCase(AccountOneMixin, TestCase):
@@ -24,7 +20,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Item,
             name='Test Item',
             foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
+            cover_image=self.tmp_image,
             price=9,
             is_available=True,
             item_type=models.Item.ItemType.SPRAY,
@@ -33,7 +29,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Box,
             name='Test Box',
             foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
+            cover_image=self.tmp_image,
             price=9,
             is_available=True,
         )
@@ -41,7 +37,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             models.Collection,
             name='Test Collection',
             foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
+            cover_image=self.tmp_image,
             price=9,
             is_available=True,
         )
@@ -50,7 +46,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             box=self.box,
             name='Test Box Item',
             foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
+            cover_image=self.tmp_image,
             price=9,
             is_available=True,
             item_type=models.Item.ItemType.SPRAY,
@@ -60,7 +56,7 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             collection=self.collection,
             name='Test Collection Item',
             foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
+            cover_image=self.tmp_image,
             price=9,
             is_available=True,
             item_type=models.Item.ItemType.SPRAY,
@@ -83,13 +79,16 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'release_date': self.item.release_date,
             'description': self.item.description,
             'discount': self.item.discount,
-            'background_image': get_full_file_path(self.item.background_image)
-            if self.item.background_image
-            else None,
+            'cover_image': get_full_file_path(self.item.cover_image),
             'foreground_image': get_full_file_path(self.item.foreground_image),
-            'featured_image': get_full_file_path(self.item.featured_image),
+            'featured_image': get_full_file_path(self.item.featured_image)
+            if self.item.featured_image
+            else None,
             'decorative_image': get_full_file_path(self.item.decorative_image)
             if self.item.decorative_image
+            else None,
+            'preview_image': get_full_file_path(self.item.preview_image)
+            if self.item.preview_image
             else None,
             'box_id': schemas.BoxSchema.from_orm(self.item.box)
             if self.item.box
@@ -121,13 +120,16 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'release_date': self.item.release_date,
             'description': self.item.description,
             'discount': self.item.discount,
-            'background_image': get_full_file_path(self.item.background_image)
-            if self.item.background_image
-            else None,
+            'cover_image': get_full_file_path(self.item.cover_image),
             'foreground_image': get_full_file_path(self.item.foreground_image),
-            'featured_image': get_full_file_path(self.item.featured_image),
+            'featured_image': get_full_file_path(self.item.featured_image)
+            if self.item.featured_image
+            else None,
             'decorative_image': get_full_file_path(self.item.decorative_image)
             if self.item.decorative_image
+            else None,
+            'preview_image': get_full_file_path(self.item.preview_image)
+            if self.item.preview_image
             else None,
             'box_id': self.item.box.id if self.item.box else None,
             'box_draw_chance': self.item.box_draw_chance,
@@ -158,13 +160,16 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'release_date': self.box_item.release_date,
             'description': self.box_item.description,
             'discount': self.box_item.discount,
-            'background_image': get_full_file_path(self.box_item.background_image)
-            if self.box_item.background_image
-            else None,
+            'cover_image': get_full_file_path(self.box_item.cover_image),
             'foreground_image': get_full_file_path(self.box_item.foreground_image),
-            'featured_image': get_full_file_path(self.box_item.featured_image),
+            'featured_image': get_full_file_path(self.box_item.featured_image)
+            if self.box_item.featured_image
+            else None,
             'decorative_image': get_full_file_path(self.box_item.decorative_image)
             if self.box_item.decorative_image
+            else None,
+            'preview_image': get_full_file_path(self.box_item.preview_image)
+            if self.box_item.preview_image
             else None,
             'box_id': self.box.id,
             'box_draw_chance': self.box_item.box_draw_chance,
@@ -191,19 +196,20 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'release_date': self.collection_item.release_date,
             'description': self.collection_item.description,
             'discount': self.collection_item.discount,
-            'background_image': get_full_file_path(
-                self.collection_item.background_image
-            )
-            if self.collection_item.background_image
-            else None,
+            'cover_image': get_full_file_path(self.collection_item.cover_image),
             'foreground_image': get_full_file_path(
                 self.collection_item.foreground_image
             ),
-            'featured_image': get_full_file_path(self.collection_item.featured_image),
+            'featured_image': get_full_file_path(self.collection_item.featured_image)
+            if self.collection_item.featured_image
+            else None,
             'decorative_image': get_full_file_path(
                 self.collection_item.decorative_image
             )
             if self.collection_item.decorative_image
+            else None,
+            'preview_image': get_full_file_path(self.collection_item.preview_image)
+            if self.collection_item.preview_image
             else None,
             'box_id': self.item.box.id if self.item.box else None,
             'box_draw_chance': self.collection_item.box_draw_chance,
@@ -227,11 +233,11 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'release_date': self.box.release_date,
             'description': self.box.description,
             'discount': self.box.discount,
-            'background_image': get_full_file_path(self.box.background_image)
-            if self.box.background_image
-            else None,
+            'cover_image': get_full_file_path(self.box.cover_image),
             'foreground_image': get_full_file_path(self.box.foreground_image),
-            'featured_image': get_full_file_path(self.box.featured_image),
+            'featured_image': get_full_file_path(self.box.featured_image)
+            if self.box.featured_image
+            else None,
             'featured': self.box.featured,
             'can_open': None,
             'object': 'box',
@@ -252,11 +258,11 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
             'release_date': self.collection.release_date,
             'description': self.collection.description,
             'discount': self.collection.discount,
-            'background_image': get_full_file_path(self.collection.background_image)
-            if self.box.background_image
-            else None,
+            'cover_image': get_full_file_path(self.collection.cover_image),
             'foreground_image': get_full_file_path(self.collection.foreground_image),
-            'featured_image': get_full_file_path(self.collection.featured_image),
+            'featured_image': get_full_file_path(self.collection.featured_image)
+            if self.collection.featured_image
+            else None,
             'featured': self.collection.featured,
             'object': 'collection',
             'items': [
@@ -305,114 +311,15 @@ class StoreSchemaTestCase(AccountOneMixin, TestCase):
 
         self.assertEqual(payload, expected_payload)
 
-    def test_user_store_schema(self):
-        item0 = baker.make(
-            models.Item,
-            name='Test Item 0',
-            foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
-            price=9,
-            is_available=True,
-            item_type=models.Item.ItemType.SPRAY,
+
+class UserStoreSchemaTestCase(AccountOneMixin, TestCase):
+    fixtures = ['items.json']
+
+    @mock.patch('store.models.repopulate_user_store.apply_async')
+    def test_user_store_schema(self, user_store_task_mock):
+        models.UserStore.populate(self.user)
+        payload = schemas.UserStoreSchema.from_orm(self.user.userstore).dict()
+        self.assertEqual(len(payload.get('products')), settings.STORE_LENGTH)
+        self.assertTrue(
+            len(payload.get('featured')) <= settings.STORE_FEATURED_MAX_LENGTH
         )
-
-        payload = controller.get_user_store(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 5)
-        self.assertEqual(payload.get('id'), f'{self.user.email}{self.user.id}store')
-        self.assertEqual(payload.get('user_id'), self.user.id)
-
-        baker.make(models.UserItem, item=self.item, user=self.user)
-        payload = controller.get_user_store(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 5)
-
-        AppSettings.objects.create(
-            name='Replaceable Store Items',
-            kind=AppSettings.BOOLEAN,
-            value='1',
-        )
-
-        baker.make(models.UserItem, item=item0, user=self.user)
-        payload = controller.get_user_store(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 3)
-
-        self.assertEqual(len(payload.get('featured')), 0)
-        baker.make(
-            models.Item,
-            name='Test Item Featured',
-            foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
-            price=9,
-            is_available=True,
-            featured=True,
-            item_type=models.Item.ItemType.SPRAY,
-        )
-        payload = controller.get_user_store(self.user).dict()
-        self.assertEqual(len(payload.get('featured')), 1)
-
-        baker.make(
-            models.Item,
-            name='Test Item 2',
-            foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
-            price=9,
-            is_available=False,
-            featured=True,
-            item_type=models.Item.ItemType.SPRAY,
-        )
-
-        payload = controller.get_user_store(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 3)
-        self.assertEqual(len(payload.get('featured')), 1)
-
-        baker.make(
-            models.Box,
-            name='Feat Box',
-            foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
-            price=9,
-            is_available=True,
-            featured=True,
-        )
-
-        baker.make(
-            models.Collection,
-            name='Feat Collection',
-            foreground_image=self.tmp_image,
-            featured_image=self.tmp_image,
-            price=9,
-            is_available=True,
-            featured=True,
-        )
-
-        payload = controller.get_user_store(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 3)
-        self.assertEqual(len(payload.get('featured')), 3)
-
-    @override_settings(STORE_LENGTH=2)
-    def test_user_store_schema_length(self):
-        payload = controller.get_user_store(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 2)
-
-    @override_settings(STORE_LENGTH=1)
-    def test_user_store_schema_rotation(self):
-        payload = controller.get_user_store(self.user).dict()
-        product1 = payload.get('products')[0]
-        self.assertEqual(len(payload.get('products')), 1)
-
-        payload = controller.get_user_store(self.user).dict()
-        product2 = payload.get('products')[0]
-        self.assertEqual(len(payload.get('products')), 1)
-        self.assertEqual(product1.get('id'), product2.get('id'))
-
-        cache.delete(f'__store:user:{self.user.id}:last_updated')
-        cache.delete(f'__store:user:{self.user.id}:items')
-        cache.delete(f'__store:user:{self.user.id}:boxes')
-
-        payload = controller.get_user_store(self.user).dict()
-        self.assertEqual(len(payload.get('products')), 1)
-        next_rotation_date = str_to_timezone(payload.get('next_rotation'))
-        expected_rotation_date = timezone.now() + timedelta(
-            days=settings.STORE_ROTATION_DAYS
-        )
-        self.assertEqual(next_rotation_date.day, expected_rotation_date.day)
-        self.assertEqual(next_rotation_date.hour, expected_rotation_date.hour)

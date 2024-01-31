@@ -7,6 +7,16 @@ from core.admin_mixins import AreYouSureActionsAdminMixin
 from . import forms, models
 
 
+@admin.action(description="Mark selected items as published on store")
+def make_published(modeladmin, request, queryset):
+    queryset.update(is_available=True)
+
+
+@admin.action(description="Mark selected items as unpublished on store")
+def make_unpublished(modeladmin, request, queryset):
+    queryset.update(is_available=False)
+
+
 class ItemMediaAdminInline(admin.TabularInline):
     model = models.ItemMedia
     extra = 0
@@ -15,6 +25,7 @@ class ItemMediaAdminInline(admin.TabularInline):
 @admin.register(models.Item)
 class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
     form = forms.ItemForm
+    actions = [make_published, make_unpublished]
     list_display = (
         'name',
         'item_type',
@@ -25,6 +36,7 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'discount',
         'box',
         'collection',
+        'is_starter',
     )
     readonly_fields = ('release_date', 'is_available', 'handle')
     search_fields = (
@@ -36,7 +48,7 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'collection__name',
     )
 
-    ordering = ('name', 'price', 'discount')
+    ordering = ('-create_date', 'name', 'price', 'discount')
     list_filter = ('item_type', 'subtype', 'is_available', 'price')
     inlines = [ItemMediaAdminInline]
 
@@ -74,6 +86,7 @@ class ItemAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
 
 @admin.register(models.Box)
 class BoxAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
+    form = forms.BoxForm
     list_display = (
         'name',
         'handle',
@@ -87,7 +100,7 @@ class BoxAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'handle',
     )
 
-    ordering = ('name', 'price', 'discount')
+    ordering = ('-create_date', 'name', 'price', 'discount')
     list_filter = ('is_available', 'price')
 
     @action(description='Add box on app store.')
@@ -124,6 +137,7 @@ class BoxAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
 
 @admin.register(models.Collection)
 class CollectionAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
+    form = forms.CollectionForm
     list_display = (
         'name',
         'handle',
@@ -137,7 +151,7 @@ class CollectionAdmin(AreYouSureActionsAdminMixin, admin.ModelAdmin):
         'handle',
     )
 
-    ordering = ('name', 'price', 'discount')
+    ordering = ('-create_date', 'name', 'price', 'discount')
     list_filter = ('is_available', 'price')
 
     @action(description='Add collection on app store.')

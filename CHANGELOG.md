@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Possibilidade de publicar ou despublicar vários itens ao mesmo tempo na loja no admin de Itens [#1022](https://github.com/3C-gg/reload-backend/issues/1022).
+- Adicionamos o campo `preview_image` no modelo `Item`. Esse campo serve para exibir como ficaria o item decorativo aplicado no perfil do usuário [#1012](https://github.com/3C-gg/reload-backend/issues/1012).
+
+### Changed
+
+- Alteramos o esquema `MatchTeamPlayerFiveMSchema` para enviar os assets de maneira correta para o FiveM [#1007](https://github.com/3C-gg/reload-backend/issues/1007).
+- Alteramos a URL de retorno `FRONT_END_AUTH_URL` para refletir as alterações da bilbioteca Next.js [#1003](https://github.com/3C-gg/reload-backend/issues/1003).
+- Ao verificar uma nova conta criada, agora passamos a criar a primeira loja desse usuário.
+- Removemos o campo `background_image` que não estava mais sendo usado dos modelos de `store`. Em seu lugar, adicionamos o campo `cover_image` [#998](998-adicionar-campo-cover_image-no-modelo-e-esquema-de-item).
+
+### Fixed
+
+- Corrige um problema que fazia com que as partidas não iniciadas pelo FiveM, por qualquer motivo, causassem um erro inesperado [#1021](https://github.com/3C-gg/reload-backend/issues/1021).
+- Corrige um erro que fazia os itens da coleção não irem para o inventário do usuário após comprar a coleção [#1019](https://github.com/3C-gg/reload-backend/issues/1019).
+- Ajusta itens não retornados para o FE nas coleções. Estávamos filtrando por `is_available=True`, porém os itens da coleção são `is_available=False` para que não apareçam na listagem de itens da loja e somente seja capaz de adquiri-los ao comprar a coleção inteira [#1017](https://github.com/3C-gg/reload-backend/issues/1017).
+- Remove itens em destaque da lista de itens temporizados da loja do usuário [#1014](https://github.com/3C-gg/reload-backend/issues/1014).
+- Corrigido um erro que aparecia na loja de todos os usuários quando um usuário comprava um item de uma coleção. Isso fazia com que a coleção não fosse exibida para todos os outros usuários do site, mas só deveria não ser exibido para o usuário que comprou.
+- Erro que era apresentado ao acessar a loja do usuário. O esquema `UserStoreSchema` não estava entregando corretamente os dados, causando esse erro [#1004](https://github.com/3C-gg/reload-backend/issues/1004).
+- Um problema fazia com que a loja fosse exibida igual para todos os usuários. Corrigimos esse problema [#1000](https://github.com/3C-gg/reload-backend/issues/1000).
+- Adicionamos uma proteção para evitar um erro ao tentar fazer logout sem um lobby.
+- Corrige problema que acontecia com usuários inativos ao tentar acessar o site. Não era possível resgatar as informações do usuário logado caso ele estivesse inativo. Movemos a verificação de `is_active` para um código mais apropriado que permite que esse comportamento funcione normalmente [#996](https://github.com/3C-gg/reload-backend/issues/996).
+- Corrige bug ao ativar skin de arma. O código exclua a skin de uma outra arma para salvar a atual. Adicionamos uma condição na `query` e foi resolvido [#992](https://github.com/3C-gg/reload-backend/issues/992).
+
+## [1d5bb65 - 22/1/2024]
+
 ### Fixed
 
 - Ajusta ordenação na lista de partidas do admin [#988](https://github.com/3C-gg/reload-backend/issues/988).

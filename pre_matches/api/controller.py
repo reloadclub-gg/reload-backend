@@ -189,11 +189,13 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
             return cancel_pre_match(pre_match, 'servers_full')
         else:
             fivem_response = handle_create_fivem_match(match)
-            if fivem_response.status_code != 201:
+            if not fivem_response or fivem_response.status_code != 201:
                 cancel_match(match.id)
                 return match
-            else:
+
+            elif fivem_response:
                 match.warmup()
+
                 if (
                     settings.ENVIRONMENT == settings.LOCAL
                     or settings.TEST_MODE
