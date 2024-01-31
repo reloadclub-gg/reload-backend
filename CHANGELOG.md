@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Possibilidade de publicar ou despublicar vários itens ao mesmo tempo na loja no admin de Itens [#1022](https://github.com/3C-gg/reload-backend/issues/1022).
 - Adicionamos o campo `preview_image` no modelo `Item`. Esse campo serve para exibir como ficaria o item decorativo aplicado no perfil do usuário [#1012](https://github.com/3C-gg/reload-backend/issues/1012).
 
 ### Changed
