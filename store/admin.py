@@ -212,6 +212,9 @@ class ProductTransactionAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None) -> bool:
         return False
 
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['now'] = timezone.now()
