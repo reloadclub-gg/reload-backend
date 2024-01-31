@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Any, List, Optional
 
 from django.contrib.auth import get_user_model
 from ninja import ModelSchema, Schema
@@ -289,8 +289,8 @@ class UserInventorySchema(ModelSchema):
 
 class UserStoreSchema(ModelSchema):
     user_id: int
-    featured: list = [Union[ItemSchema, CollectionSchema]]
-    products: list = [ItemSchema]
+    featured: List[Any] = []
+    products: List[ItemSchema] = []
     next_rotation: str
     last_rotation: str
 

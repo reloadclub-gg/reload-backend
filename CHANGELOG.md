@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Peso nos mapas [#1029](https://github.com/3C-gg/reload-backend/issues/1029).
+- Área no admin para visualizar compras [#1028](https://github.com/3C-gg/reload-backend/issues/1028).
+
+### Fixed
+
+- Erro na documentação da API [#1033](https://github.com/3C-gg/reload-backend/issues/1033).
+
+## [6598714 - 31/1/2024]
+
+### Added
+
 - Possibilidade de publicar ou despublicar vários itens ao mesmo tempo na loja no admin de Itens [#1022](https://github.com/3C-gg/reload-backend/issues/1022).
 - Adicionamos o campo `preview_image` no modelo `Item`. Esse campo serve para exibir como ficaria o item decorativo aplicado no perfil do usuário [#1012](https://github.com/3C-gg/reload-backend/issues/1012).
 
