@@ -1,6 +1,7 @@
 from django.utils import timezone
 from model_bakery import baker
 
+from accounts.models import Account
 from core.tests import TestCase
 from core.utils import get_full_file_path
 from matches.models import Match, MatchPlayer, Server
@@ -46,6 +47,16 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
             item__subtype=Item.SubType.PROFILE,
             in_use=True,
         ).first()
+
+        all_user_ids = (
+            Account.verified_objects.all()
+            .order_by('-level', '-level_points')
+            .values_list('id', flat=True)
+        )
+        ranking_pos = 0
+        for idx, id in enumerate(all_user_ids):
+            if id == self.user_1.account.id:
+                ranking_pos = idx
 
         payload = schemas.ProfileSchema.from_orm(self.user_1.account).dict()
         expected_payload = {
@@ -109,6 +120,7 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
             'date_joined': self.user_1.date_joined.isoformat(),
             'status': self.user_1.status,
             'header': get_full_file_path(active_header) if active_header else None,
+            'ranking_pos': ranking_pos,
         }
 
         self.assertDictEqual(payload, expected_payload)

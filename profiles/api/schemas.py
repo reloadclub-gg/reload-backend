@@ -169,7 +169,7 @@ class ProfileSchema(ModelSchema):
     def resolve_ranking_pos(obj):
         ids = (
             Account.verified_objects.all()
-            .order_by('-level')
+            .order_by('-level', '-level_points')
             .values_list('id', flat=True)
         )
         pos = 0
