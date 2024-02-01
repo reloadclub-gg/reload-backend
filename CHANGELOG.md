@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint `GET /api/ranking/` retorna o ranking dos jogadores, ordenando pelo maior nível e depois, mais pontos de nível [#1032](https://github.com/3C-gg/reload-backend/issues/1032).
+- Método `get_elite_players` para trazer os jogadores que estão no nível 30 (elite).
+- Novo manager `verified_objects` no model `Account` para trazer somente os jogadores ativos e verificados.
+- Config no `settings` para determinar a quantidade máxima de jogadores na lista de ranking (padrão `100`).
+
+### Changed
+
+- Ajusta config `PLAYER_MAX_LEVEL` de `50` para `30` [#1032](https://github.com/3C-gg/reload-backend/issues/1032).
+
+## [1d31ef9 - 1/2/2024]
+
+### Added
+
 - Peso nos mapas [#1029](https://github.com/3C-gg/reload-backend/issues/1029).
 - Área no admin para visualizar compras [#1028](https://github.com/3C-gg/reload-backend/issues/1028).
 
