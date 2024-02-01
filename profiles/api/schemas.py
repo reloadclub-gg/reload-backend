@@ -43,7 +43,6 @@ class ProfileSchemaStats(ModelSchema):
 
 class ProfileSchema(ModelSchema):
     user_id: int
-    username: str
     avatar: dict
     matches_played: int
     matches_won: int
@@ -55,6 +54,7 @@ class ProfileSchema(ModelSchema):
     date_joined: str
     status: str
     header: str = None
+    ranking_pos: int
 
     class Config:
         model = Account
@@ -70,10 +70,6 @@ class ProfileSchema(ModelSchema):
     @staticmethod
     def resolve_user_id(obj):
         return obj.user.id
-
-    @staticmethod
-    def resolve_username(obj):
-        return obj.user.steam_user.username
 
     @staticmethod
     def resolve_avatar(obj):
@@ -168,6 +164,20 @@ class ProfileSchema(ModelSchema):
 
         if active_header:
             return get_full_file_path(active_header.item.decorative_image)
+
+    @staticmethod
+    def resolve_ranking_pos(obj):
+        ids = (
+            Account.verified_objects.all()
+            .order_by('-level', '-level_points')
+            .values_list('id', flat=True)
+        )
+        pos = 0
+        for idx, id in enumerate(ids):
+            if id == obj.id:
+                pos = idx
+
+        return pos
 
 
 class ProfileUpdateSchema(ModelSchema):

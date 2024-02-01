@@ -19,6 +19,7 @@ from matches.api.routes import router as matches_router
 from notifications.api.routes import router as notifications_router
 from pre_matches.api.routes import router as pre_matches_router
 from profiles.api.routes import router as profiles_router
+from ranking.api.routes import router as ranking_router
 from store.api.routes import router as store_router
 from support.api.routes import router as support_router
 
@@ -80,3 +81,4 @@ api.add_router("/lobbies/", lobbies_router)
 api.add_router("/support/", support_router)
 api.add_router("/pre-matches/", pre_matches_router)
 api.add_router("/store/", store_router)
+api.add_router("/ranking/", ranking_router)
