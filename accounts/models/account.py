@@ -31,6 +31,11 @@ def get_default_social_handles():
     return dict.fromkeys(Account.AVAILABLE_SOCIAL_HANDLES, None)
 
 
+class VerifiedAccountManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_verified=True, user__is_active=True)
+
+
 class Account(models.Model):
     VERIFICATION_TOKEN_LENGTH = 6
     DEBUG_VERIFICATION_TOKEN = "debug0"
@@ -54,6 +59,9 @@ class Account(models.Model):
     )
     social_handles = models.JSONField(default=get_default_social_handles)
     coins = models.IntegerField(default=0)
+
+    objects = models.Manager()
+    verified_objects = VerifiedAccountManager()
 
     class Meta:
         indexes = [
@@ -302,6 +310,10 @@ class Account(models.Model):
 
         from_user = User.objects.get(pk=user_id)
         return Steam.build_avatar_url(from_user.steam_user.avatarhash, 'medium')
+
+    @staticmethod
+    def get_elite_players():
+        return Account.verified_objects.filter(level=30)
 
 
 class Invite(models.Model):

@@ -347,13 +347,14 @@ PLAYER_MAX_LOSE_LEVEL_POINTS = config(
 # Other App Settings
 APP_INVITE_REQUIRED = config('APP_INVITE_REQUIRED', default=False, cast=bool)
 APP_GLOBAL_FRIENDSHIP = config('APP_GLOBAL_FRIENDSHIP', default=False, cast=bool)
-PLAYER_MAX_LEVEL = config('PLAYER_MAX_LEVEL', default=50, cast=int)
+PLAYER_MAX_LEVEL = config('PLAYER_MAX_LEVEL', default=30, cast=int)
 PLAYER_MAX_LEVEL_POINTS = config('PLAYER_MAX_LEVEL_POINTS', default=100, cast=int)
 MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER = config(
     'MAX_NOTIFICATION_HISTORY_COUNT_PER_PLAYER',
     default=10,
     cast=int,
 )
+RANKING_LIMIT = config('RANKING_LIMIT', default=100, cast=int)
 
 
 # Ninja Settings
