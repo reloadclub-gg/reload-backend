@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [e242321 - 5/2/2024]
+
 ### Added
 
 - Endpoint `GET /api/ranking/` retorna o ranking dos jogadores, ordenando pelo maior nível e depois, mais pontos de nível [#1032](https://github.com/3C-gg/reload-backend/issues/1032).
