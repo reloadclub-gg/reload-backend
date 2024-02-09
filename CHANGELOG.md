@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adiciona paginação no endpoint `api/ranking/` [#1041](https://github.com/3C-gg/reload-backend/issues/1041).
 - Endpoint `GET /api/ranking/` retorna o ranking dos jogadores, ordenando pelo maior nível e depois, mais pontos de nível [#1032](https://github.com/3C-gg/reload-backend/issues/1032).
 - Método `get_elite_players` para trazer os jogadores que estão no nível 30 (elite).
 - Novo manager `verified_objects` no model `Account` para trazer somente os jogadores ativos e verificados.
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera campo `ranking_pos` do schema `ProfileSchema` para começar do `1` e não do `0`.
 - Ajusta config `PLAYER_MAX_LEVEL` de `50` para `30` [#1032](https://github.com/3C-gg/reload-backend/issues/1032).
 
 ## [1d31ef9 - 1/2/2024]
