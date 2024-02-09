@@ -7,11 +7,6 @@ User = get_user_model()
 
 
 def ranking_list(user: User) -> dict:
-    accounts = Account.verified_objects.all().order_by('-level', '-level_points')[
+    return Account.verified_objects.all().order_by('-level', '-level_points')[
         : settings.RANKING_LIMIT
     ]
-
-    return {
-        'list': list(accounts),
-        'user': user.account,
-    }
