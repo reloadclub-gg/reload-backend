@@ -172,10 +172,10 @@ class ProfileSchema(ModelSchema):
             .order_by('-level', '-level_points')
             .values_list('id', flat=True)
         )
-        pos = 0
+        pos = 1
         for idx, id in enumerate(ids):
             if id == obj.id:
-                pos = idx
+                pos = idx + 1
 
         return pos
 
