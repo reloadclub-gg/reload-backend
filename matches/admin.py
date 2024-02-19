@@ -91,14 +91,12 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
         'formatted_end_date',
         'status',
         'map',
-        'game_type',
         'game_mode',
         'score',
     )
     ordering = ('-end_date', '-start_date', '-create_date')
     list_filter = (
         'status',
-        'game_type',
         'game_mode',
     )
     exclude = ['map', 'chat']

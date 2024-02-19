@@ -20,12 +20,10 @@ User = get_user_model()
 
 class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
     @mock.patch('accounts.tasks.ws_expire_player_invites')
-    @mock.patch('accounts.tasks.handle_player_move')
     @mock.patch('accounts.tasks.websocket.ws_user_logout')
     def test_watch_user_status_change_offline(
         self,
         mock_user_logout_ws,
-        mock_lobby_move,
         mock_expire_invites,
     ):
         self.user.add_session()
@@ -40,10 +38,9 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         tasks.watch_user_status_change(self.friend1.id)
         mock_user_logout_ws.assert_called_once()
         mock_expire_invites.assert_called_once()
-        mock_lobby_move.assert_called_once()
 
     @mock.patch('accounts.tasks.ws_expire_player_invites')
-    @mock.patch('accounts.tasks.handle_player_move')
+    @mock.patch('accounts.tasks.Lobby.move_player')
     @mock.patch('accounts.tasks.websocket.ws_user_logout')
     def test_watch_user_status_change_offline_with_lobby(
         self,
@@ -54,9 +51,10 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.user.add_session()
 
         self.friend1.add_session()
-        Lobby.create(owner_id=self.friend1.id)
+        lobby = Lobby.create(owner_id=self.friend1.id)
         self.friend1.logout()
 
+        mock_lobby_move.return_value = (None, lobby, None)
         tasks.watch_user_status_change(self.friend1.id)
         mock_user_logout_ws.assert_called_once()
         mock_expire_invites.assert_called_once()
@@ -98,7 +96,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
     @mock.patch('pre_matches.models.Team.remove_lobby')
     @mock.patch('accounts.tasks.cancel_pre_match')
     @mock.patch('accounts.tasks.ws_expire_player_invites')
-    @mock.patch('accounts.tasks.handle_player_move')
+    @mock.patch('accounts.tasks.Lobby.move_player')
     @mock.patch('accounts.tasks.websocket.ws_user_logout')
     def test_watch_user_status_change_offline_with_pre_match(
         self,
@@ -112,11 +110,12 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.friend1.add_session()
         l1 = Lobby.create(owner_id=self.friend1.id)
         l2 = Lobby.create(owner_id=self.user.id)
-        l1.start_queue()
-        l2.start_queue()
+        l1.update_queue('start')
+        l2.update_queue('start')
         queue()
 
         self.friend1.logout()
+        mock_lobby_move.return_value = (None, l1, None)
         tasks.watch_user_status_change(self.friend1.id)
 
         mock_user_logout_ws.assert_called_once()
@@ -126,7 +125,7 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
 
     @override_settings(TEAM_READY_PLAYERS_MIN=1)
     @mock.patch('accounts.tasks.ws_expire_player_invites')
-    @mock.patch('accounts.tasks.handle_player_move')
+    @mock.patch('accounts.tasks.Lobby.move_player')
     @mock.patch('accounts.tasks.websocket.ws_user_logout')
     def test_watch_user_status_change_offline_with_team(
         self,
@@ -137,12 +136,13 @@ class AccountsTasksTestCase(mixins.UserWithFriendsMixin, TestCase):
         self.user.add_session()
         self.friend1.add_session()
         lobby = Lobby.create(owner_id=self.friend1.id)
-        lobby.start_queue()
+        lobby.update_queue('start')
         queue()
         team = Team.get_by_lobby_id(lobby.id, fail_silently=True)
         self.assertIsNotNone(team)
 
         self.friend1.logout()
+        mock_lobby_move.return_value = (lobby, lobby, None)
         tasks.watch_user_status_change(self.friend1.id)
 
         team = Team.get_by_lobby_id(lobby.id, fail_silently=True)

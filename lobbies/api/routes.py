@@ -11,19 +11,6 @@ from . import authorization, controller, schemas
 router = Router(tags=['lobbies'])
 
 
-@router.get(
-    'invites/',
-    auth=VerifiedRequiredAuth(),
-    response={200: List[schemas.LobbyInviteSchema]},
-)
-def invite_list(
-    request,
-    sent: bool = False,
-    received: bool = False,
-):
-    return controller.get_user_invites(request.user, sent, received)
-
-
 @router.post(
     'invites/',
     auth=VerifiedRequiredAuth(),
@@ -33,20 +20,11 @@ def invite_create(request, payload: schemas.LobbyInviteCreateSchema):
     return controller.create_invite(request.user, payload)
 
 
-@router.get(
-    'invites/{invite_id}/',
-    auth=VerifiedRequiredAuth(),
-    response={200: schemas.LobbyInviteSchema},
-)
-def invite_detail(request, invite_id: str):
-    return controller.get_invite(request.user, invite_id)
-
-
 @router.delete(
     'invites/{invite_id}/',
     auth=VerifiedRequiredAuth(),
 )
-def invite_delete(request, invite_id: str, payload: schemas.LobbyInviteDeleteSchema):
+def invite_delete(request, invite_id: int, payload: schemas.LobbyInviteDeleteSchema):
     if payload.accept:
         return controller.accept_invite(request.user, invite_id)
     elif payload.refuse:
@@ -55,24 +33,34 @@ def invite_delete(request, invite_id: str, payload: schemas.LobbyInviteDeleteSch
         return HttpError(400, _('Invite must be accepted or refused. Can\'t be none.'))
 
 
-@router.delete(
-    '{lobby_id}/players/{player_id}/',
+@router.patch(
+    '{lobby_id}/players/',
     auth=VerifiedRequiredAuth(),
     response={200: schemas.LobbySchema},
 )
-@authorization.participant_required
-def player_delete(request, lobby_id: int, player_id: int):
-    return controller.delete_player(request.user, lobby_id, player_id)
+@authorization.owner_required
+def player_update(request, lobby_id: int, payload: schemas.LobbyPlayerUpdateSchema):
+    return controller.update_player(request.user, lobby_id, payload)
 
 
 @router.patch(
-    '{lobby_id}/',
+    '{lobby_id}/queue/{action}',
     auth=VerifiedRequiredAuth(),
     response={200: schemas.LobbySchema},
 )
 @authorization.participant_required
-def update(request, lobby_id: int, payload: schemas.LobbyUpdateSchema):
-    return controller.update_lobby(request.user, lobby_id, payload)
+def queue_update(request, lobby_id: int, action: str):
+    return controller.update_queue(request.user, lobby_id, action)
+
+
+@router.patch(
+    '{lobby_id}/mode/{mode}',
+    auth=VerifiedRequiredAuth(),
+    response={200: schemas.LobbySchema},
+)
+@authorization.participant_required
+def mode_update(request, lobby_id: int, mode: str):
+    return controller.update_mode(request.user, lobby_id, mode)
 
 
 @router.get(

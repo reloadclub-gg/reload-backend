@@ -1,8 +1,9 @@
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
-from pydantic import root_validator
+from pydantic import root_validator, validator
 
 from accounts.models import Account
 from core.utils import get_full_file_path
@@ -70,12 +71,10 @@ class LobbyPlayerSchema(ModelSchema):
 class LobbySchema(Schema):
     id: int
     owner_id: int
-    players_ids: list
-    players: List[LobbyPlayerSchema]
-    invites: List[LobbyInvite]
-    invited_players_ids: list
-    seats: int
-    queue: Optional[str]
+    players_ids: list = []
+    players: List[LobbyPlayerSchema] = []
+    invites: List[LobbyInvite] = []
+    is_queued: bool
     queue_time: Optional[int]
     restriction_countdown: Optional[int]
 
@@ -83,12 +82,12 @@ class LobbySchema(Schema):
         model = Lobby
 
     @staticmethod
-    def resolve_queue(obj):
-        return obj.queue.isoformat() if obj.queue else None
-
-    @staticmethod
     def resolve_players(obj):
         return Account.objects.filter(user__id__in=obj.players_ids)
+
+    @staticmethod
+    def resolve_invites(obj):
+        return [LobbyInvite.get(invite_id) for invite_id in obj.invites_ids]
 
 
 class LobbyInviteSchema(Schema):
@@ -97,26 +96,21 @@ class LobbyInviteSchema(Schema):
     lobby: LobbySchema
     from_player: LobbyPlayerSchema
     to_player: LobbyPlayerSchema
-    create_date: str
 
     class Config:
         model = LobbyInvite
 
     @staticmethod
     def resolve_from_player(obj):
-        return Account.objects.get(user__id=obj.from_id)
+        return Account.objects.get(user__id=obj.from_player_id)
 
     @staticmethod
     def resolve_to_player(obj):
-        return Account.objects.get(user__id=obj.to_id)
+        return Account.objects.get(user__id=obj.to_player_id)
 
     @staticmethod
     def resolve_lobby(obj):
-        return Lobby(owner_id=obj.lobby_id)
-
-    @staticmethod
-    def resolve_create_date(obj):
-        return obj.create_date.isoformat()
+        return Lobby.get(obj.lobby_id)
 
 
 class LobbyInviteDeleteSchema(Schema):
@@ -127,6 +121,7 @@ class LobbyInviteDeleteSchema(Schema):
 class LobbyUpdateSchema(Schema):
     start_queue: bool = None
     cancel_queue: bool = None
+    mode: str = None
 
     @root_validator
     def check_any(cls, values):
@@ -148,3 +143,15 @@ class LobbyInviteWebsocketSchema(Schema):
 class LobbyPlayerWebsocketUpdate(Schema):
     player: LobbyPlayerSchema
     lobby: LobbySchema
+
+
+class LobbyPlayerUpdateSchema(Schema):
+    player_id: int
+    action: str
+
+    @validator('action')
+    def validate_action(cls, v):
+        available_actions = ['kick', 'leave']
+        if v not in available_actions:
+            raise ValueError(_(f'Action must be {(" or ").join(available_actions)}'))
+        return v

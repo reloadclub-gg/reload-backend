@@ -5,9 +5,8 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from core.redis import redis_client_instance as cache
-from lobbies.api.controller import handle_player_move
-from lobbies.models import Lobby, LobbyException
-from lobbies.websocket import ws_expire_player_invites, ws_update_lobby
+from lobbies.models import Lobby
+from lobbies.websocket import ws_expire_player_invites
 from pre_matches.api.controller import cancel_pre_match
 from pre_matches.models import PreMatch, Team
 
@@ -30,23 +29,21 @@ def watch_user_status_change(user_id: int):
 
         # If user has an account
         if hasattr(user, 'account'):
-            if user.account.lobby:
-                lobby_id = user.account.lobby.id
+            pre_match = PreMatch.get_by_player_id(user.id)
+            if pre_match:
+                cancel_pre_match(pre_match, 'lock_in')
+                PreMatch.delete(pre_match.id)
 
-                pre_match = PreMatch.get_by_player_id(user.id)
-                if pre_match:
-                    cancel_pre_match(pre_match, 'lock_in')
+            user_lobby = Lobby.get_by_player_id(user.id, fail_silently=True)
+            if user_lobby:
+                lobby_id = user_lobby.id
 
                 team = Team.get_by_lobby_id(lobby_id, fail_silently=True)
                 if team:
                     team.remove_lobby(lobby_id)
 
-            try:
-                handle_player_move(user, user.id, delete_lobby=True)
-            except LobbyException:
-                if user.account.lobby:
-                    ws_update_lobby(user.account.lobby)
-                    Lobby.delete(user.account.lobby.id)
+                Lobby.move_player(user.id, user.id)
+                user_lobby.delete()
 
         # Expiring user session
         user.logout()

@@ -34,7 +34,7 @@ def ws_delete_invite(invite: models.LobbyInvite, status: str):
     return async_to_sync(ws_send)(
         'invites/delete',
         payload,
-        groups=[invite.to_id, invite.from_id],
+        groups=[invite.to_player_id, invite.from_player_id],
     )
 
 
@@ -56,7 +56,7 @@ def ws_create_invite(invite: models.LobbyInvite):
     return async_to_sync(ws_send)(
         'invites/create',
         payload,
-        groups=[invite.to_id],
+        groups=[invite.to_player_id],
     )
 
 
@@ -134,18 +134,20 @@ def ws_expire_player_invites(user: User, sent: bool = False, received: bool = Fa
     - invites/expire
     """
     if sent:
-        invites = models.LobbyInvite.get_by_from_user_id(user.id)
+        invites = models.LobbyInvite.get_by_player_id(user.id)
     elif received:
-        invites = models.LobbyInvite.get_by_to_user_id(user.id)
+        invites = models.LobbyInvite.get_by_player_id(user.id, direction='to')
     else:
-        invites = models.LobbyInvite.get_by_user_id(user.id)
+        invites = models.LobbyInvite.get_by_player_id(user.id, direction='both')
 
     results = list()
     for invite in invites:
         payload = schemas.LobbyInviteSchema.from_orm(invite).dict()
         results.append(
             async_to_sync(ws_send)(
-                'invites/expire', payload, groups=[invite.to_id, invite.from_id]
+                'invites/expire',
+                payload,
+                groups=[invite.to_player_id, invite.from_player_id],
             )
         )
         models.LobbyInvite.delete(invite)

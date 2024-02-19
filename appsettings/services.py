@@ -54,3 +54,19 @@ def replaceable_store_items() -> bool:
 
 def is_restriction_on() -> bool:
     return AppSettings.get('Dodges Restriction', False)
+
+
+def lobby_time_to_increase_overall_range() -> list:
+    values = AppSettings.get(
+        'Time to increase overall range on queued lobbies',
+        '30,60,90,120',
+    )
+    return [int(value) for value in values.split(',')]
+
+
+def lobby_overall_range() -> list:
+    values = AppSettings.get(
+        'Overall range levels on queued lobbies',
+        '3,4,5,6,7',
+    )
+    return [int(value) for value in values.split(',')]

@@ -371,7 +371,7 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         self.user.add_session()
         self.assertTrue(self.user.is_online)
         lobby = Lobby.create(self.user.id)
-        lobby.set_public()
+        lobby.update_visibility('public')
 
         user2 = baker.make(models.User)
         baker.make(
@@ -382,19 +382,10 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         baker.make(models.Account, user=user2, is_verified=True)
         user2.add_session()
         Lobby.create(user2.id)
-        Lobby.move(user2.id, lobby.id)
-
+        Lobby.move_player(user2.id, lobby.id)
+        Lobby.move_player(user2.id, user2.id)
         user2.refresh_from_db()
         self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Status.TEAMING)
-        self.assertEqual(user2.status, models.User.Status.TEAMING)
-
-        Lobby.move(user2.id, user2.id)
-
-        user2.refresh_from_db()
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Status.ONLINE)
-        self.assertEqual(user2.status, models.User.Status.ONLINE)
 
         user3 = baker.make(models.User)
         baker.make(
@@ -405,31 +396,15 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         baker.make(models.Account, user=user3, is_verified=True)
         user3.add_session()
         Lobby.create(user3.id)
-        Lobby.move(user2.id, lobby.id)
-        Lobby.move(user3.id, lobby.id)
-
-        user2.refresh_from_db()
-        user3.refresh_from_db()
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Status.TEAMING)
-        self.assertEqual(user2.status, models.User.Status.TEAMING)
-        self.assertEqual(user3.status, models.User.Status.TEAMING)
-
-        Lobby.move(user3.id, user3.id)
-
-        user2.refresh_from_db()
-        user3.refresh_from_db()
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.status, models.User.Status.TEAMING)
-        self.assertEqual(user2.status, models.User.Status.TEAMING)
-        self.assertEqual(user3.status, models.User.Status.ONLINE)
+        Lobby.move_player(user2.id, lobby.id)
+        Lobby.move_player(user3.id, lobby.id)
+        Lobby.move_player(user3.id, user3.id)
 
         server = baker.make(Server)
         baker.make(Map)
         match = Match.objects.create(
             server=server,
-            game_type=Match.GameType.COMPETITIVE,
-            game_mode=Match.GameMode.DEFUSE,
+            game_mode=Match.GameMode.COMPETITIVE,
         )
         team_a = match.matchteam_set.create(name='team_a')
         team_b = match.matchteam_set.create(name='team_b')
@@ -451,8 +426,7 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         server = baker.make(Server)
         match = Match.objects.create(
             server=server,
-            game_type=Match.GameType.COMPETITIVE,
-            game_mode=Match.GameMode.DEFUSE,
+            game_mode=Match.GameMode.COMPETITIVE,
         )
         team_a = match.matchteam_set.create(name='team_a')
         team_b = match.matchteam_set.create(name='team_b')

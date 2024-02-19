@@ -286,10 +286,12 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
         item_mapping[Item.ItemType.WEAPON] = weapon_items if weapon_items else None
 
         return {
-            value: item_mapping.get(key).item.handle
-            if key in item_mapping
-            and key not in [Item.ItemType.WEAR, Item.ItemType.WEAPON]
-            else item_mapping.get(key)
+            value: (
+                item_mapping.get(key).item.handle
+                if key in item_mapping
+                and key not in [Item.ItemType.WEAR, Item.ItemType.WEAPON]
+                else item_mapping.get(key)
+            )
             for key, value in item_types.items()
         }
 
@@ -335,7 +337,7 @@ class MatchListItemSchema(Schema):
     id: int
     map_name: str
     map_image: str = None
-    game_type: str
+    game_mode: str
     start_date: str
     end_date: str
     won: bool

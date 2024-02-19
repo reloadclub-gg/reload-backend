@@ -70,7 +70,6 @@ class UserMatchesAdminInline(admin.TabularInline):
         'start_date',
         'end_date',
         'status',
-        'game_type',
         'game_mode',
     ]
     exclude = ['team']
@@ -134,9 +133,6 @@ class UserMatchesAdminInline(admin.TabularInline):
 
     def status(self, obj):
         return obj.team.match.get_status_display()
-
-    def game_type(self, obj):
-        return obj.team.match.get_game_type_display()
 
     def game_mode(self, obj):
         return obj.team.match.get_game_mode_display()

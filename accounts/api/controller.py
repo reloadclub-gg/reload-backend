@@ -18,7 +18,6 @@ from appsettings.services import (
 from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string, get_ip_address
 from friends.websocket import ws_friends_add
-from lobbies.api.controller import handle_player_move
 from lobbies.models import Lobby, LobbyException
 from lobbies.websocket import ws_expire_player_invites
 from matches.models import BetaUser, Match
@@ -133,7 +132,8 @@ def logout(user: User) -> dict:
     # If user has an account
     if hasattr(user, 'account') and user.account.lobby:
         try:
-            handle_player_move(user, user.id, delete_lobby=True)
+            _, tl, _ = Lobby.move_player(user.id, user.id)
+            tl.delete()
         except LobbyException as e:
             raise HttpError(400, e)
 
@@ -250,7 +250,7 @@ def inactivate(user: User) -> User:
     if (
         user.account.get_match()
         or user.account.pre_match
-        or (user.account.lobby and user.account.lobby.queue)
+        or (user.account.lobby and user.account.lobby.is_queued)
     ):
         raise HttpError(
             400,
@@ -298,7 +298,8 @@ def update_email(user: User, email: str) -> User:
     websocket.ws_update_user(user)
     if user.account.lobby:
         try:
-            handle_player_move(user, user.id, delete_lobby=True)
+            Lobby.move_player(user.id, user.id)
+            user.account.lobby.delete()
         except LobbyException as e:
             raise HttpError(400, e)
 
@@ -314,7 +315,7 @@ def delete_account(user: User) -> dict:
     if (
         user.account.get_match()
         or user.account.pre_match
-        or (user.account.lobby and user.account.lobby.queue)
+        or (user.account.lobby and user.account.lobby.is_queued)
     ):
         raise HttpError(
             400,

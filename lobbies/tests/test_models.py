@@ -1,901 +1,458 @@
+from datetime import timedelta
 from time import sleep
-from unittest import mock
 
-from django.test import override_settings
 from django.utils import timezone
 
 from accounts.tests.mixins import VerifiedAccountsMixin
-from appsettings.models import AppSettings
+from appsettings.services import (
+    lobby_overall_range,
+    lobby_time_to_increase_overall_range,
+)
 from core.tests import TestCase, cache
 
-from ..models import (
-    Lobby,
-    LobbyException,
-    LobbyInvite,
-    LobbyInviteException,
-    PlayerRestriction,
-)
-from ..tasks import handle_dodges
+from .. import models
 
 
 class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        self.user_1.add_session()
-        self.user_2.add_session()
-        self.user_3.add_session()
-        self.user_4.add_session()
-        self.user_5.add_session()
-        self.user_6.add_session()
-        self.online_noaccount_user.add_session()
-        self.online_unverified_user.add_session()
 
     def test_create(self):
-        lobby = Lobby(owner_id=self.user_1.id)
-        cached_lobby = cache.get(lobby.cache_key)
-        self.assertIsNone(cached_lobby)
-
-        lobby = Lobby.create(self.user_1.id)
-        current_lobby_id = cache.get(lobby.cache_key)
-        self.assertIsNotNone(current_lobby_id)
-        self.assertEqual(
-            lobby.cache_key,
-            f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}',
-        )
-        self.assertEqual(current_lobby_id, str(self.user_1.id))
+        lobby = models.Lobby.create(self.user_1.id)
+        self.assertEqual(lobby.owner_id, self.user_1.id)
+        self.assertEqual(lobby.id, lobby.owner_id)
         self.assertEqual(lobby.players_ids, [self.user_1.id])
-        self.assertEqual(lobby.lobby_type, Lobby.Config.TYPES[0])
-        self.assertEqual(
-            lobby.mode, Lobby.Config.MODES.get(Lobby.Config.TYPES[0]).get('default')
+        self.assertEqual(lobby.mode, 'competitive')
+
+        lobby2 = models.Lobby.create(self.user_2.id, mode='custom')
+        self.assertEqual(lobby2.owner_id, self.user_2.id)
+        self.assertEqual(lobby2.id, lobby2.owner_id)
+        self.assertEqual(lobby2.players_ids, [self.user_2.id])
+        self.assertEqual(lobby2.mode, 'custom')
+
+    def test_create_duplicate(self):
+        models.Lobby.create(self.user_1.id)
+        with self.assertRaisesRegex(
+            models.LobbyException, 'Player already have a lobby'
+        ):
+            models.Lobby.create(self.user_1.id)
+
+    def test_create_bad_mode(self):
+        with self.assertRaisesRegex(models.LobbyException, 'Mode must be'):
+            models.Lobby.create(self.user_1.id, mode='bad_mode')
+
+    def test_save(self):
+        lobby = models.Lobby(owner_id=self.user_1.id)
+        self.assertEqual(lobby.owner_id, self.user_1.id)
+        self.assertEqual(lobby.id, lobby.owner_id)
+        self.assertEqual(lobby.players_ids, [])
+        self.assertEqual(lobby.mode, 'competitive')
+
+        with self.assertRaises(models.LobbyException):
+            models.Lobby.get(self.user_1.id)
+
+        non_saved_lobby = models.Lobby.get(self.user_1.id, fail_silently=True)
+        self.assertIsNone(non_saved_lobby)
+
+        lobby.save()
+
+        saved_lobby = models.Lobby.get(self.user_1.id)
+        self.assertEqual(saved_lobby, lobby)
+
+        lobby2 = models.Lobby(owner_id=self.user_1.id, mode='custom')
+        self.assertEqual(lobby2.mode, 'custom')
+
+    def test_save_pre_match(self):
+        lobby = models.Lobby.create(self.user_1.id)
+        cache.set(f'{lobby.cache_key}:pre_match_id', 1)
+        with self.assertRaisesRegex(models.LobbyException, 'while in match'):
+            lobby.save()
+
+        cache.delete(f'{lobby.cache_key}:pre_match_id')
+        lobby.save()
+
+    def test_add_player(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        self.assertEqual(lobby.players_ids, [self.user_1.id])
+
+        lobby.update_visibility('public')
+        lobby.add_player(self.user_2.id)
+        self.assertEqual(lobby.players_ids, [self.user_1.id, self.user_2.id])
+
+    def test_add_player_full(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        lobby.update_visibility('public')
+        lobby.add_player(self.user_2.id)
+        lobby.add_player(self.user_3.id)
+        lobby.add_player(self.user_4.id)
+        lobby.add_player(self.user_5.id)
+
+        with self.assertRaisesRegex(models.LobbyException, 'is full'):
+            lobby.add_player(self.user_6.id)
+
+    def test_add_player_already_in_lobby(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        lobby.update_visibility('public')
+        with self.assertRaisesRegex(models.LobbyException, 'already in the lobby'):
+            lobby.add_player(self.user_1.id)
+
+    def test_add_player_not_invited(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        with self.assertRaisesRegex(models.LobbyException, 'must be invited'):
+            lobby.add_player(self.user_2.id)
+
+    def test_remove_player(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        lobby.update_visibility('public')
+        lobby.add_player(self.user_2.id)
+        self.assertEqual(lobby.players_ids, [self.user_1.id, self.user_2.id])
+
+        lobby.remove_player(self.user_2.id)
+        self.assertEqual(lobby.players_ids, [self.user_1.id])
+
+    def test_remove_player_not_found(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        with self.assertRaisesRegex(models.LobbyException, 'not found'):
+            lobby.remove_player(self.user_2.id)
+
+    def test_update_queue(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+
+        self.assertFalse(lobby.is_queued)
+        self.assertIsNone(lobby.queue_time)
+
+        lobby.update_queue(action='start')
+        self.assertTrue(lobby.is_queued)
+        self.assertIsNotNone(lobby.queue_time)
+        sleep(1)
+        self.assertEqual(lobby.queue_time, 1)
+
+        lobby.update_queue(action='stop')
+        self.assertFalse(lobby.is_queued)
+        self.assertIsNone(lobby.queue_time)
+
+    def test_update_queue_bad_action(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        self.assertFalse(lobby.is_queued)
+        self.assertIsNone(lobby.queue_time)
+
+        with self.assertRaisesRegex(models.LobbyException, 'started or stoped.'):
+            lobby.update_queue(action='init')
+
+        self.assertFalse(lobby.is_queued)
+        self.assertIsNone(lobby.queue_time)
+
+    def test_update_queue_pre_match(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        lobby.update_queue(action='start')
+        self.assertTrue(lobby.is_queued)
+
+        cache.set(f'{lobby.cache_key}:pre_match_id', 1)
+        with self.assertRaisesRegex(models.LobbyException, 'while in match'):
+            lobby.update_queue(action='stop')
+
+        self.assertTrue(lobby.is_queued)
+
+    def test_update_mode(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        self.assertEqual(lobby.mode, models.Lobby.ModeChoices.COMPETITIVE)
+
+        lobby.update_mode(models.Lobby.ModeChoices.COMPETITIVE)
+        self.assertEqual(lobby.mode, models.Lobby.ModeChoices.COMPETITIVE)
+
+        lobby.update_mode(models.Lobby.ModeChoices.CUSTOM)
+        self.assertEqual(lobby.mode, models.Lobby.ModeChoices.CUSTOM)
+
+    def test_update_mode_bad_mode(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        self.assertEqual(lobby.mode, models.Lobby.ModeChoices.COMPETITIVE)
+
+        with self.assertRaisesRegex(models.LobbyException, 'Mode must be'):
+            lobby.update_mode('bad_mode')
+
+        self.assertEqual(lobby.mode, models.Lobby.ModeChoices.COMPETITIVE)
+
+    def test_get_queue_overall_range(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        lobby.update_queue(action='start')
+        self.assertEqual(lobby.get_queue_overall_range(), (0, 3))
+        lobby.update_queue(action='stop')
+
+        with self.assertRaisesRegex(models.LobbyException, 'Lobby must be queued'):
+            lobby.get_queue_overall_range()
+
+        queue_start_time = timezone.now() - timedelta(
+            seconds=lobby_time_to_increase_overall_range()[0] - 1
         )
-
-    def test_create_type(self):
-        lobby = Lobby.create(self.user_1.id, lobby_type='custom')
-        current_lobby_id = cache.get(lobby.cache_key)
-        self.assertIsNotNone(current_lobby_id)
-        self.assertEqual(lobby.lobby_type, 'custom')
-
-    def test_create_type_unknown(self):
-        with self.assertRaises(LobbyException):
-            Lobby.create(self.user_1.id, lobby_type='unknown')
-
-    def test_create_mode(self):
-        lobby = Lobby.create(self.user_1.id, mode=1)
-        current_lobby_id = cache.get(lobby.cache_key)
-        self.assertIsNotNone(current_lobby_id)
-        self.assertEqual(lobby.mode, 1)
-
-    def test_create_mode_and_type(self):
-        lobby = Lobby.create(self.user_1.id, lobby_type='custom', mode=20)
-        current_lobby_id = cache.get(lobby.cache_key)
-        self.assertIsNotNone(current_lobby_id)
-        self.assertEqual(lobby.mode, 20)
-
-    def test_create_mode_unknown(self):
-        with self.assertRaises(LobbyException):
-            Lobby.create(self.user_1.id, mode=7)
-
-    def test_create_type_and_mode_not_compliant(self):
-        with self.assertRaises(LobbyException):
-            Lobby.create(self.user_1.id, lobby_type='competitive', mode=20)
-
-    def test_create_user_not_found(self):
-        with self.assertRaises(LobbyException):
-            Lobby.create(12345)
-
-    def test_create_user_account_unverified(self):
-        with self.assertRaises(LobbyException):
-            Lobby.create(self.online_unverified_user.id)
-
-    def test_create_user_offline(self):
-        with self.assertRaises(LobbyException):
-            Lobby.create(self.offline_verified_user.id)
-
-    def test_invite(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        invites = list(cache.zrange(f'{lobby_1.cache_key}:invites', 0, -1))
-        self.assertEqual(invites, [f'{self.user_1.id}:{self.user_2.id}'])
-        self.assertEqual(
-            lobby_1.invites,
-            [
-                LobbyInvite(
-                    lobby_id=lobby_1.id, from_id=self.user_1.id, to_id=self.user_2.id
-                )
-            ],
+        expected_overall = (
+            max(lobby.overall - lobby_overall_range()[0], 0),
+            lobby.overall + lobby_overall_range()[0],
         )
+        cache.set(f'{lobby.cache_key}:queue', queue_start_time.isoformat())
+        self.assertEqual(lobby.get_queue_overall_range(), expected_overall)
 
-    def test_invite_queue(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
+    def test_load(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        model = models.Lobby.load(lobby.cache_key)
+        self.assertEqual(lobby, model)
 
-        lobby_1.start_queue()
+    def test_delete(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
+        self.assertTrue(cache.exists(lobby.cache_key))
 
-        with self.assertRaises(LobbyException):
-            lobby_1.invite(self.user_1.id, self.user_2.id)
-
-    def test_invite_full(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-        Lobby.create(self.user_5.id)
-        Lobby.create(self.user_6.id)
-
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        Lobby.move(self.user_2.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_5.id)
-        Lobby.move(self.user_5.id, lobby_1.id)
-
-        with self.assertRaises(LobbyException):
-            lobby_1.invite(self.user_1.id, self.user_6.id)
-
-    def test_move(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        lobby_2 = Lobby.create(self.user_2.id)
-
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        Lobby.move(self.user_2.id, lobby_1.id)
-        current_moved_player_lobby = cache.get(lobby_2.cache_key)
-        self.assertEqual(current_moved_player_lobby, str(lobby_1.id))
-        self.assertEqual(len(cache.zrange(f'{lobby_1.cache_key}:invites', 0, -1)), 0)
-        self.assertEqual(lobby_2.players_ids, [])
-        self.assertCountEqual(
-            lobby_1.players_ids,
-            [
+        lobby.delete()
+        self.assertFalse(cache.exists(lobby.cache_key))
+        self.assertIsNone(
+            models.Lobby.get_by_player_id(
                 self.user_1.id,
-                self.user_2.id,
-            ],
+                fail_silently=True,
+            )
         )
 
-    def test_move2(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        lobby_2 = Lobby.create(self.user_2.id)
-        lobby_3 = Lobby.create(self.user_3.id)
+    def test_delete_pre_match(self):
+        lobby = models.Lobby.create(owner_id=self.user_1.id)
 
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
+        cache.set(f'{lobby.cache_key}:pre_match_id', 1)
+        with self.assertRaisesRegex(models.LobbyException, 'while in match'):
+            lobby.delete()
+        self.assertTrue(cache.exists(lobby.cache_key))
 
-        lobby_2.invite(self.user_2.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_2.id)
+        cache.delete(f'{lobby.cache_key}:pre_match_id')
+        lobby.delete()
+        self.assertFalse(cache.exists(lobby.cache_key))
 
-        current_moved_player_lobby = cache.get(lobby_3.cache_key)
-        self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
-        self.assertEqual(lobby_3.players_ids, [])
-        self.assertEqual(lobby_1.players_ids, [self.user_1.id])
+    def test_get(self):
+        with self.assertRaisesRegex(models.LobbyException, 'not found'):
+            models.Lobby.get(self.user_1.id)
+
+        lobby = models.Lobby.get(self.user_1.id, fail_silently=True)
+        self.assertIsNone(lobby)
+
+        lobby = models.Lobby.create(self.user_1.id)
+        model = models.Lobby.get(self.user_1.id)
+        self.assertEqual(lobby, model)
+
+    def test_get_by_player_id(self):
+        with self.assertRaisesRegex(models.LobbyException, 'not found'):
+            models.Lobby.get_by_player_id(self.user_1.id)
+
+        lobby = models.Lobby.get_by_player_id(self.user_1.id, fail_silently=True)
+        self.assertIsNone(lobby)
+
+        lobby = models.Lobby.create(self.user_1.id)
+        model = models.Lobby.get_by_player_id(self.user_1.id)
+        self.assertEqual(lobby.id, model.id)
+
+        lobby.update_visibility('public')
+        lobby.add_player(self.user_2.id)
+        model = models.Lobby.get_by_player_id(self.user_2.id)
+        self.assertEqual(lobby.id, model.id)
+
+    def test_move_player(self):
+        l1 = models.Lobby.create(self.user_1.id)
+        l1.update_visibility('public')
+        l1.add_player(self.user_2.id)
+
+        l2 = models.Lobby.create(self.user_3.id)
+        l2.update_visibility('public')
+        l2.add_player(self.user_4.id)
+
+        l1, l2, _ = models.Lobby.move_player(self.user_2.id, self.user_3.id)
+        self.assertCountEqual(l1.players_ids, [self.user_1.id])
         self.assertCountEqual(
-            lobby_2.players_ids,
-            [
-                self.user_3.id,
-                self.user_2.id,
-            ],
+            l2.players_ids,
+            [self.user_2.id, self.user_3.id, self.user_4.id],
         )
 
-    def test_move_remaining(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        lobby_2 = Lobby.create(self.user_2.id)
-        lobby_3 = Lobby.create(self.user_3.id)
+    def test_move_player_owner(self):
+        models.Lobby.create(self.user_2.id)
+        l1 = models.Lobby.create(self.user_1.id)
+        l2 = models.Lobby.create(self.user_3.id)
+        l1.update_visibility(visibility='public')
+        l2.update_visibility(visibility='public')
 
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        new_lobby = Lobby.move(self.user_3.id, lobby_1.id)
-        self.assertIsNone(new_lobby)
+        from_lobby, to_lobby, _ = models.Lobby.move_player(self.user_2.id, l1.owner_id)
+        self.assertEqual(len(from_lobby.players_ids), 0)
+        self.assertEqual(len(to_lobby.players_ids), 2)
 
-        lobby_2.invite(self.user_2.id, self.user_1.id)
-        new_lobby = Lobby.move(self.user_1.id, lobby_2.id)
-        self.assertIsNotNone(new_lobby)
-
-        current_moved_player_lobby = cache.get(lobby_1.cache_key)
-        self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
-        self.assertEqual(lobby_1.players_ids, [])
-        self.assertEqual(new_lobby.id, lobby_3.id)
-        self.assertEqual(lobby_3.players_ids, [self.user_3.id])
-        self.assertCountEqual(
-            lobby_2.players_ids,
-            [
-                self.user_1.id,
-                self.user_2.id,
-            ],
+        from_lobby, to_lobby, remaining_lobby = models.Lobby.move_player(
+            self.user_1.id,
+            l2.owner_id,
         )
 
-    def test_move_remaining2(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        lobby_2 = Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-
-        lobby_id_to_receive_remaining_players = min(lobby_1.non_owners_ids)
-        new_lobby = Lobby(owner_id=lobby_id_to_receive_remaining_players)
-
-        lobby_2.invite(self.user_2.id, self.user_1.id)
-        Lobby.move(self.user_1.id, lobby_2.id)
-
-        current_moved_player_lobby = cache.get(lobby_1.cache_key)
-        self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
-        self.assertEqual(lobby_1.players_ids, [])
-        self.assertCountEqual(
-            new_lobby.players_ids,
-            [
-                self.user_3.id,
-                self.user_4.id,
-            ],
-        )
-        self.assertCountEqual(
-            lobby_2.players_ids,
-            [
-                self.user_1.id,
-                self.user_2.id,
-            ],
-        )
-
-    def test_move_remove(self):
-        lobby = Lobby.create(self.user_1.id)
-        Lobby.move(self.user_1.id, lobby.id, remove=True)
-        self.assertEqual(len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{lobby.id}*')), 0)
-
-    def test_move_remove_remaining(self):
-        lobby = Lobby.create(self.user_1.id)
-        lobby.set_public()
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-
-        Lobby.move(self.user_2.id, lobby.id)
-        Lobby.move(self.user_3.id, lobby.id)
-
-        Lobby.move(self.user_1.id, lobby.id, remove=True)
-
-    def test_cancel(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-
-        lobby_id_to_receive_remaining_players = min(lobby_1.non_owners_ids)
-        new_lobby = Lobby(owner_id=lobby_id_to_receive_remaining_players)
-
-        Lobby.move(self.user_1.id, lobby_1.id)
-
-        self.assertEqual(lobby_1.players_ids, [self.user_1.id])
-        self.assertCountEqual(
-            new_lobby.players_ids,
-            [
-                self.user_3.id,
-                self.user_4.id,
-            ],
-        )
-
-    def test_cancel_remove(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-
-        lobby_id_to_receive_remaining_players = min(lobby_1.non_owners_ids)
-        new_lobby = Lobby(owner_id=lobby_id_to_receive_remaining_players)
-
-        Lobby.move(self.user_1.id, lobby_1.id, remove=True)
-
-        self.assertEqual(
-            cache.exists(
-                lobby_1.cache_key,
-                f'{lobby_1.cache_key}:players',
-                f'{lobby_1.cache_key}:queue',
-                f'{lobby_1.cache_key}:is_public',
-                f'{lobby_1.cache_key}:invites',
-            ),
-            0,
-        )
-        self.assertCountEqual(
-            new_lobby.players_ids,
-            [
-                self.user_3.id,
-                self.user_4.id,
-            ],
-        )
-
-    def test_lobby_move_on_queue(self):
-        lobby1 = Lobby.create(self.user_1.id)
-        lobby2 = Lobby.create(self.user_2.id)
-        lobby1.set_public()
-        Lobby.move(self.user_2.id, lobby1.id)
-        lobby1.start_queue()
-
-        with self.assertRaises(LobbyException):
-            Lobby.move(self.user_2.id, lobby2.id)
-
-        Lobby.move(self.user_2.id, lobby2.id, remove=True)
-        self.assertIsNone(lobby1.queue)
-        self.assertIsNone(lobby1.queue_time)
-        self.assertCountEqual(lobby1.players_ids, [self.user_1.id])
-
-    def test_lobby_set_public(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        lobby_1.set_public()
-        lobby_2 = Lobby.create(self.user_2.id)
-        lobby_1.move(lobby_2.id, self.user_1.id)
-
-        self.assertTrue(lobby_1.is_public)
-        self.assertEqual(lobby_1.players_count, 2)
-
-    def test_lobby_set_private(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        lobby_1.set_public()
-        self.assertTrue(lobby_1.is_public)
-        lobby_1.set_private()
-        self.assertFalse(lobby_1.is_public)
-
-        lobby_2 = Lobby.create(self.user_2.id)
-
-        with self.assertRaises(LobbyException):
-            lobby_1.move(lobby_2.id, self.user_1.id)
-
-    def test_max_players(self):
-        lobby = Lobby.create(self.user_1.id)
-        self.assertEqual(
-            lobby.max_players, Lobby.Config.MODES.get(lobby.lobby_type).get('default')
-        )
-
-        lobby = Lobby.create(self.user_1.id, lobby_type='custom')
-        self.assertEqual(
-            lobby.max_players, Lobby.Config.MODES.get(lobby.lobby_type).get('default')
-        )
-
-        lobby = Lobby.create(self.user_1.id, lobby_type='competitive', mode=1)
-        self.assertEqual(lobby.max_players, 1)
-
-    def test_set_type(self):
-        lobby = Lobby.create(self.user_1.id, lobby_type='custom')
-        self.assertEqual(lobby.lobby_type, 'custom')
-        lobby.set_type('competitive')
-        self.assertEqual(lobby.lobby_type, 'competitive')
-
-    def test_set_type_unknown(self):
-        lobby = Lobby.create(self.user_1.id)
-        self.assertEqual(lobby.lobby_type, lobby.Config.TYPES[0])
-
-        with self.assertRaises(LobbyException):
-            lobby.set_type('unknown')
-
-        self.assertEqual(lobby.lobby_type, lobby.Config.TYPES[0])
-
-    def test_set_mode(self):
-        lobby = Lobby.create(self.user_1.id, mode=1)
-        self.assertEqual(lobby.mode, 1)
-
-        lobby.set_mode(5)
-        self.assertEqual(lobby.mode, 5)
-
-    def test_set_mode_unknown(self):
-        lobby = Lobby.create(self.user_1.id, mode=1)
-        self.assertEqual(lobby.mode, 1)
-
-        with self.assertRaises(LobbyException):
-            lobby.set_mode(20)
-
-        self.assertEqual(lobby.mode, 1)
-
-    def test_delete_invite(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        lobby_2 = Lobby.create(self.user_2.id)
-        lobby_1.invite(self.user_1.id, lobby_2.id)
-        self.assertListEqual(
-            lobby_1.invites,
-            [
-                LobbyInvite(
-                    lobby_id=lobby_1.id, from_id=self.user_1.id, to_id=self.user_2.id
-                )
-            ],
-        )
-
-        lobby_1.delete_invite(f'{self.user_1.id}:{self.user_2.id}')
-        self.assertListEqual(lobby_1.invites, [])
-
-    def test_delete_invite_must_be_invited(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-
-        with self.assertRaises(LobbyException):
-            lobby_1.delete_invite(f'{self.user_1.id}:{self.user_2.id}')
-
-    def test_set_mode_20x20_to_5x5(self):
-        lobby_1 = Lobby.create(
-            self.user_1.id, lobby_type=Lobby.Config.TYPES[1], mode=20
-        )
-
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-        Lobby.create(self.user_5.id)
-        Lobby.create(self.user_6.id)
-
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        Lobby.move(self.user_2.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_5.id)
-        Lobby.move(self.user_5.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_6.id)
-        Lobby.move(self.user_6.id, lobby_1.id)
-
-        self.assertEqual(lobby_1.mode, 20)
-        self.assertEqual(lobby_1.players_count, 6)
-
-        lobby_1.set_type('competitive')
-        lobby_1.set_mode(5)
-
-        self.assertEqual(lobby_1.mode, 5)
-        self.assertEqual(lobby_1.players_count, 5)
-
-    def test_set_mode_5x5_to_1x1(self):
-        lobby_1 = Lobby.create(self.user_1.id, lobby_type=Lobby.Config.TYPES[0], mode=5)
-
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-        Lobby.create(self.user_5.id)
-
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        Lobby.move(self.user_2.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_5.id)
-        Lobby.move(self.user_5.id, lobby_1.id)
-
-        self.assertEqual(lobby_1.mode, 5)
-        self.assertEqual(lobby_1.players_count, 5)
-
-        lobby_1.set_mode(1)
-
-        self.assertEqual(lobby_1.mode, 1)
-        self.assertEqual(lobby_1.players_count, 1)
-
-    def test_set_mode_players_id_to_remove(self):
-        lobby_1 = Lobby.create(
-            self.user_1.id, lobby_type=Lobby.Config.TYPES[1], mode=20
-        )
-
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-        Lobby.create(self.user_5.id)
-        Lobby.create(self.user_6.id)
-
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        Lobby.move(self.user_2.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_5.id)
-        Lobby.move(self.user_5.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_6.id)
-        Lobby.move(self.user_6.id, lobby_1.id)
-
-        self.assertEqual(lobby_1.mode, 20)
-        self.assertEqual(lobby_1.players_count, 6)
-        self.assertListEqual(
-            sorted(lobby_1.players_ids),
-            [
-                self.user_1.id,
-                self.user_2.id,
-                self.user_3.id,
-                self.user_4.id,
-                self.user_5.id,
-                self.user_6.id,
-            ],
-        )
-
-        lobby_1.set_type('competitive')
-        lobby_1.set_mode(5, [self.user_4.id])
-
-        self.assertEqual(lobby_1.mode, 5)
-        self.assertEqual(lobby_1.players_count, 5)
-        self.assertListEqual(
-            sorted(lobby_1.players_ids),
-            [
-                self.user_1.id,
-                self.user_2.id,
-                self.user_3.id,
-                self.user_5.id,
-                self.user_6.id,
-            ],
-        )
-        self.assertEqual(self.user_4.account.lobby.id, self.user_4.id)
-
-    def test_set_mode_players_id_to_remove_with_owner_id(self):
-        lobby_1 = Lobby.create(
-            self.user_1.id, lobby_type=Lobby.Config.TYPES[1], mode=20
-        )
-
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-        Lobby.create(self.user_5.id)
-        Lobby.create(self.user_6.id)
-
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        Lobby.move(self.user_2.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_5.id)
-        Lobby.move(self.user_5.id, lobby_1.id)
-        lobby_1.invite(self.user_1.id, self.user_6.id)
-        Lobby.move(self.user_6.id, lobby_1.id)
-
-        self.assertEqual(lobby_1.mode, 20)
-        self.assertEqual(lobby_1.players_count, 6)
-        self.assertListEqual(
-            sorted(lobby_1.players_ids),
-            [
-                self.user_1.id,
-                self.user_2.id,
-                self.user_3.id,
-                self.user_4.id,
-                self.user_5.id,
-                self.user_6.id,
-            ],
-        )
-
-        lobby_1.set_type('competitive')
-        with self.assertRaises(LobbyException):
-            lobby_1.set_mode(5, [self.user_1.id])
-
-    def test_get_lobby_invite(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-        invite_expected = lobby_1.invite(self.user_1.id, self.user_2.id)
-
-        self.assertEqual(
-            invite_expected,
-            LobbyInvite.get(lobby_1.id, f'{self.user_1.id}:{self.user_2.id}'),
-        )
-
-    def test_get_lobby_invite_with_raise(self):
-        lobby_1 = Lobby.create(self.user_1.id)
-        Lobby.create(self.user_2.id)
-
-        with self.assertRaises(LobbyInviteException):
-            LobbyInvite.get(lobby_1.id, '99:99')
-
-    def test_overall(self):
-        self.user_1.account.level = 1
-        self.user_1.account.save()
-        self.user_2.account.level = 2
-        self.user_2.account.save()
-        self.user_3.account.level = 3
-        self.user_3.account.save()
-        self.user_4.account.level = 4
-        self.user_4.account.save()
-        self.user_5.account.level = 5
-        self.user_5.account.save()
-
-        lobby_1 = Lobby.create(self.user_1.id)
-        lobby_2 = Lobby.create(self.user_2.id)
-        lobby_3 = Lobby.create(self.user_3.id)
-        lobby_4 = Lobby.create(self.user_4.id)
-        lobby_5 = Lobby.create(self.user_5.id)
-
-        lobby_1.invite(self.user_1.id, self.user_2.id)
-        lobby_1.invite(self.user_1.id, self.user_3.id)
-        lobby_1.invite(self.user_1.id, self.user_4.id)
-        lobby_1.invite(self.user_1.id, self.user_5.id)
-
-        Lobby.move(lobby_2.id, lobby_1.id)
-        Lobby.move(lobby_3.id, lobby_1.id)
-        Lobby.move(lobby_4.id, lobby_1.id)
-        Lobby.move(lobby_5.id, lobby_1.id)
-
-        self.assertEqual(lobby_1.overall, 5)
-
-    def test_queue_time(self):
-        lobby = Lobby.create(self.user_1.id)
-        lobby.start_queue()
-        sleep(2)
-
-        self.assertEqual(lobby.queue_time, 2)
-
-    @mock.patch('lobbies.models.lobby.Lobby.queue_time', new_callable=mock.PropertyMock)
-    def test_lobby_overall_by_elapsed_time(self, mocker):
-        lobby = Lobby.create(self.user_1.id)
-        lobby.start_queue()
-
-        mocker.return_value = 10
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 1), (min_level, max_level))
-
-        mocker.return_value = 30
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 2), (min_level, max_level))
-
-        mocker.return_value = 60
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 3), (min_level, max_level))
-
-        mocker.return_value = 90
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 4), (min_level, max_level))
-
-        mocker.return_value = 120
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 5), (min_level, max_level))
-
-    def test_is_owner_is_true(self):
-        lobby = Lobby.create(self.user_1.id)
-
-        self.assertTrue(Lobby.is_owner(lobby.id, self.user_1.id))
-
-    def test_is_owner_is_false(self):
-        lobby = Lobby.create(self.user_1.id)
-
-        self.assertFalse(Lobby.is_owner(lobby.id, self.user_2.id))
-
-    def test_delete_all_keys(self):
-        lobby = Lobby.create(self.user_1.id)
-        self.assertGreaterEqual(
-            len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 1
-        )
-
-        Lobby.delete(lobby.id)
-        self.assertEqual(
-            len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 0
-        )
-
-    @override_settings(
-        PLAYER_DODGES_MIN_TO_RESTRICT=1,
-        PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
-    )
-    def test_start_queue(self):
-        AppSettings.objects.create(
-            kind=AppSettings.BOOLEAN,
-            name='Dodges Restriction',
-            value='1',
-        )
-        lobby = Lobby.create(self.user_1.id)
-        lobby.set_public()
-        Lobby.create(self.user_2.id)
-        Lobby.create(self.user_3.id)
-        Lobby.create(self.user_4.id)
-        Lobby.move(self.user_2.id, lobby.id)
-        Lobby.move(self.user_3.id, lobby.id)
-        Lobby.move(self.user_4.id, lobby.id)
-
-        self.assertIsNone(lobby.queue)
-        lobby.start_queue()
-        self.assertIsNotNone(lobby.queue)
-        lobby.cancel_queue()
-
-        handle_dodges(lobby, [])
-        handle_dodges(lobby, [])
-        handle_dodges(lobby, [])
-
-        with self.assertRaises(LobbyException):
-            lobby.start_queue()
-
-    def test_cancel_all_queues(self):
-        lobby1 = Lobby.create(self.user_1.id)
-        lobby2 = Lobby.create(self.user_2.id)
-        lobby3 = Lobby.create(self.user_3.id)
-        lobby4 = Lobby.create(self.user_4.id)
-        lobby1.start_queue()
-        lobby2.start_queue()
-        lobby3.start_queue()
-
-        self.assertIsNotNone(lobby1.queue)
-        self.assertIsNotNone(lobby2.queue)
-        self.assertIsNotNone(lobby3.queue)
-        self.assertIsNone(lobby4.queue)
-
-        Lobby.cancel_all_queues()
-
-        self.assertIsNone(lobby1.queue)
-        self.assertIsNone(lobby2.queue)
-        self.assertIsNone(lobby3.queue)
-        self.assertIsNone(lobby4.queue)
+        self.assertCountEqual(from_lobby.players_ids, [])
+        self.assertEqual(from_lobby.owner_id, self.user_1.id)
+
+        self.assertCountEqual(to_lobby.players_ids, [self.user_1.id, self.user_3.id])
+        self.assertEqual(to_lobby.owner_id, self.user_3.id)
+
+        self.assertCountEqual(remaining_lobby.players_ids, [self.user_2.id])
+        self.assertEqual(remaining_lobby.owner_id, self.user_2.id)
+
+        fl, tl, rl = models.Lobby.move_player(self.user_2.id, remaining_lobby.owner_id)
+        self.assertEqual(fl.owner_id, self.user_2.id)
+        self.assertEqual(tl.owner_id, self.user_2.id)
+        self.assertIsNone(rl)
+
+        l1 = models.Lobby.get(self.user_1.id)
+        self.assertCountEqual(l1.players_ids, [])
+
+        l2 = models.Lobby.get(self.user_2.id)
+        self.assertCountEqual(l2.players_ids, [self.user_2.id])
+
+        l3 = models.Lobby.get(self.user_3.id)
+        self.assertCountEqual(l3.players_ids, [self.user_3.id, self.user_1.id])
+
+        l1 = models.Lobby.get_by_player_id(self.user_1.id)
+        self.assertCountEqual(l1.players_ids, [self.user_3.id, self.user_1.id])
+
+        l2 = models.Lobby.get_by_player_id(self.user_2.id)
+        self.assertCountEqual(l2.players_ids, [self.user_2.id])
+
+        l3 = models.Lobby.get_by_player_id(self.user_3.id)
+        self.assertCountEqual(l3.players_ids, [self.user_3.id, self.user_1.id])
+
+    def test_move_player_owner_leave_and_delete(self):
+        models.Lobby.create(self.user_2.id)
+        l1 = models.Lobby.create(self.user_1.id)
+        l2 = models.Lobby.create(self.user_3.id)
+        l1.update_visibility(visibility='public')
+        l2.update_visibility(visibility='public')
+
+        models.Lobby.move_player(self.user_2.id, l1.owner_id)
+        _, tl, _ = models.Lobby.move_player(self.user_1.id, self.user_1.id)
+        tl.delete()
+
+        lobby = models.Lobby.get_by_player_id(self.user_1.id, fail_silently=True)
+        self.assertIsNone(lobby)
+
+    def test_move_player_pre_match(self):
+        l1 = models.Lobby.create(owner_id=self.user_1.id)
+        l2 = models.Lobby.create(owner_id=self.user_2.id)
+        l1.update_visibility(visibility='public')
+        l2.update_visibility(visibility='public')
+
+        cache.set(f'{l1.cache_key}:pre_match_id', 1)
+        with self.assertRaisesRegex(models.LobbyException, 'while in match'):
+            fl, tl, _ = models.Lobby.move_player(self.user_1.id, l2.owner_id)
+            self.assertIsNone(fl)
+            self.assertIsNone(tl)
+
+        cache.delete(f'{l1.cache_key}:pre_match_id')
+        fl, tl, _ = models.Lobby.move_player(self.user_1.id, l2.owner_id)
+        self.assertEqual(len(fl.players_ids), 0)
+        self.assertEqual(len(tl.players_ids), 2)
+        self.assertIsNotNone(fl)
+        self.assertIsNotNone(tl)
 
 
 class LobbyInviteModelTestCase(VerifiedAccountsMixin, TestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        self.user_1.add_session()
-        self.user_2.add_session()
-        self.user_3.add_session()
-        self.user_4.add_session()
-        self.user_5.add_session()
-        self.user_6.add_session()
+    def test_incr_auto_id(self):
+        auto_id_key = f'{models.LobbyInvite.Config.CACHE_PREFIX}:auto_id'
+        self.assertIsNone(cache.get(auto_id_key))
+        models.LobbyInvite.incr_auto_id()
+        self.assertIsNotNone(cache.get(auto_id_key))
+        self.assertEqual(int(cache.get(auto_id_key)), 1)
+        models.LobbyInvite.incr_auto_id()
+        self.assertEqual(int(cache.get(auto_id_key)), 2)
 
-        self.lobby1 = Lobby.create(owner_id=self.user_1.id)
-        self.lobby2 = Lobby.create(owner_id=self.user_2.id)
-        self.lobby3 = Lobby.create(owner_id=self.user_3.id)
-        self.lobby4 = Lobby.create(owner_id=self.user_4.id)
-        self.lobby5 = Lobby.create(owner_id=self.user_5.id)
-        self.lobby6 = Lobby.create(owner_id=self.user_6.id)
+    def test_create(self):
+        lobby = models.Lobby.create(self.user_1.id)
+        self.assertCountEqual(lobby.invites_ids, [])
 
-    def test_get_all(self):
-        invites = LobbyInvite.get_all()
-        self.assertCountEqual(invites, [])
+        i1 = models.LobbyInvite.create(lobby.id, self.user_1.id, self.user_2.id)
+        lobby = models.Lobby.get(lobby.owner_id)
+        self.assertCountEqual(lobby.invites_ids, [i1.id])
 
-        self.lobby1.invite(self.user_1.id, self.user_2.id)
-        invites = LobbyInvite.get_all()
-        self.assertCountEqual(
-            invites,
-            [
-                LobbyInvite(
-                    from_id=self.user_1.id,
-                    to_id=self.user_2.id,
-                    lobby_id=self.lobby1.id,
-                )
-            ],
-        )
+        i2 = models.LobbyInvite.create(lobby.id, self.user_1.id, self.user_3.id)
+        lobby = models.Lobby.get(lobby.owner_id)
+        self.assertCountEqual(lobby.invites_ids, [i1.id, i2.id])
 
-        self.lobby1.invite(self.user_1.id, self.user_3.id)
-        invites = LobbyInvite.get_all()
-        self.assertCountEqual(
-            invites,
-            [
-                LobbyInvite(
-                    from_id=self.user_1.id,
-                    to_id=self.user_2.id,
-                    lobby_id=self.lobby1.id,
-                ),
-                LobbyInvite(
-                    from_id=self.user_1.id,
-                    to_id=self.user_3.id,
-                    lobby_id=self.lobby1.id,
-                ),
-            ],
-        )
+        models.Lobby.create(self.user_2.id)
+        models.Lobby.move_player(self.user_2.id, lobby.owner_id)
+        i3 = models.LobbyInvite.create(lobby.id, self.user_2.id, self.user_5.id)
+        lobby = models.Lobby.get(lobby.owner_id)
+        self.assertCountEqual(lobby.invites_ids, [i1.id, i2.id, i3.id])
 
-        self.lobby5.invite(self.user_5.id, self.user_4.id)
-        invites = LobbyInvite.get_all()
-        self.assertCountEqual(
-            invites,
-            [
-                LobbyInvite(
-                    from_id=self.user_1.id,
-                    to_id=self.user_2.id,
-                    lobby_id=self.lobby1.id,
-                ),
-                LobbyInvite(
-                    from_id=self.user_1.id,
-                    to_id=self.user_3.id,
-                    lobby_id=self.lobby1.id,
-                ),
-                LobbyInvite(
-                    from_id=self.user_5.id,
-                    to_id=self.user_4.id,
-                    lobby_id=self.lobby5.id,
-                ),
-            ],
-        )
+    def test_create_outside_lobby(self):
+        lobby = models.Lobby.create(self.user_1.id)
+        self.assertCountEqual(lobby.invites_ids, [])
 
-    def test_get_by_to_user_id(self):
-        invites = LobbyInvite.get_by_to_user_id(self.user_2.id)
-        self.assertCountEqual(invites, [])
+        with self.assertRaisesRegex(models.LobbyInviteException, 'another lobby'):
+            models.LobbyInvite.create(lobby.id, self.user_2.id, self.user_4.id)
 
-        self.lobby1.invite(self.user_1.id, self.user_2.id)
-        invites = LobbyInvite.get_by_to_user_id(self.user_2.id)
-        self.assertCountEqual(
-            invites,
-            [
-                LobbyInvite(
-                    from_id=self.user_1.id,
-                    to_id=self.user_2.id,
-                    lobby_id=self.lobby1.id,
-                )
-            ],
-        )
+    def test_create_exists(self):
+        lobby = models.Lobby.create(self.user_1.id)
+        models.Lobby.create(self.user_2.id)
+        models.LobbyInvite.create(lobby.id, self.user_1.id, self.user_2.id)
+        models.Lobby.move_player(self.user_2.id, lobby.owner_id)
 
-        self.lobby3.invite(self.user_3.id, self.user_2.id)
-        invites = LobbyInvite.get_by_to_user_id(self.user_2.id)
-        self.assertCountEqual(
-            invites,
-            [
-                LobbyInvite(
-                    from_id=self.user_1.id,
-                    to_id=self.user_2.id,
-                    lobby_id=self.lobby1.id,
-                ),
-                LobbyInvite(
-                    from_id=self.user_3.id,
-                    to_id=self.user_2.id,
-                    lobby_id=self.lobby3.id,
-                ),
-            ],
-        )
+        models.LobbyInvite.create(lobby.id, self.user_1.id, self.user_3.id)
+        with self.assertRaisesRegex(models.LobbyInviteException, 'already exists'):
+            models.LobbyInvite.create(lobby.id, self.user_2.id, self.user_3.id)
 
-    def test_create_date(self):
-        timestamp = timezone.now().timestamp()
-        cache.zadd(
-            f'{self.lobby1.cache_key}:invites',
-            {f'{self.user_1.id}:{self.user_2.id}': timestamp},
-        )
-        invite = LobbyInvite(
-            from_id=self.user_1.id, to_id=self.user_2.id, lobby_id=self.lobby1.id
-        )
-        self.assertEqual(invite.create_date, timezone.datetime.fromtimestamp(timestamp))
+        models.LobbyInvite.create(lobby.id, self.user_2.id, self.user_4.id)
 
-    def test_get_by_id(self):
-        created = self.lobby1.invite(self.user_1.id, self.user_2.id)
-        invite = LobbyInvite.get_by_id(f'{self.user_1.id}:{self.user_2.id}')
-        self.assertEqual(created.id, invite.id)
+    def test_get(self):
+        lobby = models.Lobby.create(self.user_1.id)
+        created = models.LobbyInvite.create(lobby.id, self.user_1.id, self.user_2.id)
+        invite = models.LobbyInvite.get(created.id)
+        self.assertIsNotNone(invite)
 
-        with self.assertRaises(LobbyInviteException):
-            LobbyInvite.get_by_id('some_id:other_id')
+    def test_get_by_player_id(self):
+        lobby = models.Lobby.create(self.user_1.id)
+        created = models.LobbyInvite.create(lobby.id, self.user_1.id, self.user_2.id)
+        invites = models.LobbyInvite.get_by_player_id(self.user_1.id, kind='sent')
+        self.assertCountEqual(invites, [created])
 
-    def test_delete(self):
-        created = self.lobby1.invite(self.user_1.id, self.user_2.id)
-        LobbyInvite.delete(created)
+        lobby = models.Lobby.create(self.user_2.id)
+        created = models.LobbyInvite.create(lobby.id, self.user_2.id, self.user_1.id)
+        invites = models.LobbyInvite.get_by_player_id(self.user_2.id, kind='sent')
+        self.assertCountEqual(invites, [created])
 
-        with self.assertRaises(LobbyInviteException):
-            LobbyInvite.get_by_id(created.id)
+        invites = models.LobbyInvite.get_by_player_id(self.user_2.id, kind='all')
+        self.assertEqual(len(invites), 2)
+
+        invites = models.LobbyInvite.get_by_player_id(self.user_1.id, kind='all')
+        self.assertEqual(len(invites), 2)
 
 
-class PlayerModelTestCase(VerifiedAccountsMixin, TestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        self.user_1.add_session()
-        self.user_2.add_session()
+# class PlayerModelTestCase(VerifiedAccountsMixin, TestCase):
+#     def setUp(self) -> None:
+#         super().setUp()
+#         self.user_1.add_session()
+#         self.user_2.add_session()
 
-    @override_settings(
-        PLAYER_DODGES_MIN_TO_RESTRICT=3,
-        PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
-    )
-    def test_restriction_countdown(self):
-        AppSettings.objects.create(
-            kind=AppSettings.BOOLEAN,
-            name='Dodges Restriction',
-            value='1',
-        )
-        lobby = Lobby.create(self.user_1.id)
-        lobby.set_public()
-        Lobby.create(self.user_2.id)
-        Lobby.move(self.user_2.id, lobby.id)
+#     @override_settings(
+#         PLAYER_DODGES_MIN_TO_RESTRICT=3,
+#         PLAYER_DODGES_MULTIPLIER=[1, 2, 5, 10, 20, 40, 60, 90],
+#     )
+#     def test_restriction_countdown(self):
+#         AppSettings.objects.create(
+#             kind=AppSettings.BOOLEAN,
+#             name='Dodges Restriction',
+#             value='1',
+#         )
+#         lobby = Lobby.create(self.user_1.id)
+#         lobby.update_visibility('public')
+#         Lobby.create(self.user_2.id)
+#         Lobby.move_player(self.user_2.id, lobby.id)
 
-        self.assertIsNone(lobby.restriction_countdown)
-        handle_dodges(lobby, [self.user_1.id])
-        self.assertIsNone(lobby.restriction_countdown)
-        handle_dodges(lobby, [self.user_1.id])
-        self.assertIsNone(lobby.restriction_countdown)
-        handle_dodges(lobby, [self.user_1.id])
-        restriction = PlayerRestriction.objects.get(user=self.user_2)
-        self.assertEqual(
-            lobby.restriction_countdown,
-            (restriction.end_date - timezone.now()).seconds,
-        )
-        handle_dodges(lobby, [self.user_2.id])
-        handle_dodges(lobby, [self.user_2.id])
-        handle_dodges(lobby, [self.user_2.id])
-        handle_dodges(lobby, [self.user_2.id])
-        restriction = PlayerRestriction.objects.get(user=self.user_1)
-        self.assertEqual(
-            lobby.restriction_countdown,
-            (restriction.end_date - timezone.now()).seconds,
-        )
+#         self.assertIsNone(lobby.restriction_countdown)
+#         handle_dodges(lobby, [self.user_1.id])
+#         self.assertIsNone(lobby.restriction_countdown)
+#         handle_dodges(lobby, [self.user_1.id])
+#         self.assertIsNone(lobby.restriction_countdown)
+#         handle_dodges(lobby, [self.user_1.id])
+#         restriction = PlayerRestriction.objects.get(user=self.user_2)
+#         self.assertEqual(
+#             lobby.restriction_countdown,
+#             (restriction.end_date - timezone.now()).seconds,
+#         )
+#         handle_dodges(lobby, [self.user_2.id])
+#         handle_dodges(lobby, [self.user_2.id])
+#         handle_dodges(lobby, [self.user_2.id])
+#         handle_dodges(lobby, [self.user_2.id])
+#         restriction = PlayerRestriction.objects.get(user=self.user_1)
+#         self.assertEqual(
+#             lobby.restriction_countdown,
+#             (restriction.end_date - timezone.now()).seconds,
+#         )

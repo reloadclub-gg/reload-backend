@@ -32,7 +32,7 @@ class AppSettingsTestCase(LobbiesMixin, TestCase):
 
     @mock.patch('appsettings.signals.ws_maintenance')
     @mock.patch('appsettings.signals.ws_create_toast')
-    @mock.patch('appsettings.signals.Lobby.cancel_all_queues')
+    @mock.patch('appsettings.signals.Lobby.cancel_queues')
     def test_update_maintanence_start(
         self,
         mock_cancel_queues,
@@ -49,7 +49,7 @@ class AppSettingsTestCase(LobbiesMixin, TestCase):
 
     @mock.patch('appsettings.signals.ws_maintenance')
     @mock.patch('appsettings.signals.ws_create_toast')
-    @mock.patch('appsettings.signals.Lobby.cancel_all_queues')
+    @mock.patch('appsettings.signals.Lobby.cancel_queues')
     def test_update_maintanence_end(
         self,
         mock_cancel_queues,
@@ -67,14 +67,14 @@ class AppSettingsTestCase(LobbiesMixin, TestCase):
     @override_settings(TEAM_READY_PLAYERS_MIN=1)
     @mock.patch('appsettings.signals.ws_maintenance')
     @mock.patch('appsettings.signals.ws_create_toast')
-    @mock.patch('appsettings.signals.Lobby.cancel_all_queues')
+    @mock.patch('appsettings.signals.Lobby.cancel_queues')
     def test_update_maintanence_start_with_team(
         self,
         mock_cancel_queues,
         mock_ws_create_toast,
         mock_ws_maintanence,
     ):
-        self.lobby1.start_queue()
+        self.lobby1.update_queue('start')
         team = Team.create([self.lobby1.id])
         self.assertIsNotNone(team)
 
@@ -93,7 +93,7 @@ class AppSettingsTestCase(LobbiesMixin, TestCase):
     @mock.patch('appsettings.signals.cancel_pre_match')
     @mock.patch('appsettings.signals.ws_maintenance')
     @mock.patch('appsettings.signals.ws_create_toast')
-    @mock.patch('appsettings.signals.Lobby.cancel_all_queues')
+    @mock.patch('appsettings.signals.Lobby.cancel_queues')
     def test_update_maintanence_start_with_pre_match(
         self,
         mock_cancel_queues,
@@ -101,11 +101,11 @@ class AppSettingsTestCase(LobbiesMixin, TestCase):
         mock_ws_maintanence,
         mock_cancel_pre_match,
     ):
-        self.lobby1.start_queue()
-        self.lobby2.start_queue()
+        self.lobby1.update_queue('start')
+        self.lobby2.update_queue('start')
         t1 = Team.create([self.lobby1.id])
         t2 = Team.create([self.lobby2.id])
-        pm = PreMatch.create(t1.id, t2.id, self.lobby1.lobby_type, self.lobby1.mode)
+        pm = PreMatch.create(t1.id, t2.id, self.lobby1.mode)
 
         self.assertIsNotNone(t1)
         self.assertIsNotNone(t2)

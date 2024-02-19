@@ -85,15 +85,15 @@ class Account(models.Model):
 
     @property
     def lobby(self) -> Lobby:
-        return Lobby.get_current(self.user.id)
+        return Lobby.get_by_player_id(self.user.id, fail_silently=True)
 
     @property
     def lobby_invites(self) -> List[LobbyInvite]:
-        return LobbyInvite.get_by_to_user_id(self.user.id)
+        return LobbyInvite.get_by_player_id(self.user.id, kind='received')
 
     @property
     def lobby_invites_sent(self) -> List[LobbyInvite]:
-        return LobbyInvite.get_by_from_user_id(self.user.id)
+        return LobbyInvite.get_by_player_id(self.user.id, kind='sent')
 
     @property
     def pre_match(self) -> PreMatch:
@@ -245,9 +245,11 @@ class Account(models.Model):
         """
         matches = self.get_matches_played().order_by('-end_date')[:amount]
         played_results = [
-            Account.MatchResults.WIN
-            if match.get_user_team(self.user.id).id == match.winner.id
-            else Account.MatchResults.DEFEAT
+            (
+                Account.MatchResults.WIN
+                if match.get_user_team(self.user.id).id == match.winner.id
+                else Account.MatchResults.DEFEAT
+            )
             for match in matches
         ]
 

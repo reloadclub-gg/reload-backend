@@ -1,3 +1,2 @@
-from .invite import LobbyInvite, LobbyInviteException
-from .lobby import Lobby, LobbyException
+from .lobby import Lobby, LobbyException, LobbyInvite, LobbyInviteException
 from .player import PlayerDodges, PlayerRestriction

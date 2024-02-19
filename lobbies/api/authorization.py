@@ -2,9 +2,9 @@ from collections.abc import Callable
 from functools import wraps
 
 from django.contrib.auth import get_user_model
-from ninja.errors import AuthenticationError
+from ninja.errors import AuthenticationError, Http404
 
-from ..models import Lobby
+from ..models import Lobby, LobbyException
 
 User = get_user_model()
 
@@ -19,8 +19,12 @@ def owner_required(f: Callable) -> Callable:
     def wrapper(*args, **kwds):
         request = args[0]
         lobby_id = kwds.get('lobby_id')
+        try:
+            lobby = Lobby.get(lobby_id)
+        except LobbyException:
+            raise Http404()
 
-        if Lobby.is_owner(lobby_id, request.user.id):
+        if request.user.id in lobby.players_ids and lobby.owner_id == request.user.id:
             return f(*args, **kwds)
 
         raise AuthenticationError()
@@ -38,7 +42,10 @@ def participant_required(f: Callable) -> Callable:
     def wrapper(*args, **kwds):
         request = args[0]
         lobby_id = kwds.get('lobby_id')
-        lobby = Lobby(owner_id=lobby_id)
+        try:
+            lobby = Lobby.get(lobby_id)
+        except LobbyException:
+            raise Http404()
 
         if request.user.id in lobby.players_ids:
             return f(*args, **kwds)

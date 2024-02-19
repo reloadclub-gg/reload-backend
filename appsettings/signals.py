@@ -12,7 +12,7 @@ from .models import AppSettings
 
 def handle_start_maintanence():
     # cancel all lobby queues
-    Lobby.cancel_all_queues()
+    Lobby.cancel_queues()
 
     # cancel all pre_matches
     all_pre_matches = PreMatch.get_all()

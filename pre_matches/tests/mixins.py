@@ -11,11 +11,11 @@ class TeamsMixin(LobbiesMixin):
     def setUp(self):
         super().setUp()
 
-        self.lobby1.start_queue()
-        self.lobby2.start_queue()
-        self.lobby3.start_queue()
-        self.lobby4.start_queue()
-        self.lobby5.start_queue()
+        self.lobby1.update_queue('start')
+        self.lobby2.update_queue('start')
+        self.lobby3.update_queue('start')
+        self.lobby4.update_queue('start')
+        self.lobby5.update_queue('start')
 
         self.team1 = Team.create(
             [
@@ -27,11 +27,11 @@ class TeamsMixin(LobbiesMixin):
             ]
         )
 
-        self.lobby6.start_queue()
-        self.lobby7.start_queue()
-        self.lobby8.start_queue()
-        self.lobby9.start_queue()
-        self.lobby10.start_queue()
+        self.lobby6.update_queue('start')
+        self.lobby7.update_queue('start')
+        self.lobby8.update_queue('start')
+        self.lobby9.update_queue('start')
+        self.lobby10.update_queue('start')
 
         self.team2 = Team.create(
             [
@@ -43,11 +43,11 @@ class TeamsMixin(LobbiesMixin):
             ]
         )
 
-        self.lobby16.start_queue()
-        self.lobby17.start_queue()
-        self.lobby18.start_queue()
-        self.lobby19.start_queue()
-        self.lobby20.start_queue()
+        self.lobby16.update_queue('start')
+        self.lobby17.update_queue('start')
+        self.lobby18.update_queue('start')
+        self.lobby19.update_queue('start')
+        self.lobby20.update_queue('start')
         self.team3 = Team.create(
             [
                 self.lobby16.id,
@@ -58,11 +58,11 @@ class TeamsMixin(LobbiesMixin):
             ]
         )
 
-        self.lobby21.start_queue()
-        self.lobby22.start_queue()
-        self.lobby23.start_queue()
-        self.lobby24.start_queue()
-        self.lobby25.start_queue()
+        self.lobby21.update_queue('start')
+        self.lobby22.update_queue('start')
+        self.lobby23.update_queue('start')
+        self.lobby24.update_queue('start')
+        self.lobby25.update_queue('start')
         self.team4 = Team.create(
             [
                 self.lobby21.id,

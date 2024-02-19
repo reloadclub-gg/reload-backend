@@ -8,7 +8,7 @@ from ninja.errors import HttpError
 
 from appsettings.models import AppSettings
 from core.tests import TestCase
-from lobbies.models import Lobby
+from lobbies.models import Lobby, LobbyInvite
 from matches.models import BetaUser
 
 from .. import utils
@@ -221,7 +221,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
     @mock.patch('accounts.models.Account.get_match')
     @mock.patch.object(
         controller.Lobby,
-        'queue',
+        'is_queued',
         new_callable=mock.PropertyMock,
     )
     def test_inactivate_in_match_pre_match_queue(
@@ -256,7 +256,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         self.assertFalse(self.user.is_active)
         self.assertIsNotNone(self.user.date_inactivation)
 
-    @mock.patch('accounts.api.controller.handle_player_move')
+    @mock.patch('accounts.api.controller.Lobby.move_player')
     @mock.patch('accounts.api.controller.websocket.ws_update_user')
     @mock.patch('accounts.api.controller.utils.send_verify_account_mail')
     def test_update_email(self, mock_send_email, mock_update_user, mock_player_move):
@@ -275,11 +275,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
             self.user.steam_user.username,
             self.user.account.verification_token,
         )
-        mock_player_move.assert_called_once_with(
-            self.user,
-            self.user.id,
-            delete_lobby=True,
-        )
+        mock_player_move.assert_called_once_with(self.user.id, self.user.id)
 
     @mock.patch(
         'accounts.utils.send_verify_account_mail',
@@ -325,14 +321,15 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
         another_user.account.is_verified = True
         another_user.account.save()
         lobby_2 = Lobby.create(another_user.id)
-        lobby_2.invite(another_user.id, self.user.id)
-        Lobby.move(self.user.id, lobby_2.id)
+        lobby_2.update_visibility('public')
+        Lobby.move_player(self.user.id, lobby_2.owner_id)
 
         self.assertEqual(self.user.account.lobby.id, lobby_2.id)
-
+        self.assertEqual(self.user.account.lobby.owner_id, lobby_2.owner_id)
         controller.logout(self.user)
 
-        self.assertIsNone(self.user.account.lobby)
+        lobby = Lobby.get_by_player_id(self.user.id, fail_silently=True)
+        self.assertIsNone(lobby)
         self.assertFalse(self.user.is_online)
 
     def test_delete_account(self):
@@ -355,7 +352,7 @@ class AccountsControllerTestCase(mixins.AccountOneMixin, TestCase):
     @mock.patch('accounts.models.Account.get_match')
     @mock.patch.object(
         controller.Lobby,
-        'queue',
+        'is_queued',
         new_callable=mock.PropertyMock,
     )
     def test_delete_account_in_match_pre_match_queue(
@@ -402,11 +399,11 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
         self.user_6.add_session()
 
     @mock.patch('accounts.api.controller.ws_expire_player_invites')
-    @mock.patch('accounts.api.controller.handle_player_move')
+    @mock.patch('accounts.api.controller.Lobby.move_player')
     def test_logout_lobby_owner(
         self,
-        mock_expire_player_invites,
         mock_player_move,
+        mock_expire_player_invites,
     ):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
@@ -414,17 +411,18 @@ class AccountsControllerVerifiedPlayersTestCase(mixins.VerifiedAccountsMixin, Te
         Lobby.create(self.user_4.id)
         Lobby.create(self.user_5.id)
 
-        lobby_1.invite(self.user_1.id, self.user_6.id)
+        LobbyInvite.create(lobby_1.id, self.user_1.id, self.user_6.id)
 
-        lobby_1.set_public()
-        Lobby.move(self.user_2.id, lobby_1.id)
-        Lobby.move(self.user_3.id, lobby_1.id)
-        Lobby.move(self.user_4.id, lobby_1.id)
-        Lobby.move(self.user_5.id, lobby_1.id)
+        lobby_1.update_visibility('public')
+        Lobby.move_player(self.user_2.id, lobby_1.id)
+        Lobby.move_player(self.user_3.id, lobby_1.id)
+        Lobby.move_player(self.user_4.id, lobby_1.id)
+        Lobby.move_player(self.user_5.id, lobby_1.id)
 
+        mock_player_move.return_value = (None, lobby_1, None)
         controller.logout(self.user_1)
         mock_expire_player_invites.assert_called_once()
-        mock_player_move.assert_called_once()
+        self.assertEqual(mock_player_move.call_count, 5)
 
     def test_user_matches(self):
         self.assertCountEqual(

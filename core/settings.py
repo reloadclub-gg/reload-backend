@@ -83,6 +83,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 MIDDLEWARE = [
     'core.middleware.HealthCheckMiddleware',
     'core.middleware.PortMiddleware',
+    'core.middleware.MaintenenceMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

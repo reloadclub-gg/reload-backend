@@ -1,19 +1,20 @@
 from __future__ import annotations
 
-import logging
 import random
-from datetime import datetime
+from typing import Dict, List
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
 
+from appsettings.services import (
+    lobby_overall_range,
+    lobby_time_to_increase_overall_range,
+)
+from core.models import Q, RedisHashModel
 from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
-
-from .invite import LobbyInvite
-from .player import PlayerRestriction
 
 User = get_user_model()
 
@@ -22,121 +23,60 @@ class LobbyException(Exception):
     pass
 
 
+class LobbyInviteException(Exception):
+    pass
+
+
 class Lobby(BaseModel):
-    """
-    This model represents the lobbies on Redis cache db.
-    The Redis db keys from this model are described below:
-
-    [key] __mm:lobby:[player_id] <current_lobby_id>
-    [set] __mm:lobby:[player_id]:players <(player_id,...)>
-    [key] __mm:lobby:[player_id]:is_public <0|1>
-    [zset] __mm:lobby:[player_id]:invites <(from_player_id:to_player_id,...)>
-    [key] __mm:lobby:[player_id]:queue <datetime>
-    [key] __mm:lobby:[player_id]:type <competitive|custom>
-    [key] __mm:lobby:[player_id]:mode <1|5|20>
-    """
-
     owner_id: int
+    mode: str = 'competitive'
+    is_public: bool = False
+    invites_ids: List[int] = []
+    seats: Dict[int, int] = {}
+    players_ids: List[int] = []
 
     class Config:
         CACHE_PREFIX: str = '__mm:lobby'
-        TYPES: list = ['competitive', 'custom']
-        MODES = {
-            TYPES[0]: {'modes': [1, 5], 'default': 5},
-            TYPES[1]: {'modes': [20], 'default': 20},
+        MAX_SEATS: dict = {
+            'competitive': 5,
+            'custom': 15,  # 10 players + 5 specs
+            'tdm': 5,
         }
 
+    class ModeChoices:
+        COMPETITIVE: str = 'competitive'
+        CUSTOM: str = 'custom'
+        TDM: str = 'tdm'
+
     @property
-    def cache_key(self):
-        """
-        The lobby key repr on Redis.
-        """
+    def cache_key(self) -> str:
         return f'{self.Config.CACHE_PREFIX}:{self.owner_id}'
 
     @property
-    def id(self):
-        """
-        The lobby ID.
-        """
+    def id(self) -> int:
         return self.owner_id
 
     @property
-    def players_ids(self) -> list:
-        """
-        All player_ids that are in lobby. Owner included.
-        """
-        return sorted(list(map(int, cache.smembers(f'{self.cache_key}:players'))))
+    def max_seats(self) -> int:
+        return Lobby.Config.MAX_SEATS.get(self.mode)
 
     @property
-    def non_owners_ids(self) -> list:
-        """
-        All player_ids that are in lobby. Owner excluded.
-        """
-        return sorted([id for id in self.players_ids if id != self.owner_id])
+    def players(self) -> list:
+        return [User.objects.get(id=id) for id in self.players_ids]
 
     @property
-    def is_public(self) -> bool:
-        """
-        Return wether lobby is public or private.
-        Public (1) -> any online user, with a valid account can join.
-        Private (0) -> only invited online users, with a valid account can join.
-        """
-        return cache.get(f'{self.cache_key}:public') == '1'
-
-    @property
-    def invites(self) -> list:
-        """
-        Retrieve all unaccepted invites.
-        """
-        invite_ids = sorted(list(cache.zrange(f'{self.cache_key}:invites', 0, -1)))
-        return [
-            LobbyInvite.get(lobby_id=self.id, invite_id=invite_id)
-            for invite_id in invite_ids
-        ]
-
-    @property
-    def invited_players_ids(self) -> list:
-        """
-        Retrieve all invited player_id's.
-        """
-        return sorted(list(map(int, [invite.to_id for invite in self.invites])))
-
-    @property
-    def queue(self) -> datetime:
-        """
-        Return wether the lobby is queued.
-        """
-        queue = cache.get(f'{self.cache_key}:queue')
-        if queue:
-            return str_to_timezone(queue)
+    def is_queued(self) -> bool:
+        queue_cache_key = f'{self.cache_key}:queue'
+        return bool(cache.get(queue_cache_key))
 
     @property
     def queue_time(self) -> int:
-        """
-        Get how much time, in seconds, lobby is queued.
-        """
-        if self.queue:
-            return (timezone.now() - self.queue).seconds
-
-    @property
-    def players_count(self) -> int:
-        """
-        Return how many players are in the lobby.
-        """
-        return len(self.players_ids)
-
-    @property
-    def seats(self) -> int:
-        """
-        Return how many seats are available for this lobby.
-        """
-        return self.max_players - self.players_count
+        if self.is_queued:
+            queue_start_time = str_to_timezone(cache.get(f'{self.cache_key}:queue'))
+            return (timezone.now() - queue_start_time).seconds
 
     @property
     def overall(self) -> int:
-        """
-        The overall is the highest level among the players levels.
-        """
         return max(
             list(
                 User.objects.filter(id__in=self.players_ids).values_list(
@@ -147,544 +87,392 @@ class Lobby(BaseModel):
         )
 
     @property
-    def lobby_type(self) -> str:
-        """
-        Returns the lobby type which can be one of Config.TYPES.
-        """
-        return cache.get(f'{self.cache_key}:type')
+    def team_id(self):
+        return cache.get(f'{self.cache_key}:team_id')
 
     @property
-    def mode(self) -> int:
-        """
-        Returns which competitive mode the lobby is on
-        from Config.COMPETITIVE_MODES.
-        """
-        mode = cache.get(f'{self.cache_key}:mode')
-        if mode:
-            return int(mode)
+    def pre_match_id(self):
+        return cache.get(f'{self.cache_key}:pre_match_id')
 
-    @property
-    def max_players(self) -> int:
-        """
-        Returns how many players are allowed to take seat
-        on this lobby. The returned value is the same return of
-        the mode property.
-        """
-        if self.mode:
-            return self.mode
+    def __start_queue(self):
+        cache.set(f'{self.cache_key}:queue', timezone.now().isoformat())
 
-        return 0
+    def __stop_queue(self):
+        cache.delete(f'{self.cache_key}:queue')
 
-    @property
-    def restriction_countdown(self) -> int:
-        """
-        Return the greatest player restriction countdown in seconds.
-        """
-        restriction_end_dates = PlayerRestriction.objects.filter(
-            user_id__in=self.players_ids,
-            end_date__gte=timezone.now(),
-        ).values_list('end_date', flat=True)
-        restriction_countdowns = [
-            (date - timezone.now()).seconds for date in restriction_end_dates
-        ]
+    def save(self) -> Lobby:
+        if self.pre_match_id:
+            raise LobbyException(_('Can\'t perform this action while in match.'))
 
-        if restriction_countdowns:
-            return max(restriction_countdowns)
+        def transaction_operations(pipe, _):
+            pipe.hmset(
+                self.cache_key,
+                {'mode': self.mode, 'is_public': str(self.is_public)},
+            )
 
-    @staticmethod
-    def is_owner(lobby_id: int, player_id: int) -> bool:
-        lobby = Lobby(owner_id=lobby_id)
+            pipe.delete(f'{self.cache_key}:players_ids')
+            if self.players_ids:
+                pipe.sadd(f'{self.cache_key}:players_ids', *self.players_ids)
 
-        return lobby.owner_id == player_id
+            pipe.delete(f'{self.cache_key}:invites_ids')
+            if self.invites_ids:
+                pipe.sadd(f'{self.cache_key}:invites_ids', *self.invites_ids)
 
-    @staticmethod
-    def delete(lobby_id: int, pipe=None):
-        lobby = Lobby(owner_id=lobby_id)
-        keys = list(cache.scan_keys(f'{lobby.cache_key}:*'))
-        if keys:
-            if pipe:
-                pipe.delete(*keys)
-                pipe.delete(lobby.cache_key)
-            else:
-                cache.delete(*keys)
-                cache.delete(lobby.cache_key)
+        cache.protected_handler(
+            transaction_operations,
+            self.cache_key,
+            f'{self.cache_key}:players_ids',
+            f'{self.cache_key}:invites_ids',
+        )
 
-    @staticmethod
-    def cancel_all_queues():
-        keys = list(cache.scan_keys('__mm:lobby:*:queue'))
-        if not keys:
+        return self
+
+    def add_player(self, player_id: int):
+        if player_id in self.players_ids:
+            raise LobbyException(_('Player already in the lobby.'))
+
+        if len(self.players_ids) == self.max_seats:
+            raise LobbyException(_('Lobby is full.'))
+
+        if not self.is_public and player_id != self.owner_id:
+            invites = LobbyInvite.get_by_lobby_id(self.id)
+            is_invited = any(invite.to_player_id == player_id for invite in invites)
+            if not is_invited:
+                raise LobbyException(_('Player must be invited.'))
+
+        self.players_ids.append(player_id)
+        self.save()
+
+    def remove_player(self, player_id: int) -> Lobby:
+        if player_id not in self.players_ids:
+            raise LobbyException(_('Player not found.'))
+
+        self.players_ids = [id for id in self.players_ids if id != player_id]
+        self.save()
+
+    def update_queue(self, action: str):
+        if self.pre_match_id:
+            raise LobbyException(_('Can\'t perform this action while in match.'))
+
+        if self.mode == Lobby.ModeChoices.CUSTOM:
+            raise LobbyException(
+                _('Can\'t perform this action with current lobby mode.')
+            )
+
+        available_actions = ['start', 'stop']
+        if action not in available_actions:
+            raise LobbyException(_('Queues can only be started or stoped.'))
+
+        if action == 'start':
+            self.__start_queue()
+        else:
+            self.__stop_queue()
+
+    def update_mode(self, mode: str):
+        available_modes = [Lobby.ModeChoices.COMPETITIVE, Lobby.ModeChoices.CUSTOM]
+        if mode not in available_modes:
+            raise LobbyException(_(f'Mode must be {" or ".join(available_modes)}.'))
+
+        if mode == self.mode:
             return
 
-        lobby_ids = [int(key.split(':')[2]) for key in keys]
+        if (
+            mode == Lobby.ModeChoices.COMPETITIVE
+            and len(self.players_ids) > Lobby.Config.COMP_MAX_SEATS
+        ):
+            raise LobbyException(_('Too many players to change lobby mode.'))
 
-        for lobby_id in lobby_ids:
-            lobby = Lobby(owner_id=lobby_id)
-            lobby.cancel_queue()
+        self.mode = mode
+        self.save()
 
-    @staticmethod
-    def get_current(player_id: int) -> Lobby:
-        """
-        Get the current lobby the user is.
-        """
-        lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
-        if not lobby_id:
-            return None
-        return Lobby(owner_id=lobby_id)
+    def get_queue_overall_range(self) -> tuple:
+        if not self.is_queued:
+            raise LobbyException(_('Lobby must be queued.'))
 
-    @staticmethod
-    def create(owner_id: int, lobby_type: str = None, mode: int = None) -> Lobby:
-        """
-        Create a lobby for a given user.
-        """
-        filter = User.objects.filter(pk=owner_id)
-        if not filter.exists():
-            raise LobbyException(_('User not found.'))
+        elapsed_time = int(self.queue_time)
+        time_range = lobby_time_to_increase_overall_range()
+        overall_range = lobby_overall_range()
 
-        user = filter[0]
-        if not hasattr(user, 'account') or not user.account.is_verified:
+        for i in range(len(time_range)):
+            if elapsed_time < time_range[i]:
+                min_overall = max(self.overall - overall_range[i], 0)
+                max_overall = self.overall + overall_range[i]
+                return min_overall, max_overall
+
+        min_overall = max(self.overall - overall_range[-1], 0)
+        max_overall = self.overall + overall_range[-1]
+
+        return min_overall, max_overall
+
+    def delete(self):
+        if self.pre_match_id:
+            raise LobbyException(_('Can\'t perform this action while in match.'))
+
+        for invite_id in self.invites_ids:
+            try:
+                invite = LobbyInvite.get(invite_id)
+                invite.delete()
+            except LobbyInviteException as exc:
+                raise exc
+
+        keys = list(cache.scan_keys(f'{self.cache_key}:*'))
+
+        def transaction_operations(pipe, _):
+            pipe.delete(*keys)
+            pipe.delete(self.cache_key)
+
+        cache.protected_handler(transaction_operations, self.cache_key, *keys)
+
+    def expire_invites(self):
+        for invite_id in self.invites_ids:
+            try:
+                invite = LobbyInvite.get(invite_id)
+                invite.delete()
+            except LobbyInviteException as exc:
+                raise exc
+
+    def update_visibility(self, visibility: str = 'private'):
+        available_visibilities = ['public', 'private']
+        if visibility not in available_visibilities:
             raise LobbyException(
-                _('A verified account is required to perform this action.')
+                _(f'Visibility must be {(" or ").join(available_visibilities)}')
             )
 
-        if not user.is_online:
-            raise LobbyException(_('Offline user.'))
-
-        if lobby_type is not None and lobby_type not in Lobby.Config.TYPES:
-            raise LobbyException(_('The given type is not valid.'))
-
-        if not lobby_type:
-            lobby_type = Lobby.Config.TYPES[0]
-
-        if mode is not None and mode not in Lobby.Config.MODES[lobby_type].get('modes'):
-            raise LobbyException(_('The given mode is not valid.'))
-
-        if not mode:
-            mode = Lobby.Config.MODES.get(lobby_type).get('default')
-
-        lobby = Lobby(owner_id=owner_id)
-        cache.set(lobby.cache_key, owner_id)
-        cache.set(f'{lobby.cache_key}:type', lobby_type)
-        cache.set(f'{lobby.cache_key}:mode', mode)
-        cache.sadd(f'{lobby.cache_key}:players', owner_id)
-
-        return lobby
-
-    # flake8: noqa: C901
-    @staticmethod
-    def move(player_id: int, to_lobby_id: int, remove: bool = False) -> Lobby:
-        """
-        This method move players around between lobbies.
-        If `to_lobby_id` == `player_id`, then this lobby
-        should be empty, meaning that we need to remove every
-        other player from it.
-
-        If `remove` is True, it means that we need to purge this
-        lobby, removing it from Redis cache. This usually happen
-        when the owner logs out. Before lobby deletion, we move
-        every other player (if there is any) to another lobby. We
-        also need to cancel the queue for the current lobby.
-        """
-
-        logging.info('')
-        logging.info('-- lobby_move start --')
-        logging.info('')
-
-        logging.info(f'[lobby_move] player_id {player_id}')
-        logging.info(f'[lobby_move] to_lobby_id {to_lobby_id}')
-        logging.info(f'[lobby_move] remove {remove}')
-
-        from_lobby_id = cache.get(f'{Lobby.Config.CACHE_PREFIX}:{player_id}')
-        if not from_lobby_id:
-            raise LobbyException(_('There is no lobby to move user from.'))
-
-        logging.info(f'[lobby_move] from_lobby_id {from_lobby_id}')
-
-        from_lobby = Lobby(owner_id=from_lobby_id)
-        to_lobby = Lobby(owner_id=to_lobby_id)
-
-        logging.info(f'[lobby_move] from_lobby {from_lobby}')
-        logging.info(f'[lobby_move] to_lobby {to_lobby}')
-
-        def transaction_pre(pipe):
-            if not pipe.get(from_lobby.cache_key) or not pipe.get(to_lobby.cache_key):
-                raise LobbyException(_('Lobby not found.'))
-
-        def transaction_operations(pipe, pre_result):
-            filter = User.objects.filter(pk=player_id)
-            new_lobby = None
-            if not filter.exists():
-                raise LobbyException(_('User not found.'))
-
-            if not remove:
-                joining_player = filter[0]
-                if (
-                    not hasattr(joining_player, 'account')
-                    or not joining_player.account.is_verified
-                ):
-                    raise LobbyException(
-                        _('A verified account is required to perform this action.')
-                    )
-
-                if not joining_player.is_online:
-                    raise LobbyException(_('Offline user.'))
-
-                if from_lobby.queue or to_lobby.queue:
-                    raise LobbyException(_('Lobby is queued.'))
-
-                is_owner = Lobby.is_owner(to_lobby_id, player_id)
-                can_join = (
-                    to_lobby.is_public
-                    or player_id in to_lobby.invited_players_ids
-                    or is_owner
-                )
-
-                logging.info(f'[lobby_move] is_owner {is_owner}')
-                logging.info(f'[lobby_move] can_join {can_join}')
-
-                if not to_lobby.seats and to_lobby.owner_id != player_id:
-                    raise LobbyException(_('Lobby is full.'))
-
-                if not can_join:
-                    raise LobbyException(_('User must be invited.'))
-
-            if from_lobby_id != to_lobby_id:
-                pipe.srem(f'{from_lobby.cache_key}:players', player_id)
-                logging.info(f'[lobby_move] removed {player_id} from {from_lobby.id}')
-                pipe.sadd(f'{to_lobby.cache_key}:players', player_id)
-                logging.info(f'[lobby_move] added {player_id} to {to_lobby.id}')
-                pipe.set(f'{Lobby.Config.CACHE_PREFIX}:{player_id}', to_lobby.owner_id)
-                logging.info(
-                    f'[lobby_move] update player lobby: {player_id} - {to_lobby.owner_id}'
-                )
-                invite = to_lobby.get_invite_by_to_player_id(player_id)
-                if invite:
-                    logging.info(f'[lobby_move] invite: {invite.id}')
-                    pipe.zrem(f'{to_lobby.cache_key}:invites', invite.id)
-
-            if len(from_lobby.non_owners_ids) > 0 and from_lobby.owner_id == player_id:
-                new_owner_id = min(from_lobby.non_owners_ids)
-                logging.info(f'[lobby_move] new owner: {new_owner_id}')
-                new_lobby = Lobby(owner_id=new_owner_id)
-                logging.info(f'[lobby_move] new_lobby: {new_lobby.id}')
-
-                pipe.srem(f'{from_lobby.cache_key}:players', *from_lobby.non_owners_ids)
-                logging.info(
-                    f'[lobby_move] remove from lobby: {from_lobby.id} -> {from_lobby.non_owners_ids}'
-                )
-
-                # If another instance tries to move a player to the new_lobby,
-                # a transaction will start there and when we add a player here
-                # in the following line, the other transaction will fail and
-                # try again/rollback.
-                pipe.sadd(f'{new_lobby.cache_key}:players', *from_lobby.non_owners_ids)
-                logging.info(
-                    f'[lobby_move] add to lobby: {new_lobby.id} -> {from_lobby.non_owners_ids}'
-                )
-
-                logging.info(f'[lobby_move] new_lobby: {new_lobby.id}')
-
-                for other_player_id in from_lobby.non_owners_ids:
-                    pipe.set(
-                        f'{Lobby.Config.CACHE_PREFIX}:{other_player_id}',
-                        new_lobby.owner_id,
-                    )
-                    logging.info(
-                        f'[lobby_move] update player lobby: {other_player_id} - {new_lobby.owner_id}'
-                    )
-                    invite = new_lobby.get_invite_by_to_player_id(other_player_id)
-                    if invite:
-                        logging.info(f'[lobby_move] invite: {invite.id}')
-                        pipe.zrem(f'{new_lobby.cache_key}:invites', invite)
-
-            if remove:
-                logging.info('[lobby_move] lobby deletion')
-                Lobby.delete(to_lobby.id, pipe=pipe)
-                from_lobby.cancel_queue()
-                invites_to_player = LobbyInvite.get_by_to_user_id(player_id)
-                logging.info(f'[lobby_move] invites {invites_to_player}')
-                for invite in invites_to_player:
-                    pipe.zrem(f'__mm:lobby:{invite.lobby_id}:invites', invite.id)
-
-            logging.info('')
-            logging.info('-- lobby_move end --')
-            logging.info('')
-            return new_lobby
-
-        remnant_lobby = cache.protected_handler(
-            transaction_operations,
-            f'{from_lobby.cache_key}:players',
-            f'{from_lobby.cache_key}:queue',
-            f'{to_lobby.cache_key}:players',
-            f'{to_lobby.cache_key}:queue',
-            f'{Lobby.Config.CACHE_PREFIX}:{player_id}',
-            f'{to_lobby.cache_key}:invites',
-            pre_func=transaction_pre,
-            value_from_callable=True,
-        )
-        logging.info(f'[lobby_move] remnant lobby: {remnant_lobby}')
-
-        if to_lobby.players_count > 1:
-            status = User.Status.TEAMING
+        if visibility == 'public':
+            self.is_public = True
         else:
-            status = User.Status.ONLINE
-        User.objects.filter(id__in=to_lobby.players_ids).update(status=status)
-        if to_lobby.players_ids:
-            logging.info(f'[lobby_move] to_lobby: {to_lobby.players_ids} -> {status}')
+            self.is_public = False
 
-        if from_lobby.players_count <= 1:
-            User.objects.filter(id__in=from_lobby.players_ids).update(
-                status=User.Status.ONLINE
-            )
-            if from_lobby.players_count > 0:
-                logging.info(
-                    f'[lobby_move] from_lobby: {from_lobby.players_ids} -> online'
-                )
+        self.save()
 
-        if remnant_lobby:
-            if remnant_lobby.players_count <= 1:
-                User.objects.filter(id__in=remnant_lobby.players_ids).update(
-                    status=User.Status.ONLINE
-                )
-                if remnant_lobby.players_count > 0:
-                    logging.info(
-                        f'[lobby_move] remnant_lobby: {remnant_lobby.players_ids} -> online'
-                    )
+    @staticmethod
+    def load(lobby_key: str) -> Lobby:
+        owner_id = int(lobby_key.split(':')[2])
 
-        return remnant_lobby
+        players_ids = cache.smembers(f'{lobby_key}:players_ids')
+        invites_ids = cache.smembers(f'{lobby_key}:invites_ids')
+
+        return Lobby(
+            owner_id=owner_id,
+            mode=cache.hget(lobby_key, 'mode'),
+            is_public=cache.hget(lobby_key, 'is_public') == 'True',
+            players_ids=players_ids,
+            invites_ids=invites_ids,
+        )
+
+    @staticmethod
+    def get(owner_id: int, fail_silently: bool = False) -> Lobby:
+        lobby_key = f'{Lobby.Config.CACHE_PREFIX}:{owner_id}'
+        model = cache.hgetall(lobby_key)
+        if model:
+            return Lobby.load(lobby_key)
+
+        if not fail_silently:
+            raise LobbyException(_('Lobby not found.'))
+
+    @staticmethod
+    def get_by_player_id(player_id: int, fail_silently: bool = False) -> Lobby:
+        keys = list(cache.scan_keys(f'{Lobby.Config.CACHE_PREFIX}:*:players_ids'))
+        for key in keys:
+            if str(player_id) in cache.smembers(key):
+                lobby_key = ':'.join(key.split(':')[:-1])
+                return Lobby.load(lobby_key)
+
+        if not fail_silently:
+            raise LobbyException(_('Lobby not found.'))
+
+    @staticmethod
+    def move_player_checks(player_id: int, from_lobby: Lobby, to_lobby: Lobby):
+        if not from_lobby or not to_lobby:
+            raise LobbyException(_('Lobby not found.'))
+
+        if from_lobby.pre_match_id or to_lobby.pre_match_id:
+            raise LobbyException(_('Can\'t perform this action while in match.'))
+
+        if player_id not in from_lobby.players_ids:
+            raise LobbyException(_('Player isn\'t in the specified lobby.'))
+
+    @staticmethod
+    def move_player(player_id: int, to_lobby_owner_id: int) -> tuple:
+        from_lobby = Lobby.get_by_player_id(player_id)
+        to_lobby = Lobby.get(to_lobby_owner_id)
+
+        Lobby.move_player_checks(player_id, from_lobby, to_lobby)
+        from_lobby.remove_player(player_id)
+        remaining_lobby = None
+
+        if player_id == from_lobby.owner_id and len(from_lobby.players_ids) > 0:
+            new_owner_id = random.choice(from_lobby.players_ids)
+            remaining_lobby = Lobby.get(new_owner_id)
+            remaining_lobby.players_ids = from_lobby.players_ids
+            from_lobby.players_ids = []
+            from_lobby.save()
+            remaining_lobby.save()
+
+        if from_lobby.owner_id == to_lobby.owner_id:
+            to_lobby = from_lobby
+
+        to_lobby.add_player(player_id)
+        return (from_lobby, to_lobby, remaining_lobby)
+
+    @staticmethod
+    def create(owner_id: int, mode: str = 'competitive', **kwargs) -> Lobby:
+        mode_choices = [Lobby.ModeChoices.COMPETITIVE, Lobby.ModeChoices.CUSTOM]
+        if mode not in mode_choices:
+            raise LobbyException(_(f'Mode must be : {" or ".join(mode_choices)}.'))
+
+        exists = Lobby.get_by_player_id(owner_id, fail_silently=True)
+        if exists:
+            raise LobbyException(_('Player already have a lobby.'))
+
+        lobby = Lobby(owner_id=owner_id, mode=mode, players_ids=[owner_id])
+        return lobby.save()
 
     @staticmethod
     def get_all_queued():
-        keys = list(cache.scan_keys('__mm:lobby:*:queue'))
-        if not keys:
-            return []
+        keys = cache.scan_keys(f'{Lobby.Config.CACHE_PREFIX}:*:queue')
+        queued = []
+        for key in keys:
+            queued.append(Lobby.get(int(key.split(':')[2])))
 
-        queued_ids = [int(key.split(':')[2]) for key in keys]
-        queued_lobbies = [Lobby(owner_id=queued_id) for queued_id in queued_ids]
-        free_lobbies = []
-        for lobby in queued_lobbies:
-            players = User.objects.filter(id__in=lobby.players_ids)
-            if all(
-                [
-                    not player.account.pre_match and player.account.get_match() is None
-                    for player in players
-                ]
-            ):
-                free_lobbies.append(lobby)
+        return queued
 
-        return free_lobbies
+    @staticmethod
+    def cancel_queues():
+        queued = Lobby.get_all_queued()
+        for lobby in queued:
+            lobby.update_queue('stop')
 
-    def invite(self, from_player_id: int, to_player_id: int) -> LobbyInvite:
-        """
-        Lobby players can invite others players to join them in the lobby following
-        these rules:
-        - Lobby should not be full;
-        - Player should not been invited yet;
-        - Invited user should exist, be online and have a verified account;
-        """
 
-        if not self.seats:
-            raise LobbyException(_('Lobby is full.'))
+class LobbyInvite(RedisHashModel):
+    id: int
+    lobby_id: int
+    from_player_id: int
+    to_player_id: int
 
-        if self.queue:
-            raise LobbyException(_('Lobby is queued.'))
+    class Config:
+        CACHE_PREFIX: str = '__mm:invite'
+        EXPIRE_TIME: int = 60  # in seconds
 
-        def transaction_pre(pipe):
-            can_invite = pipe.sismember(f'{self.cache_key}:players', from_player_id)
-            already_player = pipe.sismember(f'{self.cache_key}:players', to_player_id)
-            already_invited = to_player_id in self.invited_players_ids
-            return (can_invite, already_player, already_invited)
+    @property
+    def cache_key(self) -> str:
+        return f'{self.Config.CACHE_PREFIX}:{self.id}'
 
-        def transaction_operations(pipe, pre_result):
-            can_invite, already_player, already_invited = pre_result
-
-            if not can_invite:
-                raise LobbyException(
-                    'Usuário não tem permissão para realizar essa ação.'
-                )
-
-            if already_player:
-                raise LobbyException(_('Invited user is already a lobby player.'))
-
-            if already_invited:
-                raise LobbyException(_('User already invited.'))
-
-            filter = User.objects.filter(pk=to_player_id)
-            if not filter.exists():
-                raise LobbyException(_('User not found.'))
-
-            invited = filter[0]
-            if not hasattr(invited, 'account') or not invited.account.is_verified:
-                raise LobbyException(
-                    _('A verified account is required to perform this action.')
-                )
-
-            if not invited.is_online:
-                raise LobbyException(_('Offline user.'))
-
-            pipe.zadd(
-                f'{self.cache_key}:invites',
-                {f'{from_player_id}:{to_player_id}': timezone.now().timestamp()},
+    def save(self) -> LobbyInvite:
+        def transaction_operations(pipe, _):
+            pipe.hmset(
+                self.cache_key,
+                {
+                    'id': self.id,
+                    'from_player_id': self.from_player_id,
+                    'to_player_id': self.to_player_id,
+                    'lobby_id': self.lobby_id,
+                },
             )
 
-        cache.protected_handler(
-            transaction_operations,
-            f'{self.cache_key}:players',
-            f'{self.cache_key}:queue',
-            f'{self.cache_key}:invites',
-            pre_func=transaction_pre,
-        )
+            # We always need to run a bg task to delete the invite and remove it from
+            # the lobby invites_ids by the time we create the invite. This expiration
+            # is just a data protection, that's why we multiply the time by 2, because if,
+            # for some reason, the task doesn't remove it, we securely had it expired.
+            pipe.expire(self.cache_key, LobbyInvite.Config.EXPIRE_TIME * 2)
 
-        return LobbyInvite(
-            from_id=from_player_id,
-            to_id=to_player_id,
-            lobby_id=self.owner_id,
-        )
+        cache.protected_handler(transaction_operations, self.cache_key)
+        return self
 
-    def get_invite_by_to_player_id(self, to_player_id: int) -> str:
-        result = None
-        for invite in self.invites:
-            if to_player_id == invite.to_id:
-                result = invite
+    def delete(self):
+        def transaction_operations(pipe, _):
+            pipe.delete(self.cache_key)
 
-        return result
+        cache.protected_handler(transaction_operations, self.cache_key)
 
-    def get_invites_by_from_player_id(self, from_player_id: int) -> str:
-        return [invite for invite in self.invites if from_player_id == invite.from_id]
+        lobby = Lobby.get(self.lobby_id)
+        lobby.invites_ids.remove(self.id)
+        lobby.save()
 
-    def delete_invite(self, invite_id):
-        """
-        Method to delete an existing invite
-        Invite should exist on lobby invites list
-        Should return False if the requested invite_id isn't in the lobby invites list
-        """
-        invite = cache.zscore(f'{self.cache_key}:invites', invite_id)
+    @staticmethod
+    def incr_auto_id() -> int:
+        return int(cache.incr(f'{LobbyInvite.Config.CACHE_PREFIX}:auto_id'))
 
-        if not invite:
-            raise LobbyException(_('Invite not found.'))
-
-        def transaction_operations(pipe, pre_result):
-            pipe.zrem(f'{self.cache_key}:invites', invite_id)
-
-        cache.protected_handler(transaction_operations, f'{self.cache_key}:invites')
-
-    def start_queue(self):
-        """
-        Add lobby to the queue.
-        """
-        if self.queue:
-            raise LobbyException(_('Lobby is queued.'))
-
-        if self.restriction_countdown:
-            raise LobbyException(_('Can\'t start queue due to player restriction.'))
-
-        def transaction_operations(pipe, pre_result):
-            pipe.set(f'{self.cache_key}:queue', timezone.now().isoformat())
-
-        cache.protected_handler(
-            transaction_operations,
-            f'{self.cache_key}:players',
-            f'{self.cache_key}:queue',
-            f'{self.cache_key}:invites',
-        )
-
-        User.objects.filter(id__in=self.players_ids).update(status=User.Status.QUEUED)
-
-    def cancel_queue(self):
-        """
-        Remove lobby from queue.
-        """
-        cache.delete(f'{self.cache_key}:queue')
-        if self.players_count > 1:
-            User.objects.filter(id__in=self.players_ids).update(
-                status=User.Status.TEAMING
+    @staticmethod
+    def create(lobby_id: int, from_player_id: int, to_player_id: int) -> LobbyInvite:
+        lobby = Lobby.get_by_player_id(from_player_id, fail_silently=True)
+        if not lobby:
+            raise LobbyInviteException(
+                _('Cannot invite players while in another lobby.')
             )
+
+        exists = LobbyInvite.filter(lobby_id=lobby_id, to_player_id=to_player_id)
+        if exists:
+            raise LobbyInviteException(_('Invite already exists.'))
+
+        auto_id = LobbyInvite.incr_auto_id()
+        lobby.invites_ids.append(auto_id)
+        lobby.save()
+        invite = LobbyInvite(
+            id=auto_id,
+            lobby_id=lobby_id,
+            from_player_id=from_player_id,
+            to_player_id=to_player_id,
+        )
+        return invite.save()
+
+    @staticmethod
+    def get(id: int, fail_silently: bool = False):
+        invite = cache.hgetall(f'{LobbyInvite.Config.CACHE_PREFIX}:{id}')
+        if invite:
+            return LobbyInvite(**invite)
+
+        if not fail_silently:
+            raise LobbyInviteException(_('Lobby invite not found'))
+
+    @staticmethod
+    def get_by_lobby_id(lobby_id: int):
+        invite_list = []
+
+        for key in cache.scan_keys(f'{LobbyInvite.Config.CACHE_PREFIX}:*'):
+            if key.split(':')[-1].isdigit():
+                model_hash = cache.hgetall(key)
+                if int(model_hash.get('lobby_id', -1)) == lobby_id:
+                    invite = LobbyInvite(**model_hash)
+                    invite_list.append(invite)
+
+        return invite_list
+
+    @staticmethod
+    def get_by_player_id(player_id: int, kind: str = 'all'):
+        available_directions = ['sent', 'received', 'all']
+        if kind not in available_directions:
+            raise LobbyInviteException(
+                _(f'Direction must be {(" or ").join(available_directions)}')
+            )
+
+        if kind == 'sent':
+            return LobbyInvite.filter(from_player_id=player_id)
+        elif kind == 'received':
+            return LobbyInvite.filter(to_player_id=player_id)
         else:
-            User.objects.filter(id__in=self.players_ids).update(
-                status=User.Status.ONLINE
+            return LobbyInvite.filter(
+                Q(to_player_id=player_id) | Q(from_player_id=player_id)
             )
 
-    def set_public(self):
-        """
-        Change lobby privacy to public.
-        """
-        if self.queue:
-            raise LobbyException(_('Lobby is queued.'))
+        keys = cache.scan_keys(f'{LobbyInvite.Config.CACHE_PREFIX}:*')
+        invite_list = []
 
-        cache.set(f'{self.cache_key}:public', 1)
+        for key in keys:
+            if key.split(':')[-1].isdigit():
+                model_hash = cache.hgetall(key)
+                from_id = int(model_hash.get('from_player_id', 0))
+                to_id = int(model_hash.get('to_player_id', 0))
 
-    def set_private(self):
-        """
-        Change lobby privacy to private.
-        """
-        if self.queue:
-            raise LobbyException(_('Lobby is queued.'))
+                if (
+                    (direction == 'from' and from_id == player_id)
+                    or (direction == 'to' and to_id == player_id)
+                    or (
+                        direction == 'both'
+                        and (from_id == player_id or to_id == player_id)
+                    )
+                ):
+                    invite = LobbyInvite(**model_hash)
+                    invite_list.append(invite)
 
-        cache.set(f'{self.cache_key}:public', 0)
-
-    def set_type(self, lobby_type: str):
-        """
-        Sets the lobby type, which can be any value from Config.TYPES.
-        If no type is received or type isn't on Config.TYPES,
-        then defaults to Config.TYPES[0].
-        """
-        if self.queue:
-            raise LobbyException(_('Lobby is queued.'))
-
-        if lobby_type not in self.Config.TYPES:
-            raise LobbyException(_('The given type is not valid.'))
-
-        cache.set(f'{self.cache_key}:type', lobby_type)
-
-    def set_mode(self, mode, players_id_to_remove=[]):
-        """
-        Sets the lobby mode, which can be any value from Config.MODES.
-        If no mode is received or type isn't on Config.MODES,
-        then defaults to Config.COMP_DEFAULT_MODE.
-        """
-        if self.queue:
-            raise LobbyException(_('Lobby is queued.'))
-
-        if mode not in self.Config.MODES[self.lobby_type].get('modes'):
-            raise LobbyException(_('The given mode is not valid.'))
-
-        players_ids = self.non_owners_ids
-
-        if self.players_count > mode:
-            if self.owner_id in players_id_to_remove:
-                raise LobbyException(_('Owner cannot be removed.'))
-            elif not players_id_to_remove:
-                for i in range(self.players_count - mode):
-                    choice = random.choice(players_ids)
-                    players_ids.remove(choice)
-                    self.move(choice, choice)
-            else:
-                for player_id in players_id_to_remove:
-                    players_ids.remove(player_id)
-                    self.move(player_id, player_id)
-
-        cache.set(f'{self.cache_key}:mode', mode)
-
-    def get_min_max_overall_by_queue_time(self) -> tuple:
-        """
-        Return the minimum and maximum lobby overall that this lobby
-        can team up or challenge.
-        """
-        elapsed_time = int(self.queue_time)
-
-        if not self.queue or elapsed_time < 30:
-            min = self.overall - 1 if self.overall > 0 else 0
-            max = self.overall + 1
-        elif elapsed_time < 60:
-            min = self.overall - 2 if self.overall > 1 else 0
-            max = self.overall + 2
-        elif elapsed_time < 90:
-            min = self.overall - 3 if self.overall > 2 else 0
-            max = self.overall + 3
-        elif elapsed_time < 120:
-            min = self.overall - 4 if self.overall > 3 else 0
-            max = self.overall + 4
-        else:
-            min = self.overall - 5 if self.overall > 4 else 0
-            max = self.overall + 5
-
-        return min, max
+        return invite_list

@@ -21,12 +21,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_update_user,
     ):
         baker.make(Map)
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
+        pre_match = PreMatch.create(self.team1.id, self.team2.id, self.team1.mode)
 
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
@@ -51,12 +46,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_update_user,
         mock_send_mail,
     ):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
+        pre_match = PreMatch.create(self.team1.id, self.team2.id, self.team1.mode)
 
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
@@ -77,12 +67,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_pre_match_delete,
         mock_update_user,
     ):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
+        pre_match = PreMatch.create(self.team1.id, self.team2.id, self.team1.mode)
 
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
@@ -107,12 +92,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
 
     def test_handle_pre_match_checks_match_fail(self):
         baker.make(Map)
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
+        pre_match = PreMatch.create(self.team1.id, self.team2.id, self.team1.mode)
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         controller.handle_create_match(pre_match)
 
@@ -124,12 +104,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             controller.handle_pre_match_checks(self.user_1, 'error')
 
     def test_get_pre_match(self):
-        created = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
+        created = PreMatch.create(self.team1.id, self.team2.id, self.team1.mode)
         pre_match = controller.get_pre_match(self.user_1)
         self.assertEqual(created.id, pre_match.id)
 
@@ -140,12 +115,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
     @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_update')
     def test_set_player_ready(self, mock_pre_match_update, mock_fivem):
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
+        pre_match = PreMatch.create(self.team1.id, self.team2.id, self.team1.mode)
 
         controller.set_player_ready(self.user_1)
         self.assertTrue(self.user_1 in pre_match.players_ready)
@@ -160,12 +130,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
     def test_set_player_ready_create_match(self, mock_fivem, mock_match_start):
         baker.make(Map)
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
+        pre_match = PreMatch.create(self.team1.id, self.team2.id, self.team1.mode)
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         mock_fivem.return_value.status_code = 201
         for player in pre_match.players[:-1]:
@@ -189,12 +154,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_match_cancel,
     ):
         baker.make(Map)
-        pre_match = PreMatch.create(
-            self.team1.id,
-            self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
-        )
+        pre_match = PreMatch.create(self.team1.id, self.team2.id, self.team1.mode)
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         mock_fivem.return_value.status_code = 201
         for player in pre_match.players[:-1]:

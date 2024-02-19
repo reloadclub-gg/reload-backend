@@ -132,14 +132,10 @@ class Match(models.Model):
         FINISHED = 'finished'
         CANCELLED = 'cancelled'
 
-    class GameType(models.TextChoices):
-        CUSTOM = 'custom'
-        COMPETITIVE = 'competitive'
-
-    class GameMode(models.IntegerChoices):
-        SOLO = 1
-        DEFUSE = 5
-        DM = 20
+    class GameMode(models.TextChoices):
+        COMPETITIVE: str = 'competitive'
+        CUSTOM: str = 'custom'
+        TDM: str = 'tdm'
 
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
@@ -151,8 +147,7 @@ class Match(models.Model):
         choices=Status.choices,
         default='loading',
     )
-    game_type = models.CharField(max_length=16, choices=GameType.choices)
-    game_mode = models.IntegerField(choices=GameMode.choices)
+    game_mode = models.CharField(max_length=32, choices=GameMode.choices)
     chat = models.JSONField(null=True)
 
     @property

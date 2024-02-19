@@ -73,16 +73,12 @@ def handle_match_found_checks(
         opponent.delete()
         return
 
-    if not all(lobby.max_players == lobbies[0].max_players for lobby in lobbies):
-        logging.warning(
-            '[handle_match_found] max_players diff '
-            f'({",".join([lobby.max_players for lobby in lobbies])})'
-        )
+    if not all(lobby.max_seats == lobbies[0].max_seats for lobby in lobbies):
         team.delete()
         opponent.delete()
         return
 
-    max_players = team.lobbies[0].max_players
+    max_players = team.lobbies[0].max_seats
     total_players = team.players_count + opponent.players_count
 
     if (
@@ -90,15 +86,12 @@ def handle_match_found_checks(
         or total_players > max_players * 2
     ):
         logging.warning(f'[handle_match_found] wrong players length: {total_players}')
-        logging.warning(
-            f'[handle_match_found] deleting teams ({team.id}, {opponent.id})'
-        )
         team.delete()
         opponent.delete()
         return
 
     for lobby in lobbies:
-        if not lobby.queue:
+        if not lobby.is_queued:
             logging.warning(f'[handle_match_found] lobby not queued: {lobby.id}')
             if lobby.id in team.lobbies_ids:
                 team.remove_lobby(lobby.id)
@@ -107,7 +100,7 @@ def handle_match_found_checks(
 
             return
 
-        lobby.cancel_queue()
+        lobby.update_queue('stop')
         ws_update_lobby(lobby)
 
 
@@ -122,7 +115,6 @@ def handle_match_found(team: Team, opponent: Team):
         pre_match = PreMatch.create(
             team.id,
             opponent.id,
-            lobbies[0].lobby_type,
             lobbies[0].mode,
         )
         ws_pre_match_create(pre_match)
@@ -152,14 +144,13 @@ def handle_teaming():
 
         if not lobby_team:
             for team in unready_teams:
-                if team.players_count + lobby.players_count <= lobby.max_players:
+                if team.players_count + len(lobby.players_ids) <= lobby.max_seats:
                     team.add_lobby(lobby.id)
+                    lobby_team = team
                     break
 
             else:
-                team = Team.create([lobby.id])
-
-    log_teaming_info()
+                lobby_team = Team.create([lobby.id])
 
 
 def handle_dodges(lobby: models.Lobby, ready_players_ids: List[int]) -> List[int]:

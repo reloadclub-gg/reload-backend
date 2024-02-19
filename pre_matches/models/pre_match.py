@@ -34,7 +34,6 @@ class PreMatch(BaseModel):
     [key] __mm:pre_match:[id] [team1_id:team2_id]
     [key] __mm:pre_match:[id]:ready_time str
     [set] __mm:pre_match:[id]:ready_players_ids <(player_id,...)>
-    [key] __mm:pre_match:[id]:type str
     [key] __mm:pre_match:[id]:mode str
     """
 
@@ -93,6 +92,10 @@ class PreMatch(BaseModel):
         return list(User.objects.filter(id__in=player_ids))
 
     @property
+    def max_players(self):
+        return self.teams[0].lobbies[0].max_seats
+
+    @property
     def players(self) -> list[User]:
         return self.team1_players + self.team2_players
 
@@ -110,14 +113,8 @@ class PreMatch(BaseModel):
         return t1_lobbies + t2_lobbies
 
     @property
-    def match_type(self) -> str:
-        return cache.get(f'{self.cache_key}:type')
-
-    @property
     def mode(self) -> int:
-        mode = cache.get(f'{self.cache_key}:mode')
-        if mode:
-            return int(mode)
+        return cache.get(f'{self.cache_key}:mode')
 
     @property
     def ready(self) -> bool:
@@ -136,7 +133,7 @@ class PreMatch(BaseModel):
         return int(count) if count else 0
 
     @staticmethod
-    def create(team1_id: str, team2_id: str, match_type: str, mode: str) -> PreMatch:
+    def create(team1_id: str, team2_id: str, mode: str) -> PreMatch:
         team1 = Team.get_by_id(team1_id)
         team2 = Team.get_by_id(team2_id)
 
@@ -156,7 +153,6 @@ class PreMatch(BaseModel):
                 f'{PreMatch.Config.CACHE_PREFIX}{auto_id}',
                 f'{team1_id}:{team2_id}',
             )
-            pipe.set(f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:type', match_type)
             pipe.set(f'{PreMatch.Config.CACHE_PREFIX}{auto_id}:mode', mode)
             pipe.set(f'{team1.cache_key}:pre_match', auto_id)
             pipe.set(f'{team2.cache_key}:pre_match', auto_id)
@@ -178,7 +174,11 @@ class PreMatch(BaseModel):
             value_from_callable=True,
         )
 
-        return PreMatch.get_by_id(auto_id)
+        pre_match = PreMatch.get_by_id(auto_id)
+        for lobby in pre_match.lobbies:
+            cache.set(f'{lobby.cache_key}:pre_match_id', auto_id)
+
+        return pre_match
 
     @staticmethod
     def get_by_id(id: int, fail_silently=False):
@@ -242,6 +242,9 @@ class PreMatch(BaseModel):
     def delete(id: int, pipe=None):
         pre_match = PreMatch.get_by_id(id, fail_silently=True)
         if pre_match:
+            for lobby in pre_match.lobbies:
+                cache.delete(f'{lobby.cache_key}:pre_match_id')
+
             keys = list(cache.scan_keys(f'{pre_match.cache_key}:*'))
             t1, t2 = pre_match.teams
             team_keys = []
