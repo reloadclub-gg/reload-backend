@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import logging
-import random
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.db.models import TextChoices
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from pydantic import BaseModel
@@ -32,19 +32,49 @@ class Lobby(BaseModel):
     [key] __mm:lobby:[player_id]:is_public <0|1>
     [zset] __mm:lobby:[player_id]:invites <(from_player_id:to_player_id,...)>
     [key] __mm:lobby:[player_id]:queue <datetime>
-    [key] __mm:lobby:[player_id]:type <competitive|custom>
-    [key] __mm:lobby:[player_id]:mode <1|5|20>
+    [key] __mm:lobby:[player_id]:mode <competitive|custom>
+    [key] __mm:lobby:[player_id]:match_type <default|deathmatch|safezone>
+    [set] __mm:lobby:[player_id]:def_players_ids <(player_id,...)>
+    [set] __mm:lobby:[player_id]:atk_players_ids <(player_id,...)>
+    [set] __mm:lobby:[player_id]:spec_players_ids <(player_id,...)>
+    [set] __mm:lobby:[player_id]:map_id <map_id>
+    [set] __mm:lobby:[player_id]:weapon <weapon_id>
     """
 
     owner_id: int
 
     class Config:
         CACHE_PREFIX: str = '__mm:lobby'
-        TYPES: list = ['competitive', 'custom']
-        MODES = {
-            TYPES[0]: {'modes': [1, 5], 'default': 5},
-            TYPES[1]: {'modes': [20], 'default': 20},
+        MAX_SEATS: dict = {
+            'competitive': 5,
+            'custom': 15,  # 10 players + 5 specs
         }
+        MAPS: dict = {'competitive': [1, 2, 3, 4], 'custom': [5, 6, 7]}
+
+    class ModeChoices(TextChoices):
+        COMP = 'competitive'
+        CUSTOM = 'custom'
+
+    class TypeChoices(TextChoices):
+        DEFAULT = 'default'
+        DM = 'deathmatch'
+        SAFEZONE = 'safezone'
+
+    class WeaponChoices(TextChoices):
+        WEAPON_APPISTOL = 'weapon_appistol'
+        WEAPON_ASSAULTRIFLE = 'weapon_assaultrifle'
+        WEAPON_ASSAULTSHOTGUN = 'weapon_assaultshotgun'
+        WEAPON_COMBATMG = 'weapon_combatmg'
+        WEAPON_HEAVYSNIPER = 'weapon_heavysniper'
+        WEAPON_MG = 'weapon_mg'
+        WEAPON_MICROSMG = 'weapon_microsmg'
+        WEAPON_PISTOL = 'weapon_pistol'
+        WEAPON_PISTOL50 = 'weapon_pistol50'
+        WEAPON_PISTOL_MK2 = 'weapon_pistol_mk2'
+        WEAPON_PUMPSHOTGUN = 'weapon_pumpshotgun'
+        WEAPON_SMG = 'weapon_smg'
+        WEAPON_SNIPERRIFLE = 'weapon_sniperrifle'
+        WEAPON_TACTICALRIFLE = 'weapon_tacticalrifle'
 
     @property
     def cache_key(self):
@@ -147,33 +177,76 @@ class Lobby(BaseModel):
         )
 
     @property
-    def lobby_type(self) -> str:
+    def lobby_match_type(self) -> str:
         """
-        Returns the lobby type which can be one of Config.TYPES.
+        Returns the lobby match type.
         """
-        return cache.get(f'{self.cache_key}:type')
+        return cache.get(f'{self.cache_key}:match_type')
 
     @property
     def mode(self) -> int:
         """
-        Returns which competitive mode the lobby is on
-        from Config.COMPETITIVE_MODES.
+        Returns if the lobby is competitive or a custom game.
         """
-        mode = cache.get(f'{self.cache_key}:mode')
-        if mode:
-            return int(mode)
+        return cache.get(f'{self.cache_key}:mode')
 
     @property
     def max_players(self) -> int:
         """
         Returns how many players are allowed to take seat
-        on this lobby. The returned value is the same return of
-        the mode property.
+        on this lobby.
         """
-        if self.mode:
-            return self.mode
+        return Lobby.Config.MAX_SEATS.get(self.mode)
 
-        return 0
+    @property
+    def weapon(self) -> str:
+        """
+        Returns the lobby match type.
+        """
+        return cache.get(f'{self.cache_key}:weapon')
+
+    @property
+    def def_players_ids(self) -> str:
+        """
+        Returns the lobby atk players (for custom mode).
+        """
+        return sorted(
+            list(map(int, cache.smembers(f'{self.cache_key}:def_players_ids')))
+        )
+
+    @property
+    def atk_players_ids(self) -> str:
+        """
+        Returns the lobby def players (for custom mode).
+        """
+        return sorted(
+            list(map(int, cache.smembers(f'{self.cache_key}:atk_players_ids')))
+        )
+
+    @property
+    def spec_players_ids(self) -> str:
+        """
+        Returns the lobby spec players (for custom mode).
+        """
+        return sorted(
+            list(map(int, cache.smembers(f'{self.cache_key}:spec_players_ids')))
+        )
+
+    @property
+    def map_id(self) -> int:
+        """
+        Returns the lobby map_id (for custom mode).
+        """
+        map_id = cache.get(f'{self.cache_key}:map_id')
+        if map_id:
+            return int(map_id)
+
+    @property
+    def match_type(self) -> str:
+        """
+        Returns the type of a match from the custom lobby.
+        """
+        return cache.get(f'{self.cache_key}:match_type')
 
     @property
     def restriction_countdown(self) -> int:
@@ -232,7 +305,7 @@ class Lobby(BaseModel):
         return Lobby(owner_id=lobby_id)
 
     @staticmethod
-    def create(owner_id: int, lobby_type: str = None, mode: int = None) -> Lobby:
+    def create(owner_id: int) -> Lobby:
         """
         Create a lobby for a given user.
         """
@@ -249,24 +322,10 @@ class Lobby(BaseModel):
         if not user.is_online:
             raise LobbyException(_('Offline user.'))
 
-        if lobby_type is not None and lobby_type not in Lobby.Config.TYPES:
-            raise LobbyException(_('The given type is not valid.'))
-
-        if not lobby_type:
-            lobby_type = Lobby.Config.TYPES[0]
-
-        if mode is not None and mode not in Lobby.Config.MODES[lobby_type].get('modes'):
-            raise LobbyException(_('The given mode is not valid.'))
-
-        if not mode:
-            mode = Lobby.Config.MODES.get(lobby_type).get('default')
-
         lobby = Lobby(owner_id=owner_id)
         cache.set(lobby.cache_key, owner_id)
-        cache.set(f'{lobby.cache_key}:type', lobby_type)
-        cache.set(f'{lobby.cache_key}:mode', mode)
+        cache.set(f'{lobby.cache_key}:mode', Lobby.ModeChoices.COMP)
         cache.sadd(f'{lobby.cache_key}:players', owner_id)
-
         return lobby
 
     # flake8: noqa: C901
@@ -360,6 +419,9 @@ class Lobby(BaseModel):
                 if invite:
                     logging.info(f'[lobby_move] invite: {invite.id}')
                     pipe.zrem(f'{to_lobby.cache_key}:invites', invite.id)
+
+                if to_lobby.mode == Lobby.ModeChoices.CUSTOM:
+                    to_lobby.__move_player_to_custom_side(player_id)
 
             if len(from_lobby.non_owners_ids) > 0 and from_lobby.owner_id == player_id:
                 new_owner_id = min(from_lobby.non_owners_ids)
@@ -621,48 +683,140 @@ class Lobby(BaseModel):
 
         cache.set(f'{self.cache_key}:public', 0)
 
-    def set_type(self, lobby_type: str):
-        """
-        Sets the lobby type, which can be any value from Config.TYPES.
-        If no type is received or type isn't on Config.TYPES,
-        then defaults to Config.TYPES[0].
-        """
+    def __move_comp_players_to_custom_sides(self):
+        sides = ['def_players_ids', 'atk_players_ids', 'spec_players_ids']
+        side_max_seats = int(
+            Lobby.Config.MAX_SEATS.get(Lobby.ModeChoices.CUSTOM) / len(sides)
+        )
+        unsided_players = list(
+            set(self.players_ids)
+            - set(self.def_players_ids)
+            - set(self.atk_players_ids)
+            - set(self.spec_players_ids)
+        )
+
+        for player_id in unsided_players:
+            for side in sides:
+                side_list = getattr(self, side)
+                if len(side_list) < side_max_seats:
+                    cache.sadd(f'{self.cache_key}:{side}', player_id)
+                    break
+
+    def __move_player_to_custom_side(self, player_id: int):
+        sides = ['def_players_ids', 'atk_players_ids', 'spec_players_ids']
+        side_max_seats = int(
+            Lobby.Config.MAX_SEATS.get(Lobby.ModeChoices.CUSTOM) / len(sides)
+        )
+        for side in sides:
+            side_list = getattr(self, side)
+            if len(side_list) < side_max_seats:
+                cache.sadd(f'{self.cache_key}:{side}', player_id)
+                break
+
+    def __reset_to_comp_mode(self):
+        pipe = cache.pipeline()
+        for key in [
+            'match_type',
+            'map_id',
+            'def_players_ids',
+            'atk_players_ids',
+            'spec_players_ids',
+            'weapon',
+        ]:
+            pipe.delete(f'{self.cache_key}:{key}')
+        pipe.execute()
+
+    def __change_mode_checks(self, mode: str):
         if self.queue:
             raise LobbyException(_('Lobby is queued.'))
 
-        if lobby_type not in self.Config.TYPES:
-            raise LobbyException(_('The given type is not valid.'))
-
-        cache.set(f'{self.cache_key}:type', lobby_type)
-
-    def set_mode(self, mode, players_id_to_remove=[]):
-        """
-        Sets the lobby mode, which can be any value from Config.MODES.
-        If no mode is received or type isn't on Config.MODES,
-        then defaults to Config.COMP_DEFAULT_MODE.
-        """
-        if self.queue:
-            raise LobbyException(_('Lobby is queued.'))
-
-        if mode not in self.Config.MODES[self.lobby_type].get('modes'):
+        if mode not in Lobby.ModeChoices.__members__.values():
             raise LobbyException(_('The given mode is not valid.'))
 
-        players_ids = self.non_owners_ids
+        if mode == self.mode:
+            raise LobbyException(_('Mode already set.'))
 
-        if self.players_count > mode:
-            if self.owner_id in players_id_to_remove:
-                raise LobbyException(_('Owner cannot be removed.'))
-            elif not players_id_to_remove:
-                for i in range(self.players_count - mode):
-                    choice = random.choice(players_ids)
-                    players_ids.remove(choice)
-                    self.move(choice, choice)
-            else:
-                for player_id in players_id_to_remove:
-                    players_ids.remove(player_id)
-                    self.move(player_id, player_id)
+        if mode == Lobby.ModeChoices.COMP and len(
+            self.players_ids
+        ) > Lobby.Config.MAX_SEATS.get(Lobby.ModeChoices.COMP):
+            raise LobbyException(_('Cannot change mode of a oversized lobby.'))
+
+    def set_mode(self, mode: str):
+        """
+        Sets the lobby mode.
+        """
+        self.__change_mode_checks(mode)
+
+        if mode == Lobby.ModeChoices.CUSTOM:
+            self.__move_comp_players_to_custom_sides()
+            cache.set(f'{self.cache_key}:match_type', Lobby.TypeChoices.DEFAULT)
+            cache.set(f'{self.cache_key}:map_id', Lobby.Config.MAPS.get(mode)[0])
+        else:
+            self.__reset_to_comp_mode()
 
         cache.set(f'{self.cache_key}:mode', mode)
+
+    def set_match_type(self, match_type: str):
+        """
+        Sets the lobby match type for custom lobbies.
+        """
+        if self.mode != Lobby.ModeChoices.CUSTOM:
+            raise LobbyException(_('Cannot change type in this mode.'))
+
+        if self.queue:
+            raise LobbyException(_('Lobby is queued.'))
+
+        if match_type not in Lobby.TypeChoices.__members__.values():
+            raise LobbyException(_('The given type is not valid.'))
+
+        cache.set(f'{self.cache_key}:match_type', match_type)
+
+    def set_map_id(self, map_id: int):
+        if self.mode != Lobby.ModeChoices.CUSTOM:
+            raise LobbyException(_('Cannot restrict map in this mode.'))
+
+        if map_id not in Lobby.Config.MAPS.get(self.mode):
+            raise LobbyException(_('Invalid map id.'))
+        cache.set(f'{self.cache_key}:map_id', map_id)
+
+    def set_weapon(self, weapon: str = None):
+        if self.mode != Lobby.ModeChoices.CUSTOM:
+            raise LobbyException(_('Cannot restrict weapon in this mode.'))
+
+        if not weapon:
+            cache.delete(f'{self.cache_key}:weapon')
+        elif weapon and weapon not in Lobby.WeaponChoices.__members__.values():
+            raise LobbyException(_('Invalid weapon.'))
+        else:
+            cache.set(f'{self.cache_key}:weapon', weapon)
+
+    def change_player_side(self, player_id: int, side: str):
+        if self.mode != Lobby.ModeChoices.CUSTOM:
+            raise LobbyException(_('Cannot change side in this mode.'))
+
+        if player_id not in self.players_ids:
+            raise LobbyException(_('Player not found.'))
+
+        available_sides = ['atk_players_ids', 'def_players_ids', 'spec_players_ids']
+        if side not in available_sides:
+            raise LobbyException(_('Invalid side.'))
+
+        side_max_seats = int(self.max_players / len(available_sides))
+        if len(getattr(self, side)) >= side_max_seats:
+            raise LobbyException(_('Side is full.'))
+
+        if player_id in getattr(self, side):
+            raise LobbyException(_('Player already on side.'))
+
+        available_sides.remove(side)
+        player_side = (
+            available_sides[0]
+            if player_id in getattr(self, available_sides[0])
+            else available_sides[1]
+        )
+
+        cache.srem(f'{self.cache_key}:{player_side}', player_id)
+        cache.sadd(f'{self.cache_key}:{side}', player_id)
 
     def get_min_max_overall_by_queue_time(self) -> tuple:
         """

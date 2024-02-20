@@ -36,8 +36,6 @@ class Command(BaseCommand):
             for i in range(0, options['total'][0]):
                 self.match = models.Match.objects.create(
                     server=server,
-                    game_type=models.Match.GameType.COMPETITIVE,
-                    game_mode=models.Match.GameMode.DEFUSE,
                     status=models.Match.Status.FINISHED,
                     start_date=timezone.now(),
                     end_date=timezone.now(),

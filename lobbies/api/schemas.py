@@ -78,6 +78,12 @@ class LobbySchema(Schema):
     queue: Optional[str]
     queue_time: Optional[int]
     restriction_countdown: Optional[int]
+    lobby_match_type: Optional[str]
+    weapon: Optional[str]
+    def_players: Optional[List[LobbyPlayerSchema]] = []
+    atk_players: Optional[List[LobbyPlayerSchema]] = []
+    spec_players: Optional[List[LobbyPlayerSchema]] = []
+    map_id: Optional[int]
 
     class Config:
         model = Lobby

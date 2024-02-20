@@ -426,11 +426,7 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
 
         server = baker.make(Server)
         baker.make(Map)
-        match = Match.objects.create(
-            server=server,
-            game_type=Match.GameType.COMPETITIVE,
-            game_mode=Match.GameMode.DEFUSE,
-        )
+        match = Match.objects.create(server=server)
         team_a = match.matchteam_set.create(name='team_a')
         team_b = match.matchteam_set.create(name='team_b')
 
@@ -449,11 +445,7 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         self.assertEqual(user2.status, models.User.Status.ONLINE)
 
         server = baker.make(Server)
-        match = Match.objects.create(
-            server=server,
-            game_type=Match.GameType.COMPETITIVE,
-            game_mode=Match.GameMode.DEFUSE,
-        )
+        match = Match.objects.create(server=server)
         team_a = match.matchteam_set.create(name='team_a')
         team_b = match.matchteam_set.create(name='team_b')
 

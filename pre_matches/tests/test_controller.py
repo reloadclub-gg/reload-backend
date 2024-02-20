@@ -24,8 +24,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
 
         for player in pre_match.players[:10]:
@@ -54,8 +53,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
 
         for player in pre_match.players[:10]:
@@ -80,8 +78,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
 
         for player in pre_match.players[:10]:
@@ -110,8 +107,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         controller.handle_create_match(pre_match)
@@ -127,8 +123,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         created = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         pre_match = controller.get_pre_match(self.user_1)
         self.assertEqual(created.id, pre_match.id)
@@ -143,8 +138,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
 
         controller.set_player_ready(self.user_1)
@@ -163,8 +157,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         mock_fivem.return_value.status_code = 201
@@ -192,8 +185,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         Server.objects.create(ip='123.123.123.123', name='Reload 1')
         mock_fivem.return_value.status_code = 201

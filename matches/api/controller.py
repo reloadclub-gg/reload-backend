@@ -121,10 +121,12 @@ def get_user_matches(
             {
                 'id': match.id,
                 'map_name': match.map.name,
-                'map_image': get_full_file_path(match.map.thumbnail)
-                if match.map.thumbnail
-                else None,
-                'game_type': match.game_type,
+                'map_image': (
+                    get_full_file_path(match.map.thumbnail)
+                    if match.map.thumbnail
+                    else None
+                ),
+                'match_type': match.match_type,
                 'start_date': match.start_date.isoformat(),
                 'end_date': match.end_date.isoformat(),
                 'won': user_team.id == match.winner.id,

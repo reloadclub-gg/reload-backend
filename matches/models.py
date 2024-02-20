@@ -132,14 +132,14 @@ class Match(models.Model):
         FINISHED = 'finished'
         CANCELLED = 'cancelled'
 
-    class GameType(models.TextChoices):
+    class GameMode(models.TextChoices):
         CUSTOM = 'custom'
         COMPETITIVE = 'competitive'
 
-    class GameMode(models.IntegerChoices):
-        SOLO = 1
-        DEFUSE = 5
-        DM = 20
+    class MatchType(models.TextChoices):
+        DEFAULT = 'default'  # 5x5 plant/desarm
+        DEATHMATCH = 'deathmatch'
+        SAFEZONE = 'safezone'
 
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
@@ -151,8 +151,16 @@ class Match(models.Model):
         choices=Status.choices,
         default='loading',
     )
-    game_type = models.CharField(max_length=16, choices=GameType.choices)
-    game_mode = models.IntegerField(choices=GameMode.choices)
+    match_type = models.CharField(
+        max_length=16,
+        choices=MatchType.choices,
+        default=MatchType.DEFAULT,
+    )
+    game_mode = models.CharField(
+        max_length=16,
+        choices=GameMode.choices,
+        default=GameMode.COMPETITIVE,
+    )
     chat = models.JSONField(null=True)
 
     @property

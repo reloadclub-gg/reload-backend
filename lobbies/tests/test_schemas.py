@@ -51,6 +51,12 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
             'queue': None,
             'queue_time': None,
             'restriction_countdown': None,
+            'lobby_match_type': None,
+            'weapon': None,
+            'def_players': [],
+            'atk_players': [],
+            'spec_players': [],
+            'map_id': None,
         }
 
         self.assertDictEqual(payload, expected_payload)
@@ -72,6 +78,12 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
             'queue': lobby.queue.isoformat(),
             'queue_time': lobby.queue_time,
             'restriction_countdown': None,
+            'lobby_match_type': None,
+            'weapon': None,
+            'def_players': [],
+            'atk_players': [],
+            'spec_players': [],
+            'map_id': None,
         }
 
         self.assertDictEqual(payload, expected_payload)
@@ -100,6 +112,12 @@ class LobbySchemaTestCase(VerifiedAccountsMixin, TestCase):
             'queue': None,
             'queue_time': None,
             'restriction_countdown': None,
+            'lobby_match_type': None,
+            'weapon': None,
+            'def_players': [],
+            'atk_players': [],
+            'spec_players': [],
+            'map_id': None,
         }
 
         self.assertDictEqual(payload, expected_payload)
