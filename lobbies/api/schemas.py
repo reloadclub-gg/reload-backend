@@ -165,3 +165,8 @@ class LobbyInviteWebsocketSchema(Schema):
 class LobbyPlayerWebsocketUpdate(Schema):
     player: LobbyPlayerSchema
     lobby: LobbySchema
+
+
+class LobbyPlayerUpdateSchema(Schema):
+    player_id: int
+    side: str

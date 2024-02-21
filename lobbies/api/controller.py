@@ -11,7 +11,7 @@ from pre_matches.models import Team
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
-from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
+from .schemas import LobbyInviteCreateSchema, LobbyPlayerUpdateSchema, LobbyUpdateSchema
 
 User = get_user_model()
 
@@ -374,3 +374,17 @@ def create_invite(user: User, payload: LobbyInviteCreateSchema):
     websocket.ws_create_invite(invite)
     websocket.ws_update_lobby(lobby)
     return invite
+
+
+def update_player(lobby_id: int, payload: LobbyPlayerUpdateSchema):
+    if maintenance_window():
+        raise HttpError(400, _('We are under maintenance. Try again later.'))
+
+    lobby = get_lobby(lobby_id)
+    try:
+        lobby.change_player_side(payload.player_id, payload.side)
+    except LobbyException as exc:
+        raise HttpError(400, exc)
+
+    handle_lobby_update_ws(lobby)
+    return lobby
