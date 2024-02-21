@@ -1,8 +1,9 @@
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
-from pydantic import root_validator
+from pydantic import root_validator, validator
 
 from accounts.models import Account
 from core.utils import get_full_file_path
@@ -131,13 +132,23 @@ class LobbyInviteDeleteSchema(Schema):
 
 
 class LobbyUpdateSchema(Schema):
-    start_queue: bool = None
-    cancel_queue: bool = None
+    queue: str = None
+    mode: str = None
+    match_type: str = None
+    map_id: int = None
+    weapon: str = None
 
     @root_validator
     def check_any(cls, values):
         assert any(values)
         return values
+
+    @validator('queue')
+    def check_queue(cls, value):
+        if value not in ['start', 'stop']:
+            raise ValueError(_('Invalid queue action.'))
+
+        return value
 
 
 class LobbyInviteCreateSchema(Schema):

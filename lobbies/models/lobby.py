@@ -636,6 +636,9 @@ class Lobby(BaseModel):
         if self.queue:
             raise LobbyException(_('Lobby is queued.'))
 
+        if self.mode == Lobby.ModeChoices.CUSTOM:
+            raise LobbyException(_('Lobby can\'t be queued in this mode.'))
+
         if self.restriction_countdown:
             raise LobbyException(_('Can\'t start queue due to player restriction.'))
 
