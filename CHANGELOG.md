@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Adicionamos métodos e chaves no Redis para o model `Lobby` para o novo modo personalizado [#1044](1044-alteraes-no-model-lobby-para-partida-personalizada).
+
+### Changed
+
+- Alteramos os campos `lobby_type` e `mode` do model `Lobby` para uma melhor adaptação às partidas personalizadas [#1044](1044-alteraes-no-model-lobby-para-partida-personalizada).
+- Alteramos também os campos `game_type` e `game_mode` do model `Match` para refletir as alterações do model `Lobby`.
+- Alteramos as propriedades `lobby_type` e `mode` dos models `Team` e `PreMatch` para garantir que as alterações no model `Lobby` funcionassem.
+
 ## [e242321 - 5/2/2024]
 
 ### Added

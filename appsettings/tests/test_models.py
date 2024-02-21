@@ -105,7 +105,7 @@ class AppSettingsTestCase(LobbiesMixin, TestCase):
         self.lobby2.start_queue()
         t1 = Team.create([self.lobby1.id])
         t2 = Team.create([self.lobby2.id])
-        pm = PreMatch.create(t1.id, t2.id, self.lobby1.lobby_type, self.lobby1.mode)
+        pm = PreMatch.create(t1.id, t2.id, self.lobby1.mode)
 
         self.assertIsNotNone(t1)
         self.assertIsNotNone(t2)

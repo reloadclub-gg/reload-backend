@@ -10,8 +10,7 @@ class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         payload = schemas.PreMatchSchema.from_orm(pre_match).dict()
 
@@ -22,7 +21,6 @@ class PreMatchSchemaTestCase(mixins.TeamsMixin, TestCase):
             'players_ready_count': len(pre_match.players_ready),
             'players_total': len(pre_match.players),
             'user_ready': False,
-            'match_type': pre_match.match_type,
             'mode': pre_match.mode,
         }
         self.assertDictEqual(payload, expected_payload)
