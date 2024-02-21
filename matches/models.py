@@ -141,6 +141,22 @@ class Match(models.Model):
         DEATHMATCH = 'deathmatch'
         SAFEZONE = 'safezone'
 
+    class WeaponChoices(models.TextChoices):
+        WEAPON_APPISTOL = 'weapon_appistol'
+        WEAPON_ASSAULTRIFLE = 'weapon_assaultrifle'
+        WEAPON_ASSAULTSHOTGUN = 'weapon_assaultshotgun'
+        WEAPON_COMBATMG = 'weapon_combatmg'
+        WEAPON_HEAVYSNIPER = 'weapon_heavysniper'
+        WEAPON_MG = 'weapon_mg'
+        WEAPON_MICROSMG = 'weapon_microsmg'
+        WEAPON_PISTOL = 'weapon_pistol'
+        WEAPON_PISTOL50 = 'weapon_pistol50'
+        WEAPON_PISTOL_MK2 = 'weapon_pistol_mk2'
+        WEAPON_PUMPSHOTGUN = 'weapon_pumpshotgun'
+        WEAPON_SMG = 'weapon_smg'
+        WEAPON_SNIPERRIFLE = 'weapon_sniperrifle'
+        WEAPON_TACTICALRIFLE = 'weapon_tacticalrifle'
+
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
     create_date = models.DateTimeField(auto_now_add=True)
@@ -162,6 +178,12 @@ class Match(models.Model):
         default=GameMode.COMPETITIVE,
     )
     chat = models.JSONField(null=True)
+    restricted_weapon = models.CharField(
+        max_length=64,
+        choices=WeaponChoices.choices,
+        blank=True,
+        null=True,
+    )
 
     @property
     def team_a(self) -> MatchTeam:
@@ -294,6 +316,11 @@ class MatchTeam(models.Model):
 
     def __str__(self):
         return f'#{self.id} - {self.name}'
+
+
+class MatchSpectator(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class MatchPlayer(models.Model):

@@ -343,7 +343,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(lobby.mode, Lobby.ModeChoices.CUSTOM)
         self.assertEqual(lobby.def_players_ids, [self.user_1.id])
         self.assertEqual(lobby.match_type, Lobby.TypeChoices.DEFAULT)
-        self.assertEqual(lobby.map_id, Lobby.Config.MAPS.get(lobby.mode)[0])
+        self.assertEqual(lobby.map_id, Lobby.Config.MAPS.get(lobby.match_type)[0])
 
         lobby.set_mode(Lobby.ModeChoices.COMP)
         self.assertEqual(lobby.mode, Lobby.ModeChoices.COMP)
@@ -443,8 +443,6 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertIsNone(lobby.match_type)
         lobby.set_mode(Lobby.ModeChoices.CUSTOM)
         self.assertEqual(lobby.match_type, Lobby.TypeChoices.DEFAULT)
-        lobby.set_match_type(Lobby.TypeChoices.DM)
-        self.assertEqual(lobby.match_type, Lobby.TypeChoices.DM)
 
     def test_set_match_type_bad_mode(self):
         lobby = Lobby.create(self.user_1.id)
@@ -645,13 +643,13 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_set_map_id(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
         lobby.set_mode(Lobby.ModeChoices.CUSTOM)
-        lobby.set_map_id(Lobby.Config.MAPS.get(lobby.mode)[2])
-        self.assertEqual(lobby.map_id, Lobby.Config.MAPS.get(lobby.mode)[2])
+        lobby.set_map_id(Lobby.Config.MAPS.get(lobby.match_type)[2])
+        self.assertEqual(lobby.map_id, Lobby.Config.MAPS.get(lobby.match_type)[2])
 
     def test_set_map_id_bad_mode(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
         with self.assertRaisesRegex(LobbyException, 'Cannot restrict map'):
-            lobby.set_map_id(Lobby.Config.MAPS.get(lobby.mode)[2])
+            lobby.set_map_id(2)
 
     def test_set_map_id_invalid(self):
         lobby = Lobby.create(owner_id=self.user_1.id)

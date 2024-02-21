@@ -16,6 +16,27 @@ from .schemas import LobbyInviteCreateSchema, LobbyPlayerUpdateSchema, LobbyUpda
 User = get_user_model()
 
 
+def __update_queue(lobby, user, action):
+    if action == 'start':
+        handle_start_queue(lobby, user)
+    else:
+        handle_cancel_queue(lobby)
+
+
+def __update_custom_lobby(lobby, payload):
+    try:
+        if payload.map_id:
+            lobby.set_map_id(payload.map_id)
+
+        if payload.match_type:
+            lobby.set_match_type(payload.match_type)
+
+        if payload.weapon:
+            lobby.set_weapon(payload.weapon)
+    except LobbyException as exc:
+        raise HttpError(400, exc)
+
+
 def handle_lobby_update_ws(lobby):
     websocket.ws_update_lobby(lobby)
     lobby_players = User.objects.filter(id__in=lobby.players_ids)
@@ -317,27 +338,6 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
     return lobby
 
 
-def __update_queue(lobby, user, action):
-    if action == 'start':
-        handle_start_queue(lobby, user)
-    else:
-        handle_cancel_queue(lobby)
-
-
-def __update_custom_lobby(lobby, payload):
-    try:
-        if payload.map_id:
-            lobby.set_map_id(payload.map_id)
-
-        if payload.match_type:
-            lobby.set_match_type(payload.match_type)
-
-        if payload.weapon:
-            lobby.set_weapon(payload.weapon)
-    except LobbyException as exc:
-        raise HttpError(400, exc)
-
-
 def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby:
     lobby = get_lobby(lobby_id)
 
@@ -345,6 +345,9 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         __update_queue(lobby, user, payload.queue)
 
     elif payload.mode:
+        if lobby.owner_id != user.id:
+            raise AuthenticationError()
+
         try:
             lobby.set_mode(payload.mode)
         except LobbyException as exc:

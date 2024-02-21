@@ -49,7 +49,7 @@ class Lobby(BaseModel):
             'competitive': 5,
             'custom': 15,  # 10 players + 5 specs
         }
-        MAPS: dict = {'competitive': [1, 2, 3, 4], 'custom': [5, 6, 7]}
+        MAPS: dict = {'default': [1, 2, 3, 4], 'safezone': [5, 6, 7]}
 
     class ModeChoices(TextChoices):
         COMP = 'competitive'
@@ -57,24 +57,24 @@ class Lobby(BaseModel):
 
     class TypeChoices(TextChoices):
         DEFAULT = 'default'
-        DM = 'deathmatch'
         SAFEZONE = 'safezone'
 
     class WeaponChoices(TextChoices):
-        WEAPON_APPISTOL = 'weapon_appistol'
-        WEAPON_ASSAULTRIFLE = 'weapon_assaultrifle'
-        WEAPON_ASSAULTSHOTGUN = 'weapon_assaultshotgun'
-        WEAPON_COMBATMG = 'weapon_combatmg'
-        WEAPON_HEAVYSNIPER = 'weapon_heavysniper'
-        WEAPON_MG = 'weapon_mg'
-        WEAPON_MICROSMG = 'weapon_microsmg'
-        WEAPON_PISTOL = 'weapon_pistol'
-        WEAPON_PISTOL50 = 'weapon_pistol50'
-        WEAPON_PISTOL_MK2 = 'weapon_pistol_mk2'
-        WEAPON_PUMPSHOTGUN = 'weapon_pumpshotgun'
-        WEAPON_SMG = 'weapon_smg'
-        WEAPON_SNIPERRIFLE = 'weapon_sniperrifle'
-        WEAPON_TACTICALRIFLE = 'weapon_tacticalrifle'
+        WEAPON_APPISTOL = 'Rapidinha'
+        WEAPON_ASSAULTRIFLE = 'AK'
+        WEAPON_ASSAULTSHOTGUN = 'Bull'
+        WEAPON_COMBATMG = 'Rambão'
+        WEAPON_HEAVYSNIPER = 'Sniper'
+        WEAPON_MG = 'Rambinho'
+        WEAPON_MICROSMG = 'Micro'
+        WEAPON_PISTOL = 'Pistola'
+        WEAPON_PISTOL50 = 'Trinta e Oito'
+        WEAPON_PISTOL_MK2 = '9idade'
+        WEAPON_PUMPSHOTGUN = 'Doze'
+        WEAPON_SMG = 'Nova'
+        WEAPON_SNIPERRIFLE = 'Teco-Teco'
+        WEAPON_TACTICALRIFLE = 'M4'
+        WEAPON_KNIFE = 'Faca'
 
     @property
     def cache_key(self):
@@ -175,13 +175,6 @@ class Lobby(BaseModel):
             )
             or [0]
         )
-
-    @property
-    def lobby_match_type(self) -> str:
-        """
-        Returns the lobby match type.
-        """
-        return cache.get(f'{self.cache_key}:match_type')
 
     @property
     def mode(self) -> int:
@@ -753,7 +746,10 @@ class Lobby(BaseModel):
         if mode == Lobby.ModeChoices.CUSTOM:
             self.__move_comp_players_to_custom_sides()
             cache.set(f'{self.cache_key}:match_type', Lobby.TypeChoices.DEFAULT)
-            cache.set(f'{self.cache_key}:map_id', Lobby.Config.MAPS.get(mode)[0])
+            cache.set(
+                f'{self.cache_key}:map_id',
+                Lobby.Config.MAPS.get(Lobby.TypeChoices.DEFAULT)[0],
+            )
         else:
             self.__reset_to_comp_mode()
 
@@ -778,7 +774,7 @@ class Lobby(BaseModel):
         if self.mode != Lobby.ModeChoices.CUSTOM:
             raise LobbyException(_('Cannot restrict map in this mode.'))
 
-        if map_id not in Lobby.Config.MAPS.get(self.mode):
+        if map_id not in Lobby.Config.MAPS.get(self.match_type):
             raise LobbyException(_('Invalid map id.'))
         cache.set(f'{self.cache_key}:map_id', map_id)
 

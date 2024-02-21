@@ -559,13 +559,13 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(lobby.mode, Lobby.ModeChoices.CUSTOM)
         mock_update_ws.assert_called_once()
 
-        payload = schemas.LobbyUpdateSchema.from_orm({'map_id': 5})
+        payload = schemas.LobbyUpdateSchema.from_orm({'map_id': 2})
         lobby = controller.update_lobby(
             self.user_1,
             self.user_1.account.lobby.id,
             payload,
         )
-        self.assertEqual(lobby.map_id, 5)
+        self.assertEqual(lobby.map_id, 2)
 
         payload = schemas.LobbyUpdateSchema.from_orm(
             {'match_type': Lobby.TypeChoices.SAFEZONE}

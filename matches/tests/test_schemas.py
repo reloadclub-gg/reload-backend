@@ -44,6 +44,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'rounds': match.rounds,
             'winner_id': match.winner.id if match.winner else None,
             'map': schemas.MapSchema.from_orm(map),
+            'restricted_weapon': match.restricted_weapon,
         }
         self.assertDictEqual(payload, expected_payload)
 
@@ -124,6 +125,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'rounds': match.rounds,
             'winner_id': match.winner.id if match.winner else None,
             'map': schemas.MapSchema.from_orm(map),
+            'restricted_weapon': match.restricted_weapon,
         }
         self.assertDictEqual(payload, expected_payload)
 
@@ -267,3 +269,13 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
         }
 
         self.assertEqual(payload, expected_payload)
+
+    def test_match_fivem_schema(self):
+        map = baker.make(models.Map, id=1)
+        match = baker.make(models.Match, status=models.Match.Status.LOADING, map=map)
+        team = baker.make(models.MatchTeam, match=match, score=10)
+        baker.make(models.MatchTeam, match=match)
+        baker.make(models.MatchPlayer, team=team, user=self.user_1)
+
+        payload = schemas.MatchFiveMSchema.from_orm(match).dict()
+        print(payload)
