@@ -775,6 +775,15 @@ class Lobby(BaseModel):
             raise LobbyException(_('The given type is not valid.'))
 
         cache.set(f'{self.cache_key}:match_type', match_type)
+        cache.set(
+            f'{self.cache_key}:map_id',
+            Map.objects.filter(map_type=match_type)
+            .values_list(
+                'id',
+                flat=True,
+            )
+            .first(),
+        )
 
     def set_map_id(self, map_id: int):
         if self.mode != Lobby.ModeChoices.CUSTOM:
