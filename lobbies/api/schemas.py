@@ -83,7 +83,7 @@ class LobbySchema(Schema):
     restriction_countdown: Optional[int]
     mode: str
     match_type: Optional[str]
-    weapon: Optional[str]
+    weapon: Optional[str] = None
     def_players: Optional[List[LobbyPlayerSchema]] = []
     atk_players: Optional[List[LobbyPlayerSchema]] = []
     spec_players: Optional[List[LobbyPlayerSchema]] = []
@@ -118,12 +118,12 @@ class LobbySchema(Schema):
     @staticmethod
     def resolve_map_choices(obj):
         if obj.mode == Lobby.ModeChoices.CUSTOM:
-            return Map.objects.filter(id__in=Lobby.Config.MAPS.get(obj.match_type))
+            return Map.objects.filter(map_type=obj.match_type)
 
     @staticmethod
     def resolve_match_type_choices(obj):
         if obj.mode == Lobby.ModeChoices.CUSTOM:
-            return Lobby.TypeChoices.choices
+            return Map.MapTypeChoices.choices
 
     @staticmethod
     def resolve_weapon_choices(obj):

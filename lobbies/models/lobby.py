@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
+from matches.models import Map
 
 from .invite import LobbyInvite
 from .player import PlayerRestriction
@@ -745,10 +746,15 @@ class Lobby(BaseModel):
 
         if mode == Lobby.ModeChoices.CUSTOM:
             self.__move_comp_players_to_custom_sides()
-            cache.set(f'{self.cache_key}:match_type', Lobby.TypeChoices.DEFAULT)
+            cache.set(f'{self.cache_key}:match_type', Map.MapTypeChoices.DEFAULT)
             cache.set(
                 f'{self.cache_key}:map_id',
-                Lobby.Config.MAPS.get(Lobby.TypeChoices.DEFAULT)[0],
+                Map.objects.filter(map_type=self.match_type)
+                .values_list(
+                    'id',
+                    flat=True,
+                )
+                .first(),
             )
         else:
             self.__reset_to_comp_mode()
@@ -765,7 +771,7 @@ class Lobby(BaseModel):
         if self.queue:
             raise LobbyException(_('Lobby is queued.'))
 
-        if match_type not in Lobby.TypeChoices.__members__.values():
+        if match_type not in Map.MapTypeChoices.__members__.values():
             raise LobbyException(_('The given type is not valid.'))
 
         cache.set(f'{self.cache_key}:match_type', match_type)
@@ -774,15 +780,19 @@ class Lobby(BaseModel):
         if self.mode != Lobby.ModeChoices.CUSTOM:
             raise LobbyException(_('Cannot restrict map in this mode.'))
 
-        if map_id not in Lobby.Config.MAPS.get(self.match_type):
+        available_map_ids = Map.objects.filter(map_type=self.match_type).values_list(
+            'id',
+            flat=True,
+        )
+        if map_id not in available_map_ids:
             raise LobbyException(_('Invalid map id.'))
         cache.set(f'{self.cache_key}:map_id', map_id)
 
-    def set_weapon(self, weapon: str = None):
+    def set_weapon(self, weapon: str = 'all'):
         if self.mode != Lobby.ModeChoices.CUSTOM:
             raise LobbyException(_('Cannot restrict weapon in this mode.'))
 
-        if not weapon:
+        if weapon == 'all':
             cache.delete(f'{self.cache_key}:weapon')
         elif weapon and weapon not in Lobby.WeaponChoices.__members__.values():
             raise LobbyException(_('Invalid weapon.'))

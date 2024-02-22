@@ -7,6 +7,7 @@ from django.utils import timezone
 from accounts.tests.mixins import VerifiedAccountsMixin
 from appsettings.models import AppSettings
 from core.tests import TestCase, cache
+from matches.models import Map
 
 from ..models import (
     Lobby,
@@ -343,7 +344,8 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(lobby.mode, Lobby.ModeChoices.CUSTOM)
         self.assertEqual(lobby.def_players_ids, [self.user_1.id])
         self.assertEqual(lobby.match_type, Lobby.TypeChoices.DEFAULT)
-        self.assertEqual(lobby.map_id, Lobby.Config.MAPS.get(lobby.match_type)[0])
+        map_id = Map.objects.filter(map_type=lobby.match_type).first().id
+        self.assertEqual(lobby.map_id, map_id)
 
         lobby.set_mode(Lobby.ModeChoices.COMP)
         self.assertEqual(lobby.mode, Lobby.ModeChoices.COMP)
@@ -643,13 +645,27 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_set_map_id(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
         lobby.set_mode(Lobby.ModeChoices.CUSTOM)
-        lobby.set_map_id(Lobby.Config.MAPS.get(lobby.match_type)[2])
-        self.assertEqual(lobby.map_id, Lobby.Config.MAPS.get(lobby.match_type)[2])
+        map_id = Map.objects.filter(map_type=lobby.match_type).first().id
+        lobby.set_map_id(map_id)
+        self.assertEqual(lobby.map_id, map_id)
 
     def test_set_map_id_bad_mode(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
         with self.assertRaisesRegex(LobbyException, 'Cannot restrict map'):
             lobby.set_map_id(2)
+
+    def test_set_map_id_bad_map_id(self):
+        lobby = Lobby.create(owner_id=self.user_1.id)
+        lobby.set_mode(Lobby.ModeChoices.CUSTOM)
+        lobby.set_match_type('safezone')
+        wrong_map = Map.objects.filter(map_type='default').first()
+        with self.assertRaisesRegex(LobbyException, 'Invalid map id'):
+            lobby.set_map_id(wrong_map.id)
+
+        Map.objects.create(id=4, map_type=Map.MapTypeChoices.SAFEZONE)
+        map = Map.objects.filter(map_type=lobby.match_type).first()
+        lobby.set_map_id(map.id)
+        self.assertEqual(lobby.map_id, map.id)
 
     def test_set_map_id_invalid(self):
         lobby = Lobby.create(owner_id=self.user_1.id)

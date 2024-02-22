@@ -98,7 +98,6 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
     ordering = ('-end_date', '-start_date', '-create_date')
     list_filter = (
         'status',
-        'match_type',
         'game_mode',
     )
     exclude = ['map', 'chat']
@@ -172,6 +171,9 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
         if obj.end_date:
             localtime = timezone.localtime(obj.end_date)
             return date_format(localtime, 'SHORT_DATETIME_FORMAT')
+
+    def match_type(self, obj):
+        return obj.match_type
 
     formatted_create_date.admin_order_field = 'create_date'
     formatted_start_date.admin_order_field = 'start_date'

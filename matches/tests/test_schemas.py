@@ -20,6 +20,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'sys_name': 'map_name',
             'is_active': True,
             'thumbnail': get_full_file_path(map.thumbnail) if map.thumbnail else None,
+            'map_type': map.map_type,
         }
 
         self.assertEqual(payload, expected_payload)

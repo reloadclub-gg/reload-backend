@@ -95,6 +95,11 @@ class Server(models.Model):
 
 
 class Map(models.Model):
+    class MapTypeChoices(models.TextChoices):
+        DEFAULT = 'default'  # 5x5 plant/desarm
+        DEATHMATCH = 'deathmatch'
+        SAFEZONE = 'safezone'
+
     id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=32)
     sys_name = models.CharField(max_length=32, unique=True)
@@ -103,6 +108,11 @@ class Map(models.Model):
     weight = models.IntegerField(
         default=1,
         validators=[MinValueValidator(1)],
+    )
+    map_type = models.CharField(
+        max_length=32,
+        choices=MapTypeChoices.choices,
+        default=MapTypeChoices.DEFAULT,
     )
 
     def __str__(self):
@@ -136,11 +146,6 @@ class Match(models.Model):
         CUSTOM = 'custom'
         COMPETITIVE = 'competitive'
 
-    class MatchType(models.TextChoices):
-        DEFAULT = 'default'  # 5x5 plant/desarm
-        DEATHMATCH = 'deathmatch'
-        SAFEZONE = 'safezone'
-
     class WeaponChoices(models.TextChoices):
         WEAPON_APPISTOL = 'weapon_appistol'
         WEAPON_ASSAULTRIFLE = 'weapon_assaultrifle'
@@ -167,11 +172,6 @@ class Match(models.Model):
         choices=Status.choices,
         default='loading',
     )
-    match_type = models.CharField(
-        max_length=16,
-        choices=MatchType.choices,
-        default=MatchType.DEFAULT,
-    )
     game_mode = models.CharField(
         max_length=16,
         choices=GameMode.choices,
@@ -184,6 +184,10 @@ class Match(models.Model):
         blank=True,
         null=True,
     )
+
+    @property
+    def match_type(self) -> str:
+        return self.map.map_type
 
     @property
     def team_a(self) -> MatchTeam:

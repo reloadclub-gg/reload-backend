@@ -163,6 +163,7 @@ class MatchSchema(ModelSchema):
     rounds: int
     winner_id: Optional[int] = None
     map: MapSchema
+    match_type: str
 
     class Config:
         model = models.Match
@@ -314,10 +315,11 @@ class MatchFiveMSchema(ModelSchema):
     match_id: int = Field(None, alias='id')
     teams: List[MatchTeamFiveMSchema]
     specs: List[MatchTeamPlayerFiveMSchema] = []
+    match_type: str
 
     class Config:
         model = models.Match
-        model_fields = ['map', 'match_type', 'game_mode', 'restricted_weapon']
+        model_fields = ['map', 'game_mode', 'restricted_weapon']
 
 
 class FiveMMatchResponseMock(Schema):
@@ -346,7 +348,6 @@ class MatchListItemSchema(Schema):
 
 class CustomMatchCreationSchema(Schema):
     map_id: int
-    match_type: str
     weapon: str = None
     def_players_ids: List[int] = []
     atk_players_ids: List[int] = []
@@ -358,13 +359,6 @@ class CustomMatchCreationSchema(Schema):
             models.Map.objects.get(id=value)
         except models.Map.DoesNotExist:
             raise ValueError(_('Invalid map id.'))
-
-        return value
-
-    @validator('match_type')
-    def check_match_type(cls, value):
-        if value not in models.Match.MatchType.__members__.values():
-            raise ValueError(_('Invalid match type.'))
 
         return value
 

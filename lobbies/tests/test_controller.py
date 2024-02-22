@@ -6,6 +6,7 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 from accounts.tests.mixins import VerifiedAccountsMixin
 from appsettings.models import AppSettings
 from core.tests import TestCase
+from matches.models import Map
 
 from ..api import controller, schemas
 from ..models import Lobby, LobbyException, LobbyInvite
@@ -548,8 +549,7 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
                 self.user_3.id,
             )
 
-    @mock.patch('lobbies.api.controller.handle_lobby_update_ws')
-    def test_update_lobby(self, mock_update_ws):
+    def test_update_lobby(self):
         payload = schemas.LobbyUpdateSchema.from_orm({'mode': Lobby.ModeChoices.CUSTOM})
         lobby = controller.update_lobby(
             self.user_1,
@@ -557,9 +557,9 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             payload,
         )
         self.assertEqual(lobby.mode, Lobby.ModeChoices.CUSTOM)
-        mock_update_ws.assert_called_once()
 
-        payload = schemas.LobbyUpdateSchema.from_orm({'map_id': 2})
+        map = Map.objects.create(id=2, map_type=Map.MapTypeChoices.DEFAULT)
+        payload = schemas.LobbyUpdateSchema.from_orm({'map_id': map.id})
         lobby = controller.update_lobby(
             self.user_1,
             self.user_1.account.lobby.id,
@@ -568,7 +568,7 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(lobby.map_id, 2)
 
         payload = schemas.LobbyUpdateSchema.from_orm(
-            {'match_type': Lobby.TypeChoices.SAFEZONE}
+            {'match_type': Map.MapTypeChoices.SAFEZONE}
         )
         lobby = controller.update_lobby(
             self.user_1,

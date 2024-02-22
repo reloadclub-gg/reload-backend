@@ -657,7 +657,26 @@
         "fields": {
             "id": 1,
             "name": "Auditório",
-            "sys_name": "auditorium"
+            "sys_name": "auditorium",
+            "map_type": "competitive"
+        }
+    },
+    {
+        "model": "matches.map",
+        "fields": {
+            "id": 2,
+            "name": "Praça",
+            "sys_name": "plaza",
+            "map_type": "deathmatch"
+        }
+    },
+    {
+        "model": "matches.map",
+        "fields": {
+            "id": 3,
+            "name": "Estacionamento",
+            "sys_name": "parking",
+            "map_type": "safezone"
         }
     },
     {
@@ -669,7 +688,6 @@
             "start_date": "2023-04-19T15:16:05Z",
             "end_date": "2023-04-19T15:36:06Z",
             "status": "finished",
-            "match_type": "competitive",
             "map": 1,
             "game_mode": 5,
             "chat": [
@@ -703,7 +721,6 @@
             "start_date": "2023-04-19T15:36:36Z",
             "end_date": null,
             "status": "running",
-            "match_type": "competitive",
             "game_mode": 5,
             "map": 1
         }
