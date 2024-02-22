@@ -97,7 +97,6 @@ class Server(models.Model):
 class Map(models.Model):
     class MapTypeChoices(models.TextChoices):
         DEFAULT = 'default'  # 5x5 plant/desarm
-        DEATHMATCH = 'deathmatch'
         SAFEZONE = 'safezone'
 
     id = models.BigIntegerField(primary_key=True)

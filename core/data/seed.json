@@ -665,15 +665,6 @@
         "model": "matches.map",
         "fields": {
             "id": 2,
-            "name": "Praça",
-            "sys_name": "plaza",
-            "map_type": "deathmatch"
-        }
-    },
-    {
-        "model": "matches.map",
-        "fields": {
-            "id": 3,
             "name": "Estacionamento",
             "sys_name": "parking",
             "map_type": "safezone"

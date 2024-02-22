@@ -34,7 +34,7 @@ class Lobby(BaseModel):
     [zset] __mm:lobby:[player_id]:invites <(from_player_id:to_player_id,...)>
     [key] __mm:lobby:[player_id]:queue <datetime>
     [key] __mm:lobby:[player_id]:mode <competitive|custom>
-    [key] __mm:lobby:[player_id]:match_type <default|deathmatch|safezone>
+    [key] __mm:lobby:[player_id]:match_type <default|safezone>
     [set] __mm:lobby:[player_id]:def_players_ids <(player_id,...)>
     [set] __mm:lobby:[player_id]:atk_players_ids <(player_id,...)>
     [set] __mm:lobby:[player_id]:spec_players_ids <(player_id,...)>
@@ -403,8 +403,10 @@ class Lobby(BaseModel):
             if from_lobby_id != to_lobby_id:
                 pipe.srem(f'{from_lobby.cache_key}:players', player_id)
                 logging.info(f'[lobby_move] removed {player_id} from {from_lobby.id}')
+
                 pipe.sadd(f'{to_lobby.cache_key}:players', player_id)
                 logging.info(f'[lobby_move] added {player_id} to {to_lobby.id}')
+
                 pipe.set(f'{Lobby.Config.CACHE_PREFIX}:{player_id}', to_lobby.owner_id)
                 logging.info(
                     f'[lobby_move] update player lobby: {player_id} - {to_lobby.owner_id}'
@@ -413,9 +415,6 @@ class Lobby(BaseModel):
                 if invite:
                     logging.info(f'[lobby_move] invite: {invite.id}')
                     pipe.zrem(f'{to_lobby.cache_key}:invites', invite.id)
-
-                if to_lobby.mode == Lobby.ModeChoices.CUSTOM:
-                    to_lobby.__move_player_to_custom_side(player_id)
 
             if len(from_lobby.non_owners_ids) > 0 and from_lobby.owner_id == player_id:
                 new_owner_id = min(from_lobby.non_owners_ids)
@@ -433,6 +432,18 @@ class Lobby(BaseModel):
                 # in the following line, the other transaction will fail and
                 # try again/rollback.
                 pipe.sadd(f'{new_lobby.cache_key}:players', *from_lobby.non_owners_ids)
+                pipe.srem(
+                    f'{from_lobby.cache_key}:def_players_ids',
+                    *from_lobby.non_owners_ids,
+                )
+                pipe.srem(
+                    f'{from_lobby.cache_key}:atk_players_ids',
+                    *from_lobby.non_owners_ids,
+                )
+                pipe.srem(
+                    f'{from_lobby.cache_key}:spec_players_ids',
+                    *from_lobby.non_owners_ids,
+                )
                 logging.info(
                     f'[lobby_move] add to lobby: {new_lobby.id} -> {from_lobby.non_owners_ids}'
                 )
@@ -452,6 +463,12 @@ class Lobby(BaseModel):
                         logging.info(f'[lobby_move] invite: {invite.id}')
                         pipe.zrem(f'{new_lobby.cache_key}:invites', invite)
 
+                    if new_lobby.mode == Lobby.ModeChoices.CUSTOM:
+                        new_lobby.__move_player_to_custom_side(
+                            other_player_id,
+                            pipe=pipe,
+                        )
+
             if remove:
                 logging.info('[lobby_move] lobby deletion')
                 Lobby.delete(to_lobby.id, pipe=pipe)
@@ -460,6 +477,15 @@ class Lobby(BaseModel):
                 logging.info(f'[lobby_move] invites {invites_to_player}')
                 for invite in invites_to_player:
                     pipe.zrem(f'__mm:lobby:{invite.lobby_id}:invites', invite.id)
+
+            if from_lobby.mode == Lobby.ModeChoices.CUSTOM:
+                if player_id != from_lobby.owner_id:
+                    pipe.srem(f'{from_lobby.cache_key}:def_players_ids', player_id)
+                    pipe.srem(f'{from_lobby.cache_key}:atk_players_ids', player_id)
+                    pipe.srem(f'{from_lobby.cache_key}:spec_players_ids', player_id)
+
+            if to_lobby.mode == Lobby.ModeChoices.CUSTOM:
+                to_lobby.__move_player_to_custom_side(player_id, pipe=pipe)
 
             logging.info('')
             logging.info('-- lobby_move end --')
@@ -699,7 +725,7 @@ class Lobby(BaseModel):
                     cache.sadd(f'{self.cache_key}:{side}', player_id)
                     break
 
-    def __move_player_to_custom_side(self, player_id: int):
+    def __move_player_to_custom_side(self, player_id: int, pipe=None):
         sides = ['def_players_ids', 'atk_players_ids', 'spec_players_ids']
         side_max_seats = int(
             Lobby.Config.MAX_SEATS.get(Lobby.ModeChoices.CUSTOM) / len(sides)
@@ -707,7 +733,10 @@ class Lobby(BaseModel):
         for side in sides:
             side_list = getattr(self, side)
             if len(side_list) < side_max_seats:
-                cache.sadd(f'{self.cache_key}:{side}', player_id)
+                if pipe:
+                    pipe.sadd(f'{self.cache_key}:{side}', player_id)
+                else:
+                    cache.sadd(f'{self.cache_key}:{side}', player_id)
                 break
 
     def __reset_to_comp_mode(self):

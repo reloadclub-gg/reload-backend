@@ -1,6 +1,7 @@
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from model_bakery import baker
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.tests.mixins import VerifiedAccountsMixin
@@ -550,6 +551,8 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
             )
 
     def test_update_lobby(self):
+        baker.make(Map, id=1, map_type=Map.MapTypeChoices.DEFAULT)
+        baker.make(Map, id=2, map_type=Map.MapTypeChoices.SAFEZONE)
         payload = schemas.LobbyUpdateSchema.from_orm({'mode': Lobby.ModeChoices.CUSTOM})
         lobby = controller.update_lobby(
             self.user_1,
@@ -558,14 +561,14 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
         )
         self.assertEqual(lobby.mode, Lobby.ModeChoices.CUSTOM)
 
-        map = Map.objects.create(id=2, map_type=Map.MapTypeChoices.DEFAULT)
-        payload = schemas.LobbyUpdateSchema.from_orm({'map_id': map.id})
+        baker.make(Map, id=3, map_type=Map.MapTypeChoices.DEFAULT)
+        payload = schemas.LobbyUpdateSchema.from_orm({'map_id': 3})
         lobby = controller.update_lobby(
             self.user_1,
             self.user_1.account.lobby.id,
             payload,
         )
-        self.assertEqual(lobby.map_id, 2)
+        self.assertEqual(lobby.map_id, 3)
 
         payload = schemas.LobbyUpdateSchema.from_orm(
             {'match_type': Map.MapTypeChoices.SAFEZONE}

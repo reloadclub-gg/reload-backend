@@ -100,29 +100,25 @@ def __create_custom_match_teams_players(match, payload):
         MatchSpectator.objects.create(match=match, user_id=player_id)
 
 
-def __handle_fivem_match_creation(match, response):
-    if response and response == 201:
-        match.warmup()
-
-        if (
-            settings.ENVIRONMENT == settings.LOCAL
-            or settings.TEST_MODE
-            or settings.FIVEM_MATCH_MOCKS_ON
-        ):
-            if settings.FIVEM_MATCH_MOCK_START_SUCCESS:
-                mock_fivem_match_start.apply_async(
-                    (match.id,),
-                    countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
-                    serializer='json',
-                )
-            else:
-                mock_fivem_match_cancel.apply_async(
-                    (match.id,),
-                    countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
-                    serializer='json',
-                )
-    else:
-        __cancel_match(match.id)
+def __warmup_match(match):
+    match.warmup()
+    if (
+        settings.ENVIRONMENT == settings.LOCAL
+        or settings.TEST_MODE
+        or settings.FIVEM_MATCH_MOCKS_ON
+    ):
+        if settings.FIVEM_MATCH_MOCK_START_SUCCESS:
+            mock_fivem_match_start.apply_async(
+                (match.id,),
+                countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
+                serializer='json',
+            )
+        else:
+            mock_fivem_match_cancel.apply_async(
+                (match.id,),
+                countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
+                serializer='json',
+            )
 
 
 def __ws_update_players(match):
@@ -511,12 +507,15 @@ def create_custom_match(payload: CustomMatchCreationSchema) -> Match:
     )
 
     __create_custom_match_teams_players(match, payload)
-    __handle_fivem_match_creation(match, payload)
+    __create_fivem_match(match, payload)
 
     websocket.ws_match_create(match)
 
     fivem_response = __create_fivem_match(match)
-    __handle_fivem_match_creation(match, fivem_response)
+    if fivem_response and fivem_response == 201:
+        __warmup_match(match, fivem_response)
+    else:
+        __cancel_match(match.id)
 
     __ws_update_players(match)
     return match
