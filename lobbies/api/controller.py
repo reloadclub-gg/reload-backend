@@ -1,9 +1,5 @@
-import logging
-import time
 from typing import List
 
-import requests
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja.errors import AuthenticationError, Http404, HttpError
@@ -11,13 +7,6 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from appsettings.services import maintenance_window
 from core.websocket import ws_create_toast
-from matches.api.schemas import (
-    CustomMatchCreationSchema,
-    FiveMMatchResponseMock,
-    MatchFiveMSchema,
-)
-from matches.models import Map, Match, MatchPlayer, MatchSpectator, Server
-from matches.tasks import mock_fivem_match_cancel, mock_fivem_match_start
 from pre_matches.models import Team
 
 from .. import websocket
@@ -46,89 +35,6 @@ def __update_custom_lobby(lobby, payload):
             lobby.set_weapon(payload.weapon)
     except LobbyException as exc:
         raise HttpError(400, exc)
-
-
-def __create_fivem_match(match: Match) -> Match:
-    if (
-        settings.ENVIRONMENT == settings.LOCAL
-        or settings.TEST_MODE
-        or settings.FIVEM_MATCH_MOCKS_ON
-    ):
-        status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
-        fivem_response = FiveMMatchResponseMock.from_orm({'status_code': status_code})
-        time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
-    else:
-        server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
-        payload = MatchFiveMSchema.from_orm(match).dict()
-        try:
-            fivem_response = requests.post(
-                server_url,
-                json=payload,
-                timeout=settings.FIVEM_MATCH_CREATION_RETRIES_TIMEOUT,
-            )
-        except requests.exceptions.Timeout:
-            fivem_response = FiveMMatchResponseMock.from_orm({'status_code': 400})
-            logging.warning(f'[handle_create_fivem_match] {match.id}')
-            return None
-
-    return fivem_response
-
-
-def __cancel_match(match_id: int):
-    try:
-        match = Match.objects.exclude(
-            status__in=[Match.Status.CANCELLED, Match.Status.FINISHED]
-        ).get(id=match_id)
-    except Match.DoesNotExist:
-        raise Http404
-
-    match.cancel()
-    websocket.ws_match_delete(match)
-
-
-def __create_custom_match_teams_players(match, payload):
-    team_a = match.matchteam_set.create(name='Time A')
-    team_b = match.matchteam_set.create(name='Time B')
-
-    for player_id in payload.def_players_ids:
-        MatchPlayer.objects.create(user_id=player_id, team=team_a)
-
-    for player_id in payload.atk_players_ids:
-        MatchPlayer.objects.create(user_id=player_id, team=team_b)
-
-    for player_id in payload.spec_players_ids:
-        MatchSpectator.objects.create(match=match, user_id=player_id)
-
-
-def __warmup_match(match):
-    match.warmup()
-    if (
-        settings.ENVIRONMENT == settings.LOCAL
-        or settings.TEST_MODE
-        or settings.FIVEM_MATCH_MOCKS_ON
-    ):
-        if settings.FIVEM_MATCH_MOCK_START_SUCCESS:
-            mock_fivem_match_start.apply_async(
-                (match.id,),
-                countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
-                serializer='json',
-            )
-        else:
-            mock_fivem_match_cancel.apply_async(
-                (match.id,),
-                countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
-                serializer='json',
-            )
-
-
-def __ws_update_players(match):
-    for match_player in match.players:
-        ws_update_user(match_player.user)
-        ws_update_status_on_friendlist(match_player.user)
-
-    for spec in match.matchspectators_set.all():
-        ws_update_user(spec.user)
-        ws_update_status_on_friendlist(spec.user)
 
 
 def handle_lobby_update_ws(lobby):
@@ -488,34 +394,3 @@ def update_player(lobby_id: int, payload: LobbyPlayerUpdateSchema):
 
     websocket.ws_update_lobby(lobby)
     return lobby
-
-
-def create_custom_match(payload: CustomMatchCreationSchema) -> Match:
-    server = Server.get_idle()
-    if not server:
-        raise HttpError(400, _('Servers full.'))
-
-    try:
-        map = Map.objects.get(id=payload.map_id)
-    except Map.DoesNotExist:
-        raise Http404(_('Map not found.'))
-
-    match = Match.objects.create(
-        server=server,
-        map=map,
-        restricted_weapon=payload.weapon if payload.weapon else None,
-    )
-
-    __create_custom_match_teams_players(match, payload)
-    __create_fivem_match(match, payload)
-
-    websocket.ws_match_create(match)
-
-    fivem_response = __create_fivem_match(match)
-    if fivem_response and fivem_response == 201:
-        __warmup_match(match, fivem_response)
-    else:
-        __cancel_match(match.id)
-
-    __ws_update_players(match)
-    return match
