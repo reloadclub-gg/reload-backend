@@ -63,10 +63,10 @@ def __cancel_match(match_id: int):
 
 
 def __create_match_teams_players(match, payload):
-    team_a = match.matchteam_set.create(name='Time A')
-    team_b = match.matchteam_set.create(name='Time B')
+    team_a = match.matchteam_set.create(name='A')
+    team_b = match.matchteam_set.create(name='B')
 
-    if match.mode == models.Match.GameMode.COMPETITIVE:
+    if match.game_mode == models.Match.GameMode.COMPETITIVE:
         for player_id in payload.players_ids[:5]:
             models.MatchPlayer.objects.create(user_id=player_id, team=team_a)
 
@@ -87,11 +87,7 @@ def __create_match_teams_players(match, payload):
 
 def __warmup_match(match):
     match.warmup()
-    if (
-        settings.ENVIRONMENT == settings.LOCAL
-        or settings.TEST_MODE
-        or settings.FIVEM_MATCH_MOCKS_ON
-    ):
+    if settings.TEST_MODE or settings.FIVEM_MATCH_MOCKS_ON:
         if settings.FIVEM_MATCH_MOCK_START_SUCCESS:
             tasks.mock_fivem_match_start.apply_async(
                 (match.id,),
@@ -111,7 +107,7 @@ def __ws_update_players(match):
         ws_update_user(match_player.user)
         ws_update_status_on_friendlist(match_player.user)
 
-    for spec in match.matchspectators_set.all():
+    for spec in match.matchspectator_set.all():
         ws_update_user(spec.user)
         ws_update_status_on_friendlist(spec.user)
 
@@ -400,8 +396,8 @@ def create_match(payload: schemas.MatchCreationSchema) -> models.Match:
     websocket.ws_match_create(match)
 
     fivem_response = __create_fivem_match(match)
-    if fivem_response and fivem_response == 201:
-        __warmup_match(match, fivem_response)
+    if fivem_response and fivem_response.status_code == 201:
+        __warmup_match(match)
     else:
         __cancel_match(match.id)
 
