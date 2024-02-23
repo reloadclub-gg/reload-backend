@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint para iniciar partida personalizada [#1050](https://github.com/3C-gg/reload-backend/issues/1050).
 - Campo `map_type` no model `Map` para identificar os mapas de cada tipo de jogo.
 - Listas de selects para FE no esquema `LobbySchema` quando lobby for personalizado.
 - Enpoint `PATCH /api/lobbies/{lobby_id}/players/` e esquema `LobbyPlayerUpdateSchema` para atualizar os lados dos players no lobby personalizado.
