@@ -1,7 +1,9 @@
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from ninja import Field, ModelSchema, Schema
+from pydantic import validator
 
 from accounts.utils import calc_level_and_points, steamid64_to_hex
 from core.utils import get_full_file_path
@@ -161,6 +163,7 @@ class MatchSchema(ModelSchema):
     rounds: int
     winner_id: Optional[int] = None
     map: MapSchema
+    match_type: str
 
     class Config:
         model = models.Match
@@ -297,7 +300,7 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
 
 
 class MatchTeamFiveMSchema(ModelSchema):
-    players: List[MatchTeamPlayerFiveMSchema]
+    players: List[MatchTeamPlayerFiveMSchema] = []
 
     class Config:
         model = models.MatchTeam
@@ -311,14 +314,12 @@ class MatchTeamFiveMSchema(ModelSchema):
 class MatchFiveMSchema(ModelSchema):
     match_id: int = Field(None, alias='id')
     teams: List[MatchTeamFiveMSchema]
+    specs: List[MatchTeamPlayerFiveMSchema] = []
+    match_type: str
 
     class Config:
         model = models.Match
-        model_fields = ['map']
-
-    @staticmethod
-    def resolve_map_id(obj):
-        return obj.map.id
+        model_fields = ['map', 'game_mode', 'restricted_weapon']
 
 
 class FiveMMatchResponseMock(Schema):
@@ -343,3 +344,27 @@ class MatchListItemSchema(Schema):
     won: bool
     score: str
     stats: MatchListItemStatsSchema
+
+
+class CustomMatchCreationSchema(Schema):
+    map_id: int
+    weapon: str = None
+    def_players_ids: List[int] = []
+    atk_players_ids: List[int] = []
+    spec_players_ids: List[int] = []
+
+    @validator('map_id')
+    def check_map_id(cls, value):
+        try:
+            models.Map.objects.get(id=value)
+        except models.Map.DoesNotExist:
+            raise ValueError(_('Invalid map id.'))
+
+        return value
+
+    @validator('weapon')
+    def check_weapon(cls, value):
+        if value and value not in models.Match.WeaponChoices.__members__.values():
+            raise ValueError(_('Invalid weapon.'))
+
+        return value

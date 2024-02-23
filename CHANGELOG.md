@@ -9,13 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo `map_type` no model `Map` para identificar os mapas de cada tipo de jogo.
+- Listas de selects para FE no esquema `LobbySchema` quando lobby for personalizado.
+- Enpoint `PATCH /api/lobbies/{lobby_id}/players/` e esquema `LobbyPlayerUpdateSchema` para atualizar os lados dos players no lobby personalizado.
 - Adicionamos métodos e chaves no Redis para o model `Lobby` para o novo modo personalizado [#1044](1044-alteraes-no-model-lobby-para-partida-personalizada).
 
 ### Changed
 
+- Alteramos o esquema `LobbySchema` para conter os campos relacionados as partidas personalizadas.
+- Alteramos o endpoint `PATCH /api/lobbies/{lobby_id}/` e o esquema `LobbyUpdateSchema` para receber as alterações relacionadas às partidas personalizadas.
 - Alteramos os campos `lobby_type` e `mode` do model `Lobby` para uma melhor adaptação às partidas personalizadas [#1044](1044-alteraes-no-model-lobby-para-partida-personalizada).
 - Alteramos também os campos `game_type` e `game_mode` do model `Match` para refletir as alterações do model `Lobby`.
 - Alteramos as propriedades `lobby_type` e `mode` dos models `Team` e `PreMatch` para garantir que as alterações no model `Lobby` funcionassem.
+
+### Removed
+
+- Campo `match_type` do model `Match`, movendo esse campo para `Map.map_type` para que cada seja relacionado a um tipo de jogo.
 
 ## [e242321 - 5/2/2024]
 

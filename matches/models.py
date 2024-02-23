@@ -95,6 +95,10 @@ class Server(models.Model):
 
 
 class Map(models.Model):
+    class MapTypeChoices(models.TextChoices):
+        DEFAULT = 'default'  # 5x5 plant/desarm
+        SAFEZONE = 'safezone'
+
     id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=32)
     sys_name = models.CharField(max_length=32, unique=True)
@@ -103,6 +107,11 @@ class Map(models.Model):
     weight = models.IntegerField(
         default=1,
         validators=[MinValueValidator(1)],
+    )
+    map_type = models.CharField(
+        max_length=32,
+        choices=MapTypeChoices.choices,
+        default=MapTypeChoices.DEFAULT,
     )
 
     def __str__(self):
@@ -136,10 +145,21 @@ class Match(models.Model):
         CUSTOM = 'custom'
         COMPETITIVE = 'competitive'
 
-    class MatchType(models.TextChoices):
-        DEFAULT = 'default'  # 5x5 plant/desarm
-        DEATHMATCH = 'deathmatch'
-        SAFEZONE = 'safezone'
+    class WeaponChoices(models.TextChoices):
+        WEAPON_APPISTOL = 'weapon_appistol'
+        WEAPON_ASSAULTRIFLE = 'weapon_assaultrifle'
+        WEAPON_ASSAULTSHOTGUN = 'weapon_assaultshotgun'
+        WEAPON_COMBATMG = 'weapon_combatmg'
+        WEAPON_HEAVYSNIPER = 'weapon_heavysniper'
+        WEAPON_MG = 'weapon_mg'
+        WEAPON_MICROSMG = 'weapon_microsmg'
+        WEAPON_PISTOL = 'weapon_pistol'
+        WEAPON_PISTOL50 = 'weapon_pistol50'
+        WEAPON_PISTOL_MK2 = 'weapon_pistol_mk2'
+        WEAPON_PUMPSHOTGUN = 'weapon_pumpshotgun'
+        WEAPON_SMG = 'weapon_smg'
+        WEAPON_SNIPERRIFLE = 'weapon_sniperrifle'
+        WEAPON_TACTICALRIFLE = 'weapon_tacticalrifle'
 
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
@@ -151,17 +171,22 @@ class Match(models.Model):
         choices=Status.choices,
         default='loading',
     )
-    match_type = models.CharField(
-        max_length=16,
-        choices=MatchType.choices,
-        default=MatchType.DEFAULT,
-    )
     game_mode = models.CharField(
         max_length=16,
         choices=GameMode.choices,
         default=GameMode.COMPETITIVE,
     )
     chat = models.JSONField(null=True)
+    restricted_weapon = models.CharField(
+        max_length=64,
+        choices=WeaponChoices.choices,
+        blank=True,
+        null=True,
+    )
+
+    @property
+    def match_type(self) -> str:
+        return self.map.map_type
 
     @property
     def team_a(self) -> MatchTeam:
@@ -294,6 +319,11 @@ class MatchTeam(models.Model):
 
     def __str__(self):
         return f'#{self.id} - {self.name}'
+
+
+class MatchSpectator(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class MatchPlayer(models.Model):

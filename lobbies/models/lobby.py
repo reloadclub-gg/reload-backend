@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from core.redis import redis_client_instance as cache
 from core.utils import str_to_timezone
+from matches.models import Map
 
 from .invite import LobbyInvite
 from .player import PlayerRestriction
@@ -33,7 +34,7 @@ class Lobby(BaseModel):
     [zset] __mm:lobby:[player_id]:invites <(from_player_id:to_player_id,...)>
     [key] __mm:lobby:[player_id]:queue <datetime>
     [key] __mm:lobby:[player_id]:mode <competitive|custom>
-    [key] __mm:lobby:[player_id]:match_type <default|deathmatch|safezone>
+    [key] __mm:lobby:[player_id]:match_type <default|safezone>
     [set] __mm:lobby:[player_id]:def_players_ids <(player_id,...)>
     [set] __mm:lobby:[player_id]:atk_players_ids <(player_id,...)>
     [set] __mm:lobby:[player_id]:spec_players_ids <(player_id,...)>
@@ -49,7 +50,7 @@ class Lobby(BaseModel):
             'competitive': 5,
             'custom': 15,  # 10 players + 5 specs
         }
-        MAPS: dict = {'competitive': [1, 2, 3, 4], 'custom': [5, 6, 7]}
+        MAPS: dict = {'default': [1, 2, 3, 4], 'safezone': [5, 6, 7]}
 
     class ModeChoices(TextChoices):
         COMP = 'competitive'
@@ -57,24 +58,24 @@ class Lobby(BaseModel):
 
     class TypeChoices(TextChoices):
         DEFAULT = 'default'
-        DM = 'deathmatch'
         SAFEZONE = 'safezone'
 
     class WeaponChoices(TextChoices):
-        WEAPON_APPISTOL = 'weapon_appistol'
-        WEAPON_ASSAULTRIFLE = 'weapon_assaultrifle'
-        WEAPON_ASSAULTSHOTGUN = 'weapon_assaultshotgun'
-        WEAPON_COMBATMG = 'weapon_combatmg'
-        WEAPON_HEAVYSNIPER = 'weapon_heavysniper'
-        WEAPON_MG = 'weapon_mg'
-        WEAPON_MICROSMG = 'weapon_microsmg'
-        WEAPON_PISTOL = 'weapon_pistol'
-        WEAPON_PISTOL50 = 'weapon_pistol50'
-        WEAPON_PISTOL_MK2 = 'weapon_pistol_mk2'
-        WEAPON_PUMPSHOTGUN = 'weapon_pumpshotgun'
-        WEAPON_SMG = 'weapon_smg'
-        WEAPON_SNIPERRIFLE = 'weapon_sniperrifle'
-        WEAPON_TACTICALRIFLE = 'weapon_tacticalrifle'
+        WEAPON_APPISTOL = 'Rapidinha'
+        WEAPON_ASSAULTRIFLE = 'AK'
+        WEAPON_ASSAULTSHOTGUN = 'Bull'
+        WEAPON_COMBATMG = 'Rambão'
+        WEAPON_HEAVYSNIPER = 'Sniper'
+        WEAPON_MG = 'Rambinho'
+        WEAPON_MICROSMG = 'Micro'
+        WEAPON_PISTOL = 'Pistola'
+        WEAPON_PISTOL50 = 'Trinta e Oito'
+        WEAPON_PISTOL_MK2 = '9idade'
+        WEAPON_PUMPSHOTGUN = 'Doze'
+        WEAPON_SMG = 'Nova'
+        WEAPON_SNIPERRIFLE = 'Teco-Teco'
+        WEAPON_TACTICALRIFLE = 'M4'
+        WEAPON_KNIFE = 'Faca'
 
     @property
     def cache_key(self):
@@ -175,13 +176,6 @@ class Lobby(BaseModel):
             )
             or [0]
         )
-
-    @property
-    def lobby_match_type(self) -> str:
-        """
-        Returns the lobby match type.
-        """
-        return cache.get(f'{self.cache_key}:match_type')
 
     @property
     def mode(self) -> int:
@@ -409,8 +403,10 @@ class Lobby(BaseModel):
             if from_lobby_id != to_lobby_id:
                 pipe.srem(f'{from_lobby.cache_key}:players', player_id)
                 logging.info(f'[lobby_move] removed {player_id} from {from_lobby.id}')
+
                 pipe.sadd(f'{to_lobby.cache_key}:players', player_id)
                 logging.info(f'[lobby_move] added {player_id} to {to_lobby.id}')
+
                 pipe.set(f'{Lobby.Config.CACHE_PREFIX}:{player_id}', to_lobby.owner_id)
                 logging.info(
                     f'[lobby_move] update player lobby: {player_id} - {to_lobby.owner_id}'
@@ -419,9 +415,6 @@ class Lobby(BaseModel):
                 if invite:
                     logging.info(f'[lobby_move] invite: {invite.id}')
                     pipe.zrem(f'{to_lobby.cache_key}:invites', invite.id)
-
-                if to_lobby.mode == Lobby.ModeChoices.CUSTOM:
-                    to_lobby.__move_player_to_custom_side(player_id)
 
             if len(from_lobby.non_owners_ids) > 0 and from_lobby.owner_id == player_id:
                 new_owner_id = min(from_lobby.non_owners_ids)
@@ -439,6 +432,18 @@ class Lobby(BaseModel):
                 # in the following line, the other transaction will fail and
                 # try again/rollback.
                 pipe.sadd(f'{new_lobby.cache_key}:players', *from_lobby.non_owners_ids)
+                pipe.srem(
+                    f'{from_lobby.cache_key}:def_players_ids',
+                    *from_lobby.non_owners_ids,
+                )
+                pipe.srem(
+                    f'{from_lobby.cache_key}:atk_players_ids',
+                    *from_lobby.non_owners_ids,
+                )
+                pipe.srem(
+                    f'{from_lobby.cache_key}:spec_players_ids',
+                    *from_lobby.non_owners_ids,
+                )
                 logging.info(
                     f'[lobby_move] add to lobby: {new_lobby.id} -> {from_lobby.non_owners_ids}'
                 )
@@ -458,6 +463,12 @@ class Lobby(BaseModel):
                         logging.info(f'[lobby_move] invite: {invite.id}')
                         pipe.zrem(f'{new_lobby.cache_key}:invites', invite)
 
+                    if new_lobby.mode == Lobby.ModeChoices.CUSTOM:
+                        new_lobby.__move_player_to_custom_side(
+                            other_player_id,
+                            pipe=pipe,
+                        )
+
             if remove:
                 logging.info('[lobby_move] lobby deletion')
                 Lobby.delete(to_lobby.id, pipe=pipe)
@@ -466,6 +477,15 @@ class Lobby(BaseModel):
                 logging.info(f'[lobby_move] invites {invites_to_player}')
                 for invite in invites_to_player:
                     pipe.zrem(f'__mm:lobby:{invite.lobby_id}:invites', invite.id)
+
+            if from_lobby.mode == Lobby.ModeChoices.CUSTOM:
+                if player_id != from_lobby.owner_id:
+                    pipe.srem(f'{from_lobby.cache_key}:def_players_ids', player_id)
+                    pipe.srem(f'{from_lobby.cache_key}:atk_players_ids', player_id)
+                    pipe.srem(f'{from_lobby.cache_key}:spec_players_ids', player_id)
+
+            if to_lobby.mode == Lobby.ModeChoices.CUSTOM:
+                to_lobby.__move_player_to_custom_side(player_id, pipe=pipe)
 
             logging.info('')
             logging.info('-- lobby_move end --')
@@ -636,6 +656,9 @@ class Lobby(BaseModel):
         if self.queue:
             raise LobbyException(_('Lobby is queued.'))
 
+        if self.mode == Lobby.ModeChoices.CUSTOM:
+            raise LobbyException(_('Lobby can\'t be queued in this mode.'))
+
         if self.restriction_countdown:
             raise LobbyException(_('Can\'t start queue due to player restriction.'))
 
@@ -702,7 +725,7 @@ class Lobby(BaseModel):
                     cache.sadd(f'{self.cache_key}:{side}', player_id)
                     break
 
-    def __move_player_to_custom_side(self, player_id: int):
+    def __move_player_to_custom_side(self, player_id: int, pipe=None):
         sides = ['def_players_ids', 'atk_players_ids', 'spec_players_ids']
         side_max_seats = int(
             Lobby.Config.MAX_SEATS.get(Lobby.ModeChoices.CUSTOM) / len(sides)
@@ -710,7 +733,10 @@ class Lobby(BaseModel):
         for side in sides:
             side_list = getattr(self, side)
             if len(side_list) < side_max_seats:
-                cache.sadd(f'{self.cache_key}:{side}', player_id)
+                if pipe:
+                    pipe.sadd(f'{self.cache_key}:{side}', player_id)
+                else:
+                    cache.sadd(f'{self.cache_key}:{side}', player_id)
                 break
 
     def __reset_to_comp_mode(self):
@@ -749,8 +775,16 @@ class Lobby(BaseModel):
 
         if mode == Lobby.ModeChoices.CUSTOM:
             self.__move_comp_players_to_custom_sides()
-            cache.set(f'{self.cache_key}:match_type', Lobby.TypeChoices.DEFAULT)
-            cache.set(f'{self.cache_key}:map_id', Lobby.Config.MAPS.get(mode)[0])
+            cache.set(f'{self.cache_key}:match_type', Map.MapTypeChoices.DEFAULT)
+            cache.set(
+                f'{self.cache_key}:map_id',
+                Map.objects.filter(map_type=self.match_type)
+                .values_list(
+                    'id',
+                    flat=True,
+                )
+                .first(),
+            )
         else:
             self.__reset_to_comp_mode()
 
@@ -766,24 +800,37 @@ class Lobby(BaseModel):
         if self.queue:
             raise LobbyException(_('Lobby is queued.'))
 
-        if match_type not in Lobby.TypeChoices.__members__.values():
+        if match_type not in Map.MapTypeChoices.__members__.values():
             raise LobbyException(_('The given type is not valid.'))
 
         cache.set(f'{self.cache_key}:match_type', match_type)
+        cache.set(
+            f'{self.cache_key}:map_id',
+            Map.objects.filter(map_type=match_type)
+            .values_list(
+                'id',
+                flat=True,
+            )
+            .first(),
+        )
 
     def set_map_id(self, map_id: int):
         if self.mode != Lobby.ModeChoices.CUSTOM:
             raise LobbyException(_('Cannot restrict map in this mode.'))
 
-        if map_id not in Lobby.Config.MAPS.get(self.mode):
+        available_map_ids = Map.objects.filter(map_type=self.match_type).values_list(
+            'id',
+            flat=True,
+        )
+        if map_id not in available_map_ids:
             raise LobbyException(_('Invalid map id.'))
         cache.set(f'{self.cache_key}:map_id', map_id)
 
-    def set_weapon(self, weapon: str = None):
+    def set_weapon(self, weapon: str = 'all'):
         if self.mode != Lobby.ModeChoices.CUSTOM:
             raise LobbyException(_('Cannot restrict weapon in this mode.'))
 
-        if not weapon:
+        if weapon == 'all':
             cache.delete(f'{self.cache_key}:weapon')
         elif weapon and weapon not in Lobby.WeaponChoices.__members__.values():
             raise LobbyException(_('Invalid weapon.'))

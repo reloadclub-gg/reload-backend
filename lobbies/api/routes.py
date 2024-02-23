@@ -75,6 +75,16 @@ def update(request, lobby_id: int, payload: schemas.LobbyUpdateSchema):
     return controller.update_lobby(request.user, lobby_id, payload)
 
 
+@router.patch(
+    '{lobby_id}/players/',
+    auth=VerifiedRequiredAuth(),
+    response={200: schemas.LobbySchema},
+)
+@authorization.participant_required
+def player_update(request, lobby_id: int, payload: schemas.LobbyPlayerUpdateSchema):
+    return controller.update_player(lobby_id, payload)
+
+
 @router.get(
     '{lobby_id}/',
     auth=VerifiedRequiredAuth(),

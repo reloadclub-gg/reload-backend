@@ -136,7 +136,7 @@ class UserMatchesAdminInline(admin.TabularInline):
         return obj.team.match.get_status_display()
 
     def match_type(self, obj):
-        return obj.team.match.get_match_type_display()
+        return obj.team.match.match_type
 
     def game_mode(self, obj):
         return obj.team.match.get_game_mode_display()
