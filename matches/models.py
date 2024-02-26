@@ -174,7 +174,7 @@ class Match(models.Model):
     game_mode = models.CharField(
         max_length=16,
         choices=GameMode.choices,
-        default=GameMode.COMPETITIVE,
+        default='competitive',
     )
     chat = models.JSONField(null=True)
     restricted_weapon = models.CharField(

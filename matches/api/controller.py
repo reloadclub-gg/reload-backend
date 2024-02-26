@@ -1,7 +1,9 @@
 import logging
 import math
+import time
 from typing import List
 
+import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -16,10 +18,98 @@ from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from core.utils import get_full_file_path
 from pre_matches.models import PreMatch
 
-from .. import models, websocket
+from .. import models, tasks, websocket
 from . import schemas
 
 User = get_user_model()
+
+
+def __create_fivem_match(match: models.Match) -> models.Match:
+    if settings.TEST_MODE or settings.FIVEM_MATCH_MOCKS_ON:
+        status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
+        fivem_response = schemas.FiveMMatchResponseMock.from_orm(
+            {'status_code': status_code}
+        )
+        time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
+    else:
+        server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
+        payload = schemas.MatchFiveMSchema.from_orm(match).dict()
+        try:
+            fivem_response = requests.post(
+                server_url,
+                json=payload,
+                timeout=settings.FIVEM_MATCH_CREATION_RETRIES_TIMEOUT,
+            )
+        except requests.exceptions.Timeout:
+            fivem_response = schemas.FiveMMatchResponseMock.from_orm(
+                {'status_code': 400}
+            )
+            logging.warning(f'[handle_create_fivem_match] {match.id}')
+            return None
+
+    return fivem_response
+
+
+def __cancel_match(match_id: int):
+    try:
+        match = models.Match.objects.exclude(
+            status__in=[models.Match.Status.CANCELLED, models.Match.Status.FINISHED]
+        ).get(id=match_id)
+    except models.Match.DoesNotExist:
+        raise Http404
+
+    match.cancel()
+    websocket.ws_match_delete(match)
+
+
+def __create_match_teams_players(match, payload):
+    team_a = match.matchteam_set.create(name='A')
+    team_b = match.matchteam_set.create(name='B')
+
+    if match.game_mode == models.Match.GameMode.COMPETITIVE:
+        for player_id in payload.players_ids[:5]:
+            models.MatchPlayer.objects.create(user_id=player_id, team=team_a)
+
+        for player_id in payload.players_ids[5:]:
+            models.MatchPlayer.objects.create(user_id=player_id, team=team_b)
+
+    else:
+
+        for player_id in payload.def_players_ids:
+            models.MatchPlayer.objects.create(user_id=player_id, team=team_a)
+
+        for player_id in payload.atk_players_ids:
+            models.MatchPlayer.objects.create(user_id=player_id, team=team_b)
+
+        for player_id in payload.spec_players_ids:
+            models.MatchSpectator.objects.create(match=match, user_id=player_id)
+
+
+def __warmup_match(match):
+    match.warmup()
+    if settings.TEST_MODE or settings.FIVEM_MATCH_MOCKS_ON:
+        if settings.FIVEM_MATCH_MOCK_START_SUCCESS:
+            tasks.mock_fivem_match_start.apply_async(
+                (match.id,),
+                countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
+                serializer='json',
+            )
+        else:
+            tasks.mock_fivem_match_cancel.apply_async(
+                (match.id,),
+                countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
+                serializer='json',
+            )
+
+
+def __ws_update_players(match):
+    for match_player in match.players:
+        ws_update_user(match_player.user)
+        ws_update_status_on_friendlist(match_player.user)
+
+    for spec in match.matchspectator_set.all():
+        ws_update_user(spec.user)
+        ws_update_status_on_friendlist(spec.user)
 
 
 def handle_update_players_stats(
@@ -127,6 +217,7 @@ def get_user_matches(
                     else None
                 ),
                 'match_type': match.match_type,
+                'game_mode': match.game_mode,
                 'start_date': match.start_date.isoformat(),
                 'end_date': match.end_date.isoformat(),
                 'won': user_team.id == match.winner.id,
@@ -277,3 +368,40 @@ def cancel_match(match_id: int):
 
         ws_update_user(player.user)
         ws_update_status_on_friendlist(player.user)
+
+
+def create_match(payload: schemas.MatchCreationSchema) -> models.Match:
+
+    server = models.Server.get_idle()
+    if not server:
+        raise HttpError(400, _('Servers full.'))
+
+    # TODO competitive match is being created on pre_match app controller
+    # so we're gonna only create the custom match for now.
+    if payload.mode == models.Match.GameMode.CUSTOM:
+        try:
+            map = models.Map.objects.get(id=payload.map_id)
+        except models.Map.DoesNotExist:
+            raise Http404(_('Map not found.'))
+    else:
+        map = models.Map.randomize()
+
+    match = models.Match.objects.create(
+        game_mode=payload.mode,
+        server=server,
+        map=map,
+        restricted_weapon=payload.weapon if payload.weapon else None,
+    )
+
+    __create_match_teams_players(match, payload)
+    websocket.ws_match_create(match)
+
+    fivem_response = __create_fivem_match(match)
+    if fivem_response and fivem_response.status_code == 201:
+        __warmup_match(match)
+    else:
+        __cancel_match(match.id)
+
+    __ws_update_players(match)
+
+    return match
