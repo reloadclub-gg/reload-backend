@@ -217,6 +217,7 @@ def get_user_matches(
                     else None
                 ),
                 'match_type': match.match_type,
+                'game_mode': match.game_mode,
                 'start_date': match.start_date.isoformat(),
                 'end_date': match.end_date.isoformat(),
                 'won': user_team.id == match.winner.id,

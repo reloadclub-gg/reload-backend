@@ -380,6 +380,7 @@ class MatchListItemSchema(Schema):
     map_name: str
     map_image: str = None
     match_type: str
+    game_mode: str
     start_date: str
     end_date: str
     won: bool
