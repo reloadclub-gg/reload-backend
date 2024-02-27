@@ -53,10 +53,10 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
             .order_by('-level', '-level_points')
             .values_list('id', flat=True)
         )
-        ranking_pos = 0
+        ranking_pos = 1
         for idx, id in enumerate(all_user_ids):
             if id == self.user_1.account.id:
-                ranking_pos = idx
+                ranking_pos = idx + 1
 
         payload = schemas.ProfileSchema.from_orm(self.user_1.account).dict()
         expected_payload = {

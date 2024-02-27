@@ -1,7 +1,9 @@
 from typing import List, Optional
 
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
 from ninja import Field, ModelSchema, Schema
+from pydantic import root_validator, validator
 
 from accounts.utils import calc_level_and_points, steamid64_to_hex
 from core.utils import get_full_file_path
@@ -161,6 +163,7 @@ class MatchSchema(ModelSchema):
     rounds: int
     winner_id: Optional[int] = None
     map: MapSchema
+    match_type: str
 
     class Config:
         model = models.Match
@@ -286,16 +289,50 @@ class MatchTeamPlayerFiveMSchema(ModelSchema):
         item_mapping[Item.ItemType.WEAPON] = weapon_items if weapon_items else None
 
         return {
-            value: item_mapping.get(key).item.handle
-            if key in item_mapping
-            and key not in [Item.ItemType.WEAR, Item.ItemType.WEAPON]
-            else item_mapping.get(key)
+            value: (
+                item_mapping.get(key).item.handle
+                if key in item_mapping
+                and key not in [Item.ItemType.WEAR, Item.ItemType.WEAPON]
+                else item_mapping.get(key)
+            )
             for key, value in item_types.items()
         }
 
 
+class MatchSpecFiveMSchema(ModelSchema):
+    username: str
+    steamid: str
+    steamid64: str
+    level: int
+    avatar: str
+
+    class Config:
+        model = models.MatchSpectator
+        model_fields = ['id']
+
+    @staticmethod
+    def resolve_steamid(obj):
+        return steamid64_to_hex(obj.user.account.steamid)
+
+    @staticmethod
+    def resolve_steamid64(obj):
+        return obj.user.account.steamid
+
+    @staticmethod
+    def resolve_level(obj):
+        return obj.user.account.level
+
+    @staticmethod
+    def resolve_username(obj):
+        return obj.user.account.username
+
+    @staticmethod
+    def resolve_avatar(obj):
+        return Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium')
+
+
 class MatchTeamFiveMSchema(ModelSchema):
-    players: List[MatchTeamPlayerFiveMSchema]
+    players: List[MatchTeamPlayerFiveMSchema] = []
 
     class Config:
         model = models.MatchTeam
@@ -309,14 +346,21 @@ class MatchTeamFiveMSchema(ModelSchema):
 class MatchFiveMSchema(ModelSchema):
     match_id: int = Field(None, alias='id')
     teams: List[MatchTeamFiveMSchema]
+    specs: List[MatchSpecFiveMSchema] = []
+    match_type: str
+    map: int
 
     class Config:
         model = models.Match
-        model_fields = ['map']
+        model_fields = ['game_mode', 'restricted_weapon']
 
     @staticmethod
-    def resolve_map_id(obj):
+    def resolve_map(obj):
         return obj.map.id
+
+    @staticmethod
+    def resolve_specs(obj):
+        return obj.matchspectator_set.all()
 
 
 class FiveMMatchResponseMock(Schema):
@@ -335,9 +379,62 @@ class MatchListItemSchema(Schema):
     id: int
     map_name: str
     map_image: str = None
-    game_type: str
+    match_type: str
+    game_mode: str
     start_date: str
     end_date: str
     won: bool
     score: str
     stats: MatchListItemStatsSchema
+
+
+class MatchCreationSchema(Schema):
+    players_ids: List[int]
+    mode: str = models.Match.GameMode.COMPETITIVE
+    map_id: int = None
+    weapon: str = None
+    def_players_ids: List[int] = []
+    atk_players_ids: List[int] = []
+    spec_players_ids: List[int] = []
+
+    @root_validator
+    def validations(cls, values):
+        pid_count = len(values.get('players_ids'))
+
+        if values.get('mode') == models.Match.GameMode.COMPETITIVE:
+            if pid_count < 10:
+                raise ValueError(_('Invalid number of players.'))
+        else:
+            dpid_count = len(values.get('def_players_ids'))
+            apid_count = len(values.get('atk_players_ids'))
+            spid_count = len(values.get('spec_players_ids'))
+            total_custom_ids = dpid_count + apid_count + spid_count
+
+            if (dpid_count == 0 and apid_count == 0) or total_custom_ids != pid_count:
+                raise ValueError(_('Invalid number of players.'))
+
+        return values
+
+    @validator('mode')
+    def check_mode(cls, value):
+        if value not in models.Match.GameMode.__members__.values():
+            raise ValueError(_('Invalid mode.'))
+
+        return value
+
+    @validator('map_id')
+    def check_map_id(cls, value):
+        if value:
+            try:
+                models.Map.objects.get(id=value)
+            except models.Map.DoesNotExist:
+                raise ValueError(_('Invalid map id.'))
+
+        return value
+
+    @validator('weapon')
+    def check_weapon(cls, value):
+        if value and value not in models.Match.WeaponChoices.__members__.values():
+            raise ValueError(_('Invalid weapon.'))
+
+        return value

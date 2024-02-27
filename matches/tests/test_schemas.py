@@ -20,6 +20,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'sys_name': 'map_name',
             'is_active': True,
             'thumbnail': get_full_file_path(map.thumbnail) if map.thumbnail else None,
+            'map_type': map.map_type,
         }
 
         self.assertEqual(payload, expected_payload)
@@ -37,13 +38,14 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'start_date': match.start_date.isoformat() if match.start_date else None,
             'end_date': match.end_date.isoformat() if match.end_date else None,
             'status': match.status,
-            'game_type': match.game_type,
+            'match_type': match.match_type,
             'game_mode': match.game_mode,
             'server_ip': match.server.ip,
             'teams': [schemas.MatchTeamSchema.from_orm(team) for team in match.teams],
             'rounds': match.rounds,
             'winner_id': match.winner.id if match.winner else None,
             'map': schemas.MapSchema.from_orm(map),
+            'restricted_weapon': match.restricted_weapon,
         }
         self.assertDictEqual(payload, expected_payload)
 
@@ -117,13 +119,14 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'start_date': match.start_date.isoformat() if match.start_date else None,
             'end_date': match.end_date.isoformat() if match.end_date else None,
             'status': status,
-            'game_type': match.game_type,
+            'match_type': match.match_type,
             'game_mode': match.game_mode,
             'server_ip': match.server.ip,
             'teams': [schemas.MatchTeamSchema.from_orm(team) for team in match.teams],
             'rounds': match.rounds,
             'winner_id': match.winner.id if match.winner else None,
             'map': schemas.MapSchema.from_orm(map),
+            'restricted_weapon': match.restricted_weapon,
         }
         self.assertDictEqual(payload, expected_payload)
 
@@ -267,3 +270,177 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
         }
 
         self.assertEqual(payload, expected_payload)
+
+    def test_match_creation_schema_invalid_mode(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid mode'):
+            schemas.MatchCreationSchema.from_orm(
+                {
+                    'players_ids': [self.user_1.id],
+                    'mode': 'test',
+                }
+            ).dict()
+
+    def test_match_creation_schema_invalid_players_length(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid number of players'):
+            schemas.MatchCreationSchema.from_orm(
+                {'players_ids': [self.user_1.id]}
+            ).dict()
+
+    def test_match_creation_schema_invalid_map_id(self):
+        with self.assertRaisesRegex(ValueError, 'Invalid map'):
+            schemas.MatchCreationSchema.from_orm(
+                {
+                    'players_ids': [self.user_1.id],
+                    'mode': 'custom',
+                    'map_id': 4,
+                }
+            ).dict()
+
+    def test_match_creation_schema_custom_without_players(self):
+        map = baker.make(models.Map, id=1)
+        with self.assertRaisesRegex(ValueError, 'Invalid number of players'):
+            schemas.MatchCreationSchema.from_orm(
+                {
+                    'players_ids': [self.user_1.id],
+                    'mode': 'custom',
+                    'map_id': map.id,
+                    'spec_players_ids': [self.user_1.id],
+                }
+            ).dict()
+
+    def test_match_creation_schema_invalid_weapon(self):
+        map = baker.make(models.Map, id=1)
+        with self.assertRaisesRegex(ValueError, 'Invalid weapon'):
+            schemas.MatchCreationSchema.from_orm(
+                {
+                    'players_ids': [self.user_1.id],
+                    'mode': 'custom',
+                    'map_id': map.id,
+                    'def_players_ids': [self.user_1.id],
+                    'weapon': 'katana',
+                }
+            ).dict()
+
+    def test_match_creation_schema_custom_invalid_players_length(self):
+        map = baker.make(models.Map, id=1)
+        with self.assertRaisesRegex(ValueError, 'Invalid number of players'):
+            schemas.MatchCreationSchema.from_orm(
+                {
+                    'players_ids': [self.user_1.id, self.user_2.id],
+                    'mode': 'custom',
+                    'map_id': map.id,
+                    'def_players_ids': [self.user_1.id],
+                }
+            ).dict()
+
+    def test_match_creation_schema_custom(self):
+        map = baker.make(models.Map, id=1)
+        payload = schemas.MatchCreationSchema.from_orm(
+            {
+                'players_ids': [self.user_1.id, self.user_2.id, self.user_3.id],
+                'mode': models.Match.GameMode.CUSTOM,
+                'map_id': map.id,
+                'def_players_ids': [self.user_1.id],
+                'atk_players_ids': [self.user_2.id],
+                'spec_players_ids': [self.user_2.id],
+                'weapon': models.Match.WeaponChoices.WEAPON_HEAVYSNIPER,
+            }
+        ).dict()
+
+        expected_payload = {
+            'players_ids': [self.user_1.id, self.user_2.id, self.user_3.id],
+            'mode': models.Match.GameMode.CUSTOM,
+            'map_id': map.id,
+            'def_players_ids': [self.user_1.id],
+            'atk_players_ids': [self.user_2.id],
+            'spec_players_ids': [self.user_2.id],
+            'weapon': models.Match.WeaponChoices.WEAPON_HEAVYSNIPER,
+        }
+        self.assertEqual(payload, expected_payload)
+
+    def test_match_creation_schema_comp(self):
+        payload = schemas.MatchCreationSchema.from_orm(
+            {
+                'players_ids': [
+                    self.user_1.id,
+                    self.user_2.id,
+                    self.user_3.id,
+                    self.user_4.id,
+                    self.user_5.id,
+                    self.user_6.id,
+                    self.user_7.id,
+                    self.user_8.id,
+                    self.user_9.id,
+                    self.user_10.id,
+                ],
+            }
+        ).dict()
+
+        expected_payload = {
+            'players_ids': [
+                self.user_1.id,
+                self.user_2.id,
+                self.user_3.id,
+                self.user_4.id,
+                self.user_5.id,
+                self.user_6.id,
+                self.user_7.id,
+                self.user_8.id,
+                self.user_9.id,
+                self.user_10.id,
+            ],
+            'mode': models.Match.GameMode.COMPETITIVE,
+            'map_id': None,
+            'def_players_ids': [],
+            'atk_players_ids': [],
+            'spec_players_ids': [],
+            'weapon': None,
+        }
+        self.assertEqual(payload, expected_payload)
+
+    def test_match_fivem_schema_comp(self):
+        map = baker.make(models.Map, id=1, name='Map name', sys_name='map_name')
+        match = baker.make(models.Match, map=map)
+        baker.make(models.MatchTeam, match=match)
+        baker.make(models.MatchTeam, match=match)
+        payload = schemas.MatchFiveMSchema.from_orm(match).dict()
+
+        expected_payload = {
+            'match_id': match.id,
+            'game_mode': match.game_mode,
+            'teams': [
+                schemas.MatchTeamFiveMSchema.from_orm(team) for team in match.teams
+            ],
+            'specs': [],
+            'match_type': match.match_type,
+            'map': map.id,
+            'restricted_weapon': match.restricted_weapon,
+        }
+        self.assertDictEqual(payload, expected_payload)
+
+    def test_match_fivem_schema_custom(self):
+        map = baker.make(models.Map, id=1, name='Map name', sys_name='map_name')
+        match = baker.make(
+            models.Match,
+            map=map,
+            game_mode='custom',
+        )
+        baker.make(models.MatchTeam, match=match)
+        baker.make(models.MatchTeam, match=match)
+        baker.make(models.MatchSpectator, match=match, user=self.user_2)
+        payload = schemas.MatchFiveMSchema.from_orm(match).dict()
+        expected_payload = {
+            'match_id': match.id,
+            'game_mode': match.game_mode,
+            'teams': [
+                schemas.MatchTeamFiveMSchema.from_orm(team) for team in match.teams
+            ],
+            'specs': [
+                schemas.MatchSpecFiveMSchema.from_orm(spec)
+                for spec in match.matchspectator_set.all()
+            ],
+            'match_type': match.match_type,
+            'map': map.id,
+            'restricted_weapon': match.restricted_weapon,
+        }
+        self.assertDictEqual(payload, expected_payload)

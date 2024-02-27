@@ -657,7 +657,17 @@
         "fields": {
             "id": 1,
             "name": "Auditório",
-            "sys_name": "auditorium"
+            "sys_name": "auditorium",
+            "map_type": "default"
+        }
+    },
+    {
+        "model": "matches.map",
+        "fields": {
+            "id": 2,
+            "name": "Estacionamento",
+            "sys_name": "parking",
+            "map_type": "safezone"
         }
     },
     {
@@ -669,9 +679,8 @@
             "start_date": "2023-04-19T15:16:05Z",
             "end_date": "2023-04-19T15:36:06Z",
             "status": "finished",
-            "game_type": "competitive",
             "map": 1,
-            "game_mode": 5,
+            "game_mode": "competitive",
             "chat": [
                 {
                     "steamid": "3e8692e322c0e2e",
@@ -703,8 +712,7 @@
             "start_date": "2023-04-19T15:36:36Z",
             "end_date": null,
             "status": "running",
-            "game_type": "competitive",
-            "game_mode": 5,
+            "game_mode": "competitive",
             "map": 1
         }
     },

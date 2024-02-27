@@ -1,10 +1,13 @@
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from model_bakery import baker
 from ninja.errors import AuthenticationError, Http404, HttpError
 
 from accounts.tests.mixins import VerifiedAccountsMixin
+from appsettings.models import AppSettings
 from core.tests import TestCase
+from matches.models import Map
 
 from ..api import controller, schemas
 from ..models import Lobby, LobbyException, LobbyInvite
@@ -547,106 +550,69 @@ class LobbyControllerTestCase(VerifiedAccountsMixin, TestCase):
                 self.user_3.id,
             )
 
-    @mock.patch('lobbies.api.controller.websocket.ws_expire_player_invites')
-    @mock.patch('lobbies.api.controller.ws_update_user')
-    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
-    def test_update_lobby_start_queue_owner(
-        self,
-        mock_update_lobby,
-        mock_update_user,
-        mock_expire_invites,
-    ):
-        self.user_1.account.lobby.set_public()
-        Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
-        payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
-
-        self.assertIsNone(self.user_1.account.lobby.queue)
-        controller.update_lobby(
+    def test_update_lobby(self):
+        baker.make(Map, id=1, map_type=Map.MapTypeChoices.DEFAULT)
+        baker.make(Map, id=2, map_type=Map.MapTypeChoices.SAFEZONE)
+        payload = schemas.LobbyUpdateSchema.from_orm({'mode': Lobby.ModeChoices.CUSTOM})
+        lobby = controller.update_lobby(
             self.user_1,
             self.user_1.account.lobby.id,
             payload,
         )
-        self.assertIsNotNone(self.user_1.account.lobby.queue)
-        mock_update_lobby.assert_called_once_with(self.user_1.account.lobby)
+        self.assertEqual(lobby.mode, Lobby.ModeChoices.CUSTOM)
 
-        self.user_1.refresh_from_db()
-        self.user_2.refresh_from_db()
-        self.assertEqual(self.user_1.status, User.Status.QUEUED)
-        self.assertEqual(self.user_2.status, User.Status.QUEUED)
+        baker.make(Map, id=3, map_type=Map.MapTypeChoices.DEFAULT)
+        payload = schemas.LobbyUpdateSchema.from_orm({'map_id': 3})
+        lobby = controller.update_lobby(
+            self.user_1,
+            self.user_1.account.lobby.id,
+            payload,
+        )
+        self.assertEqual(lobby.map_id, 3)
 
-        mock_calls = [
-            mock.call(self.user_1),
-            mock.call(self.user_2),
-        ]
+        payload = schemas.LobbyUpdateSchema.from_orm(
+            {'match_type': Map.MapTypeChoices.SAFEZONE}
+        )
+        lobby = controller.update_lobby(
+            self.user_1,
+            self.user_1.account.lobby.id,
+            payload,
+        )
+        self.assertEqual(lobby.match_type, Lobby.TypeChoices.SAFEZONE)
 
-        mock_update_user.assert_has_calls(mock_calls)
-        mock_expire_invites.assert_has_calls(mock_calls)
+        payload = schemas.LobbyUpdateSchema.from_orm(
+            {'weapon': Lobby.WeaponChoices.WEAPON_HEAVYSNIPER}
+        )
+        lobby = controller.update_lobby(
+            self.user_1,
+            self.user_1.account.lobby.id,
+            payload,
+        )
+        self.assertEqual(lobby.weapon, Lobby.WeaponChoices.WEAPON_HEAVYSNIPER)
 
-    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
-    def test_update_lobby_start_queue_unauthorized(self, mock_update_lobby):
-        self.user_1.account.lobby.set_public()
-        Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
-        payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
-
-        with self.assertRaises(AuthenticationError):
-            controller.update_lobby(
-                self.user_2,
-                self.user_1.account.lobby.id,
-                payload,
-            )
-
-        mock_update_lobby.assert_not_called()
-
-    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
-    def test_update_lobby_start_queue_error(self, mock_update_lobby):
-        self.user_1.account.lobby.set_public()
-        Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
-        self.user_1.account.lobby.start_queue()
-
-        payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
-        with self.assertRaises(HttpError):
+        payload = schemas.LobbyUpdateSchema.from_orm({'queue': 'start'})
+        with self.assertRaisesRegex(HttpError, 'in this mode'):
             controller.update_lobby(
                 self.user_1,
                 self.user_1.account.lobby.id,
                 payload,
             )
 
-        mock_update_lobby.assert_not_called()
+    def test_update_lobby_queue_maintenence(self):
+        AppSettings.objects.filter(name='Maintenance Window').update(value='1')
+        payload = schemas.LobbyUpdateSchema.from_orm({'queue': 'start'})
+        with self.assertRaisesRegex(HttpError, 'under maintenance'):
+            controller.update_lobby(
+                self.user_1,
+                self.user_1.account.lobby.id,
+                payload,
+            )
 
-    @mock.patch('lobbies.api.controller.websocket.ws_update_lobby')
-    def test_update_lobby_cancel_queue(self, mock_update_lobby):
-        self.user_1.account.lobby.set_public()
-        Lobby.move(self.user_2.id, self.user_1.account.lobby.id)
-        payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
-        controller.update_lobby(
-            self.user_1,
-            self.user_1.account.lobby.id,
-            payload,
-        )
-
-        self.assertIsNotNone(self.user_1.account.lobby.queue)
-        payload = schemas.LobbyUpdateSchema.from_orm({'cancel_queue': True})
-        controller.update_lobby(
-            self.user_1,
-            self.user_1.account.lobby.id,
-            payload,
-        )
-        self.assertIsNone(self.user_1.account.lobby.queue)
-
-        payload = schemas.LobbyUpdateSchema.from_orm({'start_queue': True})
-        controller.update_lobby(
-            self.user_1,
-            self.user_1.account.lobby.id,
-            payload,
-        )
-
-        self.assertIsNotNone(self.user_1.account.lobby.queue)
-        payload = schemas.LobbyUpdateSchema.from_orm({'cancel_queue': True})
-        controller.update_lobby(
-            self.user_2,
-            self.user_1.account.lobby.id,
-            payload,
-        )
-        self.assertIsNone(self.user_1.account.lobby.queue)
-        mock_update_lobby.assert_any_call(self.user_1.account.lobby)
-        self.assertEqual(mock_update_lobby.call_count, 4)
+    def test_update_lobby_queue_non_owner(self):
+        payload = schemas.LobbyUpdateSchema.from_orm({'queue': 'start'})
+        with self.assertRaises(AuthenticationError):
+            controller.update_lobby(
+                self.user_2,
+                self.user_1.account.lobby.id,
+                payload,
+            )

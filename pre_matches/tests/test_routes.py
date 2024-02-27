@@ -13,8 +13,7 @@ class PreMatchRoutesTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
 
         response = self.api.call(
@@ -44,8 +43,7 @@ class PreMatchRoutesTestCase(mixins.TeamsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         response = self.api.call(
             'get',

@@ -127,17 +127,13 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     if (
         len(pre_match.team1_players) < settings.TEAM_READY_PLAYERS_MIN
         or len(pre_match.team2_players) < settings.TEAM_READY_PLAYERS_MIN
-        or len(pre_match.team1_players) > pre_match.mode
-        or len(pre_match.team2_players) > pre_match.mode
+        or len(pre_match.team1_players) > pre_match.max_players
+        or len(pre_match.team2_players) > pre_match.max_players
     ):
         cancel_pre_match(pre_match)
         return
 
-    match = Match.objects.create(
-        server=server,
-        game_type=pre_match.match_type,
-        game_mode=pre_match.mode,
-    )
+    match = Match.objects.create(server=server, game_mode=pre_match.mode)
 
     if server.is_almost_full:
         send_server_almost_full_mail.delay(server.name)

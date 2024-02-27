@@ -8,8 +8,7 @@ class PreMatchSchema(Schema):
     players_ready_count: int
     players_total: int
     user_ready: bool = False
-    match_type: str
-    mode: int
+    mode: str
 
     @staticmethod
     def resolve_players_total(obj):

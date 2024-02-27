@@ -218,12 +218,12 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         with self.assertRaises(TeamException):
             Team.get_by_id(team.id, raise_error=True)
 
-    def test_type_mode(self):
+    def test_mode(self):
         self.lobby1.start_queue()
         self.lobby2.start_queue()
         self.lobby3.start_queue()
         team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id, self.lobby3.id])
-        self.assertEqual(team.type_mode, ('competitive', 5))
+        self.assertEqual(team.mode, Lobby.ModeChoices.COMP)
 
     def test_min_max_overall_by_queue_time(self):
         self.lobby1.start_queue()
@@ -350,7 +350,7 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         t2 = Team.create(lobbies_ids=[self.lobby2.id])
         self.assertTrue(t1.ready)
         self.assertTrue(t2.ready)
-        pm = PreMatch.create(t1.id, t2.id, t1.type_mode[0], t1.type_mode[1])
+        pm = PreMatch.create(t1.id, t2.id, t1.mode)
 
         self.assertIsNotNone(t1.pre_match_id)
         self.assertIsNotNone(t2.pre_match_id)
@@ -436,8 +436,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
             PreMatch.create(
                 self.team1.id,
                 self.team2.id,
-                self.team1.type_mode[0],
-                self.team1.type_mode[1],
+                self.team1.mode,
             )
         self.assertEqual(PreMatch.get_auto_id(), 10)
 
@@ -445,8 +444,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         pre_match_model = PreMatch.get_by_id(pre_match.id)
         self.assertEqual(pre_match, pre_match_model)
@@ -455,8 +453,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         self.assertEqual(len(pre_match.players_ready), 0)
         pre_match.set_player_ready(self.user_1.id)
@@ -466,8 +463,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
 
         self.assertFalse(pre_match.ready)
@@ -481,8 +477,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         self.assertEqual(pre_match.countdown, 30)
         time.sleep(2)
@@ -492,8 +487,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         self.assertEqual(pre_match.teams[0], self.team1)
         self.assertEqual(pre_match.teams[1], self.team2)
@@ -502,8 +496,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         self.assertEqual(len(pre_match.players), 10)
 
@@ -511,8 +504,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
 
         result1 = PreMatch.get_by_team_id(self.team1.id)
@@ -528,8 +520,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         self.assertGreaterEqual(len(cache.keys(f'{pre_match.cache_key}*')), 1)
 
@@ -543,8 +534,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         all_pre_matches = PreMatch.get_all()
         self.assertEqual(len(all_pre_matches), 1)
@@ -553,8 +543,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         pre_match = PreMatch.get_by_player_id(player_id=self.user_1.id)
         self.assertIsNotNone(pre_match)
@@ -566,8 +555,7 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
         pm = PreMatch.create(
             self.team1.id,
             self.team2.id,
-            self.team1.type_mode[0],
-            self.team1.type_mode[1],
+            self.team1.mode,
         )
         PreMatch.delete(pm.id)
         with self.assertRaises(PreMatchException):

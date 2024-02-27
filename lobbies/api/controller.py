@@ -11,9 +11,30 @@ from pre_matches.models import Team
 
 from .. import websocket
 from ..models import Lobby, LobbyException, LobbyInvite, LobbyInviteException
-from .schemas import LobbyInviteCreateSchema, LobbyUpdateSchema
+from .schemas import LobbyInviteCreateSchema, LobbyPlayerUpdateSchema, LobbyUpdateSchema
 
 User = get_user_model()
+
+
+def __update_queue(lobby, user, action):
+    if action == 'start':
+        handle_start_queue(lobby, user)
+    else:
+        handle_cancel_queue(lobby)
+
+
+def __update_custom_lobby(lobby, payload):
+    try:
+        if payload.map_id:
+            lobby.set_map_id(payload.map_id)
+
+        if payload.match_type:
+            lobby.set_match_type(payload.match_type)
+
+        if payload.weapon:
+            lobby.set_weapon(payload.weapon)
+    except LobbyException as exc:
+        raise HttpError(400, exc)
 
 
 def handle_lobby_update_ws(lobby):
@@ -320,12 +341,24 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
 def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby:
     lobby = get_lobby(lobby_id)
 
-    if payload.start_queue:
-        handle_start_queue(lobby, user)
+    if payload.queue:
+        __update_queue(lobby, user, payload.queue)
         handle_lobby_update_ws(lobby)
-    elif payload.cancel_queue:
-        handle_cancel_queue(lobby)
-        handle_lobby_update_ws(lobby)
+
+    elif payload.mode:
+        if lobby.owner_id != user.id:
+            raise AuthenticationError()
+
+        try:
+            lobby.set_mode(payload.mode)
+        except LobbyException as exc:
+            raise HttpError(400, exc)
+
+        websocket.ws_update_lobby(lobby)
+
+    else:
+        __update_custom_lobby(lobby, payload)
+        websocket.ws_update_lobby(lobby)
 
     return lobby
 
@@ -347,3 +380,17 @@ def create_invite(user: User, payload: LobbyInviteCreateSchema):
     websocket.ws_create_invite(invite)
     websocket.ws_update_lobby(lobby)
     return invite
+
+
+def update_player(lobby_id: int, payload: LobbyPlayerUpdateSchema):
+    if maintenance_window():
+        raise HttpError(400, _('We are under maintenance. Try again later.'))
+
+    lobby = get_lobby(lobby_id)
+    try:
+        lobby.change_player_side(payload.player_id, payload.side)
+    except LobbyException as exc:
+        raise HttpError(400, exc)
+
+    websocket.ws_update_lobby(lobby)
+    return lobby

@@ -164,11 +164,7 @@ class Command(BaseCommand):
                 name='Reload Staging Server',
             )
 
-            self.match = models.Match.objects.create(
-                server=server,
-                game_type=models.Match.GameType.COMPETITIVE,
-                game_mode=models.Match.GameMode.DEFUSE,
-            )
+            self.match = models.Match.objects.create(server=server)
             team1 = models.MatchTeam.objects.create(match=self.match, name='team1')
             team2 = models.MatchTeam.objects.create(match=self.match, name='team2')
 
