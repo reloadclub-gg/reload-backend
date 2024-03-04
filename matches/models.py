@@ -243,7 +243,28 @@ class Match(models.Model):
         """
         Fetch and return all players that are in match.
         """
+
         return MatchPlayer.objects.filter(Q(team=self.team_a) | Q(team=self.team_b))
+
+    @property
+    def non_spec_players(self) -> List[MatchPlayer]:
+        """
+        Return players that are in match.
+        """
+        return MatchPlayer.objects.filter(
+            Q(team=self.team_a) | Q(team=self.team_b),
+            is_spec=False,
+        )
+
+    @property
+    def spec_players(self) -> List[MatchPlayer]:
+        """
+        Return specs that are in match.
+        """
+        return MatchPlayer.objects.filter(
+            Q(team=self.team_a) | Q(team=self.team_b),
+            is_spec=True,
+        )
 
     def save(self, *args, **kwargs):
         if not self.pk and not self.map_id:
@@ -300,9 +321,14 @@ class Match(models.Model):
 
 
 class MatchTeam(models.Model):
+    class SideChoices(models.IntegerChoices):
+        DEF = 1
+        ATK = 2
+
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
     name = models.CharField(max_length=32)
     score = models.IntegerField(default=0, blank=True, null=True)
+    side = models.IntegerField(choices=SideChoices.choices)
 
     @property
     def players(self) -> List[MatchPlayer]:
@@ -321,14 +347,13 @@ class MatchTeam(models.Model):
         return f'#{self.id} - {self.name}'
 
 
-class MatchSpectator(models.Model):
-    match = models.ForeignKey(Match, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
 class MatchPlayer(models.Model):
+    """
+    If a player doesn't have a team, it means that this player is spec.
+    """
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    team = models.ForeignKey(MatchTeam, on_delete=models.CASCADE)
+    team = models.ForeignKey(MatchTeam, on_delete=models.CASCADE, blank=True, null=True)
     level = models.IntegerField(editable=False)
     level_points = models.IntegerField(editable=False)
 

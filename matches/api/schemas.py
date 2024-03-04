@@ -228,145 +228,6 @@ class MatchUpdateSchema(Schema):
     status: str = None
 
 
-class MatchTeamPlayerFiveMSchema(ModelSchema):
-    username: str
-    steamid: str
-    steamid64: str
-    level: int
-    avatar: str
-    assets: dict = {}
-
-    class Config:
-        model = User
-        model_fields = ['id']
-
-    @staticmethod
-    def resolve_steamid(obj):
-        return steamid64_to_hex(obj.account.steamid)
-
-    @staticmethod
-    def resolve_steamid64(obj):
-        return obj.account.steamid
-
-    @staticmethod
-    def resolve_level(obj):
-        return obj.account.level
-
-    @staticmethod
-    def resolve_username(obj):
-        return obj.account.username
-
-    @staticmethod
-    def resolve_avatar(obj):
-        return Steam.build_avatar_url(obj.steam_user.avatarhash, 'medium')
-
-    @staticmethod
-    def resolve_assets(obj):
-        item_types = {
-            Item.ItemType.SPRAY: 'spray',
-            Item.ItemType.PERSONA: 'persona',
-            Item.ItemType.WEAR: 'wear',
-            Item.ItemType.WEAPON: 'weapon',
-        }
-
-        items = obj.useritem_set.filter(
-            item__item_type__in=item_types.keys(),
-            in_use=True,
-        )
-
-        wear_items = []
-        weapon_items = []
-        item_mapping = {}
-        for item in items:
-            if item.item.item_type == Item.ItemType.WEAR:
-                wear_items.append(item.item.handle)
-            elif item.item.item_type == Item.ItemType.WEAPON:
-                weapon_items.append(item.item.handle)
-            else:
-                item_mapping[item.item.item_type] = item
-
-        item_mapping[Item.ItemType.WEAR] = wear_items if wear_items else None
-        item_mapping[Item.ItemType.WEAPON] = weapon_items if weapon_items else None
-
-        return {
-            value: (
-                item_mapping.get(key).item.handle
-                if key in item_mapping
-                and key not in [Item.ItemType.WEAR, Item.ItemType.WEAPON]
-                else item_mapping.get(key)
-            )
-            for key, value in item_types.items()
-        }
-
-
-class MatchSpecFiveMSchema(ModelSchema):
-    username: str
-    steamid: str
-    steamid64: str
-    level: int
-    avatar: str
-
-    class Config:
-        model = models.MatchSpectator
-        model_fields = ['id']
-
-    @staticmethod
-    def resolve_steamid(obj):
-        return steamid64_to_hex(obj.user.account.steamid)
-
-    @staticmethod
-    def resolve_steamid64(obj):
-        return obj.user.account.steamid
-
-    @staticmethod
-    def resolve_level(obj):
-        return obj.user.account.level
-
-    @staticmethod
-    def resolve_username(obj):
-        return obj.user.account.username
-
-    @staticmethod
-    def resolve_avatar(obj):
-        return Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium')
-
-
-class MatchTeamFiveMSchema(ModelSchema):
-    players: List[MatchTeamPlayerFiveMSchema] = []
-
-    class Config:
-        model = models.MatchTeam
-        model_fields = ['name']
-
-    @staticmethod
-    def resolve_players(obj):
-        return [player.user for player in obj.players]
-
-
-class MatchFiveMSchema(ModelSchema):
-    match_id: int = Field(None, alias='id')
-    teams: List[MatchTeamFiveMSchema]
-    specs: List[MatchSpecFiveMSchema] = []
-    match_type: str
-    map: int
-
-    class Config:
-        model = models.Match
-        model_fields = ['game_mode', 'restricted_weapon']
-
-    @staticmethod
-    def resolve_map(obj):
-        return obj.map.id
-
-    @staticmethod
-    def resolve_specs(obj):
-        return obj.matchspectator_set.all()
-
-
-class FiveMMatchResponseMock(Schema):
-    status_code: int
-
-
 class MatchListItemStatsSchema(Schema):
     adr: float = 0.00
     kdr: float = 0.00
@@ -438,3 +299,105 @@ class MatchCreationSchema(Schema):
             raise ValueError(_('Invalid weapon.'))
 
         return value
+
+
+class FivemResponseMock(Schema):
+    status_code: int
+
+
+class FivemPlayerSchema(ModelSchema):
+    id: int = Field(None, alias='user_id')
+    username: str
+    steamid: str
+    steamid64: str
+    avatar: str = None
+    team_id: int  # 0: spec, 1: def, 2: atk
+    assets: dict = {}
+
+    class Config:
+        model = models.MatchPlayer
+        model_fields = ['level']
+
+    @staticmethod
+    def resolve_username(obj):
+        return obj.user.account.username
+
+    @staticmethod
+    def resolve_steamid(obj):
+        return steamid64_to_hex(obj.user.account.steamid)
+
+    @staticmethod
+    def resolve_steamid64(obj):
+        return obj.user.account.steamid
+
+    @staticmethod
+    def resolve_avatar(obj):
+        if obj.team:
+            return Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium')
+
+    @staticmethod
+    def resolve_team_id(obj):
+        if not obj.team:
+            return 0
+        else:
+            return obj.team.side
+
+    @staticmethod
+    def resolve_assets(obj):
+        if not obj.team:
+            return {}
+
+        item_types = {
+            Item.ItemType.SPRAY: 'spray',
+            Item.ItemType.PERSONA: 'persona',
+            Item.ItemType.WEAR: 'wear',
+            Item.ItemType.WEAPON: 'weapon',
+        }
+
+        items = obj.user.useritem_set.filter(
+            item__item_type__in=item_types.keys(),
+            in_use=True,
+        )
+
+        wear_items = []
+        weapon_items = []
+        item_mapping = {}
+        for item in items:
+            if item.item.item_type == Item.ItemType.WEAR:
+                wear_items.append(item.item.handle)
+            elif item.item.item_type == Item.ItemType.WEAPON:
+                weapon_items.append(item.item.handle)
+            else:
+                item_mapping[item.item.item_type] = item
+
+        item_mapping[Item.ItemType.WEAR] = wear_items if wear_items else None
+        item_mapping[Item.ItemType.WEAPON] = weapon_items if weapon_items else None
+
+        return {
+            value: (
+                item_mapping.get(key).item.handle
+                if key in item_mapping
+                and key not in [Item.ItemType.WEAR, Item.ItemType.WEAPON]
+                else item_mapping.get(key)
+            )
+            for key, value in item_types.items()
+        }
+
+
+class FivemMatchSchema(ModelSchema):
+    match_id: int = Field(None, alias='id')
+    players: List[FivemPlayerSchema]
+    match_type: str
+    map: int
+
+    class Config:
+        model = models.Match
+        model_fields = ['game_mode', 'restricted_weapon']
+
+    @staticmethod
+    def resolve_players(obj):
+        return obj.players
+
+    @staticmethod
+    def resolve_map(obj):
+        return obj.map.id

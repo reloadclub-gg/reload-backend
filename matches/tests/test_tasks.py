@@ -18,8 +18,8 @@ class MatchesTasksTestCase(TeamsMixin, TestCase):
             status=models.Match.Status.CANCELLED,
             end_date=timezone.now() - timedelta(hours=12),
         )
-        match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(models.MatchPlayer, team=match.team_a, user=self.user_1)
         baker.make(models.MatchPlayer, team=match.team_b, user=self.user_2)
 

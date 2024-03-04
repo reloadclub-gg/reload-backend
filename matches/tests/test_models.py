@@ -39,8 +39,8 @@ class MatchesMatchModelTestCase(TeamsMixin, TestCase):
         super().setUp()
         self.server = baker.make(Server)
         self.match = baker.make(Match, server=self.server)
-        self.team1 = self.match.matchteam_set.create(name=self.team1.name)
-        self.team2 = self.match.matchteam_set.create(name=self.team2.name)
+        self.team1 = self.match.matchteam_set.create(name=self.team1.name, side=1)
+        self.team2 = self.match.matchteam_set.create(name=self.team2.name, side=2)
 
     def test_teams(self):
         self.assertCountEqual(self.match.teams, [self.team1, self.team2])
@@ -121,8 +121,12 @@ class MatchesMatchPlayerModelTestCase(TeamsMixin, TestCase):
         super().setUp()
         self.server = baker.make(Server)
         self.match = baker.make(Match, server=self.server, status=Match.Status.FINISHED)
-        self.team1 = self.match.matchteam_set.create(name=self.team1.name, score=10)
-        self.team2 = self.match.matchteam_set.create(name=self.team2.name, score=8)
+        self.team1 = self.match.matchteam_set.create(
+            name=self.team1.name, score=10, side=1
+        )
+        self.team2 = self.match.matchteam_set.create(
+            name=self.team2.name, score=8, side=2
+        )
 
     def test_points_earned(self):
         self.user_1.account.level = 1
@@ -262,8 +266,8 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         super().setUp()
         self.server = baker.make(Server)
         self.match = baker.make(Match, server=self.server)
-        self.team1 = self.match.matchteam_set.create(name=self.team1.name)
-        self.team2 = self.match.matchteam_set.create(name=self.team2.name)
+        self.team1 = self.match.matchteam_set.create(name=self.team1.name, side=1)
+        self.team2 = self.match.matchteam_set.create(name=self.team2.name, side=2)
 
     def test_rounds_played(self):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)

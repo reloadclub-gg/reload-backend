@@ -27,13 +27,13 @@ User = get_user_model()
 def __create_fivem_match(match: models.Match) -> models.Match:
     if settings.TEST_MODE or settings.FIVEM_MATCH_MOCKS_ON:
         status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
-        fivem_response = schemas.FiveMMatchResponseMock.from_orm(
+        fivem_response = schemas.FivemResponseMock.from_orm(
             {'status_code': status_code}
         )
         time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
     else:
         server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
-        payload = schemas.MatchFiveMSchema.from_orm(match).dict()
+        payload = schemas.FivemMatchSchema.from_orm(match).dict()
         try:
             fivem_response = requests.post(
                 server_url,
@@ -41,9 +41,7 @@ def __create_fivem_match(match: models.Match) -> models.Match:
                 timeout=settings.FIVEM_MATCH_CREATION_RETRIES_TIMEOUT,
             )
         except requests.exceptions.Timeout:
-            fivem_response = schemas.FiveMMatchResponseMock.from_orm(
-                {'status_code': 400}
-            )
+            fivem_response = schemas.FivemResponseMock.from_orm({'status_code': 400})
             logging.warning(f'[handle_create_fivem_match] {match.id}')
             return None
 
@@ -62,27 +60,18 @@ def __cancel_match(match_id: int):
     websocket.ws_match_delete(match)
 
 
-def __create_match_teams_players(match, payload):
-    team_a = match.matchteam_set.create(name='A')
-    team_b = match.matchteam_set.create(name='B')
+def __create_custom_match_teams_players(match, payload):
+    team_a = match.matchteam_set.create(name='A', side=1)
+    team_b = match.matchteam_set.create(name='B', side=2)
 
-    if match.game_mode == models.Match.GameMode.COMPETITIVE:
-        for player_id in payload.players_ids[:5]:
-            models.MatchPlayer.objects.create(user_id=player_id, team=team_a)
+    for player_id in payload.def_players_ids:
+        models.MatchPlayer.objects.create(user_id=player_id, team=team_a)
 
-        for player_id in payload.players_ids[5:]:
-            models.MatchPlayer.objects.create(user_id=player_id, team=team_b)
+    for player_id in payload.atk_players_ids:
+        models.MatchPlayer.objects.create(user_id=player_id, team=team_b)
 
-    else:
-
-        for player_id in payload.def_players_ids:
-            models.MatchPlayer.objects.create(user_id=player_id, team=team_a)
-
-        for player_id in payload.atk_players_ids:
-            models.MatchPlayer.objects.create(user_id=player_id, team=team_b)
-
-        for player_id in payload.spec_players_ids:
-            models.MatchSpectator.objects.create(match=match, user_id=player_id)
+    for player_id in payload.spec_players_ids:
+        models.MatchPlayer.objects.create(user_id=player_id)
 
 
 def __warmup_match(match):
@@ -121,7 +110,7 @@ def handle_update_players_stats(
     ]
 
     # Get all stats at once from the database
-    all_stats = models.MatchPlayerStats.objects.filter(
+    all_stats = models.MatchPlayerStats.objects.exclude(player__team=None).filter(
         player__user__account__steamid__in=steamids64,
         player__team__match=match,
     )
@@ -371,29 +360,28 @@ def cancel_match(match_id: int):
 
 
 def create_match(payload: schemas.MatchCreationSchema) -> models.Match:
+    # TODO competitive match is being created on pre_match app controller
+    # so we're gonna only create customs matches on this method for now.
+    if payload.mode != models.Match.GameMode.CUSTOM:
+        raise HttpError(400, _('invalid game mode.'))
 
     server = models.Server.get_idle()
     if not server:
         raise HttpError(400, _('Servers full.'))
 
-    # TODO competitive match is being created on pre_match app controller
-    # so we're gonna only create the custom match for now.
-    if payload.mode == models.Match.GameMode.CUSTOM:
-        try:
-            map = models.Map.objects.get(id=payload.map_id)
-        except models.Map.DoesNotExist:
-            raise Http404(_('Map not found.'))
-    else:
-        map = models.Map.randomize()
+    try:
+        map = models.Map.objects.get(id=payload.map_id)
+    except models.Map.DoesNotExist:
+        raise Http404(_('Map not found.'))
 
     match = models.Match.objects.create(
-        game_mode=payload.mode,
+        game_mode=models.Match.GameMode.CUSTOM,
         server=server,
         map=map,
         restricted_weapon=payload.weapon if payload.weapon else None,
     )
 
-    __create_match_teams_players(match, payload)
+    __create_custom_match_teams_players(match, payload)
     websocket.ws_match_create(match)
 
     fivem_response = __create_fivem_match(match)
