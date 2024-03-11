@@ -33,7 +33,16 @@ def get_default_social_handles():
 
 class VerifiedAccountManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(is_verified=True, user__is_active=True)
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                is_verified=True,
+                user__is_active=True,
+                user__is_staff=False,
+                user__is_superuser=False,
+            )
+        )
 
 
 class Account(models.Model):
@@ -245,9 +254,11 @@ class Account(models.Model):
         """
         matches = self.get_matches_played().order_by('-end_date')[:amount]
         played_results = [
-            Account.MatchResults.WIN
-            if match.get_user_team(self.user.id).id == match.winner.id
-            else Account.MatchResults.DEFEAT
+            (
+                Account.MatchResults.WIN
+                if match.get_user_team(self.user.id).id == match.winner.id
+                else Account.MatchResults.DEFEAT
+            )
             for match in matches
         ]
 
