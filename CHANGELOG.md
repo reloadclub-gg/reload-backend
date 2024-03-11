@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alteramos também os campos `game_type` e `game_mode` do model `Match` para refletir as alterações do model `Lobby`.
 - Alteramos as propriedades `lobby_type` e `mode` dos models `Team` e `PreMatch` para garantir que as alterações no model `Lobby` funcionassem.
 
+### Fixed
+
+- Ajusta manager do model `Account` que estava retornando usuários staff e admin, fazendo com que o ranking exibisse usuários staff e admins na lista [#1046](https://github.com/reloadclub-gg/reload-backend/issues/1046).
+
 ### Removed
 
 - Campo `match_type` do model `Match`, movendo esse campo para `Map.map_type` para que cada seja relacionado a um tipo de jogo.
