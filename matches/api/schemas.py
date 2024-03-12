@@ -311,7 +311,7 @@ class FivemPlayerSchema(ModelSchema):
     steamid: str
     steamid64: str
     avatar: str = None
-    team_id: int  # 0: spec, 1: def, 2: atk
+    team_id: int  # 1: def, 2: atk, 3: spec
     assets: dict = {}
 
     class Config:
@@ -338,7 +338,7 @@ class FivemPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_team_id(obj):
         if not obj.team:
-            return 0
+            return 3
         else:
             return obj.team.side
 
