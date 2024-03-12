@@ -17,7 +17,7 @@ from social_django.models import Association, Nonce, UserSocialAuth
 from core import admin_mixins
 from friends.models import Friendship
 from matches.models import Match, MatchPlayer
-from store.models import UserBox, UserItem
+from store.models import UserBox, UserItem, ProductTransaction
 
 from . import forms, models
 
@@ -193,6 +193,26 @@ class UserBoxAdminInline(admin.TabularInline):
         return obj.box.is_available
 
 
+class UserTransactionsAdminInline(admin.TabularInline):
+    model = ProductTransaction
+    readonly_fields = ['complete_date', 'amount', 'succeeded', 'payment_method']
+    exclude = ['product_id', 'session_id', 'price', 'status']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        ids = queryset.order_by('-id').values('pk')[:5]
+        return ProductTransaction.objects.filter(pk__in=ids)
+
+
 class CustomUserStatusFilter(admin.SimpleListFilter):
     title = 'Status'
     parameter_name = 'status'
@@ -352,6 +372,7 @@ class UserAdmin(
         UserReportsAdminInline,
         UserItemAdminInline,
         UserBoxAdminInline,
+        UserTransactionsAdminInline,
     ]
 
     def steamid(self, obj):

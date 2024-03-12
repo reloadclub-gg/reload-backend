@@ -156,6 +156,7 @@ def buy_product(request, payload: schemas.PurchaseSchema):
                 mode='payment',
                 success_url=request.build_absolute_uri(success_url),
                 cancel_url=f'{settings.FRONT_END_URL}/checkout/cancel',
+                metadata={'tid': checkout_transaction.id},
             )
 
             checkout_transaction.session_id = checkout_session.get('id')
@@ -182,10 +183,15 @@ def resume_transaction(transaction_id: int):
     ):
         return redirect(f'{settings.FRONT_END_URL}/checkout/error')
 
+    payment_intent = stripe.PaymentIntent.retrieve(
+        checkout_session.get('payment_intent')
+    )
     user.account.coins += transaction.amount
     user.account.save()
+    transaction.payment_method = payment_intent.get('payment_method_types')[0]
     transaction.complete_date = timezone.now()
     transaction.status = models.ProductTransaction.Status.COMPLETE
+    transaction.succeeded = True
     transaction.save()
     tasks.send_purchase_mail_task.delay(
         user.email,
@@ -193,3 +199,167 @@ def resume_transaction(transaction_id: int):
         transaction.complete_date,
     )
     return redirect(f'{settings.FRONT_END_URL}/checkout/success')
+
+
+def _verify_checkout_session(request) -> stripe.Event:
+    try:
+        sig_header = request.headers.get('Stripe-Signature')
+        return stripe.Webhook.construct_event(
+            request.body,
+            sig_header,
+            settings.STRIPE_WEBHOOK_SECRET,
+        )
+    except ValueError as e:
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        raise e
+
+
+def _get_transaction(transaction_id: int) -> models.ProductTransaction:
+    transaction = get_object_or_404(
+        models.ProductTransaction,
+        id=transaction_id,
+        complete_date=None,
+        status=models.ProductTransaction.Status.OPEN,
+    )
+
+    if not hasattr(transaction.user, 'account'):
+        logging.warning(f'User {transaction.user.id} without account made a purchase.')
+
+    return transaction
+
+
+def _get_payment_method(payment_intent_id: str) -> str:
+    payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+    return payment_intent.get('payment_method_types')[0]
+
+
+def _complete_transaction(
+    transaction: models.ProductTransaction,
+    succeeded: bool = True,
+):
+    transaction.user.account.coins += transaction.amount
+    transaction.user.account.save()
+    transaction.succeeded = succeeded
+    transaction.status = models.ProductTransaction.Status.COMPLETE
+    transaction.complete_date = timezone.now()
+    transaction.save()
+
+    tasks.send_purchase_mail_task.delay(
+        transaction.user.email,
+        transaction.id,
+        transaction.complete_date,
+    )
+
+
+def update_transactions(request):
+    event = _verify_checkout_session(request)
+    listening_types = [
+        'checkout.session.async_payment_succeeded',
+        'checkout.session.async_payment_failed',
+        'checkout.session.completed',
+    ]
+
+    if event.get('type') in listening_types:
+        transaction = _get_transaction(event['data']['object']['metadata']['tid'])
+        checkout_session = stripe.checkout.Session.retrieve(transaction.session_id)
+        payment_intent_id = checkout_session.get('payment_intent')
+        transaction.payment_method = _get_payment_method(payment_intent_id)
+
+        # if is an event to inform that the checkout session is done
+        # we don't need to check the status of the entire transaction
+        if event.get('type') == 'checkout.session.completed' or (
+            event.get('type') != 'checkout.session.completed'
+            and checkout_session.get('status')
+            != models.ProductTransaction.Status.COMPLETE
+        ):
+            transaction.save()
+            return
+
+        succeeded = event.get('type') == 'checkout.session.async_payment_succeeded'
+        _complete_transaction(transaction, succeeded)
+
+    return {}
+
+
+# def update_transactions(request):
+#     try:
+#         sig_header = request.headers.get('Stripe-Signature')
+#         event = stripe.Webhook.construct_event(
+#             request.body,
+#             sig_header,
+#             settings.STRIPE_WEBHOOK_SECRET,
+#         )
+#     except ValueError as e:
+#         raise e
+#     except stripe.error.SignatureVerificationError as e:
+#         raise e
+
+#     listening_types = [
+#         'checkout.session.async_payment_succeeded',
+#         'checkout.session.async_payment_failed',
+#         'checkout.session.expired',
+#     ]
+
+#     if event.get('type') in listening_types:
+# transaction_id = event.get('data').get('object').get('metadata').get('tid')
+# transaction = get_object_or_404(
+#     models.ProductTransaction,
+#     id=transaction_id,
+#     complete_date=None,
+#     status=models.ProductTransaction.Status.OPEN,
+# )
+# user = transaction.user
+# checkout_session = stripe.checkout.Session.retrieve(transaction.session_id)
+
+# if (
+#     not hasattr(user, 'account')
+#     or checkout_session.get('status')
+#     != models.ProductTransaction.Status.COMPLETE
+# ):
+#     return
+
+# payment_intent = stripe.PaymentIntent.retrieve(
+#     checkout_session.get('payment_intent')
+# )
+# transaction.payment_method = payment_intent.get('payment_method_types')[0]
+
+#         if event.get('type') == 'checkout.session.async_payment_succeeded':
+# user.account.coins += transaction.amount
+# user.account.save()
+# tasks.send_purchase_mail_task.delay(
+#     user.email,
+#     transaction.id,
+#     transaction.complete_date,
+# )
+# transaction.succeeded = True
+#         elif event.get('type') == 'checkout.session.async_payment_failed':
+#             transaction.succeeded = False
+
+#         transaction.complete_date = timezone.now()
+#         transaction.status = models.ProductTransaction.Status.COMPLETE
+#         transaction.save()
+#     elif event.get('type') == 'checkout.session.completed':
+#         transaction_id = event.get('data').get('object').get('metadata').get('tid')
+#         transaction = get_object_or_404(
+#             models.ProductTransaction,
+#             id=transaction_id,
+#             complete_date=None,
+#             status=models.ProductTransaction.Status.OPEN,
+#         )
+#         user = transaction.user
+#         checkout_session = stripe.checkout.Session.retrieve(transaction.session_id)
+
+#         if (
+#             not hasattr(user, 'account')
+#             or checkout_session.get('status')
+#             != models.ProductTransaction.Status.COMPLETE
+#         ):
+#             return
+
+#         payment_intent = stripe.PaymentIntent.retrieve(
+#             checkout_session.get('payment_intent')
+#         )
+#         transaction.payment_method = payment_intent.get('payment_method_types')[0]
+
+#     return {}

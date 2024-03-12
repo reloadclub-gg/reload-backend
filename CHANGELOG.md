@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Endpoint para webhook do stripe que finaliza a transação salvando alguns metadados como meio de pagamento e se a transação foi convertida ou não [#1045](https://github.com/reloadclub-gg/reload-backend/issues/1045).
+- Campos `succeeded` e `payment_method` no modelo `ProductTransaction` para maior controle interno.
+- Configuração `STRIPE_WEBHOOK_SECRET` para armazenar token de webhook da Stripe.
 - Endpoint para iniciar partida personalizada [#1050](https://github.com/3C-gg/reload-backend/issues/1050).
 - Campo `map_type` no model `Map` para identificar os mapas de cada tipo de jogo.
 - Listas de selects para FE no esquema `LobbySchema` quando lobby for personalizado.
@@ -17,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Admin de usuários foi atualizado para conter a lista de transações efetuadas.
+- Admin de transações foi atualizado para conter os novos campos do modelo.
 - Alteramos o esquema `LobbySchema` para conter os campos relacionados as partidas personalizadas.
 - Alteramos o endpoint `PATCH /api/lobbies/{lobby_id}/` e o esquema `LobbyUpdateSchema` para receber as alterações relacionadas às partidas personalizadas.
 - Alteramos os campos `lobby_type` e `mode` do model `Lobby` para uma melhor adaptação às partidas personalizadas [#1044](1044-alteraes-no-model-lobby-para-partida-personalizada).
