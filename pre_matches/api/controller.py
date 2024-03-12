@@ -11,7 +11,7 @@ from ninja.errors import Http404, HttpError
 from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from core.websocket import ws_create_toast
 from matches.api.controller import cancel_match
-from matches.api.schemas import FiveMMatchResponseMock, MatchFiveMSchema
+from matches.api.schemas import FivemResponseMock, FivemMatchSchema
 from matches.models import Match, MatchPlayer, Server
 from matches.tasks import (
     mock_fivem_match_cancel,
@@ -77,11 +77,11 @@ def handle_create_fivem_match(match: Match) -> Match:
         or settings.FIVEM_MATCH_MOCKS_ON
     ):
         status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
-        fivem_response = FiveMMatchResponseMock.from_orm({'status_code': status_code})
+        fivem_response = FivemResponseMock.from_orm({'status_code': status_code})
         time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
     else:
         server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
-        payload = MatchFiveMSchema.from_orm(match).dict()
+        payload = FivemMatchSchema.from_orm(match).dict()
         try:
             fivem_response = requests.post(
                 server_url,
@@ -89,7 +89,7 @@ def handle_create_fivem_match(match: Match) -> Match:
                 timeout=settings.FIVEM_MATCH_CREATION_RETRIES_TIMEOUT,
             )
         except requests.exceptions.Timeout:
-            fivem_response = FiveMMatchResponseMock.from_orm({'status_code': 400})
+            fivem_response = FivemResponseMock.from_orm({'status_code': 400})
             logging.warning(f'[handle_create_fivem_match] {match.id}')
             return None
 
@@ -101,8 +101,8 @@ def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match
     if not pre_team1 or not pre_match:
         return
 
-    team_a = match.matchteam_set.create(name=pre_team1.name)
-    team_b = match.matchteam_set.create(name=pre_team2.name)
+    team_a = match.matchteam_set.create(name=pre_team1.name, side=1)
+    team_b = match.matchteam_set.create(name=pre_team2.name, side=2)
 
     for user in pre_match.team1_players:
         MatchPlayer.objects.create(user=user, team=team_a)

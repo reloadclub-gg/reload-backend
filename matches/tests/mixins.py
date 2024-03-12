@@ -24,8 +24,9 @@ class FinishedMatchesMixin(TeamsMixin):
         team1 = self.match1.matchteam_set.create(
             name=self.team1.name,
             score=settings.MATCH_ROUNDS_TO_WIN,
+            side=1,
         )
-        team2 = self.match1.matchteam_set.create(name=self.team2.name, score=5)
+        team2 = self.match1.matchteam_set.create(name=self.team2.name, score=5, side=2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_3)
@@ -46,8 +47,9 @@ class FinishedMatchesMixin(TeamsMixin):
         team1 = self.match2.matchteam_set.create(
             name=self.team1.name,
             score=settings.MATCH_ROUNDS_TO_WIN,
+            side=1,
         )
-        team2 = self.match2.matchteam_set.create(name=self.team2.name, score=5)
+        team2 = self.match2.matchteam_set.create(name=self.team2.name, score=5, side=2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_3)
@@ -65,10 +67,11 @@ class FinishedMatchesMixin(TeamsMixin):
             status=models.Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = self.match3.matchteam_set.create(name=self.team1.name, score=5)
+        team1 = self.match3.matchteam_set.create(name=self.team1.name, score=5, side=1)
         team2 = self.match3.matchteam_set.create(
             name=self.team2.name,
             score=settings.MATCH_ROUNDS_TO_WIN,
+            side=2,
         )
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
@@ -92,8 +95,8 @@ class RunningMatchesMixin(TeamsMixin):
             server=server,
             status=models.Match.Status.RUNNING,
         )
-        team1 = self.match1.matchteam_set.create(name=self.team1.name)
-        team2 = self.match1.matchteam_set.create(name=self.team2.name)
+        team1 = self.match1.matchteam_set.create(name=self.team1.name, side=1)
+        team2 = self.match1.matchteam_set.create(name=self.team2.name, side=2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_3)
@@ -110,8 +113,8 @@ class RunningMatchesMixin(TeamsMixin):
             server=server,
             status=models.Match.Status.RUNNING,
         )
-        team3 = self.match2.matchteam_set.create(name=self.team3.name)
-        team4 = self.match2.matchteam_set.create(name=self.team4.name)
+        team3 = self.match2.matchteam_set.create(name=self.team3.name, side=1)
+        team4 = self.match2.matchteam_set.create(name=self.team4.name, side=2)
         baker.make(models.MatchPlayer, team=team3, user=self.user_11)
         baker.make(models.MatchPlayer, team=team3, user=self.user_12)
         baker.make(models.MatchPlayer, team=team3, user=self.user_13)

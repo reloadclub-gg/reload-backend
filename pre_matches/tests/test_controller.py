@@ -209,8 +209,8 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     def test_handle_create_fivem_match_success(self):
         server = baker.make(Server)
         match = baker.make(Match, server=server, status=Match.Status.LOADING)
-        match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=8)
+        match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=8, side=2)
 
         five_response = controller.handle_create_fivem_match(match)
         self.assertEqual(five_response.status_code, 201)
@@ -224,8 +224,8 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
     def test_handle_create_fivem_match_error(self):
         server = baker.make(Server)
         match = baker.make(Match, server=server, status=Match.Status.LOADING)
-        match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=8)
+        match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=8, side=2)
 
         fivem_response = controller.handle_create_fivem_match(match)
         self.assertEqual(fivem_response.status_code, 400)

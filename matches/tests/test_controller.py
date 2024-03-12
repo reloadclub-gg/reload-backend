@@ -24,8 +24,16 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             start_date=timezone.now(),
             end_date=timezone.now(),
         )
-        self.match_t1 = self.match.matchteam_set.create(name=self.team1.name, score=10)
-        self.match_t2 = self.match.matchteam_set.create(name=self.team2.name, score=6)
+        self.match_t1 = self.match.matchteam_set.create(
+            name=self.team1.name,
+            score=10,
+            side=1,
+        )
+        self.match_t2 = self.match.matchteam_set.create(
+            name=self.team2.name,
+            score=6,
+            side=2,
+        )
         baker.make(models.MatchPlayer, team=self.match_t1, user=self.user_1)
         baker.make(models.MatchPlayer, team=self.match_t2, user=self.user_2)
 
@@ -37,8 +45,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             start_date=timezone.now(),
             end_date=timezone.now(),
         )
-        team1 = match2.matchteam_set.create(name=self.team1.name, score=10)
-        match2.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match2.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match2.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
 
         results = controller.get_user_matches(self.user_1)
@@ -51,8 +59,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             start_date=timezone.now(),
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
 
         results = controller.get_user_matches(self.user_1, self.user_2.id)

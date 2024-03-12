@@ -165,8 +165,16 @@ class Command(BaseCommand):
             )
 
             self.match = models.Match.objects.create(server=server)
-            team1 = models.MatchTeam.objects.create(match=self.match, name='team1')
-            team2 = models.MatchTeam.objects.create(match=self.match, name='team2')
+            team1 = models.MatchTeam.objects.create(
+                match=self.match,
+                name='team1',
+                side=1,
+            )
+            team2 = models.MatchTeam.objects.create(
+                match=self.match,
+                name='team2',
+                side=2,
+            )
 
             [
                 models.MatchPlayer.objects.create(user=user, team=team1)

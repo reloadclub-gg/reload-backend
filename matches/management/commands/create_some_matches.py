@@ -44,11 +44,13 @@ class Command(BaseCommand):
                     match=self.match,
                     name='Team A',
                     score=settings.MATCH_ROUNDS_TO_WIN,
+                    side=1,
                 )
                 models.MatchTeam.objects.create(
                     match=self.match,
                     name='Team B',
                     score=0,
+                    side=2,
                 )
                 player = User.objects.filter(
                     is_staff=False,

@@ -19,8 +19,8 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         match_player = baker.make(MatchPlayer, team=team1, user=self.user_1)
         kills_1 = match_player.stats.kills = 10
         dmg_1 = match_player.stats.damage = 100
@@ -32,8 +32,8 @@ class ProfilesSchemasTestCase(TeamsMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         match_player = baker.make(MatchPlayer, team=team1, user=self.user_1)
         kills_2 = match_player.stats.kills = 15
         dmg_2 = match_player.stats.damage = 200

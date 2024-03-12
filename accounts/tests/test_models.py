@@ -88,8 +88,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         self.assertEqual(self.user_1.account.get_matches_played_count(), 3)
         server = baker.make(Server)
         match = baker.make(Match, server=server, status=Match.Status.FINISHED)
-        team1 = match.matchteam_set.create(name=self.team1.name)
-        match.matchteam_set.create(name=self.team2.name)
+        team1 = match.matchteam_set.create(name=self.team1.name, side=1)
+        match.matchteam_set.create(name=self.team2.name, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         self.assertEqual(self.user_1.account.get_matches_played_count(), 4)
 
@@ -101,8 +101,9 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         team1 = match.matchteam_set.create(
             name=self.team1.name,
             score=settings.MATCH_ROUNDS_TO_WIN,
+            side=1,
         )
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         self.assertEqual(self.user_1.account.matches_won, 3)
 
@@ -124,8 +125,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         # V - D - V - V - N/A
         results = self.user_1.account.get_latest_matches_results()
@@ -138,8 +139,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         results = self.user_1.account.get_latest_matches_results()
         # V - V - D - V - V
@@ -157,8 +158,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=8)
-        match.matchteam_set.create(name=self.team2.name, score=10)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=8, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=10, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         # D - V - V - D - V
         results = self.user_1.account.get_latest_matches_results()
@@ -186,8 +187,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         self.assertEqual(self.user_1.account.highest_win_streak, 2)
 
@@ -197,8 +198,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         self.assertEqual(self.user_1.account.highest_win_streak, 2)
 
@@ -208,22 +209,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=6)
-        match.matchteam_set.create(name=self.team2.name, score=10)
-        baker.make(MatchPlayer, team=team1, user=self.user_1)
-        self.assertEqual(self.user_1.account.highest_win_streak, 2)
-
-        match = baker.make(
-            Match,
-            server=server,
-            status=Match.Status.FINISHED,
-            end_date=timezone.now(),
-        )
-        team1 = match.matchteam_set.create(
-            name=self.team1.name,
-            score=settings.MATCH_ROUNDS_TO_WIN,
-        )
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=6, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=10, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         self.assertEqual(self.user_1.account.highest_win_streak, 2)
 
@@ -236,8 +223,9 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         team1 = match.matchteam_set.create(
             name=self.team1.name,
             score=settings.MATCH_ROUNDS_TO_WIN,
+            side=1,
         )
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         self.assertEqual(self.user_1.account.highest_win_streak, 2)
 
@@ -250,8 +238,24 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         team1 = match.matchteam_set.create(
             name=self.team1.name,
             score=settings.MATCH_ROUNDS_TO_WIN,
+            side=1,
         )
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
+        baker.make(MatchPlayer, team=team1, user=self.user_1)
+        self.assertEqual(self.user_1.account.highest_win_streak, 2)
+
+        match = baker.make(
+            Match,
+            server=server,
+            status=Match.Status.FINISHED,
+            end_date=timezone.now(),
+        )
+        team1 = match.matchteam_set.create(
+            name=self.team1.name,
+            score=settings.MATCH_ROUNDS_TO_WIN,
+            side=1,
+        )
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         self.assertEqual(self.user_1.account.highest_win_streak, 3)
 
@@ -264,8 +268,9 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         team1 = match.matchteam_set.create(
             name=self.team1.name,
             score=settings.MATCH_ROUNDS_TO_WIN,
+            side=1,
         )
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         self.assertEqual(self.user_1.account.highest_win_streak, 4)
 
@@ -278,8 +283,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         match_player = baker.make(MatchPlayer, team=team1, user=self.user_1)
         match_player.stats.kills = 10
         match_player.stats.damage = 100
@@ -293,8 +298,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         match_player = baker.make(MatchPlayer, team=team1, user=self.user_1)
         match_player.stats.kills = 5
         match_player.stats.damage = 50
@@ -308,8 +313,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
             status=Match.Status.FINISHED,
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         match_player = baker.make(MatchPlayer, team=team1, user=self.user_1)
         match_player.stats.kills = 15
         match_player.stats.damage = 150
@@ -427,8 +432,8 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         server = baker.make(Server)
         baker.make(Map)
         match = Match.objects.create(server=server)
-        team_a = match.matchteam_set.create(name='team_a')
-        team_b = match.matchteam_set.create(name='team_b')
+        team_a = match.matchteam_set.create(name='team_a', side=1)
+        team_b = match.matchteam_set.create(name='team_b', side=2)
 
         MatchPlayer.objects.create(user=self.user, team=team_a)
         MatchPlayer.objects.create(user=user2, team=team_b)
@@ -446,8 +451,8 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
 
         server = baker.make(Server)
         match = Match.objects.create(server=server)
-        team_a = match.matchteam_set.create(name='team_a')
-        team_b = match.matchteam_set.create(name='team_b')
+        team_a = match.matchteam_set.create(name='team_a', side=1)
+        team_b = match.matchteam_set.create(name='team_b', side=2)
 
         MatchPlayer.objects.create(user=self.user, team=team_a)
         MatchPlayer.objects.create(user=user2, team=team_b)

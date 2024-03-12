@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Novos métodos de apoio no modelo `Match`.
+- Campo `side` no modelo `MatchTeam` para definir se o time começa atacando ou defendendo.
 - Endpoint para webhook do stripe que finaliza a transação salvando alguns metadados como meio de pagamento e se a transação foi convertida ou não [#1045](https://github.com/reloadclub-gg/reload-backend/issues/1045).
 - Campos `succeeded` e `payment_method` no modelo `ProductTransaction` para maior controle interno.
 - Configuração `STRIPE_WEBHOOK_SECRET` para armazenar token de webhook da Stripe.
@@ -20,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Refatoração e alteração dos esquemas `FivemPlayerSchema` (antigo `MatchTeamPlayerFiveMSchema`) e `FivemMatchSchema` (antigo `MatchFiveMSchema`) para enviarem o novo esquema para o FiveM [#1053](https://github.com/reloadclub-gg/reload-backend/issues/1053).
+- Alteração do esquema `FiveMMatchResponseMock` para `FivemResponseMock`.
+- Refatoração do controller de criar partida no Fivem em `matches`.
 - Admin de usuários foi atualizado para conter a lista de transações efetuadas.
 - Admin de transações foi atualizado para conter os novos campos do modelo.
 - Alteramos o esquema `LobbySchema` para conter os campos relacionados as partidas personalizadas.

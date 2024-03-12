@@ -28,8 +28,8 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_schema(self):
         map = baker.make(models.Map, id=1, name='Map name', sys_name='map_name')
         match = baker.make(models.Match, map=map)
-        baker.make(models.MatchTeam, match=match)
-        baker.make(models.MatchTeam, match=match)
+        baker.make(models.MatchTeam, match=match, side=1)
+        baker.make(models.MatchTeam, match=match, side=2)
         payload = schemas.MatchSchema.from_orm(match).dict()
 
         expected_payload = {
@@ -53,8 +53,8 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
         match = baker.make(models.Match, status=models.Match.Status.WARMUP)
-        team = baker.make(models.MatchTeam, match=match, score=10)
-        baker.make(models.MatchTeam, match=match)
+        team = baker.make(models.MatchTeam, match=match, score=10, side=1)
+        baker.make(models.MatchTeam, match=match, side=2)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
         match.start()
         match.finish()
@@ -92,8 +92,8 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_with_players_schema(self):
         map = baker.make(models.Map, id=1, name='Map name', sys_name='map_name')
         match = baker.make(models.Match, map=map)
-        team_a = match.matchteam_set.create(name='Team A')
-        team_b = match.matchteam_set.create(name='Team B')
+        team_a = match.matchteam_set.create(name='Team A', side=1)
+        team_b = match.matchteam_set.create(name='Team B', side=2)
         baker.make(models.MatchPlayer, user=self.user_1, team=team_a)
         baker.make(models.MatchPlayer, user=self.user_2, team=team_a)
         baker.make(models.MatchPlayer, user=self.user_3, team=team_a)
@@ -132,13 +132,14 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
 
     def test_match_team_schema(self):
         match = baker.make(models.Match)
-        team = baker.make(models.MatchTeam, match=match)
+        team = baker.make(models.MatchTeam, match=match, side=1)
         payload = schemas.MatchTeamSchema.from_orm(team).dict()
         expected_payload = {
             'id': team.id,
             'name': team.name,
             'score': team.score,
             'match_id': team.match.id,
+            'side': team.side,
             'players': [
                 schemas.MatchPlayerSchema.from_orm(match_player)
                 for match_player in match.players
@@ -150,8 +151,8 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
         match = baker.make(models.Match, status=models.Match.Status.WARMUP)
-        team = baker.make(models.MatchTeam, match=match, score=10)
-        baker.make(models.MatchTeam, match=match)
+        team = baker.make(models.MatchTeam, match=match, score=10, side=1)
+        baker.make(models.MatchTeam, match=match, side=2)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
         match.start()
         match.finish()
@@ -178,8 +179,8 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
         self.user_1.account.level_points = 95
         self.user_1.account.save()
         match = baker.make(models.Match, status=models.Match.Status.WARMUP)
-        team = baker.make(models.MatchTeam, match=match, score=10)
-        baker.make(models.MatchTeam, match=match)
+        team = baker.make(models.MatchTeam, match=match, score=10, side=1)
+        baker.make(models.MatchTeam, match=match, side=2)
         match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
         match.start()
         match.finish()
@@ -222,53 +223,6 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             'chest_accuracy': match_player.stats.chest_accuracy,
             'others_accuracy': match_player.stats.others_accuracy,
         }
-        self.assertEqual(payload, expected_payload)
-
-    def test_match_team_player_fivem_schema(self):
-        self.user_1.account.level_points = 95
-        self.user_1.account.save()
-        match = baker.make(models.Match, status=models.Match.Status.LOADING)
-        team = baker.make(models.MatchTeam, match=match, score=10)
-        baker.make(models.MatchTeam, match=match)
-        match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
-
-        payload = schemas.MatchTeamPlayerFiveMSchema.from_orm(match_player.user).dict()
-        expected_payload = {
-            'id': match_player.user.id,
-            'username': match_player.user.account.username,
-            'steamid': steamid64_to_hex(match_player.user.account.steamid),
-            'steamid64': match_player.user.account.steamid,
-            'level': match_player.user.account.level,
-            'avatar': Steam.build_avatar_url(
-                match_player.user.steam_user.avatarhash,
-                'medium',
-            ),
-            'assets': {'persona': None, 'spray': None, 'wear': None, 'weapon': None},
-        }
-
-        self.assertEqual(payload, expected_payload)
-
-        item = baker.make(Item, item_type='spray', name='spray_1')
-        UserItem.objects.create(item=item, user=self.user_1, in_use=True)
-        payload = schemas.MatchTeamPlayerFiveMSchema.from_orm(match_player.user).dict()
-        expected_payload = {
-            'id': match_player.user.id,
-            'username': match_player.user.account.username,
-            'steamid': steamid64_to_hex(match_player.user.account.steamid),
-            'steamid64': match_player.user.account.steamid,
-            'level': match_player.user.account.level,
-            'avatar': Steam.build_avatar_url(
-                match_player.user.steam_user.avatarhash,
-                'medium',
-            ),
-            'assets': {
-                'persona': None,
-                'spray': item.handle,
-                'wear': None,
-                'weapon': None,
-            },
-        }
-
         self.assertEqual(payload, expected_payload)
 
     def test_match_creation_schema_invalid_mode(self):
@@ -401,17 +355,16 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
     def test_match_fivem_schema_comp(self):
         map = baker.make(models.Map, id=1, name='Map name', sys_name='map_name')
         match = baker.make(models.Match, map=map)
-        baker.make(models.MatchTeam, match=match)
-        baker.make(models.MatchTeam, match=match)
-        payload = schemas.MatchFiveMSchema.from_orm(match).dict()
+        baker.make(models.MatchTeam, match=match, side=1)
+        baker.make(models.MatchTeam, match=match, side=2)
+        payload = schemas.FivemMatchSchema.from_orm(match).dict()
 
         expected_payload = {
             'match_id': match.id,
             'game_mode': match.game_mode,
-            'teams': [
-                schemas.MatchTeamFiveMSchema.from_orm(team) for team in match.teams
+            'players': [
+                schemas.FivemPlayerSchema.from_orm(player) for player in match.players
             ],
-            'specs': [],
             'match_type': match.match_type,
             'map': map.id,
             'restricted_weapon': match.restricted_weapon,
@@ -425,22 +378,67 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             map=map,
             game_mode='custom',
         )
-        baker.make(models.MatchTeam, match=match)
-        baker.make(models.MatchTeam, match=match)
-        baker.make(models.MatchSpectator, match=match, user=self.user_2)
-        payload = schemas.MatchFiveMSchema.from_orm(match).dict()
+        team = baker.make(models.MatchTeam, match=match, side=1)
+        baker.make(models.MatchTeam, match=match, side=2)
+        baker.make(models.MatchPlayer, team=team, user=self.user_1)
+        payload = schemas.FivemMatchSchema.from_orm(match).dict()
         expected_payload = {
             'match_id': match.id,
             'game_mode': match.game_mode,
-            'teams': [
-                schemas.MatchTeamFiveMSchema.from_orm(team) for team in match.teams
-            ],
-            'specs': [
-                schemas.MatchSpecFiveMSchema.from_orm(spec)
-                for spec in match.matchspectator_set.all()
+            'players': [
+                schemas.FivemPlayerSchema.from_orm(player) for player in match.players
             ],
             'match_type': match.match_type,
             'map': map.id,
             'restricted_weapon': match.restricted_weapon,
         }
         self.assertDictEqual(payload, expected_payload)
+
+    def test_player_fivem_schema(self):
+        self.user_1.account.level_points = 95
+        self.user_1.account.save()
+        match = baker.make(models.Match, status=models.Match.Status.LOADING)
+        team = baker.make(models.MatchTeam, match=match, score=10, side=1)
+        baker.make(models.MatchTeam, match=match, side=2)
+        match_player = baker.make(models.MatchPlayer, team=team, user=self.user_1)
+
+        payload = schemas.FivemPlayerSchema.from_orm(match_player).dict()
+        expected_payload = {
+            'id': match_player.user.id,
+            'username': match_player.user.account.username,
+            'steamid': steamid64_to_hex(match_player.user.account.steamid),
+            'steamid64': match_player.user.account.steamid,
+            'team_id': team.side,
+            'level': match_player.level,
+            'avatar': Steam.build_avatar_url(
+                match_player.user.steam_user.avatarhash,
+                'medium',
+            ),
+            'assets': {'persona': None, 'spray': None, 'wear': None, 'weapon': None},
+        }
+
+        self.assertEqual(payload, expected_payload)
+
+        item = baker.make(Item, item_type='spray', name='spray_1')
+        UserItem.objects.create(item=item, user=self.user_1, in_use=True)
+        payload = schemas.FivemPlayerSchema.from_orm(match_player).dict()
+        expected_payload = {
+            'id': match_player.user.id,
+            'username': match_player.user.account.username,
+            'steamid': steamid64_to_hex(match_player.user.account.steamid),
+            'steamid64': match_player.user.account.steamid,
+            'level': match_player.user.account.level,
+            'avatar': Steam.build_avatar_url(
+                match_player.user.steam_user.avatarhash,
+                'medium',
+            ),
+            'assets': {
+                'persona': None,
+                'spray': item.handle,
+                'wear': None,
+                'weapon': None,
+            },
+            'team_id': team.side,
+        }
+
+        self.assertEqual(payload, expected_payload)
