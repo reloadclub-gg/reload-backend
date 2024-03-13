@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Ajusta manager do model `Account` que estava retornando usuários staff e admin, fazendo com que o ranking exibisse usuários staff e admins na lista [#1046](https://github.com/reloadclub-gg/reload-backend/issues/1046).
+
 ## [e242321 - 5/2/2024]
 
 ### Added
