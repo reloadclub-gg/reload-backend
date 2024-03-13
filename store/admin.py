@@ -2,6 +2,7 @@ import re
 from decimal import Decimal
 
 from django.contrib import admin
+from django.db.models import F
 from django.utils import timezone
 from django_object_actions import action
 
@@ -195,13 +196,20 @@ class ProductTransactionAdmin(admin.ModelAdmin):
         'user',
         'create_date',
         'complete_date',
+        'payment_method',
         'amount',
         'price',
         'status',
+        'succeeded',
     )
     search_fields = ('user__email',)
-    ordering = ('-create_date', '-complete_date', 'price', 'amount')
-    list_filter = ('amount', 'status', 'price')
+    ordering = (
+        F('complete_date').desc(nulls_last=True),
+        '-create_date',
+        'price',
+        'amount',
+    )
+    list_filter = ('amount', 'status', 'price', 'payment_method', 'succeeded')
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
