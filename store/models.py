@@ -10,6 +10,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
+from django.db.models import F
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
@@ -381,6 +382,11 @@ class ProductTransaction(models.Model):
         OPEN = 'open'
         COMPLETE = 'complete'
 
+    class PaymentMethod(models.TextChoices):
+        CARD = 'card'
+        BOLETO = 'boleto'
+        PIX = 'pix'
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     create_date = models.DateTimeField(auto_now_add=True)
     complete_date = models.DateTimeField(blank=True, null=True)
@@ -388,6 +394,13 @@ class ProductTransaction(models.Model):
     session_id = models.CharField(max_length=256, blank=True, null=True)
     amount = models.PositiveIntegerField()
     price = models.CharField(max_length=9)
+    succeeded = models.BooleanField(blank=True, null=True)
+    payment_method = models.CharField(
+        max_length=16,
+        choices=PaymentMethod.choices,
+        blank=True,
+        null=True,
+    )
     status = models.CharField(
         max_length=16,
         choices=Status.choices,
@@ -400,6 +413,10 @@ class ProductTransaction(models.Model):
             models.Index(fields=['session_id']),
             models.Index(fields=['product_id']),
             models.Index(fields=['status']),
+        ]
+        ordering = [
+            F('complete_date').desc(nulls_last=True),
+            '-complete_date',
         ]
 
     def __str__(self):
