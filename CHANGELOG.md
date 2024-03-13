@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Endpoint para webhook do stripe que finaliza a transação salvando alguns metadados como meio de pagamento e se a transação foi convertida ou não [#1045](https://github.com/reloadclub-gg/reload-backend/issues/1045).
+- Campos `succeeded` e `payment_method` no modelo `ProductTransaction` para maior controle interno.
+- Configuração `STRIPE_WEBHOOK_SECRET` para armazenar token de webhook da Stripe.
+
+### Changed
+
+- Admin de usuários foi atualizado para conter a lista de transações efetuadas.
+- Admin de transações foi atualizado para conter os novos campos do modelo.
+
 ### Fixed
 
 - Ajusta manager do model `Account` que estava retornando usuários staff e admin, fazendo com que o ranking exibisse usuários staff e admins na lista [#1046](https://github.com/reloadclub-gg/reload-backend/issues/1046).
