@@ -193,3 +193,56 @@ def resume_transaction(transaction_id: int):
         transaction.complete_date,
     )
     return redirect(f'{settings.FRONT_END_URL}/checkout/success')
+
+
+def update_transactions(request):
+    try:
+        sig_header = request.headers.get('Stripe-Signature')
+        event = stripe.Webhook.construct_event(
+            request.body,
+            sig_header,
+            settings.STRIPE_WEBHOOK_SECRET,
+        )
+    except ValueError as e:
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        raise e
+
+    listening_types = [
+        'checkout.session.async_payment_succeeded',
+        'checkout.session.async_payment_failed',
+        'checkout.session.expired',
+    ]
+
+    if event.get('type') in listening_types:
+        transaction_id = event.get('data').get('object').get('metadata').get('tid')
+        transaction = get_object_or_404(
+            models.ProductTransaction,
+            id=transaction_id,
+            complete_date=None,
+            status=models.ProductTransaction.Status.OPEN,
+        )
+        user = transaction.user
+        checkout_session = stripe.checkout.Session.retrieve(transaction.session_id)
+
+        if (
+            not hasattr(user, 'account')
+            or checkout_session.get('status')
+            != models.ProductTransaction.Status.COMPLETE
+        ):
+            return
+
+        if event.get('type') == 'checkout.session.async_payment_succeeded':
+            user.account.coins += transaction.amount
+            user.account.save()
+            tasks.send_purchase_mail_task.delay(
+                user.email,
+                transaction.id,
+                transaction.complete_date,
+            )
+
+        transaction.complete_date = timezone.now()
+        transaction.status = models.ProductTransaction.Status.COMPLETE
+        transaction.save()
+
+    return {}

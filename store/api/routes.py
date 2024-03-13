@@ -83,3 +83,8 @@ def rc_buy(request, payload: schemas.PurchaseSchema):
 @router.get('/products/transactions/{transaction_id}/')
 def transaction(request, transaction_id: int):
     return controller.resume_transaction(transaction_id)
+
+
+@router.post('/webhooks/')
+def transactions_update(request):
+    controller.update_transactions(request)
