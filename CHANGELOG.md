@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Funcionalidade de bloquear acesso a funcionalidades para determinados usuários pelo admin. Por exemplo, podemos dizer que a funcionalidade Ranking só será acessada pelos usuários `joão@email.com` e `maria@email.com` [#1061](https://github.com/reloadclub-gg/reload-backend/issues/1061).
 - Novos métodos de apoio no modelo `Match`.
 - Campo `side` no modelo `MatchTeam` para definir se o time começa atacando ou defendendo.
 - Endpoint para webhook do stripe que finaliza a transação salvando alguns metadados como meio de pagamento e se a transação foi convertida ou não [#1045](https://github.com/reloadclub-gg/reload-backend/issues/1045).
