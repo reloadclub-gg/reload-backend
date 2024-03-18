@@ -44,7 +44,14 @@ class MatchPlayerProgressSchema(ModelSchema):
 
     class Config:
         model = models.MatchPlayer
-        model_exclude = ["id", "user", "team", "level", "level_points"]
+        model_exclude = [
+            "id",
+            "user",
+            "team",
+            "level",
+            "level_points",
+            "match",
+        ]
 
     @staticmethod
     def resolve_level_after(obj):
@@ -79,7 +86,7 @@ class MatchPlayerSchema(ModelSchema):
 
     class Config:
         model = models.MatchPlayer
-        model_exclude = ["user", "team", "level", "level_points"]
+        model_exclude = ["user", "team", "level", "level_points", "match"]
 
     @staticmethod
     def resolve_user_id(obj):
@@ -87,11 +94,15 @@ class MatchPlayerSchema(ModelSchema):
 
     @staticmethod
     def resolve_match_id(obj):
-        return obj.team.match.id
+        if obj.team:
+            return obj.team.match.id
+        else:
+            return obj.match.id
 
     @staticmethod
     def resolve_team_id(obj):
-        return obj.team.id
+        if obj.team:
+            return obj.team.id
 
     @staticmethod
     def resolve_username(obj):
@@ -143,8 +154,8 @@ class MapSchema(ModelSchema):
 
     class Config:
         model = models.Map
-        model_fields = '__all__'
-        model_exclude = ['weight']
+        model_fields = "__all__"
+        model_exclude = ["weight"]
 
     @staticmethod
     def resolve_thumbnail(obj):
@@ -231,7 +242,7 @@ class MatchUpdateSchema(Schema):
 class MatchListItemStatsSchema(Schema):
     adr: float = 0.00
     kdr: float = 0.00
-    kda: str = '0/0/0'
+    kda: str = "0/0/0"
     head_accuracy: int = 0
     firstkills: int = 0
 
@@ -260,43 +271,43 @@ class MatchCreationSchema(Schema):
 
     @root_validator
     def validations(cls, values):
-        pid_count = len(values.get('players_ids'))
+        pid_count = len(values.get("players_ids"))
 
-        if values.get('mode') == models.Match.GameMode.COMPETITIVE:
+        if values.get("mode") == models.Match.GameMode.COMPETITIVE:
             if pid_count < 10:
-                raise ValueError(_('Invalid number of players.'))
+                raise ValueError(_("Invalid number of players."))
         else:
-            dpid_count = len(values.get('def_players_ids'))
-            apid_count = len(values.get('atk_players_ids'))
-            spid_count = len(values.get('spec_players_ids'))
+            dpid_count = len(values.get("def_players_ids"))
+            apid_count = len(values.get("atk_players_ids"))
+            spid_count = len(values.get("spec_players_ids"))
             total_custom_ids = dpid_count + apid_count + spid_count
 
             if (dpid_count == 0 and apid_count == 0) or total_custom_ids != pid_count:
-                raise ValueError(_('Invalid number of players.'))
+                raise ValueError(_("Invalid number of players."))
 
         return values
 
-    @validator('mode')
+    @validator("mode")
     def check_mode(cls, value):
         if value not in models.Match.GameMode.__members__.values():
-            raise ValueError(_('Invalid mode.'))
+            raise ValueError(_("Invalid mode."))
 
         return value
 
-    @validator('map_id')
+    @validator("map_id")
     def check_map_id(cls, value):
         if value:
             try:
                 models.Map.objects.get(id=value)
             except models.Map.DoesNotExist:
-                raise ValueError(_('Invalid map id.'))
+                raise ValueError(_("Invalid map id."))
 
         return value
 
-    @validator('weapon')
+    @validator("weapon")
     def check_weapon(cls, value):
         if value and value not in models.Match.WeaponChoices.__members__.values():
-            raise ValueError(_('Invalid weapon.'))
+            raise ValueError(_("Invalid weapon."))
 
         return value
 
@@ -306,7 +317,7 @@ class FivemResponseMock(Schema):
 
 
 class FivemPlayerSchema(ModelSchema):
-    id: int = Field(None, alias='user_id')
+    id: int = Field(None, alias="user_id")
     username: str
     steamid: str
     steamid64: str
@@ -316,7 +327,7 @@ class FivemPlayerSchema(ModelSchema):
 
     class Config:
         model = models.MatchPlayer
-        model_fields = ['level']
+        model_fields = ["level"]
 
     @staticmethod
     def resolve_username(obj):
@@ -333,7 +344,7 @@ class FivemPlayerSchema(ModelSchema):
     @staticmethod
     def resolve_avatar(obj):
         if obj.team:
-            return Steam.build_avatar_url(obj.user.steam_user.avatarhash, 'medium')
+            return Steam.build_avatar_url(obj.user.steam_user.avatarhash, "medium")
 
     @staticmethod
     def resolve_team_id(obj):
@@ -348,10 +359,10 @@ class FivemPlayerSchema(ModelSchema):
             return {}
 
         item_types = {
-            Item.ItemType.SPRAY: 'spray',
-            Item.ItemType.PERSONA: 'persona',
-            Item.ItemType.WEAR: 'wear',
-            Item.ItemType.WEAPON: 'weapon',
+            Item.ItemType.SPRAY: "spray",
+            Item.ItemType.PERSONA: "persona",
+            Item.ItemType.WEAR: "wear",
+            Item.ItemType.WEAPON: "weapon",
         }
 
         items = obj.user.useritem_set.filter(
@@ -385,14 +396,14 @@ class FivemPlayerSchema(ModelSchema):
 
 
 class FivemMatchSchema(ModelSchema):
-    match_id: int = Field(None, alias='id')
+    match_id: int = Field(None, alias="id")
     players: List[FivemPlayerSchema]
     match_type: str
     map: int
 
     class Config:
         model = models.Match
-        model_fields = ['game_mode', 'restricted_weapon']
+        model_fields = ["game_mode", "restricted_weapon"]
 
     @staticmethod
     def resolve_players(obj):

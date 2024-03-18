@@ -41,7 +41,7 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
         account = baker.make(models.Account, user=self.user)
         self.assertEqual(len(account.notifications), 0)
 
-        n = account.notify('New notification')
+        n = account.notify("New notification")
         self.assertEqual(len(account.notifications), 1)
         self.assertEqual(account.notifications[0].id, n.id)
 
@@ -115,9 +115,9 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         server = baker.make(Server)
         # D - V - V
         results = self.user_1.account.get_latest_matches_results(amount=3)
-        self.assertEqual(results.count('V'), 2)
-        self.assertEqual(results.count('D'), 1)
-        self.assertEqual(results.count('N/A'), 0)
+        self.assertEqual(results.count("V"), 2)
+        self.assertEqual(results.count("D"), 1)
+        self.assertEqual(results.count("N/A"), 0)
 
         match = baker.make(
             Match,
@@ -130,8 +130,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         # V - D - V - V - N/A
         results = self.user_1.account.get_latest_matches_results()
-        self.assertEqual(results.count('V'), 3)
-        self.assertEqual(results[0], 'V')
+        self.assertEqual(results.count("V"), 3)
+        self.assertEqual(results[0], "V")
 
         match = baker.make(
             Match,
@@ -144,13 +144,13 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         results = self.user_1.account.get_latest_matches_results()
         # V - V - D - V - V
-        self.assertEqual(results.count('V'), 4)
-        self.assertEqual(results.count('D'), 1)
-        self.assertEqual(results[0], 'V')
-        self.assertEqual(results[1], 'V')
-        self.assertEqual(results[2], 'D')
-        self.assertEqual(results[3], 'V')
-        self.assertEqual(results[4], 'V')
+        self.assertEqual(results.count("V"), 4)
+        self.assertEqual(results.count("D"), 1)
+        self.assertEqual(results[0], "V")
+        self.assertEqual(results[1], "V")
+        self.assertEqual(results[2], "D")
+        self.assertEqual(results[3], "V")
+        self.assertEqual(results[4], "V")
 
         match = baker.make(
             Match,
@@ -163,19 +163,19 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         baker.make(MatchPlayer, team=team1, user=self.user_1)
         # D - V - V - D - V
         results = self.user_1.account.get_latest_matches_results()
-        self.assertEqual(results.count('D'), 2)
-        self.assertEqual(results.count('V'), 3)
-        self.assertEqual(results[0], 'D')
-        self.assertEqual(results[-1], 'V')
+        self.assertEqual(results.count("D"), 2)
+        self.assertEqual(results.count("V"), 3)
+        self.assertEqual(results[0], "D")
+        self.assertEqual(results[-1], "V")
 
         # D - V
         results = self.user_1.account.get_latest_matches_results(2)
-        self.assertEqual(results.count('V'), 1)
-        self.assertEqual(results.count('D'), 1)
-        self.assertEqual(results[0], 'D')
-        self.assertEqual(results[1], 'V')
+        self.assertEqual(results.count("V"), 1)
+        self.assertEqual(results.count("D"), 1)
+        self.assertEqual(results[0], "D")
+        self.assertEqual(results[1], "V")
         with self.assertRaises(IndexError):
-            self.assertEqual(results[2], 'V')
+            self.assertEqual(results[2], "V")
 
     def test_highest_win_streak(self):
         server = baker.make(Server)
@@ -289,8 +289,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         match_player.stats.kills = 10
         match_player.stats.damage = 100
         match_player.stats.save()
-        self.assertEqual(self.user_1.account.get_most_stat_in_match('kills'), 10)
-        self.assertEqual(self.user_1.account.get_most_stat_in_match('damage'), 100)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match("kills"), 10)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match("damage"), 100)
 
         match = baker.make(
             Match,
@@ -304,8 +304,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         match_player.stats.kills = 5
         match_player.stats.damage = 50
         match_player.stats.save()
-        self.assertEqual(self.user_1.account.get_most_stat_in_match('kills'), 10)
-        self.assertEqual(self.user_1.account.get_most_stat_in_match('damage'), 100)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match("kills"), 10)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match("damage"), 100)
 
         match = baker.make(
             Match,
@@ -319,8 +319,8 @@ class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
         match_player.stats.kills = 15
         match_player.stats.damage = 150
         match_player.stats.save()
-        self.assertEqual(self.user_1.account.get_most_stat_in_match('kills'), 15)
-        self.assertEqual(self.user_1.account.get_most_stat_in_match('damage'), 150)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match("kills"), 15)
+        self.assertEqual(self.user_1.account.get_most_stat_in_match("damage"), 150)
 
 
 class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
@@ -331,12 +331,12 @@ class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
             _quantity=models.Invite.MAX_INVITES_PER_ACCOUNT,
         )
 
-        invite = models.Invite(email='extra@email.com', owned_by=self.account)
+        invite = models.Invite(email="extra@email.com", owned_by=self.account)
         self.assertRaises(ValidationError, invite.clean)
 
         self.user.is_staff = True
         self.user.save()
-        invite = models.Invite(email='extra@email.com', owned_by=self.account)
+        invite = models.Invite(email="extra@email.com", owned_by=self.account)
         invite.clean()
 
     def test_invite_create_existing_email(self):
@@ -349,7 +349,7 @@ class AccountsInviteModelTestCase(mixins.AccountOneMixin, TestCase):
         invite.datetime_accepted = timezone.now()
         invite.save()
 
-        invite.email = 'other@email.com'
+        invite.email = "other@email.com"
         self.assertRaises(ValidationError, invite.clean)
 
 
@@ -432,11 +432,11 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
         server = baker.make(Server)
         baker.make(Map)
         match = Match.objects.create(server=server)
-        team_a = match.matchteam_set.create(name='team_a', side=1)
-        team_b = match.matchteam_set.create(name='team_b', side=2)
+        team_a = match.matchteam_set.create(name="team_a", side=1)
+        team_b = match.matchteam_set.create(name="team_b", side=2)
 
-        MatchPlayer.objects.create(user=self.user, team=team_a)
-        MatchPlayer.objects.create(user=user2, team=team_b)
+        MatchPlayer.objects.create(user=self.user, team=team_a, match=match)
+        MatchPlayer.objects.create(user=user2, team=team_b, match=match)
 
         user2.refresh_from_db()
         self.user.refresh_from_db()
@@ -451,11 +451,11 @@ class AccountsUserModelTestCase(mixins.VerifiedAccountMixin, TestCase):
 
         server = baker.make(Server)
         match = Match.objects.create(server=server)
-        team_a = match.matchteam_set.create(name='team_a', side=1)
-        team_b = match.matchteam_set.create(name='team_b', side=2)
+        team_a = match.matchteam_set.create(name="team_a", side=1)
+        team_b = match.matchteam_set.create(name="team_b", side=2)
 
-        MatchPlayer.objects.create(user=self.user, team=team_a)
-        MatchPlayer.objects.create(user=user2, team=team_b)
+        MatchPlayer.objects.create(user=self.user, team=team_a, match=match)
+        MatchPlayer.objects.create(user=user2, team=team_b, match=match)
 
         match.warmup()
         user2.refresh_from_db()
@@ -533,8 +533,8 @@ class AccountsAuthModelTestCase(mixins.AccountOneMixin, TestCase):
 
 
 class AccountsUserBanTestCase(mixins.VerifiedAccountsMixin, TestCase):
-    @mock.patch('accounts.signals.websocket.ws_update_user')
-    @mock.patch('accounts.signals.websocket.ws_update_status_on_friendlist')
+    @mock.patch("accounts.signals.websocket.ws_update_user")
+    @mock.patch("accounts.signals.websocket.ws_update_status_on_friendlist")
     def test_user_ban(self, mock_ws_friendlist, mock_ws_user):
         self.assertTrue(self.user_1.is_active)
         self.assertIsNone(self.user_1.date_inactivation)
@@ -545,7 +545,7 @@ class AccountsUserBanTestCase(mixins.VerifiedAccountsMixin, TestCase):
             agent=self.staff_user,
             datetime_end=timezone.now() + timedelta(days=9999),
             subject=models.UserBan.Subject.CHEATING,
-            description='was cheating',
+            description="was cheating",
         )
 
         self.assertFalse(self.user_1.is_active)

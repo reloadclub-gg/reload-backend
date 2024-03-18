@@ -34,8 +34,18 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             score=6,
             side=2,
         )
-        baker.make(models.MatchPlayer, team=self.match_t1, user=self.user_1)
-        baker.make(models.MatchPlayer, team=self.match_t2, user=self.user_2)
+        baker.make(
+            models.MatchPlayer,
+            team=self.match_t1,
+            user=self.user_1,
+            match=self.match,
+        )
+        baker.make(
+            models.MatchPlayer,
+            team=self.match_t2,
+            user=self.user_2,
+            match=self.match,
+        )
 
     def test_get_user_matches(self):
         match2 = baker.make(
@@ -67,7 +77,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertEqual(len(results), 2)
 
     def test_handle_update_players_stats(self):
-        self.user_1.account.steamid = '04085177656553014'
+        self.user_1.account.steamid = "04085177656553014"
         self.user_1.account.save()
         self.user_1.account.refresh_from_db()
         payload = [
@@ -84,7 +94,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                     "head_shots": 1,
                     "chest_shots": 45,
                     "other_shots": 20,
-                    "kill_weapons": ['weapon_app_pistol'],
+                    "kill_weapons": ["weapon_app_pistol"],
                     "defuse": False,
                     "plant": True,
                     "firstkill": False,
@@ -140,7 +150,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                     "head_shots": 1,
                     "chest_shots": 45,
                     "other_shots": 20,
-                    "kill_weapons": ['weapon_app_pistol'],
+                    "kill_weapons": ["weapon_app_pistol"],
                     "defuse": False,
                     "plant": True,
                     "firstkill": True,
@@ -174,12 +184,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                 self.match.id,
                 schemas.MatchUpdateSchema.from_orm(
                     {
-                        'teams': [
-                            {'name': self.match_t1.name, 'score': 0, 'players': []},
-                            {'name': self.match_t2.name, 'score': 1, 'players': []},
+                        "teams": [
+                            {"name": self.match_t1.name, "score": 0, "players": []},
+                            {"name": self.match_t2.name, "score": 1, "players": []},
                         ],
-                        'end_reason': 0,
-                        'is_overtime': False,
+                        "end_reason": 0,
+                        "is_overtime": False,
                     }
                 ),
             )
@@ -191,12 +201,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                 self.match.id,
                 schemas.MatchUpdateSchema.from_orm(
                     {
-                        'teams': [
-                            {'name': self.match_t1.name, 'score': 0, 'players': []},
-                            {'name': self.match_t2.name, 'score': 1, 'players': []},
+                        "teams": [
+                            {"name": self.match_t1.name, "score": 0, "players": []},
+                            {"name": self.match_t2.name, "score": 1, "players": []},
                         ],
-                        'end_reason': 0,
-                        'is_overtime': False,
+                        "end_reason": 0,
+                        "is_overtime": False,
                     }
                 ),
             )
@@ -206,12 +216,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
                 2904354758457854738543,
                 schemas.MatchUpdateSchema.from_orm(
                     {
-                        'teams': [
-                            {'name': self.match_t1.name, 'score': 0, 'players': []},
-                            {'name': self.match_t2.name, 'score': 1, 'players': []},
+                        "teams": [
+                            {"name": self.match_t1.name, "score": 0, "players": []},
+                            {"name": self.match_t2.name, "score": 1, "players": []},
                         ],
-                        'end_reason': 0,
-                        'is_overtime': False,
+                        "end_reason": 0,
+                        "is_overtime": False,
                     }
                 ),
             )
@@ -243,9 +253,9 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         with self.assertRaises(Http404):
             controller.get_match(self.user_1, self.match.id)
 
-    @mock.patch('matches.api.controller.ws_update_user')
-    @mock.patch('matches.api.controller.websocket.ws_match_update')
-    @mock.patch('matches.api.controller.handle_update_players_stats')
+    @mock.patch("matches.api.controller.ws_update_user")
+    @mock.patch("matches.api.controller.websocket.ws_match_update")
+    @mock.patch("matches.api.controller.handle_update_players_stats")
     def test_update_match(
         self,
         mock_handle_update_stats,
@@ -259,12 +269,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'teams': [
-                        {'name': self.match_t1.name, 'score': 0, 'players': []},
-                        {'name': self.match_t2.name, 'score': 1, 'players': []},
+                    "teams": [
+                        {"name": self.match_t1.name, "score": 0, "players": []},
+                        {"name": self.match_t2.name, "score": 1, "players": []},
                     ],
-                    'end_reason': 0,
-                    'is_overtime': False,
+                    "end_reason": 0,
+                    "is_overtime": False,
                 }
             ),
         )
@@ -275,7 +285,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
 
         mock_update_user.asser_not_called()
 
-    @mock.patch('matches.api.controller.websocket.ws_match_update')
+    @mock.patch("matches.api.controller.websocket.ws_match_update")
     def test_update_match_start(self, mock_match_update):
         self.match.status = models.Match.Status.WARMUP
         self.match.start_date = None
@@ -286,7 +296,7 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
 
         controller.update_match(
             self.match.id,
-            schemas.MatchUpdateSchema.from_orm({'status': 'running'}),
+            schemas.MatchUpdateSchema.from_orm({"status": "running"}),
         )
 
         self.match.refresh_from_db()
@@ -294,9 +304,9 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.assertIsNotNone(self.match.start_date)
         self.assertEqual(self.match.status, models.Match.Status.RUNNING)
 
-    @mock.patch('matches.api.controller.ws_update_user')
-    @mock.patch('matches.api.controller.websocket.ws_match_update')
-    @mock.patch('matches.api.controller.handle_update_players_stats')
+    @mock.patch("matches.api.controller.ws_update_user")
+    @mock.patch("matches.api.controller.websocket.ws_match_update")
+    @mock.patch("matches.api.controller.handle_update_players_stats")
     def test_update_match_finish(
         self,
         mock_handle_update_stats,
@@ -315,12 +325,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'teams': [
-                        {'name': self.match_t1.name, 'score': 13, 'players': []},
-                        {'name': self.match_t2.name, 'score': 6, 'players': []},
+                    "teams": [
+                        {"name": self.match_t1.name, "score": 13, "players": []},
+                        {"name": self.match_t2.name, "score": 6, "players": []},
                     ],
-                    'end_reason': 0,
-                    'is_overtime': False,
+                    "end_reason": 0,
+                    "is_overtime": False,
                 }
             ),
         )
@@ -334,8 +344,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         mock_calls = [mock.call(self.user_1), mock.call(self.user_2)]
         mock_update_user.assert_has_calls(mock_calls)
 
-    @mock.patch('matches.api.controller.websocket.ws_match_update')
-    @mock.patch('matches.api.controller.handle_update_players_stats')
+    @mock.patch("matches.api.controller.websocket.ws_match_update")
+    @mock.patch("matches.api.controller.handle_update_players_stats")
     def test_update_match_ot(self, mock_handle_update_stats, mock_match_update):
         self.match.status = models.Match.Status.RUNNING
         self.match.save()
@@ -349,20 +359,20 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'teams': [
+                    "teams": [
                         {
-                            'name': self.match_t1.name,
-                            'score': settings.MATCH_ROUNDS_TO_WIN + 1,
-                            'players': [],
+                            "name": self.match_t1.name,
+                            "score": settings.MATCH_ROUNDS_TO_WIN + 1,
+                            "players": [],
                         },
                         {
-                            'name': self.match_t2.name,
-                            'score': settings.MATCH_ROUNDS_TO_WIN,
-                            'players': [],
+                            "name": self.match_t2.name,
+                            "score": settings.MATCH_ROUNDS_TO_WIN,
+                            "players": [],
                         },
                     ],
-                    'end_reason': 0,
-                    'is_overtime': True,
+                    "end_reason": 0,
+                    "is_overtime": True,
                 }
             ),
         )
@@ -373,9 +383,9 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         self.match.refresh_from_db()
         self.assertEqual(self.match.status, models.Match.Status.RUNNING)
 
-    @mock.patch('matches.api.controller.ws_update_user')
-    @mock.patch('matches.api.controller.websocket.ws_match_update')
-    @mock.patch('matches.api.controller.handle_update_players_stats')
+    @mock.patch("matches.api.controller.ws_update_user")
+    @mock.patch("matches.api.controller.websocket.ws_match_update")
+    @mock.patch("matches.api.controller.handle_update_players_stats")
     def test_update_match_ot_finish(
         self,
         mock_handle_update_stats,
@@ -394,20 +404,20 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'teams': [
+                    "teams": [
                         {
-                            'name': self.match_t1.name,
-                            'score': settings.MATCH_ROUNDS_TO_WIN,
-                            'players': [],
+                            "name": self.match_t1.name,
+                            "score": settings.MATCH_ROUNDS_TO_WIN,
+                            "players": [],
                         },
                         {
-                            'name': self.match_t2.name,
-                            'score': settings.MATCH_ROUNDS_TO_WIN + 2,
-                            'players': [],
+                            "name": self.match_t2.name,
+                            "score": settings.MATCH_ROUNDS_TO_WIN + 2,
+                            "players": [],
                         },
                     ],
-                    'end_reason': 0,
-                    'is_overtime': True,
+                    "end_reason": 0,
+                    "is_overtime": True,
                 }
             ),
         )
@@ -421,8 +431,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         mock_calls = [mock.call(self.user_1), mock.call(self.user_2)]
         mock_update_user.assert_has_calls(mock_calls)
 
-    @mock.patch('matches.api.controller.ws_update_user')
-    @mock.patch('matches.api.controller.websocket.ws_match_delete')
+    @mock.patch("matches.api.controller.ws_update_user")
+    @mock.patch("matches.api.controller.websocket.ws_match_delete")
     def test_cancel_match_loading(
         self,
         mock_match_delete,
@@ -438,8 +448,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         mock_match_delete.assert_called_once()
         self.assertEqual(mock_update_user.call_count, 2)
 
-    @mock.patch('matches.api.controller.ws_update_user')
-    @mock.patch('matches.api.controller.websocket.ws_match_delete')
+    @mock.patch("matches.api.controller.ws_update_user")
+    @mock.patch("matches.api.controller.websocket.ws_match_delete")
     def test_cancel_match_running(
         self,
         mock_match_delete,
@@ -455,8 +465,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         mock_match_delete.assert_called_once()
         self.assertEqual(mock_update_user.call_count, 2)
 
-    @mock.patch('matches.api.controller.ws_update_user')
-    @mock.patch('matches.api.controller.websocket.ws_match_delete')
+    @mock.patch("matches.api.controller.ws_update_user")
+    @mock.patch("matches.api.controller.websocket.ws_match_delete")
     def test_cancel_match_warmup(
         self,
         mock_match_delete,
@@ -494,16 +504,16 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             [
                 schemas.MatchUpdateTeam.from_orm(
                     {
-                        'name': self.match_t1.name,
-                        'score': 2,
-                        'players': [],
+                        "name": self.match_t1.name,
+                        "score": 2,
+                        "players": [],
                     }
                 ),
                 schemas.MatchUpdateTeam.from_orm(
                     {
-                        'name': self.match_t2.name,
-                        'score': 1,
-                        'players': [],
+                        "name": self.match_t2.name,
+                        "score": 1,
+                        "players": [],
                     }
                 ),
             ],
@@ -517,16 +527,16 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             [
                 schemas.MatchUpdateTeam.from_orm(
                     {
-                        'name': self.match_t1.name,
-                        'score': 0,
-                        'players': [],
+                        "name": self.match_t1.name,
+                        "score": 0,
+                        "players": [],
                     }
                 ),
                 schemas.MatchUpdateTeam.from_orm(
                     {
-                        'name': self.match_t2.name,
-                        'score': 3,
-                        'players': [],
+                        "name": self.match_t2.name,
+                        "score": 3,
+                        "players": [],
                     }
                 ),
             ],
@@ -540,16 +550,16 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             [
                 schemas.MatchUpdateTeam.from_orm(
                     {
-                        'name': self.match_t1.name,
-                        'score': 1,
-                        'players': [],
+                        "name": self.match_t1.name,
+                        "score": 1,
+                        "players": [],
                     }
                 ),
                 schemas.MatchUpdateTeam.from_orm(
                     {
-                        'name': self.match_t2.name,
-                        'score': 3,
-                        'players': [],
+                        "name": self.match_t2.name,
+                        "score": 3,
+                        "players": [],
                     }
                 ),
             ],
@@ -564,16 +574,16 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             [
                 schemas.MatchUpdateTeam.from_orm(
                     {
-                        'name': self.match_t1.name,
-                        'score': 4,
-                        'players': [],
+                        "name": self.match_t1.name,
+                        "score": 4,
+                        "players": [],
                     }
                 ),
                 schemas.MatchUpdateTeam.from_orm(
                     {
-                        'name': self.match_t2.name,
-                        'score': 1,
-                        'players': [],
+                        "name": self.match_t2.name,
+                        "score": 1,
+                        "players": [],
                     }
                 ),
             ],
@@ -592,12 +602,12 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             self.match.id,
             schemas.MatchUpdateSchema.from_orm(
                 {
-                    'teams': [
-                        {'name': self.match_t1.name, 'score': 13, 'players': []},
-                        {'name': self.match_t2.name, 'score': 8, 'players': []},
+                    "teams": [
+                        {"name": self.match_t1.name, "score": 13, "players": []},
+                        {"name": self.match_t2.name, "score": 8, "players": []},
                     ],
-                    'end_reason': 0,
-                    'is_overtime': False,
+                    "end_reason": 0,
+                    "is_overtime": False,
                 }
             ),
         )

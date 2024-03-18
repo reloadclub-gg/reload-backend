@@ -6,6 +6,7 @@ from typing import List
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.db.utils import IntegrityError
@@ -28,11 +29,11 @@ def __create_fivem_match(match: models.Match) -> models.Match:
     if settings.TEST_MODE or settings.FIVEM_MATCH_MOCKS_ON:
         status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
         fivem_response = schemas.FivemResponseMock.from_orm(
-            {'status_code': status_code}
+            {"status_code": status_code}
         )
         time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
     else:
-        server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
+        server_url = f"http://{match.server.ip}:{match.server.api_port}/api/matches"
         payload = schemas.FivemMatchSchema.from_orm(match).dict()
         try:
             fivem_response = requests.post(
@@ -41,8 +42,8 @@ def __create_fivem_match(match: models.Match) -> models.Match:
                 timeout=settings.FIVEM_MATCH_CREATION_RETRIES_TIMEOUT,
             )
         except requests.exceptions.Timeout:
-            fivem_response = schemas.FivemResponseMock.from_orm({'status_code': 400})
-            logging.warning(f'[handle_create_fivem_match] {match.id}')
+            fivem_response = schemas.FivemResponseMock.from_orm({"status_code": 400})
+            logging.warning(f"[handle_create_fivem_match] {match.id}")
             return None
 
     return fivem_response
@@ -61,17 +62,17 @@ def __cancel_match(match_id: int):
 
 
 def __create_custom_match_teams_players(match, payload):
-    team_a = match.matchteam_set.create(name='A', side=1)
-    team_b = match.matchteam_set.create(name='B', side=2)
+    team_a = match.matchteam_set.create(name="A", side=1)
+    team_b = match.matchteam_set.create(name="B", side=2)
 
     for player_id in payload.def_players_ids:
-        models.MatchPlayer.objects.create(user_id=player_id, team=team_a)
+        team_a.matchplayer_set.create(user_id=player_id)
 
     for player_id in payload.atk_players_ids:
-        models.MatchPlayer.objects.create(user_id=player_id, team=team_b)
+        team_b.matchplayer_set.create(user_id=player_id)
 
     for player_id in payload.spec_players_ids:
-        models.MatchPlayer.objects.create(user_id=player_id)
+        models.MatchPlayer.objects.create(user_id=player_id, match=match)
 
 
 def __warmup_match(match):
@@ -81,13 +82,13 @@ def __warmup_match(match):
             tasks.mock_fivem_match_start.apply_async(
                 (match.id,),
                 countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
-                serializer='json',
+                serializer="json",
             )
         else:
             tasks.mock_fivem_match_cancel.apply_async(
                 (match.id,),
                 countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
-                serializer='json',
+                serializer="json",
             )
 
 
@@ -96,7 +97,7 @@ def __ws_update_players(match):
         ws_update_user(match_player.user)
         ws_update_status_on_friendlist(match_player.user)
 
-    for spec in match.matchspectator_set.all():
+    for spec in match.spec_players:
         ws_update_user(spec.user)
         ws_update_status_on_friendlist(spec.user)
 
@@ -155,22 +156,22 @@ def handle_update_players_stats(
     models.MatchPlayerStats.objects.bulk_update(
         all_stats,
         [
-            'kills',
-            'hs_kills',
-            'deaths',
-            'assists',
-            'damage',
-            'shots_fired',
-            'head_shots',
-            'chest_shots',
-            'other_shots',
-            'firstkills',
-            'defuses',
-            'plants',
-            'double_kills',
-            'triple_kills',
-            'quadra_kills',
-            'aces',
+            "kills",
+            "hs_kills",
+            "deaths",
+            "assists",
+            "damage",
+            "shots_fired",
+            "head_shots",
+            "chest_shots",
+            "other_shots",
+            "firstkills",
+            "defuses",
+            "plants",
+            "double_kills",
+            "triple_kills",
+            "quadra_kills",
+            "aces",
         ],
     )
 
@@ -184,8 +185,8 @@ def get_user_matches(
         models.MatchPlayer.objects.filter(
             user_id=search_id, team__match__status=models.Match.Status.FINISHED
         )
-        .select_related('team__match', 'stats', 'team')
-        .order_by('-team__match__end_date')
+        .select_related("team__match", "stats", "team")
+        .order_by("-team__match__end_date")
     )
 
     response = []
@@ -198,25 +199,25 @@ def get_user_matches(
 
         response.append(
             {
-                'id': match.id,
-                'map_name': match.map.name,
-                'map_image': (
+                "id": match.id,
+                "map_name": match.map.name,
+                "map_image": (
                     get_full_file_path(match.map.thumbnail)
                     if match.map.thumbnail
                     else None
                 ),
-                'match_type': match.match_type,
-                'game_mode': match.game_mode,
-                'start_date': match.start_date.isoformat(),
-                'end_date': match.end_date.isoformat(),
-                'won': user_team.id == match.winner.id,
-                'score': f'{user_team.score} - {opponent_team.score}',
-                'stats': {
-                    'kda': f'{player.stats.kills}/{player.stats.deaths}/{player.stats.assists}',
-                    'kdr': player.stats.kdr,
-                    'head_accuracy': math.ceil(player.stats.head_accuracy),
-                    'adr': player.stats.adr,
-                    'firstkills': player.stats.firstkills,
+                "match_type": match.match_type,
+                "game_mode": match.game_mode,
+                "start_date": match.start_date.isoformat(),
+                "end_date": match.end_date.isoformat(),
+                "won": user_team.id == match.winner.id,
+                "score": f"{user_team.score} - {opponent_team.score}",
+                "stats": {
+                    "kda": f"{player.stats.kills}/{player.stats.deaths}/{player.stats.assists}",
+                    "kdr": player.stats.kdr,
+                    "head_accuracy": math.ceil(player.stats.head_accuracy),
+                    "adr": player.stats.adr,
+                    "firstkills": player.stats.firstkills,
                 },
             }
         )
@@ -269,11 +270,11 @@ def update_scores(match, teams_data, end_reason):
                 and team_scores[teams[1].name] <= teams[1].score
             ):
                 logging.warning(
-                    f'[update_scores] match {match.id}: team {team.name} '
-                    f'{team_scores[team.name]} ({team.score})'
+                    f"[update_scores] match {match.id}: team {team.name} "
+                    f"{team_scores[team.name]} ({team.score})"
                 )
                 teams[1].score = team_scores[team.name]
-                teams[1].save(update_fields=['score'])
+                teams[1].save(update_fields=["score"])
                 return teams[0].score, teams[1].score
         else:
             if (
@@ -282,31 +283,39 @@ def update_scores(match, teams_data, end_reason):
                 and team_scores[teams[0].name] <= teams[0].score
             ):
                 logging.warning(
-                    f'[update_scores] match {match.id}: team {team.name}'
-                    f'{team_scores[team.name]} ({team.score})'
+                    f"[update_scores] match {match.id}: team {team.name}"
+                    f"{team_scores[team.name]} ({team.score})"
                 )
                 teams[0].score = team_scores[team.name]
-                teams[0].save(update_fields=['score'])
+                teams[0].save(update_fields=["score"])
                 return teams[0].score, teams[1].score
 
         team.score = team_scores[team.name]
-        team.save(update_fields=['score'])
+        team.save(update_fields=["score"])
 
     return teams[0].score, teams[1].score
 
 
-def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
+def _fetch_match(match_id: int):
     forbidden_statuses = [models.Match.Status.CANCELLED, models.Match.Status.FINISHED]
     try:
-        match = models.Match.objects.exclude(status__in=forbidden_statuses).get(
+        return models.Match.objects.exclude(status__in=forbidden_statuses).get(
             id=match_id
         )
     except models.Match.DoesNotExist:
         raise Http404
 
-    if payload.status == 'running':
-        match.start()
-        websocket.ws_match_update(match)
+
+def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
+    match = _fetch_match(match_id)
+
+    if payload.status == "running":
+        try:
+            match.start()
+            websocket.ws_match_update(match)
+        except ValidationError as exc:
+            logging.warning(exc)
+
         return
 
     try:
@@ -323,7 +332,7 @@ def update_match(match_id: int, payload: schemas.MatchUpdateSchema):
                 match.save()
     except (IntegrityError, Exception) as e:
         logging.error(e)
-        raise HttpError(400, _('Unable to update match.'))
+        raise HttpError(400, _("Unable to update match."))
 
     match.refresh_from_db()
     websocket.ws_match_update(match)
@@ -363,16 +372,16 @@ def create_match(payload: schemas.MatchCreationSchema) -> models.Match:
     # TODO competitive match is being created on pre_match app controller
     # so we're gonna only create customs matches on this method for now.
     if payload.mode != models.Match.GameMode.CUSTOM:
-        raise HttpError(400, _('invalid game mode.'))
+        raise HttpError(400, _("invalid game mode."))
 
     server = models.Server.get_idle()
     if not server:
-        raise HttpError(400, _('Servers full.'))
+        raise HttpError(400, _("Servers full."))
 
     try:
         map = models.Map.objects.get(id=payload.map_id)
     except models.Map.DoesNotExist:
-        raise Http404(_('Map not found.'))
+        raise Http404(_("Map not found."))
 
     match = models.Match.objects.create(
         game_mode=models.Match.GameMode.CUSTOM,
