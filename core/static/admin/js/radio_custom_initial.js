@@ -22,3 +22,26 @@ window.onload = () => {
 		activeInputs[0].setAttribute("checked", "");
 	}
 };
+
+document.addEventListener('DOMContentLoaded', function () {
+	const searchContainer = document.createElement('div');
+	searchContainer.innerHTML = `<input type="text" id="user-search" placeholder="Filter" style="margin-bottom: 10px;">`;
+	const userList = document.querySelector('#id_users');
+	userList.before(searchContainer);
+
+	const userSearch = document.getElementById('user-search');
+	userSearch.addEventListener('keyup', function () {
+		const searchTerm = userSearch.value.toLowerCase();
+		const options = userList.options;
+
+		for (let opt of options) {
+			const userName = opt.text.toLowerCase();
+			const userEmail = opt.value.toLowerCase();
+			if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
+				opt.style.display = 'block';
+			} else {
+				opt.style.display = 'none';
+			}
+		}
+	});
+});

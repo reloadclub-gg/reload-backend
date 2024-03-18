@@ -7,6 +7,7 @@ from ninja.errors import AuthenticationError, Http404, HttpError
 from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from appsettings.services import maintenance_window
 from core.websocket import ws_create_toast
+from features.utils import is_feat_available_for_user
 from pre_matches.models import Team
 
 from .. import websocket
@@ -17,7 +18,7 @@ User = get_user_model()
 
 
 def __update_queue(lobby, user, action):
-    if action == 'start':
+    if action == "start":
         handle_start_queue(lobby, user)
     else:
         handle_cancel_queue(lobby)
@@ -55,12 +56,12 @@ def handle_cancel_queue(lobby):
             team.remove_lobby(lobby.id)
 
     else:
-        raise HttpError(400, _('Can\'t cancel queue while in match.'))
+        raise HttpError(400, _("Can't cancel queue while in match."))
 
 
 def handle_start_queue(lobby, user):
     if maintenance_window():
-        raise HttpError(400, _('We are under maintenance. Try again later.'))
+        raise HttpError(400, _("We are under maintenance. Try again later."))
 
     if user.id != lobby.owner_id:
         raise AuthenticationError()
@@ -109,7 +110,7 @@ def handle_player_move_remnants(
     websocket.ws_update_lobby(remnants_lobby)
 
     # send a "leave" signal so FE can handle a more specific event if necessary
-    websocket.ws_update_player(remnants_lobby, user, 'leave')
+    websocket.ws_update_player(remnants_lobby, user, "leave")
 
     # send a ws to expire all invites sent by the user
     # because the user left the old lobby, all invites he sent should expire
@@ -152,7 +153,7 @@ def handle_player_move_remnants(
 
         # we send a "join" signal so FE can handle
         # a more specific event if necessary
-        websocket.ws_update_player(new_lobby, user, 'join')
+        websocket.ws_update_player(new_lobby, user, "join")
 
         for player_id in new_lobby.players_ids:
             player = User.objects.get(id=player_id)
@@ -169,14 +170,14 @@ def handle_player_move_other_lobby(new_lobby: Lobby, old_lobby: Lobby, user: Use
     ws_update_status_on_friendlist(user)
 
     websocket.ws_update_lobby(new_lobby)
-    websocket.ws_update_player(new_lobby, user, 'join')
+    websocket.ws_update_player(new_lobby, user, "join")
     if new_lobby.players_count == 2:
         new_lobby_owner = User.objects.get(pk=new_lobby.owner_id)
         ws_update_user(new_lobby_owner)
         ws_update_status_on_friendlist(new_lobby_owner)
 
     websocket.ws_update_lobby(old_lobby)
-    websocket.ws_update_player(old_lobby, user, 'leave')
+    websocket.ws_update_player(old_lobby, user, "leave")
     if old_lobby.players_count == 1:
         old_lobby_owner = User.objects.get(pk=old_lobby.owner_id)
         ws_update_user(old_lobby_owner)
@@ -202,7 +203,7 @@ def handle_player_move_original_lobby(
         websocket.ws_update_lobby(old_lobby)
 
         # send a "leave" signal so FE can handle a more specific event if necessary
-        websocket.ws_update_player(old_lobby, user, 'leave')
+        websocket.ws_update_player(old_lobby, user, "leave")
 
         # check if old lobby was left with just its owner, so we need
         # to update its owner as well because before this move he was
@@ -230,7 +231,7 @@ def handle_player_move_original_lobby(
 def get_lobby(lobby_id: int) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     if not lobby:
-        raise Http404(_('Lobby not found'))
+        raise Http404(_("Lobby not found"))
 
     return lobby
 
@@ -254,10 +255,10 @@ def get_user_invites(
 
 def get_invite(user: User, invite_id: str) -> LobbyInvite:
     try:
-        from_id = int(invite_id.split(':')[0])
-        to_id = int(invite_id.split(':')[1])
+        from_id = int(invite_id.split(":")[0])
+        to_id = int(invite_id.split(":")[1])
     except ValueError:
-        raise HttpError(422, _('Invalid invite id'))
+        raise HttpError(422, _("Invalid invite id"))
 
     if user.id not in [from_id, to_id]:
         raise AuthenticationError()
@@ -272,7 +273,7 @@ def get_invite(user: User, invite_id: str) -> LobbyInvite:
 
 def accept_invite(user: User, invite_id: str):
     if maintenance_window():
-        raise HttpError(400, _('We are under maintenance. Try again later.'))
+        raise HttpError(400, _("We are under maintenance. Try again later."))
 
     invite = get_invite(user, invite_id)
     if user.id != invite.to_id:
@@ -282,37 +283,37 @@ def accept_invite(user: User, invite_id: str):
     new_lobby = get_lobby(invite.lobby_id)
 
     if not current_lobby or current_lobby.id == new_lobby.id:
-        return {'status': None}
+        return {"status": None}
 
-    websocket.ws_delete_invite(invite, 'accepted')
+    websocket.ws_delete_invite(invite, "accepted")
     try:
         handle_player_move(user, new_lobby.id)
     except LobbyException as e:
         raise HttpError(400, e)
-    return {'status': 'accepted'}
+    return {"status": "accepted"}
 
 
 def refuse_invite(user: User, invite_id: str):
     if maintenance_window():
-        raise HttpError(400, _('We are under maintenance. Try again later.'))
+        raise HttpError(400, _("We are under maintenance. Try again later."))
 
     invite = get_invite(user, invite_id)
     if user.id != invite.to_id:
         raise AuthenticationError()
 
-    websocket.ws_delete_invite(invite, 'refused')
+    websocket.ws_delete_invite(invite, "refused")
     lobby = get_lobby(invite.lobby_id)
 
     lobby.delete_invite(invite.id)
     websocket.ws_update_lobby(lobby)
-    return {'status': 'refused'}
+    return {"status": "refused"}
 
 
 def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
     lobby = get_lobby(lobby_id)
 
     if maintenance_window():
-        raise HttpError(400, _('We are under maintenance. Try again later.'))
+        raise HttpError(400, _("We are under maintenance. Try again later."))
 
     if player_id == user.id and lobby.players_count == 1:
         return lobby
@@ -331,7 +332,7 @@ def delete_player(user: User, lobby_id: int, player_id: int) -> Lobby:
         except LobbyException as e:
             raise HttpError(400, e)
         ws_create_toast(
-            _('{} kicked you from lobby.').format(user.account.username),
+            _("{} kicked you from lobby.").format(user.account.username),
             user_id=player_id,
         )
 
@@ -346,6 +347,10 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
         handle_lobby_update_ws(lobby)
 
     elif payload.mode:
+
+        if not is_feat_available_for_user("custom_lobby", user):
+            raise AuthenticationError()
+
         if lobby.owner_id != user.id:
             raise AuthenticationError()
 
@@ -365,7 +370,7 @@ def update_lobby(user: User, lobby_id: int, payload: LobbyUpdateSchema) -> Lobby
 
 def create_invite(user: User, payload: LobbyInviteCreateSchema):
     if maintenance_window():
-        raise HttpError(400, _('We are under maintenance. Try again later.'))
+        raise HttpError(400, _("We are under maintenance. Try again later."))
 
     lobby = get_lobby(payload.lobby_id)
 
@@ -384,7 +389,7 @@ def create_invite(user: User, payload: LobbyInviteCreateSchema):
 
 def update_player(lobby_id: int, payload: LobbyPlayerUpdateSchema):
     if maintenance_window():
-        raise HttpError(400, _('We are under maintenance. Try again later.'))
+        raise HttpError(400, _("We are under maintenance. Try again later."))
 
     lobby = get_lobby(lobby_id)
     try:
