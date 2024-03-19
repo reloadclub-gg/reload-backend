@@ -72,9 +72,14 @@ def handle_start_queue(lobby, user):
         raise HttpError(400, e)
 
 
-def handle_player_move(user: User, lobby_id: int, delete_lobby: bool = False) -> Lobby:
+def handle_player_move(
+    user: User,
+    lobby_id: int,
+    delete_lobby: bool = False,
+    was_invited: bool = False,
+) -> Lobby:
     old_lobby = user.account.lobby
-    new_lobby = get_lobby(user, lobby_id)
+    new_lobby = get_lobby(user, lobby_id, was_invited)
 
     try:
         remnants_lobby = Lobby.move(user.id, to_lobby_id=lobby_id, remove=delete_lobby)
@@ -228,7 +233,7 @@ def handle_player_move_original_lobby(
             websocket.ws_update_lobby(new_lobby)
 
 
-def get_lobby(user: User, lobby_id: int) -> Lobby:
+def get_lobby(user: User, lobby_id: int, was_invited: bool = False) -> Lobby:
     lobby = Lobby(owner_id=lobby_id)
     if not lobby:
         raise Http404(_("Lobby not found"))
@@ -238,7 +243,7 @@ def get_lobby(user: User, lobby_id: int) -> Lobby:
     else:
         feat_name = "custom_lobby"
 
-    if not is_feat_available_for_user(feat_name, user):
+    if not was_invited and not is_feat_available_for_user(feat_name, user):
         raise AuthenticationError()
 
     return lobby
@@ -288,14 +293,14 @@ def accept_invite(user: User, invite_id: str):
         raise AuthenticationError()
 
     current_lobby = user.account.lobby
-    new_lobby = get_lobby(user, invite.lobby_id)
+    new_lobby = get_lobby(user, invite.lobby_id, was_invited=True)
 
     if not current_lobby or current_lobby.id == new_lobby.id:
         return {"status": None}
 
     websocket.ws_delete_invite(invite, "accepted")
     try:
-        handle_player_move(user, new_lobby.id)
+        handle_player_move(user, new_lobby.id, was_invited=True)
     except LobbyException as e:
         raise HttpError(400, e)
     return {"status": "accepted"}
