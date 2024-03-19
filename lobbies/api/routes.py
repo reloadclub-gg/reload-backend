@@ -8,11 +8,11 @@ from accounts.api.authentication import VerifiedRequiredAuth
 
 from . import authorization, controller, schemas
 
-router = Router(tags=['lobbies'])
+router = Router(tags=["lobbies"])
 
 
 @router.get(
-    'invites/',
+    "invites/",
     auth=VerifiedRequiredAuth(),
     response={200: List[schemas.LobbyInviteSchema]},
 )
@@ -25,7 +25,7 @@ def invite_list(
 
 
 @router.post(
-    'invites/',
+    "invites/",
     auth=VerifiedRequiredAuth(),
     response={201: schemas.LobbyInviteSchema},
 )
@@ -34,7 +34,7 @@ def invite_create(request, payload: schemas.LobbyInviteCreateSchema):
 
 
 @router.get(
-    'invites/{invite_id}/',
+    "invites/{invite_id}/",
     auth=VerifiedRequiredAuth(),
     response={200: schemas.LobbyInviteSchema},
 )
@@ -43,7 +43,7 @@ def invite_detail(request, invite_id: str):
 
 
 @router.delete(
-    'invites/{invite_id}/',
+    "invites/{invite_id}/",
     auth=VerifiedRequiredAuth(),
 )
 def invite_delete(request, invite_id: str, payload: schemas.LobbyInviteDeleteSchema):
@@ -52,11 +52,11 @@ def invite_delete(request, invite_id: str, payload: schemas.LobbyInviteDeleteSch
     elif payload.refuse:
         return controller.refuse_invite(request.user, invite_id)
     else:
-        return HttpError(400, _('Invite must be accepted or refused. Can\'t be none.'))
+        return HttpError(400, _("Invite must be accepted or refused. Can't be none."))
 
 
 @router.delete(
-    '{lobby_id}/players/{player_id}/',
+    "{lobby_id}/players/{player_id}/",
     auth=VerifiedRequiredAuth(),
     response={200: schemas.LobbySchema},
 )
@@ -66,7 +66,7 @@ def player_delete(request, lobby_id: int, player_id: int):
 
 
 @router.patch(
-    '{lobby_id}/',
+    "{lobby_id}/",
     auth=VerifiedRequiredAuth(),
     response={200: schemas.LobbySchema},
 )
@@ -76,20 +76,20 @@ def update(request, lobby_id: int, payload: schemas.LobbyUpdateSchema):
 
 
 @router.patch(
-    '{lobby_id}/players/',
+    "{lobby_id}/players/",
     auth=VerifiedRequiredAuth(),
     response={200: schemas.LobbySchema},
 )
 @authorization.participant_required
 def player_update(request, lobby_id: int, payload: schemas.LobbyPlayerUpdateSchema):
-    return controller.update_player(lobby_id, payload)
+    return controller.update_player(request.user, lobby_id, payload)
 
 
 @router.get(
-    '{lobby_id}/',
+    "{lobby_id}/",
     auth=VerifiedRequiredAuth(),
     response={200: schemas.LobbySchema},
 )
 @authorization.participant_required
 def detail(request, lobby_id: int):
-    return controller.get_lobby(lobby_id)
+    return controller.get_lobby(request.user, lobby_id)

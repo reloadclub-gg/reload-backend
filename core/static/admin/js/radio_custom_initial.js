@@ -25,11 +25,11 @@ window.onload = () => {
 
 document.addEventListener('DOMContentLoaded', function () {
 	const searchContainer = document.createElement('div');
-	searchContainer.innerHTML = `<input type="text" id="user-search" placeholder="Filter" style="margin-bottom: 10px;">`;
-	const userList = document.querySelector('#id_users');
+	searchContainer.innerHTML = `<input type="text" id="list-search" placeholder="Filter" style="margin-bottom: 10px;">`;
+	const userList = document.querySelector('.searchable');
 	userList.before(searchContainer);
 
-	const userSearch = document.getElementById('user-search');
+	const userSearch = document.getElementById('list-search');
 	userSearch.addEventListener('keyup', function () {
 		const searchTerm = userSearch.value.toLowerCase();
 		const options = userList.options;
