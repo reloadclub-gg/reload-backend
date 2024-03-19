@@ -28,7 +28,7 @@ class Feature(models.Model):
             '"selected users" will be ignored and erased'
         ),
     )
-    selected_users = models.ManyToManyField(User, blank=True, null=True, help_text="")
+    selected_users = models.ManyToManyField(User, blank=True, help_text="")
 
     def __str__(self):
         return self.name

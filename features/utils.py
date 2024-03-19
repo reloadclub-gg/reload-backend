@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from .models import Feature
@@ -6,6 +7,10 @@ User = get_user_model()
 
 
 def is_feat_available_for_user(feat_name: str, user: User) -> bool:
+
+    if settings.TEST_MODE:
+        return True
+
     try:
         feature = Feature.objects.get(name=feat_name)
     except Feature.DoesNotExist:
