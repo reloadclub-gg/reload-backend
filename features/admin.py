@@ -7,39 +7,36 @@ User = get_user_model()
 
 
 @admin.register(models.Feature)
-class Feature(admin.ModelAdmin):
-    list_display = ["name"]
-
-
-@admin.register(models.FeaturePreview)
-class FeaturePreviewAdmin(admin.ModelAdmin):
-    list_display = ("feature", "early_adopters")
-    form = forms.FeaturePreviewCreationForm
+class FeatureAdmin(admin.ModelAdmin):
+    list_display = ("name", "users", "allowed_to")
+    form = forms.FeatureCreationForm
 
     fieldsets = (
         (
             None,
             {
                 "fields": (
+                    "name",
+                    "allowed_to",
                     "user_filter",
-                    "users",
-                    "feature",
+                    "selected_users",
                 )
             },
         ),
     )
 
-    def early_adopters(self, obj):
-        return obj.users.count()
+    def users(self, obj):
+        return list(obj.selected_users.all().values_list("email", flat=True)) or None
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == "users":
+        if db_field.name == "selected_users":
             if request.GET.get("online"):
                 online_users_ids = [user.id for user in User.online_users()]
                 kwargs["queryset"] = User.objects.filter(id__in=online_users_ids)
             else:
                 kwargs["queryset"] = User.objects.filter(
-                    is_active=True, is_superuser=False
+                    is_active=True,
+                    is_superuser=False,
                 )
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
