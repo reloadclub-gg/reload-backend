@@ -5,16 +5,18 @@ from ninja import Form, Router
 from ninja.files import UploadedFile
 
 from accounts.api.authentication import VerifiedRequiredAuth
+from features.api.feat_auth import feat_available
 
 from . import controller
 from .schemas import VALID_SUBJECTS, TicketCreateSchema, TicketSchema
 
 User = get_user_model()
 
-router = Router(tags=['support'])
+router = Router(tags=["support"])
 
 
-@router.post('/tickets/', auth=VerifiedRequiredAuth(), response={201: TicketSchema})
+@router.post("/tickets/", auth=VerifiedRequiredAuth(), response={201: TicketSchema})
+@feat_available(feat_name="support")
 def tickets_create(
     request,
     files: List[UploadedFile] = None,
@@ -24,7 +26,7 @@ def tickets_create(
 
 
 @router.get(
-    '/tickets/subjects/', auth=VerifiedRequiredAuth(), response={200: List[str]}
+    "/tickets/subjects/", auth=VerifiedRequiredAuth(), response={200: List[str]}
 )
 def tickets_subjects_list(request):
     return VALID_SUBJECTS
