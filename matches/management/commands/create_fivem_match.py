@@ -25,16 +25,16 @@ class Command(BaseCommand):
             "server_ip",
             nargs="+",
             type=str,
-            help='Ther server IP which the script should make requests.',
+            help="Ther server IP which the script should make requests.",
         )
 
     def prepare(self):
         self.users = []
-        User.objects.filter(email__contains='user_test_create_fivem_match').delete()
+        User.objects.filter(email__contains="user_test_create_fivem_match").delete()
 
         self.user_1 = baker.make(
             User,
-            email='user_test_create_fivem_match_1@example.com',
+            email="user_test_create_fivem_match_1@example.com",
             is_active=True,
         )
         create_social_auth(self.user_1)
@@ -43,7 +43,7 @@ class Command(BaseCommand):
 
         self.user_2 = baker.make(
             User,
-            email='user_test_create_fivem_match_2@example.com',
+            email="user_test_create_fivem_match_2@example.com",
             is_active=True,
         )
         create_social_auth(self.user_2)
@@ -52,7 +52,7 @@ class Command(BaseCommand):
 
         self.user_3 = baker.make(
             User,
-            email='user_test_create_fivem_match_3@example.com',
+            email="user_test_create_fivem_match_3@example.com",
             is_active=True,
         )
         create_social_auth(self.user_3)
@@ -61,7 +61,7 @@ class Command(BaseCommand):
 
         self.user_4 = baker.make(
             User,
-            email='user_test_create_fivem_match_4@example.com',
+            email="user_test_create_fivem_match_4@example.com",
             is_active=True,
         )
         create_social_auth(self.user_4)
@@ -70,7 +70,7 @@ class Command(BaseCommand):
 
         self.user_5 = baker.make(
             User,
-            email='user_test_create_fivem_match_5@example.com',
+            email="user_test_create_fivem_match_5@example.com",
             is_active=True,
         )
         create_social_auth(self.user_5)
@@ -79,7 +79,7 @@ class Command(BaseCommand):
 
         self.user_6 = baker.make(
             User,
-            email='user_test_create_fivem_match_6@example.com',
+            email="user_test_create_fivem_match_6@example.com",
             is_active=True,
         )
         create_social_auth(self.user_6)
@@ -88,7 +88,7 @@ class Command(BaseCommand):
 
         self.user_7 = baker.make(
             User,
-            email='user_test_create_fivem_match_7@example.com',
+            email="user_test_create_fivem_match_7@example.com",
             is_active=True,
         )
         create_social_auth(self.user_7)
@@ -97,7 +97,7 @@ class Command(BaseCommand):
 
         self.user_8 = baker.make(
             User,
-            email='user_test_create_fivem_match_8@example.com',
+            email="user_test_create_fivem_match_8@example.com",
             is_active=True,
         )
         create_social_auth(self.user_8)
@@ -106,7 +106,7 @@ class Command(BaseCommand):
 
         self.user_9 = baker.make(
             User,
-            email='user_test_create_fivem_match_9@example.com',
+            email="user_test_create_fivem_match_9@example.com",
             is_active=True,
         )
         create_social_auth(self.user_9)
@@ -114,7 +114,7 @@ class Command(BaseCommand):
         self.users.append(self.user_9)
 
         self.user_10 = baker.make(
-            User, email='user_test_create_fivem_match_10@example.com', is_active=True
+            User, email="user_test_create_fivem_match_10@example.com", is_active=True
         )
         create_social_auth(self.user_10)
         baker.make(Account, user=self.user_10, is_verified=True)
@@ -144,7 +144,7 @@ class Command(BaseCommand):
             user.delete()
 
         assert (
-            len(User.objects.filter(email__contains='user_test_create_fivem_match'))
+            len(User.objects.filter(email__contains="user_test_create_fivem_match"))
             == 0
         )
 
@@ -160,24 +160,36 @@ class Command(BaseCommand):
 
         try:
             server, _ = models.Server.objects.get_or_create(
-                ip=options['server_ip'][0],
-                name='Reload Staging Server',
+                ip=options["server_ip"][0],
+                name="Reload Staging Server",
             )
 
-            self.match = models.Match.objects.create(
-                server=server,
-                game_type=models.Match.GameType.COMPETITIVE,
-                game_mode=models.Match.GameMode.DEFUSE,
+            self.match = models.Match.objects.create(server=server)
+            team1 = models.MatchTeam.objects.create(
+                match=self.match,
+                name="team1",
+                side=1,
             )
-            team1 = models.MatchTeam.objects.create(match=self.match, name='team1')
-            team2 = models.MatchTeam.objects.create(match=self.match, name='team2')
+            team2 = models.MatchTeam.objects.create(
+                match=self.match,
+                name="team2",
+                side=2,
+            )
 
             [
-                models.MatchPlayer.objects.create(user=user, team=team1)
+                models.MatchPlayer.objects.create(
+                    user=user,
+                    team=team1,
+                    match=self.match,
+                )
                 for user in self.team1_users
             ]
             [
-                models.MatchPlayer.objects.create(user=user, team=team2)
+                models.MatchPlayer.objects.create(
+                    user=user,
+                    team=team2,
+                    match=self.match,
+                )
                 for user in self.team2_users
             ]
 

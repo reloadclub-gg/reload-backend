@@ -27,8 +27,8 @@ User = get_user_model()
 
 def map_media_path(instance, filename):
     extension = os.path.splitext(filename)[1]
-    new_filename = f'{instance.sys_name}{extension}'
-    return f'maps/thumbnails/{new_filename}'
+    new_filename = f"{instance.sys_name}{extension}"
+    return f"maps/thumbnails/{new_filename}"
 
 
 class Server(models.Model):
@@ -91,10 +91,14 @@ class Server(models.Model):
         return None
 
     def __str__(self):
-        return f'{self.name} - {self.ip}'
+        return f"{self.name} - {self.ip}"
 
 
 class Map(models.Model):
+    class MapTypeChoices(models.TextChoices):
+        DEFAULT = "default"  # 5x5 plant/desarm
+        SAFEZONE = "safezone"
+
     id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=32)
     sys_name = models.CharField(max_length=32, unique=True)
@@ -103,6 +107,11 @@ class Map(models.Model):
     weight = models.IntegerField(
         default=1,
         validators=[MinValueValidator(1)],
+    )
+    map_type = models.CharField(
+        max_length=32,
+        choices=MapTypeChoices.choices,
+        default=MapTypeChoices.DEFAULT,
     )
 
     def __str__(self):
@@ -117,29 +126,40 @@ class Map(models.Model):
 
 class Match(models.Model):
     class Meta:
-        verbose_name_plural = 'matches'
-        ordering = ['-end_date']
+        verbose_name_plural = "matches"
+        ordering = ["-end_date"]
         indexes = [
-            models.Index(fields=['status']),
-            models.Index(fields=['end_date']),
-            models.Index(fields=['start_date']),
+            models.Index(fields=["status"]),
+            models.Index(fields=["end_date"]),
+            models.Index(fields=["start_date"]),
         ]
 
     class Status(models.TextChoices):
-        LOADING = 'loading'
-        WARMUP = 'warmup'
-        RUNNING = 'running'
-        FINISHED = 'finished'
-        CANCELLED = 'cancelled'
+        LOADING = "loading"
+        WARMUP = "warmup"
+        RUNNING = "running"
+        FINISHED = "finished"
+        CANCELLED = "cancelled"
 
-    class GameType(models.TextChoices):
-        CUSTOM = 'custom'
-        COMPETITIVE = 'competitive'
+    class GameMode(models.TextChoices):
+        CUSTOM = "custom"
+        COMPETITIVE = "competitive"
 
-    class GameMode(models.IntegerChoices):
-        SOLO = 1
-        DEFUSE = 5
-        DM = 20
+    class WeaponChoices(models.TextChoices):
+        WEAPON_APPISTOL = "weapon_appistol"
+        WEAPON_ASSAULTRIFLE = "weapon_assaultrifle"
+        WEAPON_ASSAULTSHOTGUN = "weapon_assaultshotgun"
+        WEAPON_COMBATMG = "weapon_combatmg"
+        WEAPON_HEAVYSNIPER = "weapon_heavysniper"
+        WEAPON_MG = "weapon_mg"
+        WEAPON_MICROSMG = "weapon_microsmg"
+        WEAPON_PISTOL = "weapon_pistol"
+        WEAPON_PISTOL50 = "weapon_pistol50"
+        WEAPON_PISTOL_MK2 = "weapon_pistol_mk2"
+        WEAPON_PUMPSHOTGUN = "weapon_pumpshotgun"
+        WEAPON_SMG = "weapon_smg"
+        WEAPON_SNIPERRIFLE = "weapon_sniperrifle"
+        WEAPON_TACTICALRIFLE = "weapon_tacticalrifle"
 
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
@@ -149,11 +169,24 @@ class Match(models.Model):
     status = models.CharField(
         max_length=16,
         choices=Status.choices,
-        default='loading',
+        default="loading",
     )
-    game_type = models.CharField(max_length=16, choices=GameType.choices)
-    game_mode = models.IntegerField(choices=GameMode.choices)
+    game_mode = models.CharField(
+        max_length=16,
+        choices=GameMode.choices,
+        default="competitive",
+    )
     chat = models.JSONField(null=True)
+    restricted_weapon = models.CharField(
+        max_length=64,
+        choices=WeaponChoices.choices,
+        blank=True,
+        null=True,
+    )
+
+    @property
+    def match_type(self) -> str:
+        return self.map.map_type
 
     @property
     def team_a(self) -> MatchTeam:
@@ -210,21 +243,36 @@ class Match(models.Model):
         """
         Fetch and return all players that are in match.
         """
-        return MatchPlayer.objects.filter(Q(team=self.team_a) | Q(team=self.team_b))
+
+        return MatchPlayer.objects.filter(Q(match=self) | Q(team__match=self))
+
+    @property
+    def non_spec_players(self) -> List[MatchPlayer]:
+        """
+        Return players that are in match.
+        """
+        return MatchPlayer.objects.filter(team__isnull=False)
+
+    @property
+    def spec_players(self) -> List[MatchPlayer]:
+        """
+        Return specs that are in match.
+        """
+        return MatchPlayer.objects.filter(team__isnull=True)
 
     def save(self, *args, **kwargs):
         if not self.pk and not self.map_id:
-            self.map = Map.objects.filter(is_active=True).order_by('?').first()
+            self.map = Map.objects.filter(is_active=True).order_by("?").first()
         super().save(*args, **kwargs)
 
     def __str__(self):
         if self.team_a and self.team_b:
-            return f'#{self.id} - {self.team_a.name} vs {self.team_b.name}'
-        return f'#{self.id} - waiting for team creation'
+            return f"#{self.id} - {self.team_a.name} vs {self.team_b.name}"
+        return f"#{self.id} - waiting for team creation"
 
     def finish(self):
         if self.status not in [Match.Status.RUNNING, Match.Status.WARMUP]:
-            raise ValidationError(_('Unable to finish match while not running.'))
+            raise ValidationError(_("Unable to finish match while not running."))
 
         self.status = Match.Status.FINISHED
         self.end_date = timezone.now()
@@ -235,14 +283,14 @@ class Match(models.Model):
 
     def warmup(self):
         if self.status != Match.Status.LOADING:
-            raise ValidationError(_('Unable to warmup while not loaded.'))
+            raise ValidationError(_("Unable to warmup while not loaded."))
 
         self.status = Match.Status.WARMUP
         self.save()
 
     def start(self):
         if self.status != Match.Status.WARMUP:
-            raise ValidationError(_('Unable to start match while not warmed up.'))
+            raise ValidationError(_("Unable to start match while not warmed up."))
 
         self.status = Match.Status.RUNNING
         self.start_date = timezone.now()
@@ -251,7 +299,7 @@ class Match(models.Model):
     def cancel(self):
         error_statuses = [Match.Status.FINISHED, Match.Status.CANCELLED]
         if self.status in error_statuses:
-            raise ValidationError(_('Unable to cancel match after is finished.'))
+            raise ValidationError(_("Unable to cancel match after is finished."))
 
         self.status = Match.Status.CANCELLED
         self.end_date = timezone.now()
@@ -267,9 +315,14 @@ class Match(models.Model):
 
 
 class MatchTeam(models.Model):
+    class SideChoices(models.IntegerChoices):
+        DEF = 1
+        ATK = 2
+
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
     name = models.CharField(max_length=32)
     score = models.IntegerField(default=0, blank=True, null=True)
+    side = models.IntegerField(choices=SideChoices.choices)
 
     @property
     def players(self) -> List[MatchPlayer]:
@@ -285,12 +338,17 @@ class MatchTeam(models.Model):
         return self.players.filter(user=user).exists()
 
     def __str__(self):
-        return f'#{self.id} - {self.name}'
+        return f"#{self.id} - {self.name}"
 
 
 class MatchPlayer(models.Model):
+    """
+    If a player doesn't have a team, it means that this player is spec.
+    """
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    team = models.ForeignKey(MatchTeam, on_delete=models.CASCADE)
+    team = models.ForeignKey(MatchTeam, on_delete=models.CASCADE, blank=True, null=True)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, blank=True, null=True)
     level = models.IntegerField(editable=False)
     level_points = models.IntegerField(editable=False)
 
@@ -371,31 +429,31 @@ class MatchPlayer(models.Model):
             super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.user.steam_user.username}'
+        return f"{self.user.steam_user.username}"
 
 
 class MatchPlayerStats(models.Model):
     PERCENTAGE_STATS = [
-        'accuracy',
-        'head_accuracy',
-        'chest_accuracy',
-        'others_accuracy',
-        'hsk',
+        "accuracy",
+        "head_accuracy",
+        "chest_accuracy",
+        "others_accuracy",
+        "hsk",
     ]
 
     RATIO_STATS = [
-        'kdr',
-        'kda',
-        'ahk',
-        'ahr',
+        "kdr",
+        "kda",
+        "ahk",
+        "ahr",
     ]
 
-    ROUND_STATS = [('adr', 'damage')]
+    ROUND_STATS = [("adr", "damage")]
 
     player = models.OneToOneField(
         MatchPlayer,
         on_delete=models.CASCADE,
-        related_name='stats',
+        related_name="stats",
     )
     kills = models.IntegerField(blank=True, null=True, default=0)
     deaths = models.IntegerField(blank=True, null=True, default=0)
@@ -454,7 +512,7 @@ class MatchPlayerStats(models.Model):
         """
         A string containing resumed stats : kills / deaths / assists.
         """
-        return f'{self.kills}/{self.deaths}/{self.assists}'
+        return f"{self.kills}/{self.deaths}/{self.assists}"
 
     @property
     def adr(self) -> float:
@@ -547,7 +605,7 @@ class MatchPlayerStats(models.Model):
         return 0
 
     def __str__(self):
-        return f'{self.player.user.steam_user.username}'
+        return f"{self.player.user.steam_user.username}"
 
 
 class BetaUser(models.Model):
@@ -557,16 +615,16 @@ class BetaUser(models.Model):
     date_add = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name_plural = 'beta users'
-        ordering = ['-date_add']
-        indexes = [models.Index(fields=['email'])]
+        verbose_name_plural = "beta users"
+        ordering = ["-date_add"]
+        indexes = [models.Index(fields=["email"])]
 
     def save(self, *args, **kwargs):
         if settings.ENVIRONMENT != settings.LOCAL:
-            payload = {'steamid': self.steamid_hex, 'username': self.username}
+            payload = {"steamid": self.steamid_hex, "username": self.username}
             server = Server.objects.first()
             requests.post(
-                f'http://{server.ip}:{server.port}/core/addAllowlist',
+                f"http://{server.ip}:{server.port}/core/addAllowlist",
                 json=payload,
             )
 

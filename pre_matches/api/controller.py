@@ -11,7 +11,7 @@ from ninja.errors import Http404, HttpError
 from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from core.websocket import ws_create_toast
 from matches.api.controller import cancel_match
-from matches.api.schemas import FiveMMatchResponseMock, MatchFiveMSchema
+from matches.api.schemas import FivemMatchSchema, FivemResponseMock
 from matches.models import Match, MatchPlayer, Server
 from matches.tasks import (
     mock_fivem_match_cancel,
@@ -28,14 +28,14 @@ User = get_user_model()
 
 def get_pre_match_cancel_translated_message(msg_type):
     messages = {
-        'lock_in': _('Match cancelled due to user not locked in.'),
-        'servers_full': _(
-            'All our servers are unavailable at this moment. Please, try again later.'
+        "lock_in": _("Match cancelled due to user not locked in."),
+        "servers_full": _(
+            "All our servers are unavailable at this moment. Please, try again later."
         ),
-        'dodge': _(
-            'Some players in your lobby were not ready before the'
-            'timer ran out and the match was cancelled. The recurrence'
-            'of this conduct may result in restrictions.'
+        "dodge": _(
+            "Some players in your lobby were not ready before the"
+            "timer ran out and the match was cancelled. The recurrence"
+            "of this conduct may result in restrictions."
         ),
     }
 
@@ -51,7 +51,7 @@ def cancel_pre_match(
         translated_msg = get_pre_match_cancel_translated_message(toast_msg_type)
         toast_ids = toast_players_id or [player.id for player in pre_match.players]
         for player_id in toast_ids:
-            ws_create_toast(translated_msg, 'warning', user_id=player_id)
+            ws_create_toast(translated_msg, "warning", user_id=player_id)
 
     # send ws call to lobbies to cancel that match
     websocket.ws_pre_match_delete(pre_match)
@@ -77,11 +77,11 @@ def handle_create_fivem_match(match: Match) -> Match:
         or settings.FIVEM_MATCH_MOCKS_ON
     ):
         status_code = 201 if settings.FIVEM_MATCH_MOCK_CREATION_SUCCESS else 400
-        fivem_response = FiveMMatchResponseMock.from_orm({'status_code': status_code})
+        fivem_response = FivemResponseMock.from_orm({"status_code": status_code})
         time.sleep(settings.FIVEM_MATCH_MOCK_DELAY_CONFIGURE)
     else:
-        server_url = f'http://{match.server.ip}:{match.server.api_port}/api/matches'
-        payload = MatchFiveMSchema.from_orm(match).dict()
+        server_url = f"http://{match.server.ip}:{match.server.api_port}/api/matches"
+        payload = FivemMatchSchema.from_orm(match).dict()
         try:
             fivem_response = requests.post(
                 server_url,
@@ -89,8 +89,8 @@ def handle_create_fivem_match(match: Match) -> Match:
                 timeout=settings.FIVEM_MATCH_CREATION_RETRIES_TIMEOUT,
             )
         except requests.exceptions.Timeout:
-            fivem_response = FiveMMatchResponseMock.from_orm({'status_code': 400})
-            logging.warning(f'[handle_create_fivem_match] {match.id}')
+            fivem_response = FivemResponseMock.from_orm({"status_code": 400})
+            logging.warning(f"[handle_create_fivem_match] {match.id}")
             return None
 
     return fivem_response
@@ -101,14 +101,14 @@ def handle_create_match_teams(match: Match, pre_match: models.PreMatch) -> Match
     if not pre_team1 or not pre_match:
         return
 
-    team_a = match.matchteam_set.create(name=pre_team1.name)
-    team_b = match.matchteam_set.create(name=pre_team2.name)
+    team_a = match.matchteam_set.create(name=pre_team1.name, side=1)
+    team_b = match.matchteam_set.create(name=pre_team2.name, side=2)
 
     for user in pre_match.team1_players:
-        MatchPlayer.objects.create(user=user, team=team_a)
+        MatchPlayer.objects.create(user=user, team=team_a, match=match)
 
     for user in pre_match.team2_players:
-        MatchPlayer.objects.create(user=user, team=team_b)
+        MatchPlayer.objects.create(user=user, team=team_b, match=match)
 
     websocket.ws_pre_match_delete(pre_match)
     models.PreMatch.delete(pre_match.id)
@@ -127,17 +127,13 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     if (
         len(pre_match.team1_players) < settings.TEAM_READY_PLAYERS_MIN
         or len(pre_match.team2_players) < settings.TEAM_READY_PLAYERS_MIN
-        or len(pre_match.team1_players) > pre_match.mode
-        or len(pre_match.team2_players) > pre_match.mode
+        or len(pre_match.team1_players) > pre_match.max_players
+        or len(pre_match.team2_players) > pre_match.max_players
     ):
         cancel_pre_match(pre_match)
         return
 
-    match = Match.objects.create(
-        server=server,
-        game_type=pre_match.match_type,
-        game_mode=pre_match.mode,
-    )
+    match = Match.objects.create(server=server, game_mode=pre_match.mode)
 
     if server.is_almost_full:
         send_server_almost_full_mail.delay(server.name)
@@ -173,12 +169,12 @@ def get_pre_match(user: User) -> models.PreMatch:
 def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
     handle_pre_match_checks(
         user,
-        _('Can\'t ready in for a new match while in a match.'),
+        _("Can't ready in for a new match while in a match."),
     )
 
     pre_match = user.account.pre_match
     if user in pre_match.players_ready:
-        raise HttpError(400, _('Player already set as ready.'))
+        raise HttpError(400, _("Player already set as ready."))
 
     pre_match.set_player_ready(user.id)
     websocket.ws_pre_match_update(pre_match)
@@ -186,7 +182,7 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
         match = handle_create_match(pre_match)
         if not match:
             # cancel match due to lack of available servers
-            return cancel_pre_match(pre_match, 'servers_full')
+            return cancel_pre_match(pre_match, "servers_full")
         else:
             fivem_response = handle_create_fivem_match(match)
             if not fivem_response or fivem_response.status_code != 201:
@@ -205,13 +201,13 @@ def set_player_ready(user: User) -> Union[models.PreMatch, Match]:
                         mock_fivem_match_start.apply_async(
                             (match.id,),
                             countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
-                            serializer='json',
+                            serializer="json",
                         )
                     else:
                         mock_fivem_match_cancel.apply_async(
                             (match.id,),
                             countdown=settings.FIVEM_MATCH_MOCK_DELAY_START,
-                            serializer='json',
+                            serializer="json",
                         )
 
                 ws_match_update(match)

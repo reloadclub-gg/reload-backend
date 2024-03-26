@@ -657,7 +657,17 @@
         "fields": {
             "id": 1,
             "name": "Auditório",
-            "sys_name": "auditorium"
+            "sys_name": "auditorium",
+            "map_type": "default"
+        }
+    },
+    {
+        "model": "matches.map",
+        "fields": {
+            "id": 2,
+            "name": "Estacionamento",
+            "sys_name": "parking",
+            "map_type": "safezone"
         }
     },
     {
@@ -669,9 +679,8 @@
             "start_date": "2023-04-19T15:16:05Z",
             "end_date": "2023-04-19T15:36:06Z",
             "status": "finished",
-            "game_type": "competitive",
             "map": 1,
-            "game_mode": 5,
+            "game_mode": "competitive",
             "chat": [
                 {
                     "steamid": "3e8692e322c0e2e",
@@ -703,8 +712,7 @@
             "start_date": "2023-04-19T15:36:36Z",
             "end_date": null,
             "status": "running",
-            "game_type": "competitive",
-            "game_mode": 5,
+            "game_mode": "competitive",
             "map": 1
         }
     },
@@ -714,7 +722,8 @@
         "fields": {
             "match": 1,
             "name": "Team A",
-            "score": 10
+            "score": 10,
+            "side": 1
         }
     },
     {
@@ -723,7 +732,8 @@
         "fields": {
             "match": 1,
             "name": "Team B",
-            "score": 8
+            "score": 8,
+            "side": 2
         }
     },
     {
@@ -732,7 +742,8 @@
         "fields": {
             "match": 2,
             "name": "Team A",
-            "score": 1
+            "score": 1,
+            "side": 1
         }
     },
     {
@@ -741,7 +752,8 @@
         "fields": {
             "match": 2,
             "name": "Team B",
-            "score": 0
+            "score": 0,
+            "side": 2
         }
     },
     {
@@ -3151,6 +3163,87 @@
             "item": 51,
             "file": "store/wear-def-conjunto-primal-selva/media/videos/ucOlty__wavK34__wear-def-conjunto-primal-selva.mp4",
             "media_type": "video"
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 1,
+        "fields": {
+            "name": "custom_lobby",
+            "allowed_to": "all",
+            "selected_users": []
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 2,
+        "fields": {
+            "name": "ranking",
+            "allowed_to": "all",
+            "selected_users": []
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 3,
+        "fields": {
+            "name": "store",
+            "allowed_to": "all",
+            "selected_users": []
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 4,
+        "fields": {
+            "name": "comp_lobby",
+            "allowed_to": "all",
+            "selected_users": []
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 5,
+        "fields": {
+            "name": "friends",
+            "allowed_to": "all",
+            "selected_users": []
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 6,
+        "fields": {
+            "name": "profiles",
+            "allowed_to": "all",
+            "selected_users": []
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 7,
+        "fields": {
+            "name": "support",
+            "allowed_to": "all",
+            "selected_users": []
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 8,
+        "fields": {
+            "name": "inventory",
+            "allowed_to": "all",
+            "selected_users": []
+        }
+    },
+    {
+        "model": "features.feature",
+        "pk": 9,
+        "fields": {
+            "name": "rc",
+            "allowed_to": "all",
+            "selected_users": []
         }
     }
 ]

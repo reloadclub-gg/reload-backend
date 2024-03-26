@@ -20,7 +20,7 @@ class Command(BaseCommand):
             "total",
             nargs="+",
             type=int,
-            help='The amount of matches to create.',
+            help="The amount of matches to create.",
         )
 
     def handle(self, *args, **options):
@@ -29,34 +29,38 @@ class Command(BaseCommand):
 
         try:
             server, _ = models.Server.objects.get_or_create(
-                ip='123.123.123.123',
-                name='Reload 1',
+                ip="123.123.123.123",
+                name="Reload 1",
             )
 
-            for i in range(0, options['total'][0]):
+            for i in range(0, options["total"][0]):
                 self.match = models.Match.objects.create(
                     server=server,
-                    game_type=models.Match.GameType.COMPETITIVE,
-                    game_mode=models.Match.GameMode.DEFUSE,
                     status=models.Match.Status.FINISHED,
                     start_date=timezone.now(),
                     end_date=timezone.now(),
                 )
                 team1 = models.MatchTeam.objects.create(
                     match=self.match,
-                    name='Team A',
+                    name="Team A",
                     score=settings.MATCH_ROUNDS_TO_WIN,
+                    side=1,
                 )
                 models.MatchTeam.objects.create(
                     match=self.match,
-                    name='Team B',
+                    name="Team B",
                     score=0,
+                    side=2,
                 )
                 player = User.objects.filter(
                     is_staff=False,
                     account__is_verified=True,
                 ).first()
-                models.MatchPlayer.objects.create(team=team1, user=player)
+                models.MatchPlayer.objects.create(
+                    team=team1,
+                    user=player,
+                    match=self.match,
+                )
 
         except Exception as e:
             print(e)

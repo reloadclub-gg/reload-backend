@@ -171,12 +171,12 @@ class LobbyRoutesTestCase(VerifiedAccountsMixin, TestCase):
             'patch',
             f'/{lobby_1.id}',
             token=self.user_1.auth.token,
-            data={'start_queue': True},
+            data={'queue': 'start'},
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(lobby_1.queue)
 
-    def test_lobby_update_not_authorized(self):
+    def test_lobby_update_unauthorized(self):
         lobby_1 = Lobby.create(self.user_1.id)
         Lobby.create(self.user_2.id)
         lobby_1.invite(self.user_1.id, self.user_2.id)
@@ -187,7 +187,7 @@ class LobbyRoutesTestCase(VerifiedAccountsMixin, TestCase):
             'patch',
             f'/{lobby_1.id}',
             token=self.user_2.auth.token,
-            data={'start_queue': True},
+            data={'queue': 'start'},
         )
         self.assertEqual(response.status_code, 401)
         self.assertIsNone(lobby_1.queue)

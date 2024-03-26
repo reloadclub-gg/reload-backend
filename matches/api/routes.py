@@ -44,3 +44,8 @@ def update(request, match_id: int, payload: schemas.MatchUpdateSchema):
 )
 def cancel(request, match_id: int):
     return controller.cancel_match(match_id)
+
+
+@router.post('/', auth=VerifiedRequiredAuth(), response={201: schemas.MatchSchema})
+def create(request, payload: schemas.MatchCreationSchema):
+    return controller.create_match(payload)

@@ -17,7 +17,7 @@ from social_django.models import Association, Nonce, UserSocialAuth
 from core import admin_mixins
 from friends.models import Friendship
 from matches.models import Match, MatchPlayer
-from store.models import UserBox, UserItem
+from store.models import UserBox, UserItem, ProductTransaction
 
 from . import forms, models
 
@@ -70,7 +70,7 @@ class UserMatchesAdminInline(admin.TabularInline):
         'start_date',
         'end_date',
         'status',
-        'game_type',
+        'match_type',
         'game_mode',
     ]
     exclude = ['team']
@@ -135,8 +135,8 @@ class UserMatchesAdminInline(admin.TabularInline):
     def status(self, obj):
         return obj.team.match.get_status_display()
 
-    def game_type(self, obj):
-        return obj.team.match.get_game_type_display()
+    def match_type(self, obj):
+        return obj.team.match.match_type
 
     def game_mode(self, obj):
         return obj.team.match.get_game_mode_display()
@@ -191,6 +191,26 @@ class UserBoxAdminInline(admin.TabularInline):
 
     def box_is_available(self, obj):
         return obj.box.is_available
+
+
+class UserTransactionsAdminInline(admin.TabularInline):
+    model = ProductTransaction
+    readonly_fields = ['complete_date', 'amount', 'succeeded', 'payment_method']
+    exclude = ['product_id', 'session_id', 'price', 'status']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        ids = queryset.order_by('-id').values('pk')[:5]
+        return ProductTransaction.objects.filter(pk__in=ids)
 
 
 class CustomUserStatusFilter(admin.SimpleListFilter):
@@ -352,6 +372,7 @@ class UserAdmin(
         UserReportsAdminInline,
         UserItemAdminInline,
         UserBoxAdminInline,
+        UserTransactionsAdminInline,
     ]
 
     def steamid(self, obj):

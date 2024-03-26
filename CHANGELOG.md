@@ -7,10 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Campo `feats` no esquema de usuário [#1063](https://github.com/reloadclub-gg/reload-backend/issues/1063).
+- Funcionalidade de bloquear acesso a funcionalidades para determinados usuários pelo admin. Por exemplo, podemos dizer que a funcionalidade Ranking só será acessada pelos usuários `joão@email.com` e `maria@email.com` [#1061](https://github.com/reloadclub-gg/reload-backend/issues/1061).
+- Novos métodos de apoio no modelo `Match`.
+- Campo `side` no modelo `MatchTeam` para definir se o time começa atacando ou defendendo.
+- Endpoint para webhook do stripe que finaliza a transação salvando alguns metadados como meio de pagamento e se a transação foi convertida ou não [#1045](https://github.com/reloadclub-gg/reload-backend/issues/1045).
+- Campos `succeeded` e `payment_method` no modelo `ProductTransaction` para maior controle interno.
+- Configuração `STRIPE_WEBHOOK_SECRET` para armazenar token de webhook da Stripe.
+- Endpoint para iniciar partida personalizada [#1050](https://github.com/3C-gg/reload-backend/issues/1050).
+- Campo `map_type` no model `Map` para identificar os mapas de cada tipo de jogo.
+- Listas de selects para FE no esquema `LobbySchema` quando lobby for personalizado.
+- Enpoint `PATCH /api/lobbies/{lobby_id}/players/` e esquema `LobbyPlayerUpdateSchema` para atualizar os lados dos players no lobby personalizado.
+- Adicionamos métodos e chaves no Redis para o model `Lobby` para o novo modo personalizado [#1044](1044-alteraes-no-model-lobby-para-partida-personalizada).
+
+### Changed
+
+- Refatoração e alteração dos esquemas `FivemPlayerSchema` (antigo `MatchTeamPlayerFiveMSchema`) e `FivemMatchSchema` (antigo `MatchFiveMSchema`) para enviarem o novo esquema para o FiveM [#1053](https://github.com/reloadclub-gg/reload-backend/issues/1053).
+- Alteração do esquema `FiveMMatchResponseMock` para `FivemResponseMock`.
+- Refatoração do controller de criar partida no Fivem em `matches`.
+- Admin de usuários foi atualizado para conter a lista de transações efetuadas.
+- Admin de transações foi atualizado para conter os novos campos do modelo.
+- Alteramos o esquema `LobbySchema` para conter os campos relacionados as partidas personalizadas.
+- Alteramos o endpoint `PATCH /api/lobbies/{lobby_id}/` e o esquema `LobbyUpdateSchema` para receber as alterações relacionadas às partidas personalizadas.
+- Alteramos os campos `lobby_type` e `mode` do model `Lobby` para uma melhor adaptação às partidas personalizadas [#1044](1044-alteraes-no-model-lobby-para-partida-personalizada).
+- Alteramos também os campos `game_type` e `game_mode` do model `Match` para refletir as alterações do model `Lobby`.
+- Alteramos as propriedades `lobby_type` e `mode` dos models `Team` e `PreMatch` para garantir que as alterações no model `Lobby` funcionassem.
+
+### Fixed
+
+- Ajusta manager do model `Account` que estava retornando usuários staff e admin, fazendo com que o ranking exibisse usuários staff e admins na lista [#1046](https://github.com/reloadclub-gg/reload-backend/issues/1046).
+
+### Removed
+
+- Campo `match_type` do model `Match`, movendo esse campo para `Map.map_type` para que cada seja relacionado a um tipo de jogo.
+
 ## [e242321 - 5/2/2024]
 
 ### Added
 
+- Adiciona paginação no endpoint `api/ranking/` [#1041](https://github.com/3C-gg/reload-backend/issues/1041).
 - Endpoint `GET /api/ranking/` retorna o ranking dos jogadores, ordenando pelo maior nível e depois, mais pontos de nível [#1032](https://github.com/3C-gg/reload-backend/issues/1032).
 - Método `get_elite_players` para trazer os jogadores que estão no nível 30 (elite).
 - Novo manager `verified_objects` no model `Account` para trazer somente os jogadores ativos e verificados.
@@ -18,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Altera campo `ranking_pos` do schema `ProfileSchema` para começar do `1` e não do `0`.
 - Ajusta config `PLAYER_MAX_LEVEL` de `50` para `30` [#1032](https://github.com/3C-gg/reload-backend/issues/1032).
 
 ## [1d31ef9 - 1/2/2024]

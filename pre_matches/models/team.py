@@ -144,12 +144,12 @@ class Team(BaseModel):
         return [Lobby(owner_id=lobby_id) for lobby_id in self.lobbies_ids]
 
     @property
-    def type_mode(self) -> tuple:
+    def mode(self) -> tuple:
         """
         Return team type and mode.
         """
         if len(self.lobbies) > 0:
-            return self.lobbies[0].lobby_type, self.lobbies[0].mode
+            return self.lobbies[0].mode
 
     @property
     def name(self) -> str:
@@ -341,7 +341,7 @@ class Team(BaseModel):
                 )
                 continue
 
-            if self.type_mode is None or self.type_mode != team.type_mode:
+            if self.mode is None or self.mode != team.mode:
                 logging.info('[team:get_opponent_team] mismatch type or mode, continue')
                 continue
 

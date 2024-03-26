@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from ninja import ModelSchema, Schema
 
+from features.models import Feature
+from features.utils import is_feat_available_for_user
 from matches.models import BetaUser
 
 from ..models import Account, Invite
@@ -20,11 +22,11 @@ class AccountSchema(ModelSchema):
     class Config:
         model = Account
         model_exclude = [
-            'id',
-            'user',
-            'verification_token',
-            'highest_level',
-            'social_handles',
+            "id",
+            "user",
+            "verification_token",
+            "highest_level",
+            "social_handles",
         ]
 
     @staticmethod
@@ -37,7 +39,7 @@ class InviteSchema(ModelSchema):
 
     class Config:
         model = Invite
-        model_fields = ['email']
+        model_fields = ["email"]
 
     @staticmethod
     def resolve_accepted(obj):
@@ -54,33 +56,34 @@ class UserSchema(ModelSchema):
     invites: List[InviteSchema] = []
     invites_available_count: int = 0
     is_beta: bool = False
+    feats: List[str] = []
 
     class Config:
         model = User
         model_exclude = [
-            'is_staff',
-            'groups',
-            'user_permissions',
-            'is_superuser',
-            'password',
-            'last_login',
-            'date_joined',
-            'date_inactivation',
-            'reason_inactivated',
-            'date_email_update',
-            'is_beta',
+            "is_staff",
+            "groups",
+            "user_permissions",
+            "is_superuser",
+            "password",
+            "last_login",
+            "date_joined",
+            "date_inactivation",
+            "reason_inactivated",
+            "date_email_update",
+            "is_beta",
         ]
 
     @staticmethod
     def resolve_account(obj):
-        if hasattr(obj, 'account'):
+        if hasattr(obj, "account"):
             return obj.account
 
         return None
 
     @staticmethod
     def resolve_lobby_id(obj):
-        if hasattr(obj, 'account'):
+        if hasattr(obj, "account"):
             if obj.account.lobby:
                 return obj.account.lobby.id
 
@@ -88,7 +91,7 @@ class UserSchema(ModelSchema):
 
     @staticmethod
     def resolve_match_id(obj):
-        if hasattr(obj, 'account'):
+        if hasattr(obj, "account"):
             if obj.account.get_match():
                 return obj.account.get_match().id
 
@@ -96,7 +99,7 @@ class UserSchema(ModelSchema):
 
     @staticmethod
     def resolve_pre_match_id(obj):
-        if hasattr(obj, 'account'):
+        if hasattr(obj, "account"):
             if obj.account.pre_match is not None:
                 return obj.account.pre_match.id
 
@@ -104,14 +107,14 @@ class UserSchema(ModelSchema):
 
     @staticmethod
     def resolve_invites(obj):
-        if hasattr(obj, 'account'):
+        if hasattr(obj, "account"):
             return obj.account.invite_set.all()
 
         return []
 
     @staticmethod
     def resolve_invites_available_count(obj):
-        if hasattr(obj, 'account'):
+        if hasattr(obj, "account"):
             return Invite.MAX_INVITES_PER_ACCOUNT - obj.account.invite_set.all().count()
 
         return 0
@@ -119,6 +122,13 @@ class UserSchema(ModelSchema):
     @staticmethod
     def resolve_is_beta(obj):
         return BetaUser.objects.filter(email=obj.email).exists()
+
+    @staticmethod
+    def resolve_feats(obj):
+        features = Feature.objects.exclude(allowed_to=Feature.AllowedChoices.NONE)
+        return [
+            feat.name for feat in features if is_feat_available_for_user(feat.name, obj)
+        ]
 
 
 class FakeUserSchema(UserSchema):
@@ -131,7 +141,7 @@ class FakeUserSchema(UserSchema):
 
     @staticmethod
     def resolve_verification_token(obj):
-        if hasattr(obj, 'account') and obj.account is not None:
+        if hasattr(obj, "account") and obj.account is not None:
             return obj.account.verification_token
 
 
@@ -140,19 +150,19 @@ class SignUpSchema(Schema):
     terms: bool
     policy: bool
 
-    @pydantic.validator('email')
+    @pydantic.validator("email")
     def email_must_be_unique(cls, v):
-        assert not User.objects.filter(email=v).exists(), _('E-mail must be unique.')
+        assert not User.objects.filter(email=v).exists(), _("E-mail must be unique.")
         return v
 
-    @pydantic.validator('terms')
+    @pydantic.validator("terms")
     def terms_must_be_true(cls, v):
-        assert v, _('User must read and agree with our Terms and Policy.')
+        assert v, _("User must read and agree with our Terms and Policy.")
         return v
 
-    @pydantic.validator('policy')
+    @pydantic.validator("policy")
     def policy_must_be_true(cls, v):
-        assert v, _('User must read and agree with our Terms and Policy.')
+        assert v, _("User must read and agree with our Terms and Policy.")
         return v
 
 
@@ -171,15 +181,15 @@ class UserUpdateSchema(Schema):
     @pydantic.root_validator
     def any_of(cls, v):
         assert any(v.values()), _(
-            'One of e-mail or verification_token must have a value.'
+            "One of e-mail or verification_token must have a value."
         )
         return v
 
-    @pydantic.validator('verification_token')
+    @pydantic.validator("verification_token")
     def must_be_valid(cls, v):
         if v:
             assert Account.objects.filter(verification_token=v).exists(), _(
-                'Invalid verification token.'
+                "Invalid verification token."
             )
         return v
 
@@ -187,21 +197,21 @@ class UserUpdateSchema(Schema):
 class UpdateUserEmailSchema(Schema):
     email: pydantic.EmailStr
 
-    @pydantic.validator('email')
+    @pydantic.validator("email")
     def email_must_be_unique(cls, v):
-        assert not User.objects.filter(email=v).exists(), _('E-mail must be unique.')
+        assert not User.objects.filter(email=v).exists(), _("E-mail must be unique.")
         return v
 
 
 class InviteCreationSchema(Schema):
     email: pydantic.EmailStr
 
-    @pydantic.validator('email')
+    @pydantic.validator("email")
     def email_should_be_new(cls, v):
         assert not Invite.objects.filter(email=v).exists(), _(
-            'User already invited by someone else.'
+            "User already invited by someone else."
         )
         assert not Account.objects.filter(user__email=v).exists(), _(
-            'User has already been registered.'
+            "User has already been registered."
         )
         return v

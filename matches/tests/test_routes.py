@@ -21,8 +21,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             start_date=timezone.now(),
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name)
-        match.matchteam_set.create(name=self.team2.name)
+        team1 = match.matchteam_set.create(name=self.team1.name, side=1)
+        match.matchteam_set.create(name=self.team2.name, side=2)
         baker.make(models.MatchPlayer, user=self.user_1, team=team1)
         r = self.api.call('get', f'/{match.id}', token=self.user_1.auth.token)
         self.assertEqual(r.status_code, 200)
@@ -37,8 +37,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             start_date=timezone.now(),
             end_date=timezone.now(),
         )
-        team1 = match1.matchteam_set.create(name=self.team1.name, score=10)
-        match1.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match1.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match1.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
 
         match2 = baker.make(
@@ -48,8 +48,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             start_date=timezone.now(),
             end_date=timezone.now(),
         )
-        team1 = match2.matchteam_set.create(name=self.team1.name, score=10)
-        match2.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match2.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match2.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_1)
         r = self.api.call('get', '/', token=self.user_1.auth.token)
         self.assertEqual(r.json().get('count'), 2)
@@ -61,8 +61,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             start_date=timezone.now(),
             end_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=10)
-        match.matchteam_set.create(name=self.team2.name, score=6)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=10, side=1)
+        match.matchteam_set.create(name=self.team2.name, score=6, side=2)
         baker.make(models.MatchPlayer, team=team1, user=self.user_2)
         r = self.api.call(
             'get',
@@ -79,8 +79,8 @@ class MatchesRoutesTestCase(TeamsMixin, TestCase):
             status=models.Match.Status.RUNNING,
             start_date=timezone.now(),
         )
-        team1 = match.matchteam_set.create(name=self.team1.name, score=9)
-        team2 = match.matchteam_set.create(name=self.team2.name, score=10)
+        team1 = match.matchteam_set.create(name=self.team1.name, score=9, side=1)
+        team2 = match.matchteam_set.create(name=self.team2.name, score=10, side=2)
         player1 = baker.make(models.MatchPlayer, team=match.team_a, user=self.user_1)
         player2 = baker.make(models.MatchPlayer, team=match.team_b, user=self.user_2)
 

@@ -80,7 +80,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         r = self.lobby_api.call(
             'patch',
             f'/{self.lobby1.id}',
-            data={'start_queue': True},
+            data={'queue': 'start'},
             token=self.user_1.auth.token,
         )
         self.assertEqual(r.status_code, 200)
@@ -102,7 +102,7 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         r = self.lobby_api.call(
             'patch',
             f'/{self.lobby3.id}',
-            data={'start_queue': True},
+            data={'queue': 'start'},
             token=self.user_3.auth.token,
         )
         self.assertEqual(r.status_code, 200)
