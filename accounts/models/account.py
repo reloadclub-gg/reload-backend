@@ -48,12 +48,12 @@ class VerifiedAccountManager(models.Manager):
 class Account(models.Model):
     VERIFICATION_TOKEN_LENGTH = 6
     DEBUG_VERIFICATION_TOKEN = "debug0"
-    AVAILABLE_SOCIAL_HANDLES = ['twitch', 'youtube', 'discord']
+    AVAILABLE_SOCIAL_HANDLES = ["twitch", "youtube", "discord"]
 
     class MatchResults:
-        WIN = 'V'
-        DEFEAT = 'D'
-        NOT_AVAILABLE = 'N/A'
+        WIN = "V"
+        DEFEAT = "D"
+        NOT_AVAILABLE = "N/A"
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     steamid = models.CharField(max_length=128)
@@ -74,22 +74,24 @@ class Account(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['is_verified']),
-            models.Index(fields=['steamid']),
+            models.Index(fields=["is_verified"]),
+            models.Index(fields=["steamid"]),
+            models.Index(fields=["level"]),
+            models.Index(fields=["level_points"]),
         ]
 
-    def get_avatar_url(self, size: str = 'small'):
+    def get_avatar_url(self, size: str = "small"):
         return Steam.build_avatar_url(
             self.user.steam_user.avatarhash,
-            None if size == 'small' else size,
+            None if size == "small" else size,
         )
 
     @property
     def avatar_dict(self):
         return {
-            'small': self.get_avatar_url('small'),
-            'medium': self.get_avatar_url('medium'),
-            'large': self.get_avatar_url('full'),
+            "small": self.get_avatar_url("small"),
+            "medium": self.get_avatar_url("medium"),
+            "large": self.get_avatar_url("full"),
         }
 
     @property
@@ -110,7 +112,7 @@ class Account(models.Model):
 
     @property
     def second_chance_lvl(self) -> bool:
-        return cache.sismember('__accounts:second_chance_lvl_users', self.user.id)
+        return cache.sismember("__accounts:second_chance_lvl_users", self.user.id)
 
     @property
     def notifications(self) -> List[Notification]:
@@ -191,13 +193,13 @@ class Account(models.Model):
         length = self.VERIFICATION_TOKEN_LENGTH
         return generate_random_string(
             length=length,
-            allowed_chars='digits',
+            allowed_chars="digits",
         )
 
     def save(self, *args, **kwargs):
         if self._state.adding:
             if not self.user.steam_user:
-                raise ValidationError(_('Steam account not found.'))
+                raise ValidationError(_("Steam account not found."))
 
             self.verification_token = self.generate_verification_token()
             self.steamid = self.user.steam_user.steamid
@@ -225,7 +227,7 @@ class Account(models.Model):
         )
 
         if active_matches.count() > 1:
-            logging.error(_('User should not be in more than one match.'))
+            logging.error(_("User should not be in more than one match."))
 
         match_player = active_matches.first()
         if match_player is not None:
@@ -238,21 +240,21 @@ class Account(models.Model):
         Add user_id in a Redis set of users that
         can get to 0 points and play another match
         """
-        cache.sadd('__accounts:second_chance_lvl_users', self.user.id)
+        cache.sadd("__accounts:second_chance_lvl_users", self.user.id)
 
     def remove_second_chance_lvl(self):
         """
         Remove user_id in a Redis set of users that
         can get to 0 points and play another match
         """
-        cache.srem('__accounts:second_chance_lvl_users', self.user.id)
+        cache.srem("__accounts:second_chance_lvl_users", self.user.id)
 
     def get_latest_matches_results(self, amount: int = 5) -> List[str]:
         """
         Returns a list with the last `amount` results.
         List item can be "V" for victory, "D" for defeat or "N/A" for not available.
         """
-        matches = self.get_matches_played().order_by('-end_date')[:amount]
+        matches = self.get_matches_played().order_by("-end_date")[:amount]
         played_results = [
             (
                 Account.MatchResults.WIN
@@ -271,8 +273,8 @@ class Account(models.Model):
         matches_player = self.user.matchplayer_set.filter(
             team__match__status=Match.Status.FINISHED
         )
-        max_stat = matches_player.aggregate(models.Max('stats__{}'.format(stat_name)))[
-            'stats__{}__max'.format(stat_name)
+        max_stat = matches_player.aggregate(models.Max("stats__{}".format(stat_name)))[
+            "stats__{}__max".format(stat_name)
         ]
 
         return max_stat
@@ -297,7 +299,7 @@ class Account(models.Model):
         return Match.objects.filter(
             matchteam__matchplayer__user=self.user,
             status=Match.Status.FINISHED,
-        ).order_by('-end_date' if not asc else 'end_date')
+        ).order_by("-end_date" if not asc else "end_date")
 
     def get_matches_played_count(self, asc=False) -> List[Match]:
         return Match.objects.filter(
@@ -317,10 +319,10 @@ class Account(models.Model):
     @staticmethod
     def get_notification_avatar_url(user_id: int = None):
         if user_id is None:
-            return static('brand/logo_icon.png')
+            return static("brand/logo_icon.png")
 
         from_user = User.objects.get(pk=user_id)
-        return Steam.build_avatar_url(from_user.steam_user.avatarhash, 'medium')
+        return Steam.build_avatar_url(from_user.steam_user.avatarhash, "medium")
 
     @staticmethod
     def get_elite_players():
@@ -337,20 +339,20 @@ class Invite(models.Model):
     datetime_accepted = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
-        unique_together = ['owned_by', 'email']
+        unique_together = ["owned_by", "email"]
 
     def clean(self):
         if not self.owned_by.user.is_staff:
             if len(self.owned_by.invite_set.all()) >= self.MAX_INVITES_PER_ACCOUNT:
                 raise ValidationError(
-                    _(f'Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT}).')
+                    _(f"Maximum invites reached ({self.MAX_INVITES_PER_ACCOUNT}).")
                 )
 
         if self.datetime_accepted:
-            raise ValidationError(_('Accepted invites cannot be modified.'))
+            raise ValidationError(_("Accepted invites cannot be modified."))
 
         if User.objects.filter(email=self.email).exists():
-            raise ValidationError(_('An invite already exists for this email.'))
+            raise ValidationError(_("An invite already exists for this email."))
 
     def __str__(self):
         return self.email
