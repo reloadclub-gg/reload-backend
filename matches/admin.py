@@ -18,11 +18,12 @@ from . import models
 
 @admin.register(models.Server)
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('ip', 'name', 'running_matches', 'port', 'api_port')
+    list_display = ("ip", "name", "running_matches", "port", "server_type", "api_port")
     ordering = (
-        'ip',
-        'name',
+        "ip",
+        "name",
     )
+    list_filter = ["server_type"]
 
     def running_matches(self, obj):
         return obj.match_set.filter(
@@ -35,13 +36,13 @@ class ServerAdmin(admin.ModelAdmin):
 
 @admin.register(models.Map)
 class MapAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'id', 'sys_name', 'is_active', 'weight')
-    list_filter = ('is_active', 'weight')
+    list_display = ("name", "id", "sys_name", "is_active", "weight")
+    list_filter = ("is_active", "weight")
 
 
 class MatchPlayerInline(admin.TabularInline):
     model = models.MatchPlayer
-    readonly_fields = ['user', 'level', 'level_points']
+    readonly_fields = ["user", "level", "level_points"]
     extra = 0
 
     def has_add_permission(self, request, obj=None) -> bool:
@@ -53,7 +54,7 @@ class MatchPlayerInline(admin.TabularInline):
 
 class MatchTeamAdminInline(admin.TabularInline):
     model = models.MatchTeam
-    readonly_fields = ['name', 'score', 'players']
+    readonly_fields = ["name", "score", "players"]
     extra = 0
 
     def has_add_permission(self, request, obj=None) -> bool:
@@ -69,43 +70,43 @@ class MatchTeamAdminInline(admin.TabularInline):
         # Create a string representation with links to each player
         player_links = []
         for player in players:
-            url = reverse('admin:accounts_user_change', args=[player.user.id])
+            url = reverse("admin:accounts_user_change", args=[player.user.id])
             player_links.append(
                 format_html('<a href="{}">{}</a>', url, player.user.account.username)
             )
 
         # Join all the player links with a comma and return as HTML
-        return format_html(', '.join(player_links))
+        return format_html(", ".join(player_links))
 
-    players.short_description = 'Players'
+    players.short_description = "Players"
 
 
 @admin.register(models.Match)
 class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
-    change_form_template = 'matches/admin/match_change_form.html'
+    change_form_template = "matches/admin/match_change_form.html"
     list_display = (
-        'id',
-        'server',
-        'formatted_create_date',
-        'formatted_start_date',
-        'formatted_end_date',
-        'status',
-        'map',
-        'match_type',
-        'game_mode',
-        'score',
+        "id",
+        "server",
+        "formatted_create_date",
+        "formatted_start_date",
+        "formatted_end_date",
+        "status",
+        "map",
+        "match_type",
+        "game_mode",
+        "score",
     )
-    ordering = ('-end_date', '-start_date', '-create_date')
+    ordering = ("-end_date", "-start_date", "-create_date")
     list_filter = (
-        'status',
-        'game_mode',
+        "status",
+        "game_mode",
     )
-    exclude = ['map', 'chat']
-    readonly_fields = ['score', 'map_name']
+    exclude = ["map", "chat"]
+    readonly_fields = ["score", "map_name"]
     inlines = [MatchTeamAdminInline]
     search_fields = [
-        'matchteam__matchplayer__user__account__username',
-        'matchteam__matchplayer__user__email',
+        "matchteam__matchplayer__user__account__username",
+        "matchteam__matchplayer__user__email",
     ]
 
     def get_search_results(self, request, queryset, search_term):
@@ -132,11 +133,11 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
 
     def score(self, obj):
         if obj.team_a and obj.team_b:
-            return f'{obj.team_a.name} {obj.team_a.score} x {obj.team_b.score} {obj.team_b.name}'
+            return f"{obj.team_a.name} {obj.team_a.score} x {obj.team_b.score} {obj.team_b.name}"
 
-        return '- 0 x 0 -'
+        return "- 0 x 0 -"
 
-    def change_view(self, request, object_id, form_url='', extra_context=None):
+    def change_view(self, request, object_id, form_url="", extra_context=None):
         extra_context = extra_context or {}
         match = models.Match.objects.get(pk=object_id)
         chat_data = []
@@ -144,13 +145,13 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
         if match.chat:
             for message in match.chat:
                 account = Account.objects.get(
-                    steamid=hex_to_steamid64(message['steamid'])
+                    steamid=hex_to_steamid64(message["steamid"])
                 )
-                message['user_id'] = account.user.id
-                message['username'] = account.username
+                message["user_id"] = account.user.id
+                message["username"] = account.username
                 chat_data.append(message)
 
-            extra_context['chat_data'] = json.dumps(chat_data)
+            extra_context["chat_data"] = json.dumps(chat_data)
         return super().change_view(
             request,
             object_id,
@@ -160,51 +161,51 @@ class MatchAdmin(ReadOnlyModelAdminMixin, admin.ModelAdmin):
 
     def formatted_create_date(self, obj):
         localtime = timezone.localtime(obj.create_date)
-        return date_format(localtime, 'SHORT_DATETIME_FORMAT')
+        return date_format(localtime, "SHORT_DATETIME_FORMAT")
 
     def formatted_start_date(self, obj):
         if obj.start_date:
             localtime = timezone.localtime(obj.start_date)
-            return date_format(localtime, 'SHORT_DATETIME_FORMAT')
+            return date_format(localtime, "SHORT_DATETIME_FORMAT")
 
     def formatted_end_date(self, obj):
         if obj.end_date:
             localtime = timezone.localtime(obj.end_date)
-            return date_format(localtime, 'SHORT_DATETIME_FORMAT')
+            return date_format(localtime, "SHORT_DATETIME_FORMAT")
 
     def match_type(self, obj):
         return obj.match_type
 
-    formatted_create_date.admin_order_field = 'create_date'
-    formatted_start_date.admin_order_field = 'start_date'
-    formatted_end_date.admin_order_field = 'end_date'
+    formatted_create_date.admin_order_field = "create_date"
+    formatted_start_date.admin_order_field = "start_date"
+    formatted_end_date.admin_order_field = "end_date"
 
 
 @admin.register(models.MatchTeam)
 class MatchTeamAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
-        'name',
-        'match',
-        'score',
+        "name",
+        "match",
+        "score",
     )
-    ordering = ('name',)
+    ordering = ("name",)
     inlines = [MatchPlayerInline]
 
 
 @admin.register(models.MatchPlayer)
 class MatchPlayerAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
-        'user',
-        'team',
-        'match',
-        'points_base',
-        'points_cap',
-        'points_penalties',
-        'points_earned',
-        'level',
-        'level_points',
+        "user",
+        "team",
+        "match",
+        "points_base",
+        "points_cap",
+        "points_penalties",
+        "points_earned",
+        "level",
+        "level_points",
     )
-    search_fields = ('user__email', 'user__steam_user__username', 'team__name')
+    search_fields = ("user__email", "user__steam_user__username", "team__name")
 
     def match(self, obj):
         return obj.team.match
@@ -225,17 +226,17 @@ class MatchPlayerAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
 @admin.register(models.MatchPlayerStats)
 class MatchPlayerStatsAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
-        'player',
-        'match',
-        'kills',
-        'deaths',
-        'assists',
-        'afk',
+        "player",
+        "match",
+        "kills",
+        "deaths",
+        "assists",
+        "afk",
     )
     search_fields = (
-        'player__user__email',
-        'player__user__steam_user__username',
-        'player__team__name',
+        "player__user__email",
+        "player__user__steam_user__username",
+        "player__team__name",
     )
 
     def match(self, obj):
@@ -248,20 +249,20 @@ class MatchPlayerStatsAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
 @admin.register(models.BetaUser)
 class BetaUserAdmin(admin.ModelAdmin):
     list_display = (
-        'steamid_hex',
-        'email',
-        'username',
-        'date_add',
+        "steamid_hex",
+        "email",
+        "username",
+        "date_add",
     )
-    ordering = ('-date_add',)
-    search_fields = ['steamid_hex', 'username', 'email']
+    ordering = ("-date_add",)
+    search_fields = ["steamid_hex", "username", "email"]
 
     def delete_model(self, request, obj):
         if settings.ENVIRONMENT != settings.LOCAL:
-            payload = {'steamid': obj.steamid_hex, 'username': obj.username}
+            payload = {"steamid": obj.steamid_hex, "username": obj.username}
             server = models.Server.objects.first()
             requests.post(
-                f'http://{server.ip}:{server.port}/core/remAllowlist',
+                f"http://{server.ip}:{server.port}/core/remAllowlist",
                 json=payload,
             )
 
