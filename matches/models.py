@@ -32,9 +32,18 @@ def map_media_path(instance, filename):
 
 
 class Server(models.Model):
+    class ServerType(models.TextChoices):
+        DEFAULT = "default"
+        SAFEZONE = "safezone"
+
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=32, unique=True)
     port = models.IntegerField(default=30120)
+    server_type = models.CharField(
+        max_length=32,
+        choices=ServerType.choices,
+        default=ServerType.DEFAULT,
+    )
     api_port = models.IntegerField(default=3000)
 
     @property
@@ -78,12 +87,12 @@ class Server(models.Model):
         ) == (limit - gap)
 
     @staticmethod
-    def get_idle() -> Server:
+    def get_idle(server_type: str = ServerType.DEFAULT) -> Server:
         """
         Fetch and return a server that isn't full and is able to
         host a new match.
         """
-        servers = Server.objects.all()
+        servers = Server.objects.filter(server_type=server_type)
         for server in servers:
             if not server.is_full:
                 return server
