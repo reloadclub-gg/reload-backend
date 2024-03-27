@@ -374,7 +374,7 @@ def create_match(payload: schemas.MatchCreationSchema) -> models.Match:
     if payload.mode != models.Match.GameMode.CUSTOM:
         raise HttpError(400, _("invalid game mode."))
 
-    server = models.Server.get_idle()
+    server = models.Server.get_idle(server_type=models.Server.ServerType.SAFEZONE)
     if not server:
         raise HttpError(400, _("Servers full."))
 

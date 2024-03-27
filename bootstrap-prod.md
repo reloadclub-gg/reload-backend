@@ -6,6 +6,14 @@ sudo apt update
 sudo apt install -y python3-venv python3-dev libpq-dev nginx curl lsb-release gpg zip
 mkdir ~/application
 
+## Redis
+
+sudo apt install -y lsb-release gpg
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt update
+sudo apt install -y redis
+
 ## Python
 
 sudo apt update
@@ -72,6 +80,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
+EnvironmentFile=/home/ubuntu/application/.env
 ExecStart=/home/ubuntu/.local/bin/pipenv run uvicorn
 
 [Install]
@@ -105,6 +114,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
+EnvironmentFile=/home/ubuntu/application/.env
 ExecStart=/home/ubuntu/.local/bin/pipenv run gunicorn
 
 [Install]
@@ -138,6 +148,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
+EnvironmentFile=/home/ubuntu/application/.env
 ExecStart=/home/ubuntu/.local/bin/pipenv run celery_beat
 
 [Install]
@@ -171,6 +182,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
+EnvironmentFile=/home/ubuntu/application/.env
 ExecStart=/home/ubuntu/.local/bin/pipenv run celery_worker
 
 [Install]
@@ -228,7 +240,7 @@ http {
 server {
     listen 80;
     server_name api.reloadclub.gg;
-    client_max_body_size 50M;
+    client_max_body_size 100M;
 
     location = /favicon.ico {
         access_log off;
