@@ -16,6 +16,7 @@ ALTER ROLE $DATABASE_USER SET client_encoding TO 'utf8';
 ALTER ROLE $DATABASE_USER SET default_transaction_isolation TO 'read committed';
 ALTER ROLE $DATABASE_USER SET timezone TO 'UTC';
 GRANT ALL PRIVILEGES ON DATABASE $DATABASE_NAME TO $DATABASE_USER;
+GRANT ALL PRIVILEGES ON SCHEMA public TO $DATABASE_USER;
 \q
 
 ## Redis
@@ -88,6 +89,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
+EnvironmentFile=/home/ubuntu/application/.env
 ExecStart=/home/ubuntu/.local/bin/pipenv run uvicorn
 
 [Install]
@@ -121,6 +123,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
+EnvironmentFile=/home/ubuntu/application/.env
 ExecStart=/home/ubuntu/.local/bin/pipenv run gunicorn
 
 [Install]
@@ -154,6 +157,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
+EnvironmentFile=/home/ubuntu/application/.env
 ExecStart=/home/ubuntu/.local/bin/pipenv run celery_beat
 
 [Install]
@@ -187,6 +191,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/application
+EnvironmentFile=/home/ubuntu/application/.env
 ExecStart=/home/ubuntu/.local/bin/pipenv run celery_worker
 
 [Install]
@@ -245,7 +250,7 @@ http {
 server {
     listen 80;
     server_name api.staging.reloadclub.gg;
-    client_max_body_size 50M;
+    client_max_body_size 100M;
 
     location = /favicon.ico {
         access_log off;
