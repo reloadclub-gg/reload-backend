@@ -75,8 +75,8 @@ do
   echo "export $key=$value" >> ~/.bash_profile
 done </tmp/.env.'$ENVIRONMENT'
 sed -i '/^$/d' ~/application/.env
+echo "export PATH=$PATH:~/.local/bin/" >> ~/.bash_profile
 source ~/.bash_profile
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/ubuntu/.local/bin/:/home/ubuntu/.local/bin/:/home/ubuntu/.local/bin/
 rm /tmp/.env.'$ENVIRONMENT'
 
 echo

@@ -18,6 +18,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             "id": 1,
             "name": "Map name",
             "sys_name": "map_name",
+            "sys_id": map.sys_id,
             "is_active": True,
             "thumbnail": get_full_file_path(map.thumbnail) if map.thumbnail else None,
             "map_type": map.map_type,
@@ -41,6 +42,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             "match_type": match.match_type,
             "game_mode": match.game_mode,
             "server_ip": match.server.ip,
+            "server_port": match.server.port,
             "teams": [schemas.MatchTeamSchema.from_orm(team) for team in match.teams],
             "rounds": match.rounds,
             "winner_id": match.winner.id if match.winner else None,
@@ -122,6 +124,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             "match_type": match.match_type,
             "game_mode": match.game_mode,
             "server_ip": match.server.ip,
+            "server_port": match.server.port,
             "teams": [schemas.MatchTeamSchema.from_orm(team) for team in match.teams],
             "rounds": match.rounds,
             "winner_id": match.winner.id if match.winner else None,
@@ -366,7 +369,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
                 schemas.FivemPlayerSchema.from_orm(player) for player in match.players
             ],
             "match_type": match.match_type,
-            "map": map.id,
+            "map": map.sys_id,
             "restricted_weapon": match.restricted_weapon,
         }
         self.assertDictEqual(payload, expected_payload)
@@ -389,7 +392,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
                 schemas.FivemPlayerSchema.from_orm(player) for player in match.players
             ],
             "match_type": match.match_type,
-            "map": map.id,
+            "map": map.sys_id,
             "restricted_weapon": match.restricted_weapon,
         }
         self.assertDictEqual(payload, expected_payload)
@@ -409,6 +412,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
             "steamid": steamid64_to_hex(match_player.user.account.steamid),
             "steamid64": match_player.user.account.steamid,
             "team_id": team.side,
+            "team_name": team.name,
             "level": match_player.level,
             "avatar": Steam.build_avatar_url(
                 match_player.user.steam_user.avatarhash,
@@ -439,6 +443,7 @@ class MatchesSchemasTestCase(TeamsMixin, TestCase):
                 "weapon": None,
             },
             "team_id": team.side,
+            "team_name": team.name,
         }
 
         self.assertEqual(payload, expected_payload)

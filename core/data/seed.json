@@ -654,19 +654,21 @@
     },
     {
         "model": "matches.map",
+        "pk": 1,
         "fields": {
-            "id": 1,
             "name": "Auditório",
             "sys_name": "auditorium",
+            "sys_id": 1,
             "map_type": "default"
         }
     },
     {
         "model": "matches.map",
+        "pk": 2,
         "fields": {
-            "id": 2,
             "name": "Estacionamento",
             "sys_name": "parking",
+            "sys_id": 2,
             "map_type": "safezone"
         }
     },

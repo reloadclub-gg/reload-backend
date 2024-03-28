@@ -258,42 +258,36 @@ def should_finish_match(is_overtime, scores):
 
 def update_scores(match, teams_data, end_reason):
     team_scores = {team.name: team.score for team in teams_data}
-    teams = models.MatchTeam.objects.filter(
-        match=match,
-        name__in=list(team_scores.keys()),
-    )
-    for idx, team in enumerate(teams):
-        if idx == 0:
-            if (
-                end_reason != 6  # SURRENDER
-                and team_scores[team.name] - team.score >= 2
-                and team_scores[teams[1].name] <= teams[1].score
-            ):
-                logging.warning(
-                    f"[update_scores] match {match.id}: team {team.name} "
-                    f"{team_scores[team.name]} ({team.score})"
-                )
-                teams[1].score = team_scores[team.name]
-                teams[1].save(update_fields=["score"])
-                return teams[0].score, teams[1].score
-        else:
-            if (
-                end_reason != 6  # SURRENDER
-                and team_scores[team.name] - team.score >= 2
-                and team_scores[teams[0].name] <= teams[0].score
-            ):
-                logging.warning(
-                    f"[update_scores] match {match.id}: team {team.name}"
-                    f"{team_scores[team.name]} ({team.score})"
-                )
-                teams[0].score = team_scores[team.name]
-                teams[0].save(update_fields=["score"])
-                return teams[0].score, teams[1].score
+    team1 = models.MatchTeam.objects.get(match=match, name=teams_data[0].name)
+    team2 = models.MatchTeam.objects.get(match=match, name=teams_data[1].name)
 
-        team.score = team_scores[team.name]
-        team.save(update_fields=["score"])
+    if end_reason != 6:
+        if teams_data[0].score - team1.score >= 2:
+            logging.warning(
+                f"[update_scores] match {match.id}: team {team1.name} "
+                f"{team_scores[team1.name]} ({team1.score})"
+            )
 
-    return teams[0].score, teams[1].score
+            team2.score = teams_data[0].score
+            team2.save()
+            return team1.score, team2.score
+
+        if teams_data[1].score - team2.score >= 2:
+            logging.warning(
+                f"[update_scores] match {match.id}: team {team2.name} "
+                f"{team_scores[team2.name]} ({team2.score})"
+            )
+
+            team1.score = teams_data[1].score
+            team1.save()
+            return team1.score, team2.score
+
+    team1.score = teams_data[0].score
+    team1.save()
+    team2.score = teams_data[1].score
+    team2.save()
+
+    return team1.score, team2.score
 
 
 def _fetch_match(match_id: int):
@@ -374,7 +368,7 @@ def create_match(payload: schemas.MatchCreationSchema) -> models.Match:
     if payload.mode != models.Match.GameMode.CUSTOM:
         raise HttpError(400, _("invalid game mode."))
 
-    server = models.Server.get_idle()
+    server = models.Server.get_idle(server_type=models.Server.ServerType.SAFEZONE)
     if not server:
         raise HttpError(400, _("Servers full."))
 
