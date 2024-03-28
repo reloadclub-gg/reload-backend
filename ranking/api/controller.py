@@ -25,6 +25,8 @@ def ranking_list() -> dict:
             ranking_pos=index + 1,
             user_id=account.user.id,
             steam_url=account.user.steam_user.profileurl,
+            matches_played=account.get_matches_played_count(),
+            matches_won=account.matches_won,
         )
         for index, account in enumerate(accounts)
     ]
