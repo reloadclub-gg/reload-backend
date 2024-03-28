@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campo `steam_url` no esquema de ranking.
 - Campo `server_type` no modelo `Server` para identificar tipos de servidores ao criar partida.
 - Campo `feats` no esquema de usuário [#1063](https://github.com/reloadclub-gg/reload-backend/issues/1063).
 - Funcionalidade de bloquear acesso a funcionalidades para determinados usuários pelo admin. Por exemplo, podemos dizer que a funcionalidade Ranking só será acessada pelos usuários `joão@email.com` e `maria@email.com` [#1061](https://github.com/reloadclub-gg/reload-backend/issues/1061).
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ajusta os modelos `Server`, `Map` e `Match` para atenderem aos requisitos de uma partida personalizada. Bem como suas APIs e esquemas.
 - Ajusta manager do model `Account` que estava retornando usuários staff e admin, fazendo com que o ranking exibisse usuários staff e admins na lista [#1046](https://github.com/reloadclub-gg/reload-backend/issues/1046).
 
 ### Removed

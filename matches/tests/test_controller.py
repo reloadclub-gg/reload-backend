@@ -16,6 +16,7 @@ from ..api import controller, schemas
 class MatchesControllerTestCase(TeamsMixin, TestCase):
     def setUp(self):
         super().setUp()
+        models.Map.objects.all().delete()
         self.server = baker.make(models.Server)
         self.match = baker.make(
             models.Match,
@@ -270,8 +271,8 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
             schemas.MatchUpdateSchema.from_orm(
                 {
                     "teams": [
-                        {"name": self.match_t1.name, "score": 0, "players": []},
-                        {"name": self.match_t2.name, "score": 1, "players": []},
+                        {"name": self.match_t1.name, "score": 10, "players": []},
+                        {"name": self.match_t2.name, "score": 7, "players": []},
                     ],
                     "end_reason": 0,
                     "is_overtime": False,
@@ -280,8 +281,9 @@ class MatchesControllerTestCase(TeamsMixin, TestCase):
         )
         mock_handle_update_stats.assert_called_once()
         mock_match_update.assert_called_once()
-        self.assertEqual(self.match.team_a.score, 0)
-        self.assertEqual(self.match.team_b.score, 1)
+        self.assertEqual(self.match_t1, self.match.team_a)
+        self.assertEqual(self.match.team_a.score, 10)
+        self.assertEqual(self.match.team_b.score, 7)
 
         mock_update_user.asser_not_called()
 

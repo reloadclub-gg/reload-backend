@@ -167,6 +167,7 @@ class MapSchema(ModelSchema):
 
 class MatchSchema(ModelSchema):
     server_ip: str
+    server_port: int
     create_date: str
     teams: List[MatchTeamSchema]
     start_date: Optional[str] = None
@@ -183,6 +184,10 @@ class MatchSchema(ModelSchema):
     @staticmethod
     def resolve_server_ip(obj):
         return obj.server.ip
+
+    @staticmethod
+    def resolve_server_port(obj):
+        return obj.server.port
 
     @staticmethod
     def resolve_create_date(obj):
@@ -306,7 +311,10 @@ class MatchCreationSchema(Schema):
 
     @validator("weapon")
     def check_weapon(cls, value):
-        if value and value not in models.Match.WeaponChoices.__members__.values():
+        if (
+            value
+            and value.lower() not in models.Match.WeaponChoices.__members__.values()
+        ):
             raise ValueError(_("Invalid weapon."))
 
         return value
@@ -323,6 +331,7 @@ class FivemPlayerSchema(ModelSchema):
     steamid64: str
     avatar: str = None
     team_id: int  # 1: def, 2: atk, 3: spec
+    team_name: str = None
     assets: dict = {}
 
     class Config:
@@ -352,6 +361,11 @@ class FivemPlayerSchema(ModelSchema):
             return 3
         else:
             return obj.team.side
+
+    @staticmethod
+    def resolve_team_name(obj):
+        if obj.team:
+            return obj.team.name
 
     @staticmethod
     def resolve_assets(obj):
@@ -411,4 +425,4 @@ class FivemMatchSchema(ModelSchema):
 
     @staticmethod
     def resolve_map(obj):
-        return obj.map.id
+        return obj.map.sys_id

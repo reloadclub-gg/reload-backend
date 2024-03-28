@@ -108,9 +108,9 @@ class Map(models.Model):
         DEFAULT = "default"  # 5x5 plant/desarm
         SAFEZONE = "safezone"
 
-    id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=32)
     sys_name = models.CharField(max_length=32, unique=True)
+    sys_id = models.IntegerField(unique=True)
     is_active = models.BooleanField(default=True)
     thumbnail = models.ImageField(upload_to=map_media_path, null=True)
     weight = models.IntegerField(

@@ -238,14 +238,6 @@ def get_lobby(user: User, lobby_id: int, was_invited: bool = False) -> Lobby:
     if not lobby:
         raise Http404(_("Lobby not found"))
 
-    if lobby.mode == Lobby.ModeChoices.COMP:
-        feat_name = "comp_lobby"
-    else:
-        feat_name = "custom_lobby"
-
-    if not was_invited and not is_feat_available_for_user(feat_name, user):
-        raise AuthenticationError()
-
     return lobby
 
 

@@ -33,6 +33,57 @@ class LobbiesMixin(VerifiedAccountsMixin):
         self.user_24.add_session()
         self.user_25.add_session()
 
+        self.user_1.status = "online"
+        self.user_1.save()
+        self.user_2.status = "online"
+        self.user_2.save()
+        self.user_3.status = "online"
+        self.user_3.save()
+        self.user_4.status = "online"
+        self.user_4.save()
+        self.user_5.status = "online"
+        self.user_5.save()
+        self.user_6.status = "online"
+        self.user_6.save()
+        self.user_7.status = "online"
+        self.user_7.save()
+        self.user_8.status = "online"
+        self.user_8.save()
+        self.user_9.status = "online"
+        self.user_9.save()
+        self.user_10.status = "online"
+        self.user_10.save()
+        self.user_11.status = "online"
+        self.user_11.save()
+        self.user_12.status = "online"
+        self.user_12.save()
+        self.user_13.status = "online"
+        self.user_13.save()
+        self.user_14.status = "online"
+        self.user_14.save()
+        self.user_15.status = "online"
+        self.user_15.save()
+        self.user_16.status = "online"
+        self.user_16.save()
+        self.user_17.status = "online"
+        self.user_17.save()
+        self.user_18.status = "online"
+        self.user_18.save()
+        self.user_19.status = "online"
+        self.user_19.save()
+        self.user_20.status = "online"
+        self.user_20.save()
+        self.user_21.status = "online"
+        self.user_21.save()
+        self.user_22.status = "online"
+        self.user_22.save()
+        self.user_23.status = "online"
+        self.user_23.save()
+        self.user_24.status = "online"
+        self.user_24.save()
+        self.user_25.status = "online"
+        self.user_25.save()
+
         self.user_1.auth.create_token()
         self.user_2.auth.create_token()
         self.user_3.auth.create_token()

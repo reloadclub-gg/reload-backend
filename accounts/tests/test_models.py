@@ -67,6 +67,7 @@ class AccountsAccountModelTestCase(mixins.UserOneMixin, TestCase):
 
 
 class AccountsAccountMatchModelTestCase(FinishedMatchesMixin, TestCase):
+
     def test_match(self):
         self.match1.status = Match.Status.LOADING
         self.match1.save()
