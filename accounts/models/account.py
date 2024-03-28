@@ -302,10 +302,7 @@ class Account(models.Model):
         ).order_by("-end_date" if not asc else "end_date")
 
     def get_matches_played_count(self, asc=False) -> List[Match]:
-        return Match.objects.filter(
-            matchteam__matchplayer__user=self.user,
-            status=Match.Status.FINISHED,
-        ).count()
+        return self.get_matches_played().count()
 
     def get_online_friends(self) -> list:
         return [friend for friend in self.friends if friend.user.is_online]

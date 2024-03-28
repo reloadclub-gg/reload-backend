@@ -346,6 +346,12 @@ class MatchTeam(models.Model):
         """
         return self.players.filter(user=user).exists()
 
+    def has_player_id(self, user_id):
+        """
+        Check if a user is in this team.
+        """
+        return self.players.filter(user_id=user_id).exists()
+
     def __str__(self):
         return f"#{self.id} - {self.name}"
 
