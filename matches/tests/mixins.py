@@ -13,6 +13,7 @@ User = get_user_model()
 class FinishedMatchesMixin(TeamsMixin):
     def setUp(self):
         super().setUp()
+        models.Map.objects.all().delete()
 
         server = baker.make(models.Server)
         self.match1 = baker.make(

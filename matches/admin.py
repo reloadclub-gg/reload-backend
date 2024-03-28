@@ -36,7 +36,7 @@ class ServerAdmin(admin.ModelAdmin):
 
 @admin.register(models.Map)
 class MapAdmin(SuperUserOnlyAdminMixin, admin.ModelAdmin):
-    list_display = ("name", "id", "sys_name", "is_active", "weight")
+    list_display = ("name", "sys_id", "sys_name", "is_active", "weight")
     list_filter = ("is_active", "weight")
 
 

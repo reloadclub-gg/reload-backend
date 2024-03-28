@@ -9,6 +9,7 @@ class RankingItemSchema(ModelSchema):
     matches_won: int = 0
     avatar: dict = {}
     ranking_pos: int = None
+    steam_url: str
 
     class Config:
         model = Account
@@ -29,3 +30,7 @@ class RankingItemSchema(ModelSchema):
     @staticmethod
     def resolve_avatar(obj):
         return obj.avatar_dict
+
+    @staticmethod
+    def resolve_steam_url(obj):
+        return obj.user.steam_user.profileurl
