@@ -14,6 +14,7 @@ from appsettings.services import (
     check_alpha_required,
     check_beta_required,
     check_invite_required,
+    maintenance_window,
 )
 from core.redis import redis_client_instance as cache
 from core.utils import generate_random_string, get_ip_address
@@ -38,13 +39,13 @@ def check_beta(user, email: str = None):
     if beta_required:
         is_beta = BetaUser.objects.filter(email=email).exists()
         if not is_beta and not user.is_alpha:
-            raise HttpError(401, _('User must be invited.'))
+            raise HttpError(401, _("User must be invited."))
 
 
 def check_alpha(user):
     alpha_required = check_alpha_required()
     if alpha_required and not user.is_alpha:
-        raise HttpError(401, _('User must be invited.'))
+        raise HttpError(401, _("User must be invited."))
 
 
 def check_invite(user, email: str = None, is_fake: bool = False):
@@ -53,7 +54,7 @@ def check_invite(user, email: str = None, is_fake: bool = False):
     if invite_required:
         invites = Invite.objects.filter(email=email, datetime_accepted__isnull=True)
         if not is_fake and not invites.exists():
-            raise HttpError(401, _('User must be invited.'))
+            raise HttpError(401, _("User must be invited."))
         invites.update(datetime_accepted=timezone.now())
 
 
@@ -68,7 +69,7 @@ def auth(user: User, from_fake_signup=False) -> User:
     from_offline_status = user.auth.sessions is None
 
     # Adding and persisting session
-    if not from_fake_signup:
+    if not from_fake_signup and not maintenance_window():
         check_beta(user, user.email)
         check_alpha(user)
 
@@ -105,7 +106,7 @@ def login(request, token: str) -> Auth:
     except User.DoesNotExist:
         return None
 
-    if not hasattr(request, 'verified_exempt') and (
+    if not hasattr(request, "verified_exempt") and (
         not is_verified(user) or not user.is_active
     ):
         return None
@@ -113,7 +114,7 @@ def login(request, token: str) -> Auth:
     UserLogin.objects.update_or_create(
         user=user,
         ip_address=get_ip_address(request),
-        defaults={'timestamp': timezone.now()},
+        defaults={"timestamp": timezone.now()},
     )
 
     user.refresh_from_db()
@@ -131,7 +132,7 @@ def logout(user: User) -> dict:
     ws_expire_player_invites(user)
 
     # If user has an account
-    if hasattr(user, 'account') and user.account.lobby:
+    if hasattr(user, "account") and user.account.lobby:
         try:
             handle_player_move(user, user.id, delete_lobby=True)
         except LobbyException as e:
@@ -147,9 +148,9 @@ def logout(user: User) -> dict:
     websocket.ws_user_logout(user.id)
 
     # Deleting user from friend list cache
-    cache.delete(f'__friendlist:user:{user.id}')
+    cache.delete(f"__friendlist:user:{user.id}")
 
-    return {'detail': 'Logout successful.'}
+    return {"detail": "Logout successful."}
 
 
 def create_fake_user(email: str) -> User:
@@ -170,12 +171,12 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
     """
     try:
         if user.account:
-            raise HttpError(403, _('User already has an account.'))
+            raise HttpError(403, _("User already has an account."))
     except Account.DoesNotExist:
         pass
 
-    if not email or email == '':
-        raise HttpError(400, _('Unable to create account.'))
+    if not email or email == "":
+        raise HttpError(400, _("Unable to create account."))
 
     if not is_fake:
         check_beta(user, email)
@@ -189,7 +190,7 @@ def signup(user: User, email: str, is_fake: bool = False) -> User:
             Account.objects.create(user=user)
     except IntegrityError as e:
         logging.error(e)
-        raise HttpError(400, _('Unable to create account.'))
+        raise HttpError(400, _("Unable to create account."))
 
     if not is_fake:
         tasks.send_verify_email.delay(
@@ -215,7 +216,7 @@ def verify_account(user: User, verification_token: str) -> User:
             is_verified=False,
         )
     except Account.DoesNotExist:
-        raise HttpError(400, _('Invalid verification token.'))
+        raise HttpError(400, _("Invalid verification token."))
 
     account.is_verified = True
     account.save()
@@ -255,7 +256,7 @@ def inactivate(user: User) -> User:
         raise HttpError(
             400,
             _(
-                'You can\'t inactivate or delete your account while in queueing or in a match.'
+                "You can't inactivate or delete your account while in queueing or in a match."
             ),
         )
 
@@ -269,8 +270,8 @@ def update_email(user: User, email: str) -> User:
     """
     Change user email and set user as unverified.
     """
-    if not email or email == '':
-        raise HttpError(400, _('Unable to update e-mail.'))
+    if not email or email == "":
+        raise HttpError(400, _("Unable to update e-mail."))
 
     try:
         with transaction.atomic():
@@ -284,7 +285,7 @@ def update_email(user: User, email: str) -> User:
             user.account.save()
     except IntegrityError as e:
         logging.error(e)
-        raise HttpError(400, _('Unable to update e-mail.'))
+        raise HttpError(400, _("Unable to update e-mail."))
 
     tasks.send_verify_email.delay(
         user.email,
@@ -319,13 +320,13 @@ def delete_account(user: User) -> dict:
         raise HttpError(
             400,
             _(
-                'You can\'t inactivate or delete your account while in queueing or in a match.'
+                "You can't inactivate or delete your account while in queueing or in a match."
             ),
         )
 
     logout(user)
     user.delete()
-    return {'status': 'deleted'}
+    return {"status": "deleted"}
 
 
 def send_invite(user: User, email: str) -> Invite:
