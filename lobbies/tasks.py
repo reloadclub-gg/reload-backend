@@ -5,10 +5,8 @@ from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.utils.translation import gettext as _
 
 from accounts.websocket import ws_update_user
-from core.websocket import ws_create_toast
 from pre_matches.api.controller import cancel_pre_match
 from pre_matches.models import PreMatch, PreMatchException, Team
 from pre_matches.websocket import ws_pre_match_create
