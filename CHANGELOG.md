@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- Remove temporariamente o pareamento por nível no matchmaking. Todos os jogadores podem jogar contra todos os jogadores independente do nível.
+
+### Fixed
+
+- Verifica se aplicação está em manutenção antes de criar sessões para um usuário. Isso deve consertar as sessões fantasmas que estavam sendo criadas.
+- Ao tentar formar times com lobbies, previnimos que os lobbies que já estão em Pré Partida sejam adicionados a times que ainda estão se formando.
+
+## [87d95b4 - 28/3/2024]
+
 ### Added
 
 - Campo `steam_url` no esquema de ranking.

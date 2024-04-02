@@ -30,7 +30,7 @@ class TeamConfig:
     Config class for the Team model.
     """
 
-    CACHE_PREFIX: str = '__mm:team:'
+    CACHE_PREFIX: str = "__mm:team:"
     ID_SIZE: int = 16
 
 
@@ -60,7 +60,7 @@ class Team(BaseModel):
     def __init__(self, **data):
         super().__init__(**data)
         self.id = self.id or secrets.token_urlsafe(TeamConfig.ID_SIZE)
-        self.cache_key = self.cache_key or f'{TeamConfig.CACHE_PREFIX}{self.id}'
+        self.cache_key = self.cache_key or f"{TeamConfig.CACHE_PREFIX}{self.id}"
 
     @property
     def lobbies_ids(self) -> list:
@@ -116,25 +116,26 @@ class Team(BaseModel):
             lobby.queue_time if lobby.queue_time else 0 for lobby in self.lobbies
         ]
         if len(queue_times) > 0:
-            elapsed_time = ceil(mean(queue_times))
+            return 0, 30
+            # elapsed_time = ceil(mean(queue_times))
 
-            if elapsed_time < 30:
-                min = self.overall - 3 if self.overall > 3 else 0
-                max = self.overall + 3
-            elif elapsed_time < 60:
-                min = self.overall - 4 if self.overall > 4 else 0
-                max = self.overall + 4
-            elif elapsed_time < 90:
-                min = self.overall - 5 if self.overall > 5 else 0
-                max = self.overall + 5
-            elif elapsed_time < 120:
-                min = self.overall - 6 if self.overall > 6 else 0
-                max = self.overall + 6
-            else:
-                min = self.overall - 7 if self.overall > 7 else 0
-                max = self.overall + 7
+            # if elapsed_time < 30:
+            #     min = self.overall - 3 if self.overall > 3 else 0
+            #     max = self.overall + 3
+            # elif elapsed_time < 60:
+            #     min = self.overall - 4 if self.overall > 4 else 0
+            #     max = self.overall + 4
+            # elif elapsed_time < 90:
+            #     min = self.overall - 5 if self.overall > 5 else 0
+            #     max = self.overall + 5
+            # elif elapsed_time < 120:
+            #     min = self.overall - 6 if self.overall > 6 else 0
+            #     max = self.overall + 6
+            # else:
+            #     min = self.overall - 7 if self.overall > 7 else 0
+            #     max = self.overall + 7
 
-            return min, max
+            # return min, max
 
     @property
     def lobbies(self) -> list[Lobby]:
@@ -163,7 +164,7 @@ class Team(BaseModel):
 
     @property
     def pre_match_id(self) -> str:
-        return cache.get(f'{self.cache_key}:pre_match')
+        return cache.get(f"{self.cache_key}:pre_match")
 
     @staticmethod
     def overall_match(team, lobby) -> bool:
@@ -178,12 +179,12 @@ class Team(BaseModel):
         """
         Fetch and return all Teams on Redis db.
         """
-        keys = list(cache.scan_keys(f'{TeamConfig.CACHE_PREFIX}*'))
+        keys = list(cache.scan_keys(f"{TeamConfig.CACHE_PREFIX}*"))
         if not keys:
             return []
 
-        filtered_keys = [key for key in keys if len(key.split(':')) == 3]
-        return [Team.get_by_id(key.split(':')[2]) for key in filtered_keys]
+        filtered_keys = [key for key in keys if len(key.split(":")) == 3]
+        return [Team.get_by_id(key.split(":")[2]) for key in filtered_keys]
 
     @staticmethod
     def get_all_not_ready() -> list[Team]:
@@ -214,7 +215,7 @@ class Team(BaseModel):
             None,
         )
         if not team and not fail_silently:
-            raise TeamException(_('Team not found.'))
+            raise TeamException(_("Team not found."))
 
         return team
 
@@ -223,11 +224,11 @@ class Team(BaseModel):
         """
         Searchs for a team given an id.
         """
-        cache_key = f'{TeamConfig.CACHE_PREFIX}{id}'
+        cache_key = f"{TeamConfig.CACHE_PREFIX}{id}"
         result = cache.smembers(cache_key)
         if not result:
             if raise_error:
-                raise TeamException(_('Team not found.'))
+                raise TeamException(_("Team not found."))
             return None
 
         return Team(id=id)
@@ -242,23 +243,23 @@ class Team(BaseModel):
         players_count = sum([lobby.players_count for lobby in lobbies])
 
         if not max_players.count(max_players[0]) == len(max_players):
-            raise TeamException(_('Lobbies have differents types or modes.'))
+            raise TeamException(_("Lobbies have differents types or modes."))
 
         if players_count > max_players[0]:
-            raise TeamException(_('Team players count exceeded.'))
+            raise TeamException(_("Team players count exceeded."))
 
         if not all([lobby.queue for lobby in lobbies]):
-            raise TeamException(_('Lobbies not queued'))
+            raise TeamException(_("Lobbies not queued"))
 
         team_id = secrets.token_urlsafe(TeamConfig.ID_SIZE)
-        cache.sadd(f'{TeamConfig.CACHE_PREFIX}{team_id}', *lobbies_ids)
+        cache.sadd(f"{TeamConfig.CACHE_PREFIX}{team_id}", *lobbies_ids)
         return Team.get_by_id(team_id)
 
     def delete(self):
         """
         Delete team from Redis db.
         """
-        keys = list(cache.scan_keys(f'{self.cache_key}:*'))
+        keys = list(cache.scan_keys(f"{self.cache_key}:*"))
         if keys:
             cache.delete(*keys)
 
@@ -271,20 +272,20 @@ class Team(BaseModel):
         lobby = Lobby(owner_id=lobby_id)
 
         if not lobby.queue:
-            raise TeamException(_('Lobby not queued'))
+            raise TeamException(_("Lobby not queued"))
 
         def transaction_operations(pipe, pre_result):
             if self.ready:
-                raise TeamException(_('Team is full. Can\'t add a lobby.'))
+                raise TeamException(_("Team is full. Can't add a lobby."))
             pipe.sadd(self.cache_key, lobby_id)
 
         cache.protected_handler(
             transaction_operations,
-            f'{lobby.cache_key}:players',
-            f'{lobby.cache_key}:queue',
-            f'{self.cache_key}',
-            f'{self.cache_key}:pre_match',
-            f'{self.cache_key}:ready',
+            f"{lobby.cache_key}:players",
+            f"{lobby.cache_key}:queue",
+            f"{self.cache_key}",
+            f"{self.cache_key}:pre_match",
+            f"{self.cache_key}:ready",
         )
 
     def remove_lobby(self, lobby_id: int):
@@ -296,20 +297,20 @@ class Team(BaseModel):
 
         def transaction_operations(pipe, pre_result):
             if self.pre_match_id:
-                raise TeamException(_('Can\'t remove a lobby while in pre_match.'))
+                raise TeamException(_("Can't remove a lobby while in pre_match."))
             cache.srem(self.cache_key, lobby_id)
 
         cache.protected_handler(
             transaction_operations,
-            f'{lobby.cache_key}:players',
-            f'{lobby.cache_key}:queue',
-            f'{self.cache_key}',
-            f'{self.cache_key}:pre_match',
-            f'{self.cache_key}:ready',
+            f"{lobby.cache_key}:players",
+            f"{lobby.cache_key}:queue",
+            f"{self.cache_key}",
+            f"{self.cache_key}:pre_match",
+            f"{self.cache_key}:ready",
         )
 
         if len(self.lobbies_ids) <= 1:
-            logging.info(f'[team:remove_lobby] delete team {self.id}')
+            logging.info(f"[team:remove_lobby] delete team {self.id}")
             self.delete()
 
     def handle_non_queued_lobbies(self):
@@ -321,37 +322,37 @@ class Team(BaseModel):
 
     def get_opponent_team(self):
         if self.handle_non_queued_lobbies():
-            logging.info('[team:get_opponent_team] some lobby isn\'t queued, continue')
+            logging.info("[team:get_opponent_team] some lobby isn't queued, continue")
             return
 
         ready_teams = self.get_all_ready()
         for team in ready_teams:
-            logging.info(f'[team:get_opponent_team] try team: {team.id}')
+            logging.info(f"[team:get_opponent_team] try team: {team.id}")
             if team.pre_match_id:
-                logging.info('[team:get_opponent_team] is in pre_match, continue')
+                logging.info("[team:get_opponent_team] is in pre_match, continue")
                 continue
 
             if self.id == team.id:
-                logging.info('[team:get_opponent_team] is same team, continue')
+                logging.info("[team:get_opponent_team] is same team, continue")
                 continue
 
             if team.handle_non_queued_lobbies():
                 logging.info(
-                    '[team:get_opponent_team] some lobby isn\'t queued, continue'
+                    "[team:get_opponent_team] some lobby isn't queued, continue"
                 )
                 continue
 
             if self.mode is None or self.mode != team.mode:
-                logging.info('[team:get_opponent_team] mismatch type or mode, continue')
+                logging.info("[team:get_opponent_team] mismatch type or mode, continue")
                 continue
 
             if team.min_max_overall_by_queue_time is None or self.overall is None:
-                logging.info('[team:get_opponent_team] overalls missing, continue')
+                logging.info("[team:get_opponent_team] overalls missing, continue")
                 continue
 
             min_overall, max_overall = team.min_max_overall_by_queue_time
             if min_overall <= self.overall <= max_overall:
-                logging.info(f'[team:get_opponent_team] found opponent: {team.id}')
+                logging.info(f"[team:get_opponent_team] found opponent: {team.id}")
                 return team
 
-            logging.info('[team:get_opponent_team] didn\'t match the overall, continue')
+            logging.info("[team:get_opponent_team] didn't match the overall, continue")

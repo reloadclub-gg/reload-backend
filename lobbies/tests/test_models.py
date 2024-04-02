@@ -1,5 +1,6 @@
 from time import sleep
-from unittest import mock
+
+# from unittest import mock
 
 from django.test import override_settings
 from django.utils import timezone
@@ -42,7 +43,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertIsNotNone(current_lobby_id)
         self.assertEqual(
             lobby.cache_key,
-            f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}',
+            f"{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}",
         )
         self.assertEqual(current_lobby_id, str(self.user_1.id))
         self.assertEqual(lobby.players_ids, [self.user_1.id])
@@ -65,8 +66,8 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         Lobby.create(self.user_2.id)
 
         lobby_1.invite(self.user_1.id, self.user_2.id)
-        invites = list(cache.zrange(f'{lobby_1.cache_key}:invites', 0, -1))
-        self.assertEqual(invites, [f'{self.user_1.id}:{self.user_2.id}'])
+        invites = list(cache.zrange(f"{lobby_1.cache_key}:invites", 0, -1))
+        self.assertEqual(invites, [f"{self.user_1.id}:{self.user_2.id}"])
         self.assertEqual(
             lobby_1.invites,
             [
@@ -113,7 +114,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         Lobby.move(self.user_2.id, lobby_1.id)
         current_moved_player_lobby = cache.get(lobby_2.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_1.id))
-        self.assertEqual(len(cache.zrange(f'{lobby_1.cache_key}:invites', 0, -1)), 0)
+        self.assertEqual(len(cache.zrange(f"{lobby_1.cache_key}:invites", 0, -1)), 0)
         self.assertEqual(lobby_2.players_ids, [])
         self.assertCountEqual(
             lobby_1.players_ids,
@@ -136,7 +137,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 
         current_moved_player_lobby = cache.get(lobby_3.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
+        self.assertEqual(len(cache.zrange(f"{lobby_2.cache_key}:invites", 0, -1)), 0)
         self.assertEqual(lobby_3.players_ids, [])
         self.assertEqual(lobby_1.players_ids, [self.user_1.id])
         self.assertCountEqual(
@@ -162,7 +163,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 
         current_moved_player_lobby = cache.get(lobby_1.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
+        self.assertEqual(len(cache.zrange(f"{lobby_2.cache_key}:invites", 0, -1)), 0)
         self.assertEqual(lobby_1.players_ids, [])
         self.assertEqual(new_lobby.id, lobby_3.id)
         self.assertEqual(lobby_3.players_ids, [self.user_3.id])
@@ -193,7 +194,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 
         current_moved_player_lobby = cache.get(lobby_1.cache_key)
         self.assertEqual(current_moved_player_lobby, str(lobby_2.id))
-        self.assertEqual(len(cache.zrange(f'{lobby_2.cache_key}:invites', 0, -1)), 0)
+        self.assertEqual(len(cache.zrange(f"{lobby_2.cache_key}:invites", 0, -1)), 0)
         self.assertEqual(lobby_1.players_ids, [])
         self.assertCountEqual(
             new_lobby.players_ids,
@@ -213,7 +214,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_move_remove(self):
         lobby = Lobby.create(self.user_1.id)
         Lobby.move(self.user_1.id, lobby.id, remove=True)
-        self.assertEqual(len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{lobby.id}*')), 0)
+        self.assertEqual(len(cache.keys(f"{Lobby.Config.CACHE_PREFIX}:{lobby.id}*")), 0)
 
     def test_move_remove_remaining(self):
         lobby = Lobby.create(self.user_1.id)
@@ -326,10 +327,10 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(
             cache.exists(
                 lobby_1.cache_key,
-                f'{lobby_1.cache_key}:players',
-                f'{lobby_1.cache_key}:queue',
-                f'{lobby_1.cache_key}:is_public',
-                f'{lobby_1.cache_key}:invites',
+                f"{lobby_1.cache_key}:players",
+                f"{lobby_1.cache_key}:queue",
+                f"{lobby_1.cache_key}:is_public",
+                f"{lobby_1.cache_key}:invites",
             ),
             0,
         )
@@ -459,13 +460,13 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 
     def test_set_mode_same_mode(self):
         lobby = Lobby.create(self.user_1.id)
-        with self.assertRaisesRegex(LobbyException, 'Mode already set'):
+        with self.assertRaisesRegex(LobbyException, "Mode already set"):
             lobby.set_mode(Lobby.ModeChoices.COMP)
 
     def test_set_mode_queued(self):
         lobby = Lobby.create(self.user_1.id)
         lobby.start_queue()
-        with self.assertRaisesRegex(LobbyException, 'queued'):
+        with self.assertRaisesRegex(LobbyException, "queued"):
             lobby.set_mode(Lobby.ModeChoices.CUSTOM)
 
     def test_set_mode_oversized(self):
@@ -489,13 +490,13 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         Lobby.move(lobby_5.id, lobby_1.id)
         Lobby.move(lobby_6.id, lobby_1.id)
 
-        with self.assertRaisesRegex(LobbyException, 'oversized'):
+        with self.assertRaisesRegex(LobbyException, "oversized"):
             lobby_1.set_mode(Lobby.ModeChoices.COMP)
 
     def test_set_mode_unknown(self):
         lobby = Lobby.create(self.user_1.id)
         with self.assertRaises(LobbyException):
-            lobby.set_mode('unknown')
+            lobby.set_mode("unknown")
 
         self.assertEqual(lobby.mode, Lobby.ModeChoices.COMP)
 
@@ -518,7 +519,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_set_match_type_bad_mode(self):
         lobby = Lobby.create(self.user_1.id)
         with self.assertRaises(LobbyException):
-            lobby.set_match_type('change type in this mode')
+            lobby.set_match_type("change type in this mode")
 
         self.assertIsNone(lobby.match_type)
 
@@ -526,14 +527,14 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         lobby = Lobby.create(self.user_1.id)
         lobby.start_queue()
         with self.assertRaises(LobbyException):
-            lobby.set_match_type('queued')
+            lobby.set_match_type("queued")
 
         self.assertIsNone(lobby.match_type)
 
     def test_set_match_type_unknown(self):
         lobby = Lobby.create(self.user_1.id)
         with self.assertRaises(LobbyException):
-            lobby.set_match_type('unknown')
+            lobby.set_match_type("unknown")
 
         self.assertIsNone(lobby.match_type)
 
@@ -550,14 +551,14 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
             ],
         )
 
-        lobby_1.delete_invite(f'{self.user_1.id}:{self.user_2.id}')
+        lobby_1.delete_invite(f"{self.user_1.id}:{self.user_2.id}")
         self.assertListEqual(lobby_1.invites, [])
 
     def test_delete_invite_must_be_invited(self):
         lobby_1 = Lobby.create(self.user_1.id)
 
         with self.assertRaises(LobbyException):
-            lobby_1.delete_invite(f'{self.user_1.id}:{self.user_2.id}')
+            lobby_1.delete_invite(f"{self.user_1.id}:{self.user_2.id}")
 
     def test_get_lobby_invite(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -566,7 +567,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 
         self.assertEqual(
             invite_expected,
-            LobbyInvite.get(lobby_1.id, f'{self.user_1.id}:{self.user_2.id}'),
+            LobbyInvite.get(lobby_1.id, f"{self.user_1.id}:{self.user_2.id}"),
         )
 
     def test_get_lobby_invite_with_raise(self):
@@ -574,7 +575,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         Lobby.create(self.user_2.id)
 
         with self.assertRaises(LobbyInviteException):
-            LobbyInvite.get(lobby_1.id, '99:99')
+            LobbyInvite.get(lobby_1.id, "99:99")
 
     def test_overall(self):
         self.user_1.account.level = 1
@@ -613,30 +614,30 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 
         self.assertEqual(lobby.queue_time, 2)
 
-    @mock.patch('lobbies.models.lobby.Lobby.queue_time', new_callable=mock.PropertyMock)
-    def test_lobby_overall_by_elapsed_time(self, mocker):
-        lobby = Lobby.create(self.user_1.id)
-        lobby.start_queue()
+    # @mock.patch('lobbies.models.lobby.Lobby.queue_time', new_callable=mock.PropertyMock)
+    # def test_lobby_overall_by_elapsed_time(self, mocker):
+    #     lobby = Lobby.create(self.user_1.id)
+    #     lobby.start_queue()
 
-        mocker.return_value = 10
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 1), (min_level, max_level))
+    #     mocker.return_value = 10
+    #     min_level, max_level = lobby.get_min_max_overall_by_queue_time()
+    #     self.assertEqual((0, 1), (min_level, max_level))
 
-        mocker.return_value = 30
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 2), (min_level, max_level))
+    #     mocker.return_value = 30
+    #     min_level, max_level = lobby.get_min_max_overall_by_queue_time()
+    #     self.assertEqual((0, 2), (min_level, max_level))
 
-        mocker.return_value = 60
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 3), (min_level, max_level))
+    #     mocker.return_value = 60
+    #     min_level, max_level = lobby.get_min_max_overall_by_queue_time()
+    #     self.assertEqual((0, 3), (min_level, max_level))
 
-        mocker.return_value = 90
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 4), (min_level, max_level))
+    #     mocker.return_value = 90
+    #     min_level, max_level = lobby.get_min_max_overall_by_queue_time()
+    #     self.assertEqual((0, 4), (min_level, max_level))
 
-        mocker.return_value = 120
-        min_level, max_level = lobby.get_min_max_overall_by_queue_time()
-        self.assertEqual((0, 5), (min_level, max_level))
+    #     mocker.return_value = 120
+    #     min_level, max_level = lobby.get_min_max_overall_by_queue_time()
+    #     self.assertEqual((0, 5), (min_level, max_level))
 
     def test_is_owner_is_true(self):
         lobby = Lobby.create(self.user_1.id)
@@ -651,12 +652,12 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_delete_all_keys(self):
         lobby = Lobby.create(self.user_1.id)
         self.assertGreaterEqual(
-            len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 1
+            len(cache.keys(f"{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*")), 1
         )
 
         Lobby.delete(lobby.id)
         self.assertEqual(
-            len(cache.keys(f'{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*')), 0
+            len(cache.keys(f"{Lobby.Config.CACHE_PREFIX}:{self.user_1.id}*")), 0
         )
 
     @override_settings(
@@ -666,8 +667,8 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_start_queue(self):
         AppSettings.objects.create(
             kind=AppSettings.BOOLEAN,
-            name='Dodges Restriction',
-            value='1',
+            name="Dodges Restriction",
+            value="1",
         )
         lobby = Lobby.create(self.user_1.id)
         lobby.set_public()
@@ -720,7 +721,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 
     def test_set_map_id_bad_mode(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
-        with self.assertRaisesRegex(LobbyException, 'Cannot restrict map'):
+        with self.assertRaisesRegex(LobbyException, "Cannot restrict map"):
             lobby.set_map_id(2)
 
     def test_set_map_id_bad_map_id(self):
@@ -729,8 +730,8 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         lobby = Lobby.create(owner_id=self.user_1.id)
         lobby.set_mode(Lobby.ModeChoices.CUSTOM)
         lobby.set_match_type(Lobby.TypeChoices.SAFEZONE)
-        wrong_map = Map.objects.filter(map_type='default').first()
-        with self.assertRaisesRegex(LobbyException, 'Invalid map id'):
+        wrong_map = Map.objects.filter(map_type="default").first()
+        with self.assertRaisesRegex(LobbyException, "Invalid map id"):
             lobby.set_map_id(wrong_map.id)
 
         map = Map.objects.filter(map_type=lobby.match_type).first()
@@ -740,7 +741,7 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_set_map_id_invalid(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
         lobby.set_mode(Lobby.ModeChoices.CUSTOM)
-        with self.assertRaisesRegex(LobbyException, 'Invalid map id'):
+        with self.assertRaisesRegex(LobbyException, "Invalid map id"):
             lobby.set_map_id(9)
 
     def test_set_weapon(self):
@@ -755,14 +756,14 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
 
     def test_set_weapon_bad_mode(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
-        with self.assertRaisesRegex(LobbyException, 'Cannot restrict weapon'):
+        with self.assertRaisesRegex(LobbyException, "Cannot restrict weapon"):
             lobby.set_weapon(Lobby.WeaponChoices.WEAPON_APPISTOL)
 
     def test_set_weapon_invalid(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
         lobby.set_mode(Lobby.ModeChoices.CUSTOM)
-        with self.assertRaisesRegex(LobbyException, 'Invalid weapon'):
-            lobby.set_weapon('any_weapon')
+        with self.assertRaisesRegex(LobbyException, "Invalid weapon"):
+            lobby.set_weapon("any_weapon")
 
     def test_change_player_side(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
@@ -771,37 +772,37 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertCountEqual(lobby.atk_players_ids, [])
         self.assertCountEqual(lobby.spec_players_ids, [])
 
-        lobby.change_player_side(self.user_1.id, 'atk_players_ids')
+        lobby.change_player_side(self.user_1.id, "atk_players_ids")
         self.assertCountEqual(lobby.atk_players_ids, [self.user_1.id])
         self.assertCountEqual(lobby.def_players_ids, [])
         self.assertCountEqual(lobby.spec_players_ids, [])
 
-        lobby.change_player_side(self.user_1.id, 'spec_players_ids')
+        lobby.change_player_side(self.user_1.id, "spec_players_ids")
         self.assertCountEqual(lobby.spec_players_ids, [self.user_1.id])
         self.assertCountEqual(lobby.def_players_ids, [])
         self.assertCountEqual(lobby.atk_players_ids, [])
 
-        lobby.change_player_side(self.user_1.id, 'def_players_ids')
+        lobby.change_player_side(self.user_1.id, "def_players_ids")
         self.assertCountEqual(lobby.def_players_ids, [self.user_1.id])
         self.assertCountEqual(lobby.spec_players_ids, [])
         self.assertCountEqual(lobby.atk_players_ids, [])
 
     def test_change_player_side_bad_mode(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
-        with self.assertRaisesRegex(LobbyException, 'Cannot change side'):
-            lobby.change_player_side(self.user_1.id, 'def_players_ids')
+        with self.assertRaisesRegex(LobbyException, "Cannot change side"):
+            lobby.change_player_side(self.user_1.id, "def_players_ids")
 
     def test_change_player_side_player_not_found(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
         lobby.set_mode(Lobby.ModeChoices.CUSTOM)
-        with self.assertRaisesRegex(LobbyException, 'Player not found'):
-            lobby.change_player_side(self.user_5.id, 'def_players_ids')
+        with self.assertRaisesRegex(LobbyException, "Player not found"):
+            lobby.change_player_side(self.user_5.id, "def_players_ids")
 
     def test_change_player_side_bad_side(self):
         lobby = Lobby.create(owner_id=self.user_1.id)
         lobby.set_mode(Lobby.ModeChoices.CUSTOM)
-        with self.assertRaisesRegex(LobbyException, 'Invalid side'):
-            lobby.change_player_side(self.user_1.id, 'attackers')
+        with self.assertRaisesRegex(LobbyException, "Invalid side"):
+            lobby.change_player_side(self.user_1.id, "attackers")
 
     def test_change_player_side_oversized(self):
         lobby_1 = Lobby.create(self.user_1.id)
@@ -824,15 +825,15 @@ class LobbyModelTestCase(VerifiedAccountsMixin, TestCase):
         Lobby.move(lobby_5.id, lobby_1.id)
         Lobby.move(lobby_6.id, lobby_1.id)
 
-        with self.assertRaisesRegex(LobbyException, 'Side is full'):
-            lobby_1.change_player_side(self.user_6.id, 'def_players_ids')
+        with self.assertRaisesRegex(LobbyException, "Side is full"):
+            lobby_1.change_player_side(self.user_6.id, "def_players_ids")
 
     def test_change_player_side_player_already_on_side(self):
         lobby_1 = Lobby.create(self.user_1.id)
         lobby_1.set_mode(Lobby.ModeChoices.CUSTOM)
 
-        with self.assertRaisesRegex(LobbyException, 'already on side'):
-            lobby_1.change_player_side(self.user_1.id, 'def_players_ids')
+        with self.assertRaisesRegex(LobbyException, "already on side"):
+            lobby_1.change_player_side(self.user_1.id, "def_players_ids")
 
 
 class LobbyInviteModelTestCase(VerifiedAccountsMixin, TestCase):
@@ -948,8 +949,8 @@ class LobbyInviteModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_create_date(self):
         timestamp = timezone.now().timestamp()
         cache.zadd(
-            f'{self.lobby1.cache_key}:invites',
-            {f'{self.user_1.id}:{self.user_2.id}': timestamp},
+            f"{self.lobby1.cache_key}:invites",
+            {f"{self.user_1.id}:{self.user_2.id}": timestamp},
         )
         invite = LobbyInvite(
             from_id=self.user_1.id, to_id=self.user_2.id, lobby_id=self.lobby1.id
@@ -958,11 +959,11 @@ class LobbyInviteModelTestCase(VerifiedAccountsMixin, TestCase):
 
     def test_get_by_id(self):
         created = self.lobby1.invite(self.user_1.id, self.user_2.id)
-        invite = LobbyInvite.get_by_id(f'{self.user_1.id}:{self.user_2.id}')
+        invite = LobbyInvite.get_by_id(f"{self.user_1.id}:{self.user_2.id}")
         self.assertEqual(created.id, invite.id)
 
         with self.assertRaises(LobbyInviteException):
-            LobbyInvite.get_by_id('some_id:other_id')
+            LobbyInvite.get_by_id("some_id:other_id")
 
     def test_delete(self):
         created = self.lobby1.invite(self.user_1.id, self.user_2.id)
@@ -985,8 +986,8 @@ class PlayerModelTestCase(VerifiedAccountsMixin, TestCase):
     def test_restriction_countdown(self):
         AppSettings.objects.create(
             kind=AppSettings.BOOLEAN,
-            name='Dodges Restriction',
-            value='1',
+            name="Dodges Restriction",
+            value="1",
         )
         lobby = Lobby.create(self.user_1.id)
         lobby.set_public()

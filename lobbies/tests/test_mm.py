@@ -15,8 +15,9 @@ from .mixins import LobbiesMixin
 class LobbiesMMTestCase(LobbiesMixin, TestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.lobby_api = APIClient('/api/lobbies')
-        self.pre_match_api = APIClient('/api/pre-matches')
+        Map.objects.all().delete()
+        self.lobby_api = APIClient("/api/lobbies")
+        self.pre_match_api = APIClient("/api/pre-matches")
 
     @override_settings(TEAM_READY_PLAYERS_MIN=2)
     def test_teamed_mm_routes(self):
@@ -25,23 +26,23 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
 
         # lobby 1 & 2 preparation
         r = self.lobby_api.call(
-            'post',
-            '/invites',
+            "post",
+            "/invites",
             data={
-                'lobby_id': self.lobby1.id,
-                'from_user_id': self.user_1.id,
-                'to_user_id': self.user_2.id,
+                "lobby_id": self.lobby1.id,
+                "from_user_id": self.user_1.id,
+                "to_user_id": self.user_2.id,
             },
             token=self.user_1.auth.token,
         )
         queue()
         self.assertEqual(r.status_code, 201)
-        invite_id = r.json().get('id')
+        invite_id = r.json().get("id")
 
         r = self.lobby_api.call(
-            'delete',
-            f'/invites/{invite_id}',
-            data={'accept': True},
+            "delete",
+            f"/invites/{invite_id}",
+            data={"accept": True},
             token=self.user_2.auth.token,
         )
         queue()
@@ -51,23 +52,23 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
 
         # lobby 3 & 4 preparation
         r = self.lobby_api.call(
-            'post',
-            '/invites',
+            "post",
+            "/invites",
             data={
-                'lobby_id': self.lobby3.id,
-                'from_user_id': self.user_3.id,
-                'to_user_id': self.user_4.id,
+                "lobby_id": self.lobby3.id,
+                "from_user_id": self.user_3.id,
+                "to_user_id": self.user_4.id,
             },
             token=self.user_3.auth.token,
         )
         queue()
         self.assertEqual(r.status_code, 201)
-        invite_id = r.json().get('id')
+        invite_id = r.json().get("id")
 
         r = self.lobby_api.call(
-            'delete',
-            f'/invites/{invite_id}',
-            data={'accept': True},
+            "delete",
+            f"/invites/{invite_id}",
+            data={"accept": True},
             token=self.user_4.auth.token,
         )
         queue()
@@ -78,9 +79,9 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         # lobby 1 & 2 queue
         self.assertIsNone(self.lobby1.queue)
         r = self.lobby_api.call(
-            'patch',
-            f'/{self.lobby1.id}',
-            data={'queue': 'start'},
+            "patch",
+            f"/{self.lobby1.id}",
+            data={"queue": "start"},
             token=self.user_1.auth.token,
         )
         self.assertEqual(r.status_code, 200)
@@ -100,9 +101,9 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         # lobby 3 & 4 queue
         self.assertIsNone(self.lobby3.queue)
         r = self.lobby_api.call(
-            'patch',
-            f'/{self.lobby3.id}',
-            data={'queue': 'start'},
+            "patch",
+            f"/{self.lobby3.id}",
+            data={"queue": "start"},
             token=self.user_3.auth.token,
         )
         self.assertEqual(r.status_code, 200)
@@ -143,13 +144,13 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         # test get pre_match details
         for user in users:
             r = self.pre_match_api.call(
-                'get',
-                '/',
+                "get",
+                "/",
                 token=user.auth.token,
             )
             self.assertEqual(r.status_code, 200)
-            self.assertEqual(r.json().get('id'), pre_match.id)
-            self.assertFalse(r.json().get('ready'))
+            self.assertEqual(r.json().get("id"), pre_match.id)
+            self.assertFalse(r.json().get("ready"))
             queue()
 
         handle_pre_matches()
@@ -176,13 +177,13 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
 
         for user in users[:-1]:
             r = self.pre_match_api.call(
-                'post',
-                '/ready',
+                "post",
+                "/ready",
                 token=user.auth.token,
             )
             self.assertEqual(r.status_code, 200)
-            self.assertEqual(r.json().get('id'), pre_match.id)
-            self.assertFalse(r.json().get('ready'))
+            self.assertEqual(r.json().get("id"), pre_match.id)
+            self.assertFalse(r.json().get("ready"))
 
             queue()
             handle_pre_matches()
@@ -192,15 +193,15 @@ class LobbiesMMTestCase(LobbiesMixin, TestCase):
         baker.make(Server)
 
         r = self.pre_match_api.call(
-            'post',
-            '/ready',
+            "post",
+            "/ready",
             token=self.user_4.auth.token,
         )
         self.assertEqual(r.status_code, 201)
         queue()
         handle_pre_matches()
         match = Match.objects.first()
-        self.assertEqual(r.json().get('id'), match.id)
+        self.assertEqual(r.json().get("id"), match.id)
         with self.assertRaises(PreMatchException):
             PreMatch.get_by_id(pre_match.id)
 

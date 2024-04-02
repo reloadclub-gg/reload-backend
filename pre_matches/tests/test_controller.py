@@ -13,8 +13,13 @@ from . import mixins
 
 
 class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
-    @mock.patch('pre_matches.api.controller.ws_update_user')
-    @mock.patch('pre_matches.api.controller.ws_match_create')
+
+    def setUp(self):
+        super().setUp()
+        Map.objects.all().delete()
+
+    @mock.patch("pre_matches.api.controller.ws_update_user")
+    @mock.patch("pre_matches.api.controller.ws_match_create")
     def test_handle_create_match(
         self,
         mock_match_create,
@@ -30,7 +35,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
 
-        Server.objects.create(ip='123.123.123.123', name='Reload 1')
+        Server.objects.create(ip="123.123.123.123", name="Reload 1")
         match = controller.handle_create_match(pre_match)
         match_player_user1 = self.user_1.matchplayer_set.first()
         match_player_user6 = self.user_6.matchplayer_set.first()
@@ -41,9 +46,9 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_match_create.assert_called_once_with(match)
         self.assertEqual(mock_update_user.call_count, 10)
 
-    @mock.patch('matches.tasks.send_servers_full_mail.delay')
-    @mock.patch('pre_matches.api.controller.ws_update_user')
-    @mock.patch('pre_matches.api.controller.ws_match_create')
+    @mock.patch("matches.tasks.send_servers_full_mail.delay")
+    @mock.patch("pre_matches.api.controller.ws_update_user")
+    @mock.patch("pre_matches.api.controller.ws_match_create")
     def test_handle_create_match_no_server_available(
         self,
         mock_match_create,
@@ -66,9 +71,9 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_update_user.assert_not_called()
         mock_send_mail.assert_called_once()
 
-    @mock.patch('pre_matches.api.controller.ws_update_user')
-    @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_delete')
-    @mock.patch('pre_matches.api.controller.ws_create_toast')
+    @mock.patch("pre_matches.api.controller.ws_update_user")
+    @mock.patch("pre_matches.api.controller.websocket.ws_pre_match_delete")
+    @mock.patch("pre_matches.api.controller.ws_create_toast")
     def test_handle_create_match_failed(
         self,
         mock_create_toast,
@@ -84,7 +89,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         for player in pre_match.players[:10]:
             pre_match.set_player_ready(player.id)
 
-        controller.cancel_pre_match(pre_match, 'any message')
+        controller.cancel_pre_match(pre_match, "any message")
 
         mock_calls = [
             mock.call(self.user_1),
@@ -109,15 +114,15 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             self.team2.id,
             self.team1.mode,
         )
-        Server.objects.create(ip='123.123.123.123', name='Reload 1')
+        Server.objects.create(ip="123.123.123.123", name="Reload 1")
         controller.handle_create_match(pre_match)
 
         with self.assertRaises(Http404):
-            controller.handle_pre_match_checks(self.user_1, 'error')
+            controller.handle_pre_match_checks(self.user_1, "error")
 
     def test_handle_pre_match_checks_pre_match_fail(self):
         with self.assertRaises(Http404):
-            controller.handle_pre_match_checks(self.user_1, 'error')
+            controller.handle_pre_match_checks(self.user_1, "error")
 
     def test_get_pre_match(self):
         created = PreMatch.create(
@@ -132,8 +137,8 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         pre_match = controller.get_pre_match(self.user_1)
         self.assertIsNone(pre_match)
 
-    @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
-    @mock.patch('pre_matches.api.controller.websocket.ws_pre_match_update')
+    @mock.patch("pre_matches.api.controller.handle_create_fivem_match")
+    @mock.patch("pre_matches.api.controller.websocket.ws_pre_match_update")
     def test_set_player_ready(self, mock_pre_match_update, mock_fivem):
         pre_match = PreMatch.create(
             self.team1.id,
@@ -150,8 +155,8 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             controller.set_player_ready(self.user_1)
 
     @override_settings(FIVEM_MATCH_MOCK_START_SUCCESS=True)
-    @mock.patch('pre_matches.api.controller.mock_fivem_match_start.apply_async')
-    @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
+    @mock.patch("pre_matches.api.controller.mock_fivem_match_start.apply_async")
+    @mock.patch("pre_matches.api.controller.handle_create_fivem_match")
     def test_set_player_ready_create_match(self, mock_fivem, mock_match_start):
         baker.make(Map)
         pre_match = PreMatch.create(
@@ -159,7 +164,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             self.team2.id,
             self.team1.mode,
         )
-        Server.objects.create(ip='123.123.123.123', name='Reload 1')
+        Server.objects.create(ip="123.123.123.123", name="Reload 1")
         mock_fivem.return_value.status_code = 201
         for player in pre_match.players[:-1]:
             pre_match.set_player_ready(player.id)
@@ -174,8 +179,8 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_match_start.assert_called_once()
 
     @override_settings(FIVEM_MATCH_MOCK_START_SUCCESS=False)
-    @mock.patch('pre_matches.api.controller.mock_fivem_match_cancel.apply_async')
-    @mock.patch('pre_matches.api.controller.handle_create_fivem_match')
+    @mock.patch("pre_matches.api.controller.mock_fivem_match_cancel.apply_async")
+    @mock.patch("pre_matches.api.controller.handle_create_fivem_match")
     def test_set_player_ready_create_match_start_failed(
         self,
         mock_fivem,
@@ -187,7 +192,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
             self.team2.id,
             self.team1.mode,
         )
-        Server.objects.create(ip='123.123.123.123', name='Reload 1')
+        Server.objects.create(ip="123.123.123.123", name="Reload 1")
         mock_fivem.return_value.status_code = 201
         for player in pre_match.players[:-1]:
             pre_match.set_player_ready(player.id)
