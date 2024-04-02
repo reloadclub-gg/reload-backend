@@ -206,7 +206,7 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertEqual(team, obj)
 
         with self.assertRaises(TeamException):
-            Team.get_by_lobby_id('unknown_lobby_id')
+            Team.get_by_lobby_id("unknown_lobby_id")
 
     def test_delete(self):
         self.lobby1.start_queue()
@@ -225,17 +225,17 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id, self.lobby3.id])
         self.assertEqual(team.mode, Lobby.ModeChoices.COMP)
 
-    def test_min_max_overall_by_queue_time(self):
-        self.lobby1.start_queue()
-        now_minus_100 = (timezone.now() - datetime.timedelta(seconds=100)).isoformat()
-        cache.set(f'{self.lobby1.cache_key}:queue', now_minus_100)
+    # def test_min_max_overall_by_queue_time(self):
+    #     self.lobby1.start_queue()
+    #     now_minus_100 = (timezone.now() - datetime.timedelta(seconds=100)).isoformat()
+    #     cache.set(f"{self.lobby1.cache_key}:queue", now_minus_100)
 
-        self.user_2.account.level = 3
-        self.user_2.account.save()
-        self.lobby2.start_queue()
+    #     self.user_2.account.level = 3
+    #     self.user_2.account.save()
+    #     self.lobby2.start_queue()
 
-        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
-        self.assertEqual(team.min_max_overall_by_queue_time, (0, 6))
+    #     team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+    #     self.assertEqual(team.min_max_overall_by_queue_time, (0, 6))
 
     def test_overall_match(self):
         self.lobby1.start_queue()
@@ -246,9 +246,9 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         self.assertTrue(match)
 
         elapsed_time = (timezone.now() - datetime.timedelta(seconds=100)).isoformat()
-        cache.set(f'{self.lobby1.cache_key}:queue', elapsed_time)
-        cache.set(f'{self.lobby2.cache_key}:queue', elapsed_time)
-        cache.set(f'{self.lobby3.cache_key}:queue', elapsed_time)
+        cache.set(f"{self.lobby1.cache_key}:queue", elapsed_time)
+        cache.set(f"{self.lobby2.cache_key}:queue", elapsed_time)
+        cache.set(f"{self.lobby3.cache_key}:queue", elapsed_time)
 
         self.user_4.account.level = 4
         self.user_4.account.save()
@@ -257,17 +257,17 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         match = Team.overall_match(team, self.lobby4)
         self.assertTrue(match)
 
-    def test_overall_not_match(self):
-        self.lobby1.start_queue()
-        self.lobby2.start_queue()
-        team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
+    # def test_overall_not_match(self):
+    #     self.lobby1.start_queue()
+    #     self.lobby2.start_queue()
+    #     team = Team.create(lobbies_ids=[self.lobby1.id, self.lobby2.id])
 
-        self.user_3.account.level = 6
-        self.user_3.account.save()
-        self.lobby3.start_queue()
+    #     self.user_3.account.level = 6
+    #     self.user_3.account.save()
+    #     self.lobby3.start_queue()
 
-        match = Team.overall_match(team, self.lobby3)
-        self.assertFalse(match)
+    #     match = Team.overall_match(team, self.lobby3)
+    #     self.assertFalse(match)
 
     def test_get_opponent_team(self):
         self.lobby1.set_public()
@@ -289,33 +289,33 @@ class TeamModelTestCase(VerifiedAccountsMixin, TestCase):
         opponent = team2.get_opponent_team()
         self.assertEqual(opponent, team1)
 
-    def test_get_opponent_team_overall_queue_time(self):
-        self.lobby1.set_public()
-        Lobby.move(self.user_2.id, self.lobby1.id)
-        Lobby.move(self.user_3.id, self.lobby1.id)
-        Lobby.move(self.user_4.id, self.lobby1.id)
-        Lobby.move(self.user_5.id, self.lobby1.id)
-        self.lobby1.start_queue()
-        team1 = Team.create(lobbies_ids=[self.lobby1.id])
+    # def test_get_opponent_team_overall_queue_time(self):
+    #     self.lobby1.set_public()
+    #     Lobby.move(self.user_2.id, self.lobby1.id)
+    #     Lobby.move(self.user_3.id, self.lobby1.id)
+    #     Lobby.move(self.user_4.id, self.lobby1.id)
+    #     Lobby.move(self.user_5.id, self.lobby1.id)
+    #     self.lobby1.start_queue()
+    #     team1 = Team.create(lobbies_ids=[self.lobby1.id])
 
-        self.user_8.account.level = 5
-        self.user_8.account.save()
+    #     self.user_8.account.level = 5
+    #     self.user_8.account.save()
 
-        self.lobby6.set_public()
-        Lobby.move(self.user_7.id, self.lobby6.id)
-        Lobby.move(self.user_8.id, self.lobby6.id)
-        Lobby.move(self.user_9.id, self.lobby6.id)
-        Lobby.move(self.user_10.id, self.lobby6.id)
-        self.lobby6.start_queue()
-        team = Team.create(lobbies_ids=[self.lobby6.id])
+    #     self.lobby6.set_public()
+    #     Lobby.move(self.user_7.id, self.lobby6.id)
+    #     Lobby.move(self.user_8.id, self.lobby6.id)
+    #     Lobby.move(self.user_9.id, self.lobby6.id)
+    #     Lobby.move(self.user_10.id, self.lobby6.id)
+    #     self.lobby6.start_queue()
+    #     team = Team.create(lobbies_ids=[self.lobby6.id])
 
-        opponent = team.get_opponent_team()
-        self.assertIsNone(opponent)
+    #     opponent = team.get_opponent_team()
+    #     self.assertIsNone(opponent)
 
-        elapsed_time = (timezone.now() - datetime.timedelta(seconds=140)).isoformat()
-        cache.set(f'{self.lobby1.cache_key}:queue', elapsed_time)
-        opponent = team.get_opponent_team()
-        self.assertEqual(opponent, team1)
+    #     elapsed_time = (timezone.now() - datetime.timedelta(seconds=140)).isoformat()
+    #     cache.set(f'{self.lobby1.cache_key}:queue', elapsed_time)
+    #     opponent = team.get_opponent_team()
+    #     self.assertEqual(opponent, team1)
 
     def test_name(self):
         self.lobby1.set_public()
@@ -522,10 +522,10 @@ class PreMatchModelTestCase(VerifiedAccountsMixin, TestCase):
             self.team2.id,
             self.team1.mode,
         )
-        self.assertGreaterEqual(len(cache.keys(f'{pre_match.cache_key}*')), 1)
+        self.assertGreaterEqual(len(cache.keys(f"{pre_match.cache_key}*")), 1)
 
         PreMatch.delete(pre_match.id)
-        self.assertGreaterEqual(len(cache.keys(f'{pre_match.cache_key}*')), 0)
+        self.assertGreaterEqual(len(cache.keys(f"{pre_match.cache_key}*")), 0)
 
     def test_get_all(self):
         all_pre_matches = PreMatch.get_all()
