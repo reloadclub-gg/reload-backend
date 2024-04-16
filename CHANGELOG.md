@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Solicitações de amizade passam a expirar se não forem aceitos no prazo de 1 hora (por padrão).
 
+### Fixed
+
+- Adiciona verificação para previnir formação de time ou exceção ao criar um novo time com informações faltando.
+
 ## [d61010f - 2/4/2024]
 
 ### Removed

@@ -242,6 +242,9 @@ class Team(BaseModel):
         max_players = [lobby.max_players for lobby in lobbies]
         players_count = sum([lobby.players_count for lobby in lobbies])
 
+        if not max_players or not players_count:
+            raise TeamException(_("Some lobbies can't be teamed."))
+
         if not max_players.count(max_players[0]) == len(max_players):
             raise TeamException(_("Lobbies have differents types or modes."))
 
