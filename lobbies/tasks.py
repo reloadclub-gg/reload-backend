@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from accounts.websocket import ws_update_user
 from pre_matches.api.controller import cancel_pre_match
-from pre_matches.models import PreMatch, PreMatchException, Team
+from pre_matches.models import PreMatch, PreMatchException, Team, TeamException
 from pre_matches.websocket import ws_pre_match_create
 
 from . import models
@@ -20,6 +20,9 @@ User = get_user_model()
 def log_teaming_info():
     not_ready_teams = Team.get_all_not_ready()
     ready_teams = Team.get_all_ready()
+
+    if not not_ready_teams and not ready_teams:
+        return
 
     title_separator_line = "+" + "=" * 40
     separator_line = "+" + "-" * 40
@@ -168,7 +171,11 @@ def handle_teaming():
                     break
 
             else:
-                team = Team.create([lobby.id])
+                try:
+                    Team.create([lobby.id])
+                except TeamException as exc:
+                    logging.warning(exc)
+                    continue
 
     log_teaming_info()
 

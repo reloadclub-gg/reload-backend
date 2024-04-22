@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Solicitações de amizade passam a expirar se não forem aceitos no prazo de 1 hora (por padrão).
 
+### Fixed
+
+- Ajusta tarefa de queue para não levantar erros quando não foi possível criar um time. O código simplesmente ignora o lobby corrente no loop e passa para o próximo.
+
 ## [d61010f - 2/4/2024]
 
 ### Removed
