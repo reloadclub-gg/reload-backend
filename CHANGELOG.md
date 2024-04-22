@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ajusta seleção do mapa na criação de partida competitiva.
 - Ajusta tarefa de queue para não levantar erros quando não foi possível criar um time. O código simplesmente ignora o lobby corrente no loop e passa para o próximo.
 
 ## [d61010f - 2/4/2024]

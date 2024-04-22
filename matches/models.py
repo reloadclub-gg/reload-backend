@@ -269,11 +269,6 @@ class Match(models.Model):
         """
         return MatchPlayer.objects.filter(team__isnull=True)
 
-    def save(self, *args, **kwargs):
-        if not self.pk and not self.map_id:
-            self.map = Map.objects.filter(is_active=True).order_by("?").first()
-        super().save(*args, **kwargs)
-
     def __str__(self):
         if self.team_a and self.team_b:
             return f"#{self.id} - {self.team_a.name} vs {self.team_b.name}"

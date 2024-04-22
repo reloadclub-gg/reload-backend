@@ -5,20 +5,20 @@ from model_bakery import baker
 from appsettings.models import AppSettings
 from appsettings.services import player_max_losing_level_points
 from core.tests import TestCase
-from matches.models import Match, MatchPlayer, MatchPlayerStats, Server
+from matches.models import Match, MatchPlayer, MatchPlayerStats, Server, Map
 from pre_matches.tests.mixins import TeamsMixin
 
 
 class MatchesServerModelTestCase(TeamsMixin, TestCase):
     def test_server_model(self):
         server = baker.make(Server)
-        matches_limit = AppSettings.objects.get(name='Matches Limit')
-        matches_limit_gap = AppSettings.objects.get(name='Matches Limit Gap')
+        matches_limit = AppSettings.objects.get(name="Matches Limit")
+        matches_limit_gap = AppSettings.objects.get(name="Matches Limit Gap")
 
-        matches_limit.value = '2'
+        matches_limit.value = "2"
         matches_limit.save()
 
-        matches_limit_gap.value = '1'
+        matches_limit_gap.value = "1"
         matches_limit_gap.save()
 
         baker.make(Match, server=server, status=Match.Status.FINISHED)
@@ -38,7 +38,8 @@ class MatchesMatchModelTestCase(TeamsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.server = baker.make(Server)
-        self.match = baker.make(Match, server=self.server)
+        self.map = baker.make(Map, map_type=Map.MapTypeChoices.DEFAULT)
+        self.match = baker.make(Match, server=self.server, map=self.map)
         self.team1 = self.match.matchteam_set.create(name=self.team1.name, side=1)
         self.team2 = self.match.matchteam_set.create(name=self.team2.name, side=2)
 
@@ -120,7 +121,13 @@ class MatchesMatchPlayerModelTestCase(TeamsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.server = baker.make(Server)
-        self.match = baker.make(Match, server=self.server, status=Match.Status.FINISHED)
+        self.map = baker.make(Map, map_type=Map.MapTypeChoices.DEFAULT)
+        self.match = baker.make(
+            Match,
+            server=self.server,
+            status=Match.Status.FINISHED,
+            map=self.map,
+        )
         self.team1 = self.match.matchteam_set.create(
             name=self.team1.name, score=10, side=1
         )
@@ -265,7 +272,8 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.server = baker.make(Server)
-        self.match = baker.make(Match, server=self.server)
+        self.map = baker.make(Map, map_type=Map.MapTypeChoices.DEFAULT)
+        self.match = baker.make(Match, server=self.server, map=self.map)
         self.team1 = self.match.matchteam_set.create(name=self.team1.name, side=1)
         self.team2 = self.match.matchteam_set.create(name=self.team2.name, side=2)
 
@@ -321,7 +329,7 @@ class MatchesMatchPlayerStatsModelTestCase(TeamsMixin, TestCase):
         player.stats.assists = 3
         player.stats.save()
 
-        self.assertEqual(player.stats.frag, '5/1/3')
+        self.assertEqual(player.stats.frag, "5/1/3")
 
     def test_adr(self):
         player = baker.make(MatchPlayer, user=self.user_1, team=self.team1)

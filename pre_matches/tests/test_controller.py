@@ -25,7 +25,7 @@ class PreMatchControllerTestCase(mixins.TeamsMixin, TestCase):
         mock_match_create,
         mock_update_user,
     ):
-        baker.make(Map)
+        baker.make(Map, map_type=Map.MapTypeChoices.DEFAULT)
         pre_match = PreMatch.create(
             self.team1.id,
             self.team2.id,

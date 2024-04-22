@@ -12,7 +12,7 @@ from accounts.websocket import ws_update_status_on_friendlist, ws_update_user
 from core.websocket import ws_create_toast
 from matches.api.controller import cancel_match
 from matches.api.schemas import FivemMatchSchema, FivemResponseMock
-from matches.models import Match, MatchPlayer, Server
+from matches.models import Match, MatchPlayer, Server, Map
 from matches.tasks import (
     mock_fivem_match_cancel,
     mock_fivem_match_start,
@@ -132,8 +132,12 @@ def handle_create_match(pre_match: models.PreMatch) -> Match:
     ):
         cancel_pre_match(pre_match)
         return
-
-    match = Match.objects.create(server=server, game_mode=pre_match.mode)
+    map = (
+        Map.objects.filter(is_active=True, map_type=Map.MapTypeChoices.DEFAULT)
+        .order_by("?")
+        .first()
+    )
+    match = Match.objects.create(server=server, game_mode=pre_match.mode, map=map)
 
     if server.is_almost_full:
         send_server_almost_full_mail.delay(server.name)
